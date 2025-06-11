@@ -1,0 +1,22 @@
+# Commit Format:
+# <type>(scope): <short summary>
+#
+# Example:
+# feat(auth): add JWT-based login and registration
+#
+# Types: feat, fix, refactor, docs, style, test, chore
+
+# ----------------------------
+
+<type>(<scope>): 
+
+# Short summary above (keep under 72 characters)
+#
+# [Optional body]
+# - What was added, changed, or fixed?
+# - Why was it needed?
+# - Any relevant context or links?
+#
+# [Optional footer]
+# - BREAKING CHANGE:
+# - Closes #<issue-number>
