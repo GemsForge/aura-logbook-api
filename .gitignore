@@ -277,7 +277,7 @@ ServiceFabricBackup/
 *.ndf
 
 # SQLite DB
-auralog.db
+**/auralog.db
 
 # Business Intelligence projects
 *.rdl.data
