@@ -5,7 +5,7 @@ namespace AuraLogbook.Api.Services
 {
     public interface IUserService
     {
-        Task<bool> AuthenticateAsync(string email, string password, Func<string, string, bool> verifyPasswordHash);
+        Task<bool> AuthenticateAsync(string email, string password);
         Task ClearAllUsersAsync();
         Task<(bool Success, string Message)> DeleteUserAsync(int id);
         Task<bool> EmailExistsAsync(string email);

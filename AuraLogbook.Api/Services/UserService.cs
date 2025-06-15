@@ -105,12 +105,12 @@ public class UserService : IUserService
     /// <summary>
     /// Authenticates a user by verifying email and password.
     /// </summary>
-    public async Task<bool> AuthenticateAsync(string email, string password, Func<string, string, bool> verifyPasswordHash)
+    public async Task<bool> AuthenticateAsync(string email, string password)
     {
         var user = await _userRepo.GetByEmailAsync(email);
         if (user is null) return false;
 
-        return verifyPasswordHash(password, user.PasswordHash);
+        return PasswordHelper.VerifyPassword(password, user.PasswordHash);
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class UserService : IUserService
         return new User
         {
             Email = request.Email,
-            PasswordHash = request.Password, // Accepting plain password for now
+            PasswordHash = PasswordHelper.HashPassword(request.Password), // Accepting plain password for now
             DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
                 ? request.Email
                 : request.DisplayName,

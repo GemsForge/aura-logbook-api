@@ -35,16 +35,18 @@ public class AuthController : ControllerBase
         return Ok(users);
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest)
-    {
-        var user = await _userService.GetByEmailAsync(authRequest.Email);
-        if (user is null || authRequest.Password != user.PasswordHash) // Add hash check here
-            return Unauthorized("Invalid credentials");
+   [HttpPost("login")]
+public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest)
+{
+    var isValid = await _userService.AuthenticateAsync(authRequest.Email, authRequest.Password);
+    if (!isValid)
+        return Unauthorized("Invalid credentials");
 
-        var token = _jwtService.GenerateToken(user.Id, user.Email);
-        return Ok(new { token });
-    }
+    var user = await _userService.GetByEmailAsync(authRequest.Email);
+    var token = _jwtService.GenerateToken(user!.Id, user.Email);
+    return Ok(new { token });
+}
+
 
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest newUser)
