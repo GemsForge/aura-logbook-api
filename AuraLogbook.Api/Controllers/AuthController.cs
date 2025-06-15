@@ -1,6 +1,9 @@
 ﻿using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace AuraLogbook.Api.Controllers;
 
@@ -9,10 +12,12 @@ namespace AuraLogbook.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly JwtTokenService _jwtService;
 
-    public AuthController(IUserService userService)
+    public AuthController(IUserService userService, JwtTokenService jwtService)
     {
         _userService = userService;
+        _jwtService = jwtService;
     }
 
     [HttpGet("test")]
@@ -22,6 +27,7 @@ public class AuthController : ControllerBase
         return user is null ? NotFound("User not found") : Ok(user);
     }
 
+    [Authorize]
     [HttpGet("all")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -32,8 +38,12 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest)
     {
-        var success = await _userService.AuthenticateAsync(authRequest.Email, authRequest.Password, (pw, hash) => pw == hash); // Temporary comparison
-        return success ? Ok("Authenticated") : Unauthorized("Invalid credentials");
+        var user = await _userService.GetByEmailAsync(authRequest.Email);
+        if (user is null || authRequest.Password != user.PasswordHash) // Add hash check here
+            return Unauthorized("Invalid credentials");
+
+        var token = _jwtService.GenerateToken(user.Id, user.Email);
+        return Ok(new { token });
     }
 
     [HttpPost("register")]
@@ -43,17 +53,21 @@ public class AuthController : ControllerBase
         return result.Success ? Ok(result.Message) : BadRequest(result.Message);
     }
 
+    [Authorize]
     [HttpPut("update")]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest updatedUser)
     {
-        // 🔐 TODO: Extract User ID from JWT once authentication is added
-        if (updatedUser.Id == 0)
-        {
-            return BadRequest("User ID is missing. Cannot update user without a valid identifier.");
-        }
+        if (User.Identity is not { IsAuthenticated: true })
+            return Unauthorized();
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ??
+                          User.FindFirst(JwtRegisteredClaimNames.Sub);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+            return BadRequest("Could not extract user ID from token.");
+
+        updatedUser.Id = userId;
 
         var result = await _userService.UpdateUserAsync(updatedUser);
         return result.Success ? Ok(result.Message) : BadRequest(result.Message);
     }
-
 }
