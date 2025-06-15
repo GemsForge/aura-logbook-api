@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 1,
+    "Email": "admin@example.com",
+    "PasswordHash": "$2a$11$adminadminadminadminadminadmi",
+    "CreatedAt": "2025-06-13T19:00:00Z",
+    "DisplayName": "Admin"
+  },
+  {
+    "Id": 2,
+    "Email": "user1@example.com",
+    "PasswordHash": "$2a$11$user1user1user1user1user1us",
+    "CreatedAt": "2025-06-12T15:30:00Z",
+    "DisplayName": "User One"
+  },
+  {
+    "Id": 3,
+    "Email": "hello@aura.com",
+    "PasswordHash": "$2a$11$auralogauralogauralogaural",
+    "CreatedAt": "2025-06-10T09:00:00Z",
+    "DisplayName": "Aura Bot"
+  },
+  {
+    "Id": 4,
+    "Email": "test@example.org",
+    "PasswordHash": "$2a$11$testingtestingtestingtestin",
+    "CreatedAt": "2025-06-09T22:45:00Z",
+    "DisplayName": "Test Account"
+  },
+  {
+    "Id": 5,
+    "Email": "jane.doe@example.net",
+    "PasswordHash": "$2a$11$janedoejanedoejanedoejanedo",
+    "CreatedAt": "2025-06-08T17:10:00Z",
+    "DisplayName": "Jane Doe"
+  }
+]
