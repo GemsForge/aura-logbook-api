@@ -1,3 +1,4 @@
+using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
 using SQLitePCL;
@@ -10,26 +11,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 
+builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("Storage"));
+
 // Repositories
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddSingleton<DbConnectionFactory>();
-builder.Services.AddSingleton<HealthCheckRepository>();
-builder.Services.AddSingleton<FileUserRepository>();
+builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
 
-
-builder.Services.AddSingleton<DbInitializer>();
-
+// Services
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 app.UseCors(policy =>
     policy.AllowAnyOrigin()
           .AllowAnyMethod()
           .AllowAnyHeader());
-using (var scope = app.Services.CreateScope())
-{
-    var initializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-    await initializer.InitializeAsync();
-}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

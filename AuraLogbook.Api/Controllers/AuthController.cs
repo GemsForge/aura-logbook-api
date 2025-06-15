@@ -1,73 +1,59 @@
-﻿using AuraLogbook.Api.Models;
-using AuraLogbook.Api.Models.Dto;
-using AuraLogbook.Api.Repositories;
-using Microsoft.AspNetCore.Http;
+﻿using AuraLogbook.Api.Models.Dto;
+using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuraLogbook.Api.Controllers
+namespace AuraLogbook.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AuthController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AuthController : ControllerBase
+    private readonly IUserService _userService;
+
+    public AuthController(IUserService userService)
     {
-        private readonly FileUserRepository _users;
-        private readonly UserRepository _userRepository;
-
-        public AuthController(FileUserRepository users, UserRepository userRepository)
-        {
-            _users = users;
-            _userRepository = userRepository;
-        }
-
-        [HttpGet("test")]
-        public async Task<IActionResult> TestConnection()
-        {
-            var testUser = await _users.GetByEmailAsync("admin@example.com");
-            if (testUser is null)
-                return NotFound("User not found");
-
-            return Ok(testUser);
-        }
-
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var users = await _users.GetAllAsync();
-            return Ok(users);
-        }
-
-        [HttpGet("all-database")]
-        public async Task<IActionResult> GetAllDbUsers()
-        {
-            var users = await _userRepository.GetAllAsync();
-            return Ok(users);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetUser(AuthRequest authUser)
-        {
-            var user = await _users.GetByEmailAsync(authUser.Email);
-            return Ok(user);
-        }
-
-
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateNewUser(RegisterUserRequest user)
-        {
-            var existingUser = await _users.GetByEmailAsync(user.Email);
-
-            if (existingUser == null)
-            {
-                var newUser = new User()
-                {
-                    Email = user.Email,
-                    PasswordHash = user.Password
-                };
-                return Ok(newUser);
-            }
-            Console.WriteLine(existingUser.Email);
-            return Ok("User already exists");
-
-        }
+        _userService = userService;
     }
+
+    [HttpGet("test")]
+    public async Task<IActionResult> TestConnection()
+    {
+        var user = await _userService.GetByEmailAsync("admin@example.com");
+        return user is null ? NotFound("User not found") : Ok(user);
+    }
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _userService.GetAllUsersAsync();
+        return Ok(users);
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest)
+    {
+        var success = await _userService.AuthenticateAsync(authRequest.Email, authRequest.Password, (pw, hash) => pw == hash); // Temporary comparison
+        return success ? Ok("Authenticated") : Unauthorized("Invalid credentials");
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest newUser)
+    {
+        var result = await _userService.RegisterAsync(newUser);
+        return result.Success ? Ok(result.Message) : BadRequest(result.Message);
+    }
+
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest updatedUser)
+    {
+        // 🔐 TODO: Extract User ID from JWT once authentication is added
+        if (updatedUser.Id == 0)
+        {
+            return BadRequest("User ID is missing. Cannot update user without a valid identifier.");
+        }
+
+        var result = await _userService.UpdateUserAsync(updatedUser);
+        return result.Success ? Ok(result.Message) : BadRequest(result.Message);
+    }
+
 }
