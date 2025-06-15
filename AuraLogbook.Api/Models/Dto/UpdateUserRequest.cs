@@ -1,10 +1,13 @@
-﻿namespace AuraLogbook.Api.Models.Dto
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AuraLogbook.Api.Models.Dto
 {
-    public class UpdateUserRequest
+    public class UpdateUserRequest : AuthRequest
     {
+        [Required]
         public int Id { get; set; }
-        public string Email { get; set; } = default!;
-        public string? Password { get; set; }
+
+        [MaxLength(30, ErrorMessage = "Display name cannot exceed 30 characters.")]
         public string? DisplayName { get; set; }
     }
 

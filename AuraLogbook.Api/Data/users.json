@@ -33,5 +33,19 @@
     "PasswordHash": "$2a$11$janedoejanedoejanedoejanedo",
     "CreatedAt": "2025-06-08T17:10:00Z",
     "DisplayName": "Jane Doe"
+  },
+  {
+    "Id": 6,
+    "Email": "gems@example.com",
+    "PasswordHash": "p@ssW0rd!!",
+    "CreatedAt": "6/15/2025 1:20:54 AM",
+    "DisplayName": "Gems"
+  },
+  {
+    "Id": 7,
+    "Email": "user@example.com",
+    "PasswordHash": "p@ssw0rd!",
+    "CreatedAt": "6/15/2025 1:23:23 AM",
+    "DisplayName": "user@example.com"
   }
 ]
