@@ -1,15 +1,16 @@
 ﻿using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Repositories.Base;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 /// <summary>
 /// Provides file-based storage and retrieval of user data using JSON.
 /// </summary>
-public class FileUserRepository : IFileUserRepository
+public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
 {
     private readonly string _filePath;
-    public FileUserRepository(IOptions<StorageSettings> options)
+    public FileUserRepository(IOptions<StorageSettings> options) : base(options.Value.UserFilePath)
     {
         _filePath = options.Value.UserFilePath;
     }
@@ -18,15 +19,8 @@ public class FileUserRepository : IFileUserRepository
     /// Retrieves all users from the JSON file.
     /// </summary>
     /// <returns>A list of users. Returns an empty list if the file does not exist.</returns>
-    public async Task<List<User>> GetAllAsync()
-    {
-        if (!File.Exists(_filePath))
-            return new List<User>();
-
-        var json = await File.ReadAllTextAsync(_filePath);
-        return JsonSerializer.Deserialize<List<User>>(json) ?? new();
-    }
-
+    public async Task<List<User>> GetAllAsync() => await ReadFromFileAsync();
+ 
     /// <summary>
     /// Retrieves a user by their email address.
     /// </summary>
@@ -39,7 +33,7 @@ public class FileUserRepository : IFileUserRepository
             return new User();
         }
         var users = await GetAllAsync();
-        return users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+        return users.FirstOrDefault(u => !string.IsNullOrEmpty(u.Email) && u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -52,8 +46,7 @@ public class FileUserRepository : IFileUserRepository
         var users = await GetAllAsync();
         user.Id = users.Count > 0 ? users.Max(u => u.Id) + 1 : 1;
         users.Add(user);
-        var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(_filePath, json);
+        await WriteToFileAsync(users);
         return user.Id;
     }
 
@@ -69,8 +62,7 @@ public class FileUserRepository : IFileUserRepository
         if (index == -1) return false;
 
         users[index] = user;
-        var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(_filePath, json);
+        await WriteToFileAsync(users);
         return true;
     }
 
@@ -86,8 +78,7 @@ public class FileUserRepository : IFileUserRepository
 
         if (removed)
         {
-            var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_filePath, json);
+            await WriteToFileAsync(users);
         }
 
         return removed;
@@ -124,8 +115,6 @@ public class FileUserRepository : IFileUserRepository
     /// </summary>
     public async Task ClearAsync()
     {
-        await File.WriteAllTextAsync(_filePath, "[]");
+        await WriteToFileAsync(new List<User>());
     }
-
-
 }
