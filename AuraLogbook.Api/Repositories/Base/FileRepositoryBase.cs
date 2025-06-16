@@ -25,6 +25,10 @@ namespace AuraLogbook.Api.Repositories.Base
                 return new List<T>();
 
             var json = await File.ReadAllTextAsync(_filePath);
+
+            if (string.IsNullOrWhiteSpace(json))
+                return new List<T>();
+
             return JsonSerializer.Deserialize<List<T>>(json, _jsonOptions) ?? new();
         }
 

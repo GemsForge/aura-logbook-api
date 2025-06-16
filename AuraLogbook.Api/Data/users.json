@@ -50,9 +50,9 @@
   },
   {
     "Id": 8,
-    "Email": "user25@example.com",
-    "PasswordHash": "$2a$11$bsw2FYifP6/2iWmJmnMdEOghbhExOeNBR785q2PIAGfnMHuhNgkKC",
+    "Email": "admin@example.com",
+    "PasswordHash": "string",
     "CreatedAt": "6/15/2025 5:04:07 AM",
-    "DisplayName": "string"
+    "DisplayName": "ADMIN"
   }
 ]
