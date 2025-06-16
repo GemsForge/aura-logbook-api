@@ -125,4 +125,35 @@ public class MoodService : IMoodService
             .GroupBy(e => e.Date)
             .ToDictionary(g => g.Key, g => g.Count());
     }
+
+    /// <summary>
+    /// Returns the count of each mood type for the given user.
+    /// </summary>
+    public async Task<Dictionary<string, int>> GetMoodBreakdownCountAsync(int userId)
+    {
+        var allEntries = await _moodRepo.GetAllByUserAsync(userId);
+
+        return allEntries
+      .SelectMany(e => e.Moods)
+      .GroupBy(m => m.ToString()!)
+      .ToDictionary(g => g.Key, g => g.Count());
+    }
+
+    /// <summary>
+    /// Returns the percentage breakdown of each mood type for the given user.
+    /// </summary>
+    public async Task<Dictionary<string, double>> GetMoodBreakdownPercentageAsync(int userId)
+    {
+        var moodCounts = await GetMoodBreakdownCountAsync(userId);
+        var total = moodCounts.Values.Sum();
+
+        if (total == 0)
+            return new Dictionary<string, double>();
+
+        return moodCounts.ToDictionary(
+            kvp => kvp.Key,
+            kvp => Math.Round((kvp.Value * 100.0) / total, 2)
+        );
+    }
+
 }
