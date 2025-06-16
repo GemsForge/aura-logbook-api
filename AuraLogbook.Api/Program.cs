@@ -5,11 +5,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
 // Add services to the container
-builder.Services.AddControllers(); // Add MVC-style controller support
+builder.Services.AddControllers() // Add MVC-style controller support
+.AddJsonOptions(options =>
+ {
+     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+ });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -65,11 +70,11 @@ builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("St
 
 // Repositories
 builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
-
+builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
 // Services
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IMoodService, MoodService>();
 var app = builder.Build();
 app.UseCors(policy =>
     policy.AllowAnyOrigin()
