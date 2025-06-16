@@ -1,4 +1,6 @@
-﻿using AuraLogbook.Api.Models.Dto;
+﻿using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Dto;
+using AuraLogbook.Api.Models.Enums;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -89,4 +91,29 @@ public class MoodController : ControllerBase
 
         return Ok(breakdown);
     }
+
+#if DEBUG
+    [HttpPost("seed-test-data")]
+    public async Task<IActionResult> SeedMoodData([FromQuery] int days = 30)
+    {
+        var userId = GetUserIdFromToken();
+        var rand = new Random();
+        var moodTypes = Enum.GetValues(typeof(MoodType)).Cast<MoodType>().ToList();
+
+        for (int i = 0; i < days; i++)
+        {
+            var entry = new MoodEntryRequest
+            {
+                Date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-i)),
+                Moods = moodTypes.OrderBy(_ => rand.Next()).Take(rand.Next(1, 4)).ToList(),
+                Comment = "Seeded entry"
+            };
+
+            await _moodService.CreateMoodAsync(userId, entry);
+        }
+
+        return Ok($"Seeded {days} days of mood data for user {userId}.");
+    }
+#endif
+
 }
