@@ -59,7 +59,6 @@ public class MoodController : ControllerBase
         return result.Success ? Ok(result.Message) : NotFound(result.Message);
     }
 
-    [Authorize]
     [HttpGet("dashboard/summary")]
     public async Task<IActionResult> GetDashboardSummary()
     {
@@ -67,5 +66,17 @@ public class MoodController : ControllerBase
         var summary = await _moodService.GetDashboardSummaryAsync(userId);
         return Ok(summary);
     }
+
+    [HttpGet("dashboard/moods-by-date")]
+    public async Task<IActionResult> GetMoodsByDate([FromQuery] string range = "7d")
+    {
+        var userId = GetUserIdFromToken();
+        if (!int.TryParse(range.TrimEnd('d', 'D'), out var days))
+            return BadRequest("Invalid range format. Use values like 7d, 30d, etc.");
+
+        var result = await _moodService.GetMoodsByDateRangeAsync(userId, days);
+        return Ok(result);
+    }
+
 
 }

@@ -109,6 +109,20 @@ public class MoodService : IMoodService
         return orderedDates.First() == today ? streak : 0;
     }
 
+    /// <summary>
+    /// Retrieves mood counts per day for a specified date range.
+    /// </summary>
+    /// <param name="userId">The authenticated user's ID.</param>
+    /// <param name="range">The number of days to look back (e.g., 7, 30).</param>
+    /// <returns>A dictionary mapping dates to the number of mood entries.</returns>
+    public async Task<Dictionary<DateOnly, int>> GetMoodsByDateRangeAsync(int userId, int range)
+    {
+        var allEntries = await _moodRepo.GetAllByUserAsync(userId);
+        var startDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(-range + 1));
 
-
+        return allEntries
+            .Where(e => e.Date >= startDate)
+            .GroupBy(e => e.Date)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
 }

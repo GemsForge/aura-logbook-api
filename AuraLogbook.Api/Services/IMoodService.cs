@@ -9,5 +9,6 @@ namespace AuraLogbook.Api.Services
         Task<(bool Success, string Message)> DeleteMoodAsync(int userId, int moodId);
         Task<List<MoodEntry>> GetEntriesForUserAsync(int userId);
         Task<MoodDashboardSummary> GetDashboardSummaryAsync(int userId);
+        Task<Dictionary<DateOnly, int>> GetMoodsByDateRangeAsync(int userId, int range);
     }
 }
