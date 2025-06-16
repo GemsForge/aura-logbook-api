@@ -3,5 +3,6 @@
     public class StorageSettings
     {
         public string UserFilePath { get; set; } = string.Empty;
+        public string MoodFilePath { get; set; } = string.Empty;
     }
 }

@@ -1,0 +1,12 @@
+﻿using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Dto;
+
+namespace AuraLogbook.Api.Services
+{
+    public interface IMoodService
+    {
+        Task<(bool Success, string Message)> CreateMoodAsync(int userId, MoodEntryRequest dto);
+        Task<(bool Success, string Message)> DeleteMoodAsync(int userId, int moodId);
+        Task<List<MoodEntry>> GetEntriesForUserAsync(int userId);
+    }
+}
