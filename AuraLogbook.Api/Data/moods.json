@@ -29,5 +29,341 @@
     ],
     "Comment": "C O N T R A D I C T I O N S",
     "CreatedAt": "2025-06-16T04:12:07.4578702Z"
+  },
+  {
+    "Id": 4,
+    "UserId": 9,
+    "Date": "2025-06-16",
+    "Moods": [
+      2,
+      9
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.6513271Z"
+  },
+  {
+    "Id": 5,
+    "UserId": 9,
+    "Date": "2025-06-15",
+    "Moods": [
+      1,
+      8,
+      14
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7001727Z"
+  },
+  {
+    "Id": 6,
+    "UserId": 9,
+    "Date": "2025-06-14",
+    "Moods": [
+      12,
+      5,
+      11
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.709313Z"
+  },
+  {
+    "Id": 7,
+    "UserId": 9,
+    "Date": "2025-06-13",
+    "Moods": [
+      6,
+      8
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7126743Z"
+  },
+  {
+    "Id": 8,
+    "UserId": 9,
+    "Date": "2025-06-12",
+    "Moods": [
+      14,
+      1,
+      7
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7180298Z"
+  },
+  {
+    "Id": 9,
+    "UserId": 9,
+    "Date": "2025-06-11",
+    "Moods": [
+      6,
+      7,
+      4
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7340253Z"
+  },
+  {
+    "Id": 10,
+    "UserId": 9,
+    "Date": "2025-06-10",
+    "Moods": [
+      12,
+      10,
+      4
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7379133Z"
+  },
+  {
+    "Id": 11,
+    "UserId": 9,
+    "Date": "2025-06-09",
+    "Moods": [
+      3,
+      8,
+      1
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7419709Z"
+  },
+  {
+    "Id": 12,
+    "UserId": 9,
+    "Date": "2025-06-08",
+    "Moods": [
+      6
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7491886Z"
+  },
+  {
+    "Id": 13,
+    "UserId": 9,
+    "Date": "2025-06-07",
+    "Moods": [
+      11
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7533113Z"
+  },
+  {
+    "Id": 14,
+    "UserId": 9,
+    "Date": "2025-06-06",
+    "Moods": [
+      14,
+      7
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7581691Z"
+  },
+  {
+    "Id": 15,
+    "UserId": 9,
+    "Date": "2025-06-05",
+    "Moods": [
+      1,
+      14,
+      9
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7617186Z"
+  },
+  {
+    "Id": 16,
+    "UserId": 9,
+    "Date": "2025-06-04",
+    "Moods": [
+      7
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7665163Z"
+  },
+  {
+    "Id": 17,
+    "UserId": 9,
+    "Date": "2025-06-03",
+    "Moods": [
+      1,
+      3,
+      6
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7718251Z"
+  },
+  {
+    "Id": 18,
+    "UserId": 9,
+    "Date": "2025-06-02",
+    "Moods": [
+      7
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7761445Z"
+  },
+  {
+    "Id": 19,
+    "UserId": 9,
+    "Date": "2025-06-01",
+    "Moods": [
+      0
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7803535Z"
+  },
+  {
+    "Id": 20,
+    "UserId": 9,
+    "Date": "2025-05-31",
+    "Moods": [
+      3,
+      4,
+      9
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7839733Z"
+  },
+  {
+    "Id": 21,
+    "UserId": 9,
+    "Date": "2025-05-30",
+    "Moods": [
+      3,
+      8
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7907309Z"
+  },
+  {
+    "Id": 22,
+    "UserId": 9,
+    "Date": "2025-05-29",
+    "Moods": [
+      14
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7948687Z"
+  },
+  {
+    "Id": 23,
+    "UserId": 9,
+    "Date": "2025-05-28",
+    "Moods": [
+      10,
+      2
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.7988166Z"
+  },
+  {
+    "Id": 24,
+    "UserId": 9,
+    "Date": "2025-05-27",
+    "Moods": [
+      6,
+      4,
+      9
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8041685Z"
+  },
+  {
+    "Id": 25,
+    "UserId": 9,
+    "Date": "2025-05-26",
+    "Moods": [
+      11,
+      14
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.810466Z"
+  },
+  {
+    "Id": 26,
+    "UserId": 9,
+    "Date": "2025-05-25",
+    "Moods": [
+      9,
+      4
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8166296Z"
+  },
+  {
+    "Id": 27,
+    "UserId": 9,
+    "Date": "2025-05-24",
+    "Moods": [
+      9,
+      11
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8214592Z"
+  },
+  {
+    "Id": 28,
+    "UserId": 9,
+    "Date": "2025-05-23",
+    "Moods": [
+      2,
+      8,
+      11
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8254783Z"
+  },
+  {
+    "Id": 29,
+    "UserId": 9,
+    "Date": "2025-05-22",
+    "Moods": [
+      3,
+      1,
+      9
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8297367Z"
+  },
+  {
+    "Id": 30,
+    "UserId": 9,
+    "Date": "2025-05-21",
+    "Moods": [
+      2,
+      6
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8339075Z"
+  },
+  {
+    "Id": 31,
+    "UserId": 9,
+    "Date": "2025-05-20",
+    "Moods": [
+      6,
+      9,
+      11
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8382985Z"
+  },
+  {
+    "Id": 32,
+    "UserId": 9,
+    "Date": "2025-05-19",
+    "Moods": [
+      6,
+      13
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8457443Z"
+  },
+  {
+    "Id": 33,
+    "UserId": 9,
+    "Date": "2025-05-18",
+    "Moods": [
+      0
+    ],
+    "Comment": "Seeded entry",
+    "CreatedAt": "2025-06-16T05:49:15.8496683Z"
   }
 ]
