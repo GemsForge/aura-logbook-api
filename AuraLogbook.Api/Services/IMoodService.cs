@@ -10,7 +10,7 @@ namespace AuraLogbook.Api.Services
         Task<List<MoodEntry>> GetEntriesForUserAsync(int userId);
         Task<MoodDashboardSummary> GetDashboardSummaryAsync(int userId);
         Task<Dictionary<DateOnly, int>> GetMoodsByDateRangeAsync(int userId, int range);
-        Task<Dictionary<string, int>> GetMoodBreakdownCountAsync(int userId);
-        Task<Dictionary<string, double>> GetMoodBreakdownPercentageAsync(int userId);
+        Task<List<MoodFrequencyResponse>> GetMoodBreakdownCountAsync(int userId);
+        Task<List<MoodFrequencyResponse>> GetMoodBreakdownPercentageAsync(int userId);
     }
 }
