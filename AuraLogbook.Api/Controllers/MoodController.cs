@@ -1,5 +1,4 @@
-﻿using AuraLogbook.Api.Models;
-using AuraLogbook.Api.Models.Dto;
+﻿using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Models.Enums;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -28,10 +27,10 @@ public class MoodController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetUserMoods()
+    public async Task<IActionResult> GetUserMoods([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
         var userId = GetUserIdFromToken();
-        var moods = await _moodService.GetEntriesForUserAsync(userId);
+        var moods = await _moodService.GetAllByUserAsync(userId, startDate, endDate);
         return Ok(moods);
     }
 
@@ -91,6 +90,7 @@ public class MoodController : ControllerBase
 
         return Ok(breakdown);
     }
+
 
 #if DEBUG
     [HttpPost("seed-test-data")]
