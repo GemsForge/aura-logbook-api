@@ -129,31 +129,39 @@ public class MoodService : IMoodService
     /// <summary>
     /// Returns the count of each mood type for the given user.
     /// </summary>
-    public async Task<Dictionary<string, int>> GetMoodBreakdownCountAsync(int userId)
+    public async Task<List<MoodFrequencyResponse>> GetMoodBreakdownCountAsync(int userId)
     {
         var allEntries = await _moodRepo.GetAllByUserAsync(userId);
 
         return allEntries
-      .SelectMany(e => e.Moods)
-      .GroupBy(m => m.ToString()!)
-      .ToDictionary(g => g.Key, g => g.Count());
+       .SelectMany(m => m.Moods)
+        .GroupBy(m => m)
+        .Select(g => new MoodFrequencyResponse
+        {
+            Mood = g.Key,
+            Count = g.Count()
+        })
+        .ToList();
     }
 
     /// <summary>
     /// Returns the percentage breakdown of each mood type for the given user.
     /// </summary>
-    public async Task<Dictionary<string, double>> GetMoodBreakdownPercentageAsync(int userId)
+    public async Task<List<MoodFrequencyResponse>> GetMoodBreakdownPercentageAsync(int userId)
     {
-        var moodCounts = await GetMoodBreakdownCountAsync(userId);
-        var total = moodCounts.Values.Sum();
+        var moods = await _moodRepo.GetAllByUserAsync(userId);
+        var flat = moods.SelectMany(m => m.Moods).ToList();
 
-        if (total == 0)
-            return new Dictionary<string, double>();
+        int total = flat.Count;
+        if (total == 0) return new();
 
-        return moodCounts.ToDictionary(
-            kvp => kvp.Key,
-            kvp => Math.Round((kvp.Value * 100.0) / total, 2)
-        );
+        return flat
+            .GroupBy(m => m)
+            .Select(g => new MoodFrequencyResponse
+            {
+                Mood = g.Key,
+                Percent = Math.Round((double)g.Count() / total * 100, 2)
+            })
+            .ToList();
     }
-
 }
