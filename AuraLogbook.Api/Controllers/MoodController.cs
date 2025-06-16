@@ -78,5 +78,25 @@ public class MoodController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("dashboard/mood-breakdown")]
+    public async Task<IActionResult> GetMoodBreakdown([FromQuery] bool percent = false)
+    {
+        var userId = GetUserIdFromToken();
+        Dictionary<string, object> result;
+
+        if (percent)
+        {
+            var data = await _moodService.GetMoodBreakdownPercentageAsync(userId);
+            result = data.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
+        }
+        else
+        {
+            var data = await _moodService.GetMoodBreakdownCountAsync(userId);
+            result = data.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
+        }
+
+        return Ok(result);
+    }
+
 
 }
