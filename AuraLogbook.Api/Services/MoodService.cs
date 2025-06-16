@@ -164,4 +164,24 @@ public class MoodService : IMoodService
             })
             .ToList();
     }
+
+    public async Task<List<MoodEntry>> GetAllByUserAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var allMoods = await _moodRepo.GetAllByUserAsync(userId);
+
+        if (startDate.HasValue)
+        {
+            var start = DateOnly.FromDateTime(startDate.Value);
+            allMoods = allMoods.Where(m => m.Date >= start).ToList();
+        }
+
+        if (endDate.HasValue)
+        {
+            var end = DateOnly.FromDateTime(endDate.Value);
+            allMoods = allMoods.Where(m => m.Date <= end).ToList();
+        }
+
+        return allMoods;
+    }
+
 }
