@@ -18,5 +18,16 @@
     ],
     "Comment": "string",
     "CreatedAt": "2025-06-16T01:49:08.2829347Z"
+  },
+  {
+    "Id": 3,
+    "UserId": 9,
+    "Date": "2025-06-16",
+    "Moods": [
+      0,
+      14
+    ],
+    "Comment": "C O N T R A D I C T I O N S",
+    "CreatedAt": "2025-06-16T04:12:07.4578702Z"
   }
 ]

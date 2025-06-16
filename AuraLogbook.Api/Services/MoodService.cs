@@ -52,4 +52,63 @@ public class MoodService : IMoodService
         var result = await _moodRepo.DeleteAsync(moodId);
         return result ? (true, "Mood entry deleted.") : (false, "Failed to delete mood.");
     }
+
+    /// <summary>
+    /// Returns a dashboard summary with mood statistics for the authenticated user.
+    /// </summary>
+    public async Task<MoodDashboardSummary> GetDashboardSummaryAsync(int userId)
+    {
+        var moods = await _moodRepo.GetAllByUserAsync(userId);
+        if (!moods.Any())
+            return new MoodDashboardSummary(); // returns default/empty stats
+
+        var mostFrequent = moods
+            .SelectMany(m => m.Moods)
+            .GroupBy(m => m)
+            .OrderByDescending(g => g.Count())
+            .FirstOrDefault()?.Key;
+
+        var streak = CalculateStreak(moods);
+        var lastLogged = moods.OrderByDescending(m => m.Date).FirstOrDefault()?.Date;
+
+        return new MoodDashboardSummary
+        {
+            TotalEntries = moods.Count,
+            MostFrequentMood = mostFrequent,
+            CurrentStreak = streak,
+            LastEntryDate = lastLogged
+        };
+    }
+
+    /// <summary>
+    /// Calculates the current mood streak based on consecutive days with entries.
+    /// </summary>
+    private int CalculateStreak(List<MoodEntry> entries)
+    {
+        var orderedDates = entries
+            .Select(e => e.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+
+        if (!orderedDates.Any())
+            return 0;
+
+        int streak = 1;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+
+        for (int i = 1; i < orderedDates.Count; i++)
+        {
+            if (orderedDates[i - 1].DayNumber - orderedDates[i].DayNumber == 1)
+                streak++;
+            else
+                break;
+        }
+
+        return orderedDates.First() == today ? streak : 0;
+    }
+
+
+
 }
