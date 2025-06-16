@@ -54,5 +54,12 @@
     "PasswordHash": "string",
     "CreatedAt": "6/15/2025 5:04:07 AM",
     "DisplayName": "ADMIN"
+  },
+  {
+    "Id": 9,
+    "Email": "user26@example.com",
+    "PasswordHash": "$2a$11$Aqyxm4tMhOXg3UZE1InANefWoWge2SNQbVr7yZn0XPo7CTXO/dE0.",
+    "CreatedAt": "6/16/2025 4:10:45 AM",
+    "DisplayName": "TEST USER"
   }
 ]

@@ -58,4 +58,14 @@ public class MoodController : ControllerBase
         var result = await _moodService.DeleteMoodAsync(userId, id);
         return result.Success ? Ok(result.Message) : NotFound(result.Message);
     }
+
+    [Authorize]
+    [HttpGet("dashboard/summary")]
+    public async Task<IActionResult> GetDashboardSummary()
+    {
+        var userId = GetUserIdFromToken();
+        var summary = await _moodService.GetDashboardSummaryAsync(userId);
+        return Ok(summary);
+    }
+
 }
