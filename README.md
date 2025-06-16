@@ -1,89 +1,101 @@
-# 🌈 AuraLog API
+# AuraLogbook
 
-**AuraLog** is a privacy-first mood tracking API built with simplicity, self-reflection, and scalability in mind. Developed by [GemsForge](https://github.com/GemsForge), the API allows users to log daily emotional states and review patterns over time.
-
+A personal mood tracking application built with a **.NET Core Web API** backend and a **React + MUI** frontend.  
+Users can log moods, track patterns, and visualize emotional trends over time.
 ---
 
-## 🔧 Tech Stack
+## 📦 Project Structure
 
-- **.NET Core Web API** – backend framework
-- **SQLite** – lightweight embedded database
-- **Dapper** – minimal ORM for fast data access
-- **JWT** – stateless authentication
-- **React (coming soon)** – frontend interface
-
+AuraLogbook/
+├── AuraLogbook.Api/ # .NET Core Web API (C#)
+├── aura-ui/ # React frontend (Vite + MUI)
+└── AuraLogbook.sln # Solution file
 ---
 
-## 📦 Features
+## 🔧 Prerequisites
 
-- ✅ User registration and JWT-based login
-- ✅ Create, update, and delete daily mood entries
-- ✅ Secure endpoints scoped to individual users
-- ✅ Summary dashboard endpoint (in progress)
-- ✅ Commit policy and project board enabled
-
----
-
-## 🗂 Project Structure
-```
-AuraLogbook.sln
-│
-├── AuraLogbook.Api/
-│ ├── Controllers/
-│ ├── Models/
-│ ├── Repositories/
-│ ├── Services/
-│ ├── Middleware/
-│ └── Program.cs
-│
-└── .github/
-└── commit_template.txt
-```
+- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
+- [Node.js + npm](https://nodejs.org/)
+- [Visual Studio 2022+](https://visualstudio.microsoft.com/) (or VS Code)
+- (Optional) SQLite browser like **DB Browser for SQLite**
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone the repository
+### Backend – AuraLogbook.Api
 
 ```bash
-git clone https://github.com/GemsForge/aura-logbook-api.git
-cd aura-logbook-api
-```
-### 2.  Build & run the project
-```
 cd AuraLogbook.Api
+```
+
+# Restore packages
+```
 dotnet restore
+```
+
+# Run the API
+```
 dotnet run
 ```
+Swagger is enabled at: https://localhost:{port}/swagger
 
-### 3.  Configure the SQLite connection
+Uses file-based JSON storage for Users & MoodEntries (configurable in appsettings.json)
+---
+
+### Frontend – aura-ui (React + MUI)
+bash
+Copy code
+cd aura-ui
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+* Accessible at: http://localhost:5173 (Vite default)
+* Uses Material UI (MUI) for styled components
+* Axios is preconfigured with a base API URL for backend integration
+---
+# ✨ Features
+* 🔐 User authentication with JWT
+* 📊 Mood tracking (log, edit, delete)
+* 📈 Mood summaries and breakdowns
+* 📆 Filter moods by date range
+* 📦 JSON-based data storage (simple local persistence for development)
+---
+
+# 📁 Environment Configuration
+.env for React (aura-ui/.env)
+```env
+VITE_API_BASE_URL=https://localhost:5001/api
+```
+appsettings.json for API (AuraLogbook.Api/appsettings.json)
 ```json
-Configure the SQLite connection
+"Jwt": {
+  "Key": "your_super_secret_key",
+  "Issuer": "AuraLogbook",
+  "Audience": "AuraLogbookUsers"
+},
+"Storage": {
+  "UserFilePath": "Data/users.json",
+  "MoodFilePath": "Data/moods.json"
+}
 ```
+---
 
-# Authentication
-AuraLog uses JWT (Bearer tokens) for authentication. After login, pass the token in headers:
-```
-Authorization: Bearer <your_token_here>
-```
+# 💻 Development Tools
+* Swagger for API testing
+* Dummy mood seeder available for generating test data
+* Environment-aware JWT authentication
+* Role-based auth-ready foundation
 ---
-# 🧪 Commit Policy
-The commit policy is enforced by the `.github/commit_template.txt`:
-```
-<type>(scope): <short summary>
 
-feat(auth): add JWT-based login
-```
+# 📌 Milestones
+* ✅ v0.1 - MVP API complete
+* 🧠 v0.2 - Mood dashboard analytics
+* 🎨 v0.3 - Frontend UI with login, mood entry, summaries
 ---
-#  🛣️ Roadmap
-- [ ] MVP API with auth and moods
-- [ ] Dashboard summary endpoint
-- [ ] Frontedn React UI
-- [ ] Data export options
-- [ ] API documentation
----
-# License
-This project is licensed under the MIT License.
----
-Built by GemsForge • Forging Simplicity from Complexity 💎
----
+# 📃 License
+MIT License – Feel free to fork, use, or contribute!
+
+
