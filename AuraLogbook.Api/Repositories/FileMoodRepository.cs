@@ -14,7 +14,7 @@ public class FileMoodRepository : FileRepositoryBase<MoodEntry>, IFileMoodReposi
 
 
     /// <summary>
-    /// Retrieves all mood entries for a specific user.
+    /// Retrieves all mood entries for a specific user.Descending date order.
     /// </summary>
     public async Task<List<MoodEntry>> GetAllByUserAsync(int userId)
     {
