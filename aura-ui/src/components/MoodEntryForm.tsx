@@ -1,46 +1,25 @@
 import {
   Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  TextField,
-  Typography,
+   Typography,
   Snackbar,
 } from "@mui/material";
 import { useState } from "react";
-import { DatePicker } from "@mui/x-date-pickers";
-import dayjs, { Dayjs } from "dayjs";
 import { MoodApi } from "../api/MoodApi";
-import { MoodTypes, type MoodType } from "../features/mood/models/MoodType";
-
-
-const ALL_MOODS =MoodTypes;
+import type {MoodType } from "../features/mood/models/MoodType";
+import MoodEntryFormFields from "./MoodEntryFormFields";
 
 export default function MoodEntryForm() {
-  const [date, setDate] = useState<Dayjs>(dayjs());
-  const [moods, setMoods] = useState<MoodType[]>([]);
-  const [comment, setComment] = useState("");
-  const [openToast, setOpenToast] = useState(false);
+ const [openToast, setOpenToast] = useState(false);
 
-  const handleMoodChange = (mood: MoodType) => {
-    setMoods((prev) =>
-      prev.includes(mood) ? prev.filter((m) => m !== mood) : [...prev, mood]
-    );
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: {
+    date: string;
+    moods: MoodType[];
+    comment?: string;
+  }) => {
 
     try {
-      await MoodApi.logMood({
-        date: date.format("YYYY-MM-DD"),
-        moods,
-        comment: comment.trim() || undefined,
-      });
+      await MoodApi.logMood(data);
       setOpenToast(true);
-      setMoods([]);
-      setComment("");
     } catch (err) {
       console.error("Failed to log mood", err);
     }
@@ -52,46 +31,9 @@ export default function MoodEntryForm() {
         Log Your Mood
       </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <DatePicker
-          label="Date"
-          value={date}
-          onChange={(newDate) => newDate && setDate(newDate)}
-          format="YYYY-MM-DD"
-        />
-
-        <Typography mt={2}>How are you feeling?</Typography>
-        <FormGroup>
-          <Box display="flex" flexWrap="wrap">
-            {ALL_MOODS.map((mood: MoodType) => (
-              <Box key={mood} width="50%">
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={moods.includes(mood)}
-                      onChange={() => handleMoodChange(mood)}
-                    />
-                  }
-                  label={mood}
-                />
-              </Box>
-            ))}
-          </Box>
-        </FormGroup>
-        <TextField
-          fullWidth
-          multiline
-          rows={3}
-          label="Comment (optional)"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          margin="normal"
-        />
-
-        <Button type="submit" variant="contained" sx={{ mt: 2 }}>
-          Submit Entry
-        </Button>
-      </form>
+      <MoodEntryFormFields
+        onSubmit={handleSubmit}
+      />
 
       <Snackbar
         open={openToast}

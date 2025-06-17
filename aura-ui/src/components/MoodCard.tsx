@@ -1,15 +1,41 @@
-import { Card, CardContent, Typography, Stack } from "@mui/material";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import {
+    Box,
+    Card,
+    CardContent,
+    IconButton,
+    Stack,
+    Typography,
+} from "@mui/material";
 import { MoodTag } from "./MoodTag";
-import dayjs from "dayjs";
+import type { MoodEntry } from "../features/mood/models/MoodEntry";
 
-export function MoodCard({ entry }: { entry: MoodEntry }) {
+export function MoodCard({
+  entry,
+  onEdit,
+  onDelete,
+}: {
+  entry: MoodEntry;
+  onEdit: (entry: MoodEntry) => void;
+  onDelete: (entry: MoodEntry) => void;
+}) {
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
-        <Typography variant="subtitle2" color="textSecondary">
-          {dayjs(entry.date).format("MMMM D, YYYY")}
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="subtitle2" color="textSecondary">
+            {entry.date}
+          </Typography>
+          <Box>
+            <IconButton size="small" onClick={() => onEdit(entry)}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={() => onDelete(entry)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
 
         <Stack direction="row" flexWrap="wrap" mt={1}>
           {entry.moods.map((mood) => (
