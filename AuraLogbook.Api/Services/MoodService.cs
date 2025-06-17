@@ -52,6 +52,22 @@ public class MoodService : IMoodService
         var result = await _moodRepo.DeleteAsync(moodId);
         return result ? (true, "Mood entry deleted.") : (false, "Failed to delete mood.");
     }
+    /// <summary>
+    /// Updates a mood entry by ID, verifying user ownership.
+    /// </summary>
+    public async Task<(bool Success, string Message)> UpdateMoodAsync(int userId, int moodId, MoodEntryRequest dto)
+    {
+        var existing = await _moodRepo.GetByIdAsync(moodId);
+        if (existing == null || existing.UserId != userId)
+            return (false, "Mood entry not found or access denied.");
+
+        existing.Date = dto.Date;
+        existing.Moods = dto.Moods;
+        existing.Comment = dto.Comment;
+
+        var result = await _moodRepo.UpdateAsync(existing);
+        return result ? (true, "Mood entry updated.") : (false, "Failed to update mood.");
+    }
 
     /// <summary>
     /// Returns a dashboard summary with mood statistics for the authenticated user.

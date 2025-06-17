@@ -37,8 +37,18 @@ export const MoodApi = {
   /**
    * Delete a mood entry by ID.
    */
-  deleteById: async (id: number): Promise<string> => {
+  deleteMood: async (id: number): Promise<string> => {
     const res = await api.delete(`${API_BASE}/${id}`);
+    return res.data;
+  },
+
+  /**
+   * 
+   * Update a mood entry
+   */
+  updateMood: async(id: number, payload: MoodEntryRequest):
+  Promise<string> => {
+    const res = await api.put(`${API_BASE}/${id}`,payload )
     return res.data;
   },
 

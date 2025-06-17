@@ -48,6 +48,21 @@ public class FileMoodRepository : FileRepositoryBase<MoodEntry>, IFileMoodReposi
             await WriteToFileAsync(entries);
         return removed;
     }
+    /// <summary>
+    /// Updates an existing mood entry by ID.
+    /// </summary>
+    public async Task<bool> UpdateAsync(MoodEntry updatedEntry)
+    {
+        var entries = await LoadAllAsync();
+        var index = entries.FindIndex(e => e.Id == updatedEntry.Id);
+
+        if (index == -1)
+            return false;
+
+        entries[index] = updatedEntry;
+        await WriteToFileAsync(entries);
+        return true;
+    }
 
     /// <summary>
     /// Retrieves a mood entry by ID.
