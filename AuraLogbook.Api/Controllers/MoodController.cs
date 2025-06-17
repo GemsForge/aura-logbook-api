@@ -60,6 +60,15 @@ public class MoodController : ControllerBase
         return result.Success ? Ok(result.Message) : NotFound(result.Message);
     }
 
+    // UPDATE: Update mood entry
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateMood(int id, [FromBody] MoodEntryRequest moodRequest)
+    {
+        var userId = GetUserIdFromToken();
+        var result = await _moodService.UpdateMoodAsync(userId, id, moodRequest);
+        return result.Success ? Ok(result.Message) : BadRequest(result.Message);
+    }
+
     [HttpGet("dashboard/summary")]
     public async Task<IActionResult> GetDashboardSummary()
     {

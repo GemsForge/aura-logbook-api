@@ -365,5 +365,27 @@
     ],
     "Comment": "Seeded entry",
     "CreatedAt": "2025-06-16T05:49:15.8496683Z"
+  },
+  {
+    "Id": 34,
+    "UserId": 9,
+    "Date": "2025-06-17",
+    "Moods": [
+      14
+    ],
+    "Comment": "I just want to code today...",
+    "CreatedAt": "2025-06-17T19:55:29.6176143Z"
+  },
+  {
+    "Id": 35,
+    "UserId": 10,
+    "Date": "2025-06-17",
+    "Moods": [
+      14,
+      7,
+      3
+    ],
+    "Comment": "Just trying to create.",
+    "CreatedAt": "2025-06-17T21:08:35.7188906Z"
   }
 ]
