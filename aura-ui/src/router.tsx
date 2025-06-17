@@ -5,7 +5,7 @@ import { LoginForm } from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RegisterForm from "./pages/Register";
-import MoodHistory from "./components/MoodHistory";
+import MoodHistory from "./components/history/MoodHistory";
 import MoodEntryForm from "./components/MoodEntryForm";
 
 export const router = createBrowserRouter([
