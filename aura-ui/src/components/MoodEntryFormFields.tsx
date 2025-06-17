@@ -12,6 +12,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
 import { MoodTypes, type MoodType } from "../features/mood/models/MoodType";
 import type { MoodEntry } from "../features/mood/models/MoodEntry";
+import { MoodIcons } from "../features/mood/models/MoodIcons";
 
 
 interface Props {
@@ -64,7 +65,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
                     onChange={() => handleMoodChange(mood)}
                   />
                 }
-                label={mood}
+                label={`${MoodIcons[mood]} ${mood}`}
               />
             </Box>
           ))}
