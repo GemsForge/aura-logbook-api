@@ -15,6 +15,9 @@ const Sidebar = () => (
       <ListItem component={Link} to="/dashboard">
         <ListItemText primary="Dashboard" />
       </ListItem>
+      <ListItem component={Link} to="/log-mood">
+        <ListItemText primary="Log Mood" />
+      </ListItem>
       {/* Add more links here */}
     </List>
   </Drawer>

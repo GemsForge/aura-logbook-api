@@ -5,6 +5,7 @@ import { LoginForm } from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RegisterForm from "./pages/Register";
+import MoodEntryForm from "./components/MoodEntryForm";
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />, // 👈 Layout wraps protected content
         children: [
           { path: "dashboard", element: <Dashboard /> },
+          { path: "log-mood", element: <MoodEntryForm/>}
           // Add more protected routes here
         ],
       },
