@@ -6,13 +6,14 @@ import {
   Typography,
   Paper,
   CircularProgress,
+  Link,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../store/slices/authSlice";
 import { AuthApi } from "../api/AuthApi";
 
-const Login = () => {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -86,9 +87,15 @@ const Login = () => {
             {loading ? <CircularProgress size={24} /> : "Login"}
           </Button>
         </form>
+        <Typography variant="body2" mt={2}>
+          Don't have an account?{" "}
+          <Link href="/register" underline="hover">
+            Sign up
+          </Link>
+        </Typography>
       </Paper>
     </Box>
   );
 };
 
-export default Login;
+export default LoginForm;
