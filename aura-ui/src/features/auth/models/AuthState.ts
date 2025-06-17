@@ -1,4 +1,5 @@
-import type { UserProfile } from "./UserProfile";
+import type { UserProfile } from ".";
+
 
 export interface AuthState {
     isAuthenticated: boolean;
