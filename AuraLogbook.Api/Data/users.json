@@ -61,5 +61,12 @@
     "PasswordHash": "$2a$11$Aqyxm4tMhOXg3UZE1InANefWoWge2SNQbVr7yZn0XPo7CTXO/dE0.",
     "CreatedAt": "6/16/2025 4:10:45 AM",
     "DisplayName": "TEST USER"
+  },
+  {
+    "Id": 10,
+    "Email": "gem.social2023@gmail.com",
+    "PasswordHash": "$2a$11$lyq6Y.I3Nd5z0oJaoCSZMej5g6FyZ2Of4SbeuP7/GgNgL2ccPbYIu",
+    "CreatedAt": "6/17/2025 6:07:42 PM",
+    "DisplayName": "gem.social2023@gmail.com"
   }
 ]
