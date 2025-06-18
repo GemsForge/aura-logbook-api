@@ -6,6 +6,8 @@ import MoodStatCard from "../components/dashboard/MoodStatCard";
 import { AuthApi } from "../api/AuthApi";
 import { MoodIcons } from "../features/mood/models/MoodIcons";
 import type { MoodType } from "../features/mood/models/MoodType";
+import type { MoodFrequencyResponse } from "../features/mood/models/MoodAuth";
+import MoodPieChart from "../components/dashboard/MoodPieChart";
 
 function Dashboard () {
   const [summary, setSummary] = useState<{
@@ -20,13 +22,16 @@ function Dashboard () {
     lastEntryDate:'',
   });
   const [displayName, setDisplayName] = useState<string>("");
+  const [moodBreakdown, setMoodBreakdown] = useState<MoodFrequencyResponse[]>([]);
 
   useEffect(() => {
     (async () => {
       const result = await MoodApi.getDashboardSummary();
       const profile = await AuthApi.getCurrentUser();
+      const data = await MoodApi.getMoodBreakdown(true);
       setDisplayName(profile.displayName);
       setSummary(result);
+      setMoodBreakdown(data);
     })();
   }, []);
 
@@ -69,6 +74,15 @@ function Dashboard () {
           />
         </Grid>
       </Grid>
+      <Box mt={4} display="flex" justifyContent="center" alignItems="center">
+        <Typography variant="h5">
+          Mood Breakdown
+        </Typography>
+      </Box>
+
+      <Box display="flex" justifyContent="center">
+        <MoodPieChart data={moodBreakdown} />
+      </Box>
     </Box>
   );
 }

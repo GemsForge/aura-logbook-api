@@ -29,6 +29,11 @@ export type MoodFrequencyResponse =
       percent: number;
     };
 
+    export type MoodPercentResponse ={
+      mood: MoodType | "Other"
+      percent: number
+    }
+
 
 export interface MoodDashboardSummary {
   /** Total number of mood entries recorded */
