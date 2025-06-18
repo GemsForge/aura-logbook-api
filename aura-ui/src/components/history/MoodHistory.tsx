@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { MoodApi } from "../api/MoodApi";
+import { MoodApi } from "../../api/MoodApi";
 
-import { MoodCard } from "../components/MoodCard";
+import { MoodCard } from "./MoodCard";
 import { Box, Typography } from "@mui/material";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
-import MoodUpdateModal from "./MoodUpdateModal";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
+import type { MoodEntry } from "../../features/mood/models/MoodEntry";
+import MoodUpdateModal from "../MoodUpdateModal";
+import DeleteConfirmDialog from "../DeleteConfirmDialog";
 
 export default function MoodHistoryPage() {
   const [logs, setLogs] = useState<MoodEntry[]>([]);
   const [entryToEdit, setEntryToEdit] = useState<MoodEntry | null>(null);
-  const [entryToDelete, setEntryToDelete] = useState<MoodEntry| null>(null);
+  const [entryToDelete, setEntryToDelete] = useState<MoodEntry | null>(null);
 
   const fetchLogs = async () => {
     const res = await MoodApi.getAllMoods();

@@ -35,17 +35,17 @@ public class AuthController : ControllerBase
         return Ok(users);
     }
 
-   [HttpPost("login")]
-public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest)
-{
-    var isValid = await _userService.AuthenticateAsync(authRequest.Email, authRequest.Password);
-    if (!isValid)
-        return Unauthorized("Invalid credentials");
+    [HttpPost("login")]
+    public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest)
+    {
+        var isValid = await _userService.AuthenticateAsync(authRequest.Email, authRequest.Password);
+        if (!isValid)
+            return Unauthorized("Invalid credentials");
 
-    var user = await _userService.GetByEmailAsync(authRequest.Email);
-    var token = _jwtService.GenerateToken(user!.Id, user.Email);
-    return Ok(new { token });
-}
+        var user = await _userService.GetByEmailAsync(authRequest.Email);
+        var token = _jwtService.GenerateToken(user!.Id, user!.Email, user!.DisplayName);
+        return Ok(new { token });
+    }
 
 
     [HttpPost("register")]
@@ -71,5 +71,26 @@ public async Task<IActionResult> Authenticate([FromBody] AuthRequest authRequest
 
         var result = await _userService.UpdateUserAsync(updatedUser);
         return result.Success ? Ok(result.Message) : BadRequest(result.Message);
+    }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ??
+                          User.FindFirst(JwtRegisteredClaimNames.Sub);
+
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized("Could not extract user ID from token.");
+
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null)
+            return NotFound("User not found.");
+
+        return Ok(new
+        {
+            user.Id,
+            user.Email,
+            user.DisplayName
+        });
     }
 }

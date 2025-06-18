@@ -12,13 +12,14 @@ public class JwtTokenService
         _config = config;
     }
 
-    public string GenerateToken(int userId, string email)
+    public string GenerateToken(int userId, string email, string displayName)
     {
-            var claims = new[]
+        var claims = new[]
      {
         new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
         new Claim(ClaimTypes.NameIdentifier, userId.ToString()), // <-- 👈 Add this one
         new Claim(JwtRegisteredClaimNames.Email, email),
+        new Claim("displayName", displayName),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
     };
 

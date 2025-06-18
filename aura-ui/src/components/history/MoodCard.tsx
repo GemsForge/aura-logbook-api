@@ -1,15 +1,15 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import {
-    Box,
-    Card,
-    CardContent,
-    IconButton,
-    Stack,
-    Typography,
+  Box,
+  Card,
+  CardContent,
+  IconButton,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { MoodTag } from "./MoodTag";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
+import type { MoodEntry } from "../../features/mood/models/MoodEntry";
 
 export function MoodCard({
   entry,
