@@ -8,6 +8,8 @@ import { MoodIcons } from "../features/mood/models/MoodIcons";
 import type { MoodType } from "../features/mood/models/MoodType";
 import type { MoodFrequencyResponse } from "../features/mood/models/MoodAuth";
 import MoodPieChart from "../components/dashboard/MoodPieChart";
+import type { MoodByDate } from "../components/dashboard/MoodTimeLineChart";
+import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
 
 function Dashboard () {
   const [summary, setSummary] = useState<{
@@ -23,7 +25,20 @@ function Dashboard () {
   });
   const [displayName, setDisplayName] = useState<string>("");
   const [moodBreakdown, setMoodBreakdown] = useState<MoodFrequencyResponse[]>([]);
+  const [moodByDate, setMoodByDate] = useState<MoodByDate[]>([]);
 
+  useEffect(() => {
+    (async () => {
+      const raw = await MoodApi.getMoodsByDateRange(); // { "2025-06-10": 2, ... }
+      console.log("RAW DATA Moods by Date: ", raw);
+      const parsed = Object.entries(raw).map(([date, count]) => ({
+        date,
+        count,
+      }));
+      setMoodByDate(parsed);
+    })();
+  }, []);
+  
   useEffect(() => {
     (async () => {
       const result = await MoodApi.getDashboardSummary();
@@ -74,14 +89,15 @@ function Dashboard () {
           />
         </Grid>
       </Grid>
-      <Box mt={4} display="flex" justifyContent="center" alignItems="center">
-        <Typography variant="h5">
-          Mood Breakdown
-        </Typography>
-      </Box>
-
-      <Box display="flex" justifyContent="center">
+      
+      <Box
+        display="flex"
+        justifyContent="center"
+        gap={4}
+        flexWrap="wrap"
+        mt={4}>
         <MoodPieChart data={moodBreakdown} />
+        <MoodTimelineChart data={moodByDate} />
       </Box>
     </Box>
   );

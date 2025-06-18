@@ -1,11 +1,18 @@
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { MoodIcons } from "../../features/mood/models/MoodIcons";
 import type { MoodType } from "../../features/mood/models/MoodType";
 import type {
   MoodFrequencyResponse,
   MoodPercentResponse,
 } from "../../features/mood/models/MoodAuth";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const COLORS = [
   "#FF6384",
@@ -63,41 +70,48 @@ export default function MoodPieChart({
   const grouped = groupSmallMoods(percentOnly);
 
   return (
-<Box width="100%" maxWidth={500} height={400}>
-  <ResponsiveContainer width="100%" height="100%">
-    <PieChart>
-        <Pie
-          data={grouped}
-          dataKey="percent"
-          nameKey="mood"
-          cx="50%"
-          cy="50%"
-          outerRadius={150}
-          label={({ mood }) => `${MoodIcons[mood as MoodType] ?? "❔"}`}>
-          {grouped.map((_entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{
-            fontFamily: "Nunito, sans-serif",
-            fontSize: 14,
-          }}
-          formatter={(value, name) => [
-            `${value}%`,
-            `${MoodIcons[name as MoodType] ?? "❔"} ${name}`,
-          ]}
-        />
-        <Legend
-          align="center"
-          wrapperStyle={{
-            fontFamily: "Nunito, sans-serif",
-            fontSize: 13,
-            fontWeight: 500,
-          }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <Box mt={4}>
+      <Typography align="center" variant="h5">Mood Breakdown</Typography>
+
+      <Box width={400} height={400}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={grouped}
+              dataKey="percent"
+              nameKey="mood"
+              cx="50%"
+              cy="50%"
+              outerRadius={150}
+              label={({ mood }) => `${MoodIcons[mood as MoodType] ?? "❔"}`}>
+              {grouped.map((_entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                fontFamily: "Nunito, sans-serif",
+                fontSize: 14,
+              }}
+              formatter={(value, name) => [
+                `${value}%`,
+                `${MoodIcons[name as MoodType] ?? "❔"} ${name}`,
+              ]}
+            />
+            <Legend
+              align="center"
+              wrapperStyle={{
+                fontFamily: "Nunito, sans-serif",
+                fontSize: 13,
+                fontWeight: 500,
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </Box>
     </Box>
   );
 }
