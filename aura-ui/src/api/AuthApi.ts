@@ -50,4 +50,13 @@ export const AuthApi = {
     const res = await api.put(`${API_BASE}/update`, payload);
     return res.data;
   },
+
+  /**
+   * Get current authenticated user profile (id, email, displayName)
+   */
+  getCurrentUser: async()=>{
+    const res = await api.get(`${API_BASE}/me`);
+    return res.data;
+  }
 };
+
