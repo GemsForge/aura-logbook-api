@@ -7,13 +7,16 @@ import { router } from "./router.tsx";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { ToastProvider } from "./hooks/useToast.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <RouterProvider router={router} />
-      </LocalizationProvider>
+      <ToastProvider>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <RouterProvider router={router} />
+        </LocalizationProvider>
+      </ToastProvider>
     </Provider>
   </StrictMode>
 );
