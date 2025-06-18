@@ -1,27 +1,22 @@
-import {
-  Box,
-   Typography,
-  Snackbar,
-} from "@mui/material";
-import { useState } from "react";
+import { Box, Typography } from "@mui/material";
 import { MoodApi } from "../api/MoodApi";
-import type {MoodType } from "../features/mood/models/MoodType";
+import type { MoodType } from "../features/mood/models/MoodType";
 import MoodEntryFormFields from "./MoodEntryFormFields";
+import { useToast } from "../hooks/useToast";
 
 export default function MoodEntryForm() {
- const [openToast, setOpenToast] = useState(false);
-
+  const { showToast } = useToast();
   const handleSubmit = async (data: {
     date: string;
     moods: MoodType[];
     comment?: string;
   }) => {
-
     try {
       await MoodApi.logMood(data);
-      setOpenToast(true);
+      showToast("Mood logged successfully!", "success");
     } catch (err) {
       console.error("Failed to log mood", err);
+      showToast("Error logging modd", "error");
     }
   };
 
@@ -31,16 +26,7 @@ export default function MoodEntryForm() {
         Log Your Mood
       </Typography>
 
-      <MoodEntryFormFields
-        onSubmit={handleSubmit}
-      />
-
-      <Snackbar
-        open={openToast}
-        autoHideDuration={3000}
-        onClose={() => setOpenToast(false)}
-        message="Mood logged successfully!"
-      />
+      <MoodEntryFormFields onSubmit={handleSubmit} />
     </Box>
   );
 }

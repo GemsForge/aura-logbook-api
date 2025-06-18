@@ -10,8 +10,10 @@ import type { MoodFrequencyResponse } from "../features/mood/models/MoodAuth";
 import MoodPieChart from "../components/dashboard/MoodPieChart";
 import type { MoodByDate } from "../components/dashboard/MoodTimeLineChart";
 import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
+import { useToast } from "../hooks/useToast";
 
 function Dashboard () {
+  const { showToast } = useToast();
   const [summary, setSummary] = useState<{
     totalEntries: number;
     mostFrequentMood: string | null;
@@ -29,24 +31,33 @@ function Dashboard () {
 
   useEffect(() => {
     (async () => {
-      const raw = await MoodApi.getMoodsByDateRange(); // { "2025-06-10": 2, ... }
-      console.log("RAW DATA Moods by Date: ", raw);
-      const parsed = Object.entries(raw).map(([date, count]) => ({
-        date,
-        count,
-      }));
-      setMoodByDate(parsed);
+      try {
+        const raw = await MoodApi.getMoodsByDateRange();
+        const parsed = Object.entries(raw).map(([date, count]) => ({
+          date,
+          count,
+        }));
+        setMoodByDate(parsed);
+      } catch (error: any) {
+        showToast("Failed to load mood timeline", "error");
+      }
     })();
   }, []);
-  
+
   useEffect(() => {
     (async () => {
-      const result = await MoodApi.getDashboardSummary();
-      const profile = await AuthApi.getCurrentUser();
-      const data = await MoodApi.getMoodBreakdown(true);
-      setDisplayName(profile.displayName);
-      setSummary(result);
-      setMoodBreakdown(data);
+      try {
+        const [result, profile, data] = await Promise.all([
+          MoodApi.getDashboardSummary(),
+          AuthApi.getCurrentUser(),
+          MoodApi.getMoodBreakdown(true),
+        ]);
+        setSummary(result);
+        setDisplayName(profile.displayName);
+        setMoodBreakdown(data);
+      } catch (error: any) {
+        showToast("Error loading dashboard data", "error");
+      }
     })();
   }, []);
 

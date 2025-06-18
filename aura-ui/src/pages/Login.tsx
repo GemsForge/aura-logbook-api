@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../store/slices/authSlice";
 import { AuthApi } from "../api/AuthApi";
+import { useToast } from "../hooks/useToast";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,7 @@ export function LoginForm() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const {showToast} = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +32,13 @@ export function LoginForm() {
     try {
       const response = await AuthApi.login({ email, password });
       dispatch(loginSuccess({ token: response.token, email }));
+      showToast("Login successful!", "success"); // 🎉 Success toast
       navigate("/dashboard");
     } catch (error: any) {
-      setErrorMsg(error?.response?.data || "Login failed. Please try again.");
+      const fallback = "Login failed. Please try again.";
+      const message = error?.response?.data || fallback;
+      setErrorMsg(message);
+      showToast(message, "error"); // ❌ Error toast
     } finally {
       setLoading(false);
     }
