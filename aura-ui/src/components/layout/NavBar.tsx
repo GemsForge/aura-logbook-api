@@ -13,7 +13,7 @@ const NavBar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate("/home");
   };
 
   return (
@@ -23,7 +23,7 @@ const NavBar = () => {
           Aura Logbook
         </Typography>
         <Box>
-          <Button color="inherit" onClick={() => navigate("/")}>
+          <Button color="inherit" onClick={() => navigate("/home")}>
             Home
           </Button>
           {isAuthenticated && (
