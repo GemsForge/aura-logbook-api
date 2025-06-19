@@ -1,4 +1,4 @@
-import { useState } from "react";
+// src/pages/LoginForm.tsx
 import {
   Box,
   Button,
@@ -10,35 +10,42 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  loginSchema,
+  type LoginFormData,
+} from "../features/auth/models/LoginSchema";
 import { loginSuccess } from "../store/slices/authSlice";
 import { AuthApi } from "../api/AuthApi";
 import { useToast } from "../hooks/useToast";
+import { useState } from "react";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
-
     try {
-      const response = await AuthApi.login({ email, password });
-      dispatch(loginSuccess({ token: response.token, email }));
-      showToast("Login successful!", "success"); // 🎉 Success toast
+      const response = await AuthApi.login(data);
+      dispatch(loginSuccess({ token: response.token, email: data.email }));
+      showToast("Login successful!", "success");
       navigate("/dashboard");
     } catch (error: any) {
-      const fallback = "Login failed. Please try again.";
-      const message = error?.response?.data || fallback;
-      setErrorMsg(message);
-      showToast(message, "error"); // ❌ Error toast
+      const message =
+        error?.response?.data || "Login failed. Please try again.";
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -56,32 +63,26 @@ export function LoginForm() {
           Sign In
         </Typography>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             label="Email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             fullWidth
             margin="normal"
-            required
+            {...register("email")}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
 
           <TextField
             label="Password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             fullWidth
             margin="normal"
-            required
+            {...register("password")}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
-
-          {errorMsg && (
-            <Typography color="error" variant="body2" mt={1}>
-              {errorMsg}
-            </Typography>
-          )}
 
           <Button
             type="submit"
@@ -93,8 +94,9 @@ export function LoginForm() {
             {loading ? <CircularProgress size={24} /> : "Login"}
           </Button>
         </form>
+
         <Typography variant="body2" mt={2}>
-          Don't have an account?{" "}
+          Don’t have an account?{" "}
           <Link href="/register" underline="hover">
             Sign up
           </Link>
@@ -102,6 +104,4 @@ export function LoginForm() {
       </Paper>
     </Box>
   );
-};
-
-export default LoginForm;
+}
