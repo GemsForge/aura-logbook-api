@@ -8,12 +8,13 @@ import {
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
-import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+import dayjs from "dayjs";
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { MoodIcons } from "../features/mood/models/MoodIcons";
 import { MoodTypes, type MoodType } from "../features/mood/models/MoodType";
 import type { MoodEntry } from "../features/mood/models/MoodEntry";
-import { MoodIcons } from "../features/mood/models/MoodIcons";
-
+import { moodEntrySchema } from "../features/mood/models/MoodSchema";
 
 interface Props {
   entry?: MoodEntry;
@@ -25,33 +26,57 @@ interface Props {
 }
 
 export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
-  const [date, setDate] = useState<Dayjs>(entry ? dayjs(entry.date) : dayjs());
-  const [moods, setMoods] = useState<MoodType[]>(entry?.moods || []);
-  const [comment, setComment] = useState(entry?.comment || "");
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(moodEntrySchema),
+    defaultValues: {
+      date: entry ? dayjs(entry.date).format("MM-DD-YYYY") : dayjs().format("MM-DD-YYYY"),
+      moods: entry?.moods ?? [],
+      comment: entry?.comment ?? "",
+    },
+  });
 
-  const handleMoodChange = (mood: MoodType) => {
-    setMoods((prev) =>
-      prev.includes(mood) ? prev.filter((m) => m !== mood) : [...prev, mood]
-    );
+  const selectedMoods = watch("moods");
+
+  const toggleMood = (mood: MoodType) => {
+    const updated = selectedMoods.includes(mood)
+      ? selectedMoods.filter((m) => m !== mood)
+      : [...selectedMoods, mood];
+    setValue("moods", updated);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onFormSubmit = (data: any) => {
     onSubmit({
-      date: date.format("YYYY-MM-DD"),
-      moods,
-      comment: comment.trim() || undefined,
+      date: dayjs(data.date).format("YYYY-MM-DD"),
+      moods: data.moods,
+      comment: data.comment?.trim() || undefined,
     });
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} mt={2}>
-      <DatePicker
-        label="Date"
-        value={date}
-        onChange={(newDate) => newDate && setDate(newDate)}
-        format="YYYY-MM-DD"
+    <Box component="form" onSubmit={handleSubmit(onFormSubmit)} mt={2}>
+      <Controller
+        name="date"
+        control={control}
+        render={({ field }) => (
+          <DatePicker
+            label="Date"
+            value={dayjs(field.value)}
+            onChange={(newDate) => newDate && field.onChange(newDate)}
+            format="MM-DD-YYYY"
+          />
+        )}
       />
+      {errors.date && (
+        <Typography color="error" variant="body2">
+          {errors.date.message}
+        </Typography>
+      )}
 
       <Typography mt={2}>How are you feeling?</Typography>
       <FormGroup>
@@ -61,8 +86,8 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={moods.includes(mood)}
-                    onChange={() => handleMoodChange(mood)}
+                    checked={selectedMoods.includes(mood)}
+                    onChange={() => toggleMood(mood)}
                   />
                 }
                 label={`${MoodIcons[mood]} ${mood}`}
@@ -70,16 +95,26 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
             </Box>
           ))}
         </Box>
+        {errors.moods && (
+          <Typography color="error" variant="body2" mt={1}>
+            {errors.moods.message as string}
+          </Typography>
+        )}
       </FormGroup>
 
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="Comment (optional)"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        margin="normal"
+      <Controller
+        name="comment"
+        control={control}
+        render={({ field }) => (
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Comment (optional)"
+            margin="normal"
+            {...field}
+          />
+        )}
       />
 
       <Button type="submit" variant="contained" sx={{ mt: 2 }}>

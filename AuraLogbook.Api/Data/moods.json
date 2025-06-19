@@ -343,5 +343,16 @@
     ],
     "Comment": "I created a functional app with AI!",
     "CreatedAt": "2025-06-18T04:34:08.3965728Z"
+  },
+  {
+    "Id": 39,
+    "UserId": 9,
+    "Date": "2025-06-18",
+    "Moods": [
+      5,
+      9
+    ],
+    "Comment": null,
+    "CreatedAt": "2025-06-18T14:38:13.0887407Z"
   }
 ]
