@@ -1,41 +1,32 @@
-// src/pages/RegisterForm.tsx
 import { Box, Button, TextField, Typography, Link, Paper } from "@mui/material";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { registerSchema } from "../features/auth/models/RegisterSchema";
 import { AuthApi } from "../api/AuthApi";
+import { useToast } from "../hooks/useToast";
+import type { RegisterRequest } from "../features/auth/models";
 
 export default function RegisterForm() {
+  const { showToast } = useToast();
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterRequest>({
+    resolver: yupResolver(registerSchema),
   });
 
-  const [error, setError] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
+  const onSubmit = async (data: RegisterRequest) => {
     try {
-      await AuthApi.register({
-        email: form.email,
-        password: form.password,
-        confirmPassword: form.confirmPassword
-      });
+      await AuthApi.register(data);
+      showToast("Account successfully created!", "success");
       navigate("/login");
     } catch (err: any) {
-      setError(err.response?.data || "Registration failed");
+      const message = err.response?.data || "Registration failed";
+      showToast(message, "error");
     }
   };
 
@@ -50,41 +41,34 @@ export default function RegisterForm() {
         <Typography variant="h5" mb={2}>
           Create an Account
         </Typography>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             fullWidth
             label="Email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
             margin="normal"
-            required
+            {...register("email")}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
           <TextField
             fullWidth
             label="Password"
-            name="password"
             type="password"
-            value={form.password}
-            onChange={handleChange}
             margin="normal"
-            required
+            {...register("password")}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
           <TextField
             fullWidth
             label="Confirm Password"
-            name="confirmPassword"
             type="password"
-            value={form.confirmPassword}
-            onChange={handleChange}
             margin="normal"
-            required
+            {...register("confirmPassword")}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
           />
-          {error && (
-            <Typography color="error" variant="body2" mt={1}>
-              {error}
-            </Typography>
-          )}
+
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
             Register
           </Button>
