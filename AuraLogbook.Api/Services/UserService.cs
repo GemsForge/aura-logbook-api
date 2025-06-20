@@ -63,7 +63,11 @@ public class UserService : IUserService
         if (existingUser is null)
             return (false, "User not found.");
 
+        
         // Apply changes
+        existingUser.Birthday = request.Birthday;
+        existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday);
+        existingUser.ProfilePictureBlob = request.ProfilePictureBlob;
         existingUser.Email = request.Email ?? existingUser.Email;
         existingUser.PasswordHash = request.Password ?? existingUser.PasswordHash;
         existingUser.DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
@@ -127,7 +131,10 @@ public class UserService : IUserService
             DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
                 ? request.Email
                 : request.DisplayName,
-            CreatedAt = DateTime.UtcNow.ToString()
+            CreatedAt = DateTime.UtcNow.ToString(),
+            Birthday = request.Birthday,
+            ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday),
+            ProfilePictureBlob = request.ProfilePictureBlob
         };
     }
 
