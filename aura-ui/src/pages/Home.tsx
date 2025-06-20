@@ -1,10 +1,10 @@
 import { Box, Button, Divider, Typography } from "@mui/material";
-import Stack from "@mui/material/Stack";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../store/store";
+import AuraFeatureCards from "../components/home/AuraFeatureCard";
 
-const HomePage = () => {
+export default function HomePage() {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
@@ -20,43 +20,29 @@ const HomePage = () => {
         Welcome to Aura Logbook
       </Typography>
       <Typography variant="h6" gutterBottom>
-        Track your emotional well-being with insights, patterns, and powerful
-        reflection tools.
+        Your energy tells a story—log it, explore it, and grow from it.
       </Typography>
-      <Box component="section">
-        <Stack
-          direction={"row"}
-          spacing={2}
-          sx={{
-             p: 2, 
-            m: 3,
-            justifyContent: "center",
-            alignItems: "center",
-          }}>
-          <Box>
-            <Typography variant="h5">Log Your Mood</Typography>
-          </Box>
-          <Box>
-            <Typography variant="h5">View Insights</Typography>
-          </Box>
-          <Box component="section">
-            <Typography variant="h5">Reflect on Thoughts</Typography>
-          </Box>
-          <Box>
-            <Typography variant="h5">Your Data is Private</Typography>
-          </Box>
-        </Stack>
+
+      <Typography variant="body1" sx={{ mt: 2, maxWidth: 700 }}>
+        Aura Logbook isn’t just about tracking mood—it’s about tuning in. Each
+        entry helps you understand the emotional energy around you, visualized
+        through color-coded auras and guided by chakra wisdom.
+      </Typography>
+
+      <Box component="section" sx={{ mt: 4 }}>
+      <AuraFeatureCards/>
       </Box>
 
       <Box m={4}>
         <Button variant="contained" onClick={handleGetStarted}>
-          Get Started
+          Start Your Aura Journey
         </Button>
       </Box>
+
       <Divider />
-      <Typography></Typography>
+      <Typography align="center" sx={{ mt: 2, fontStyle: "italic" }}>
+        “When you track your aura, you tune into your truth.”
+      </Typography>
     </Box>
   );
-};
-
-export default HomePage;
+}
