@@ -21,7 +21,10 @@ import { AuthApi } from "../api/AuthApi";
 import { useToast } from "../hooks/useToast";
 import { useState } from "react";
 
-export function LoginForm() {
+interface LoginFormProps {
+  showTitle?: boolean;
+}
+export function LoginForm({ showTitle }: LoginFormProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { showToast } = useToast();
@@ -59,9 +62,11 @@ export function LoginForm() {
       minHeight="100vh"
       sx={{ backgroundColor: "#f9f9f9" }}>
       <Paper elevation={4} sx={{ padding: 4, width: 400 }}>
-        <Typography variant="h5" mb={2} textAlign="center">
-          Sign In
-        </Typography>
+        {showTitle && (
+          <Typography variant="h5" mb={2} textAlign="center">
+            Sign In
+          </Typography>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField

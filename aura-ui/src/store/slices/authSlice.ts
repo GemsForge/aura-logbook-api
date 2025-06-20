@@ -5,6 +5,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   userEmail: string | null;
+  displayName: string;
 }
 
 const token = localStorage.getItem("token");
@@ -14,6 +15,7 @@ const initialState: AuthState = {
   token,
   isAuthenticated: !!token,
   userEmail: email,
+  displayName: ''
 };
 
 const authSlice = createSlice({
@@ -38,9 +40,12 @@ const authSlice = createSlice({
       localStorage.removeItem("token");
       localStorage.removeItem("userEmail");
     },
+    setUserProfile(state, action: PayloadAction<{ displayName: string }>) {
+      state.displayName = action.payload.displayName;
+    },
   },
 });
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess, logout, setUserProfile } = authSlice.actions;
 
 export default authSlice.reducer;

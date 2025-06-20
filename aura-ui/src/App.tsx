@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
-import { loginSuccess, logout } from "./store/slices/authSlice";
+import { loginSuccess, logout, setUserProfile } from "./store/slices/authSlice";
 import { useToast } from "./hooks/useToast";
 import { AuthApi } from "./api/AuthApi";
 
@@ -15,7 +15,7 @@ const DummyPage = () => (
   </Box>
 );
 
-function App() {
+export function App() {
   const dispatch = useDispatch();
   const { showToast } = useToast();
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -31,6 +31,7 @@ function App() {
       try {
         const user = await AuthApi.getCurrentUser(); // uses token via interceptor
         dispatch(loginSuccess({ token, email: user.email }));
+        dispatch(setUserProfile({ displayName: user.displayName }));
         showToast("Welcome back!", "info");
       } catch (err) {
         dispatch(logout());
@@ -65,4 +66,3 @@ function App() {
   );
 }
 
-export default App;

@@ -7,34 +7,28 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import RegisterForm from "./pages/Register";
 import MoodHistory from "./components/history/MoodHistory";
 import MoodEntryForm from "./components/MoodEntryForm";
+import HomePage from "./pages/Home";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <ProtectedRoute />, // 👈 Protect everything inside here
+    element: <AppLayout />, // ✅ Public wrapper for all pages
     children: [
+      { index: true, element: <HomePage /> }, // ✅ Public Home at "/"
+      { path: "home", element: <HomePage /> },
+      { path: "login", element: <LoginForm /> },
+      { path: "register", element: <RegisterForm /> },
+      { path: "*", element: <NotFound /> },
+
+      // 👇 Protected children nested inside ProtectedRoute
       {
-        element: <AppLayout />, // 👈 Layout wraps protected content
+        element: <ProtectedRoute />,
         children: [
           { path: "dashboard", element: <Dashboard /> },
-          { path: "/log-mood", element: <MoodEntryForm /> },
-          { path: "/history", element: <MoodHistory /> },
-
-          // Add more protected routes here
+          { path: "log-mood", element: <MoodEntryForm /> },
+          { path: "history", element: <MoodHistory /> },
         ],
       },
     ],
-  },
-  {
-    path: "login",
-    element: <LoginForm />,
-  },
-  {
-    path: "register",
-    element: <RegisterForm />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
   },
 ]);
