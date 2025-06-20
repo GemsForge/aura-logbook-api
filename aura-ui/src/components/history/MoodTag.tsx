@@ -1,5 +1,5 @@
 import { Chip } from "@mui/material";
-import { MoodIcons } from "../../features/mood/models/MoodIcons";
+import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
 
 export function MoodTag({ mood }: { mood: string }) {
   return (

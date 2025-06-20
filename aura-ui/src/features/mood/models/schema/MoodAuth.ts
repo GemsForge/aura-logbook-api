@@ -4,15 +4,15 @@ import type { MoodType } from "./MoodType";
  * Represents a mood entry submitted by the user.
  */
 export interface MoodEntryRequest {
-    /** One or more moods selected by the user */
-    moods: MoodType[];
-  
-    /** Date of the entry in 'YYYY-MM-DD' format */
-    date: string;
-  
-    /** Optional comment about the mood entry */
-    comment?: string;
-  }
+  /** One or more moods selected by the user */
+  moods: MoodType[];
+
+  /** Date of the entry in 'YYYY-MM-DD' format */
+  date: string;
+
+  /** Optional comment about the mood entry */
+  comment?: string;
+}
 
 /**
  * Represents the frequency of a mood, either as a raw count or percentage (but not both).
@@ -29,11 +29,10 @@ export type MoodFrequencyResponse =
       percent: number;
     };
 
-    export type MoodPercentResponse ={
-      mood: MoodType | "Other"
-      percent: number
-    }
-
+export type MoodPercentResponse = {
+  mood: MoodType | "Other";
+  percent: number;
+};
 
 export interface MoodDashboardSummary {
   /** Total number of mood entries recorded */

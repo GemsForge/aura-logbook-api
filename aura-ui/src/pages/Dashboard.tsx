@@ -4,15 +4,15 @@ import Grid from "@mui/material/Grid";
 import { MoodApi } from "../api/MoodApi";
 import MoodStatCard from "../components/dashboard/MoodStatCard";
 import { AuthApi } from "../api/AuthApi";
-import { MoodIcons } from "../features/mood/models/MoodIcons";
-import type { MoodType } from "../features/mood/models/MoodType";
-import type { MoodFrequencyResponse } from "../features/mood/models/MoodAuth";
+import { MoodIcons } from "../features/mood/models/aura/MoodIcons";
+import type { MoodType } from "../features/mood/models/schema/MoodType";
+import type { MoodFrequencyResponse } from "../features/mood/models/schema/MoodAuth";
 import MoodPieChart from "../components/dashboard/MoodPieChart";
 import type { MoodByDate } from "../components/dashboard/MoodTimeLineChart";
 import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
 import { useToast } from "../hooks/useToast";
 
-function Dashboard () {
+function Dashboard() {
   const { showToast } = useToast();
   const [summary, setSummary] = useState<{
     totalEntries: number;
@@ -21,12 +21,14 @@ function Dashboard () {
     lastEntryDate: string | null;
   }>({
     totalEntries: 0,
-    mostFrequentMood: '',
+    mostFrequentMood: "",
     currentStreak: 0,
-    lastEntryDate:'',
+    lastEntryDate: "",
   });
   const [displayName, setDisplayName] = useState<string>("");
-  const [moodBreakdown, setMoodBreakdown] = useState<MoodFrequencyResponse[]>([]);
+  const [moodBreakdown, setMoodBreakdown] = useState<MoodFrequencyResponse[]>(
+    []
+  );
   const [moodByDate, setMoodByDate] = useState<MoodByDate[]>([]);
 
   useEffect(() => {
@@ -100,7 +102,7 @@ function Dashboard () {
           />
         </Grid>
       </Grid>
-      
+
       <Box
         display="flex"
         justifyContent="center"

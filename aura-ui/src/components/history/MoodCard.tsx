@@ -1,3 +1,4 @@
+import type { MoodEntry } from "@/features/mood/models/schema";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import {
@@ -9,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { MoodTag } from "./MoodTag";
-import type { MoodEntry } from "../../features/mood/models/MoodEntry";
+
 
 export function MoodCard({
   entry,

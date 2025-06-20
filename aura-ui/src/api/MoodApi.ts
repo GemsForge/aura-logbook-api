@@ -1,18 +1,21 @@
-
+import type { MoodEntry } from "@/features/mood/models/schema";
 import type {
-    MoodEntryRequest,
-    MoodFrequencyResponse,
-    MoodDashboardSummary
-} from "../features/mood/models/MoodAuth";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
+  MoodDashboardSummary,
+  MoodEntryRequest,
+  MoodFrequencyResponse,
+} from "../features/mood/models/schema/MoodAuth";
+
 import api from "./api";
 
-const API_BASE= 'Mood';
+const API_BASE = "Mood";
 export const MoodApi = {
   /**
    * Get all moods for the authenticated user (optionally filtered by date).
    */
-  getAllMoods: async (startDate?: string, endDate?: string): Promise<MoodEntry[]> => {
+  getAllMoods: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<MoodEntry[]> => {
     const params = { startDate, endDate };
     const res = await api.get(API_BASE, { params });
     return res.data;
@@ -43,12 +46,14 @@ export const MoodApi = {
   },
 
   /**
-   * 
+   *
    * Update a mood entry
    */
-  updateMood: async(id: number, payload: MoodEntryRequest):
-  Promise<string> => {
-    const res = await api.put(`${API_BASE}/${id}`,payload )
+  updateMood: async (
+    id: number,
+    payload: MoodEntryRequest
+  ): Promise<string> => {
+    const res = await api.put(`${API_BASE}/${id}`, payload);
     return res.data;
   },
 
@@ -63,7 +68,9 @@ export const MoodApi = {
   /**
    * Get moods grouped by date for a given range (e.g., 7 days).
    */
-  getMoodsByDateRange: async (range: string = "7d"): Promise<Record<string, number>> => {
+  getMoodsByDateRange: async (
+    range: string = "7d"
+  ): Promise<Record<string, number>> => {
     const res = await api.get(`${API_BASE}/dashboard/moods-by-date`, {
       params: { range },
     });
@@ -73,7 +80,9 @@ export const MoodApi = {
   /**
    * Get mood breakdown by frequency or percentage.
    */
-  getMoodBreakdown: async (percent = false): Promise<MoodFrequencyResponse[]> => {
+  getMoodBreakdown: async (
+    percent = false
+  ): Promise<MoodFrequencyResponse[]> => {
     const res = await api.get(`${API_BASE}/dashboard/mood-breakdown`, {
       params: { percent },
     });

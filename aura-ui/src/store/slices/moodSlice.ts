@@ -1,9 +1,8 @@
 // src/store/slices/moodSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { MoodApi } from "../../api/MoodApi";
-import type { MoodEntry } from "../../features/mood/models/MoodEntry";
-import type { MoodEntryRequest } from "../../features/mood/models/MoodAuth";
 import type { RootState } from "../store";
+import type { MoodEntry, MoodEntryRequest } from "@/features/mood/models/schema";
 
 // 🌀 Async Thunks
 export const fetchMoods = createAsyncThunk<MoodEntry[]>(
