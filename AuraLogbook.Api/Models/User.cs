@@ -26,5 +26,11 @@ public class User
     public String CreatedAt { get; set; } = DateTime.UtcNow.ToString();
 
     public string? DisplayName { get; set; }
+
+    public DateOnly Birthday { get; set; }
+
+    public string ZodiacSign { get; set; }
+
+    public byte[]? ProfilePictureBlob { get; set; }
     // public string Role { get; set; } = "User";
 }

@@ -4,69 +4,99 @@
     "Email": "admin@example.com",
     "PasswordHash": "$2a$11$adminadminadminadminadminadmi",
     "CreatedAt": "2025-06-13T19:00:00Z",
-    "DisplayName": "Admin"
+    "DisplayName": "Admin",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 2,
     "Email": "user1@example.com",
     "PasswordHash": "$2a$11$user1user1user1user1user1us",
     "CreatedAt": "2025-06-12T15:30:00Z",
-    "DisplayName": "User One"
+    "DisplayName": "User One",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 3,
     "Email": "hello@aura.com",
     "PasswordHash": "$2a$11$auralogauralogauralogaural",
     "CreatedAt": "2025-06-10T09:00:00Z",
-    "DisplayName": "Aura Bot"
+    "DisplayName": "Aura Bot",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 4,
     "Email": "test@example.org",
     "PasswordHash": "$2a$11$testingtestingtestingtestin",
     "CreatedAt": "2025-06-09T22:45:00Z",
-    "DisplayName": "Test Account"
+    "DisplayName": "Test Account",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 5,
     "Email": "jane.doe@example.net",
     "PasswordHash": "$2a$11$janedoejanedoejanedoejanedo",
     "CreatedAt": "2025-06-08T17:10:00Z",
-    "DisplayName": "Jane Doe"
+    "DisplayName": "Jane Doe",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 6,
     "Email": "gems@example.com",
     "PasswordHash": "p@ssW0rd!!",
     "CreatedAt": "6/15/2025 1:20:54 AM",
-    "DisplayName": "Gems"
+    "DisplayName": "Gems",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 7,
     "Email": "user@example.com",
     "PasswordHash": "p@ssw0rd!",
     "CreatedAt": "6/15/2025 1:23:23 AM",
-    "DisplayName": "user@example.com"
+    "DisplayName": "user@example.com",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 8,
     "Email": "admin@example.com",
     "PasswordHash": "string",
     "CreatedAt": "6/15/2025 5:04:07 AM",
-    "DisplayName": "ADMIN"
+    "DisplayName": "ADMIN",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   },
   {
     "Id": 9,
     "Email": "user26@example.com",
-    "PasswordHash": "$2a$11$Aqyxm4tMhOXg3UZE1InANefWoWge2SNQbVr7yZn0XPo7CTXO/dE0.",
+    "PasswordHash": "string",
     "CreatedAt": "6/16/2025 4:10:45 AM",
-    "DisplayName": "TEST USER"
+    "DisplayName": "TEST USER",
+    "Birthday": "2025-06-20",
+    "ZodiacSign": "Gemini",
+    "ProfilePictureBlob": ""
   },
   {
     "Id": 10,
     "Email": "gem.social2023@gmail.com",
     "PasswordHash": "$2a$11$lyq6Y.I3Nd5z0oJaoCSZMej5g6FyZ2Of4SbeuP7/GgNgL2ccPbYIu",
     "CreatedAt": "6/17/2025 6:07:42 PM",
-    "DisplayName": "gem.social2023@gmail.com"
+    "DisplayName": "gem.social2023@gmail.com",
+    "Birthday": "0001-01-01",
+    "ZodiacSign": null,
+    "ProfilePictureBlob": null
   }
 ]
