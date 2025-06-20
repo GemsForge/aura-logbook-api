@@ -6,12 +6,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { MoodIcons } from "../../features/mood/models/MoodIcons";
-import type { MoodType } from "../../features/mood/models/MoodType";
+import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
+import type { MoodType } from "../../features/mood/models/schema/MoodType";
 import type {
   MoodFrequencyResponse,
   MoodPercentResponse,
-} from "../../features/mood/models/MoodAuth";
+} from "../../features/mood/models/schema/MoodAuth";
 import { Box, Typography } from "@mui/material";
 
 const COLORS = [
@@ -71,7 +71,9 @@ export default function MoodPieChart({
 
   return (
     <Box mt={4}>
-      <Typography align="center" variant="h5">Mood Breakdown</Typography>
+      <Typography align="center" variant="h5">
+        Mood Breakdown
+      </Typography>
 
       <Box width={400} height={400}>
         <ResponsiveContainer width="100%" height="100%">

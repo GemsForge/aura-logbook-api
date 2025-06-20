@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { MoodApi } from "../api/MoodApi";
-import type { MoodType } from "../features/mood/models/MoodType";
+import type { MoodType } from "../features/mood/models/schema/MoodType";
 import MoodEntryFormFields from "./MoodEntryFormFields";
 import { useToast } from "../hooks/useToast";
 

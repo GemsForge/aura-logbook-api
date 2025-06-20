@@ -1,3 +1,4 @@
+import type { MoodEntry } from "@/features/mood/models/schema";
 import {
   Dialog,
   DialogTitle,
@@ -6,7 +7,7 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
+
 
 export default function DeleteConfirmDialog({
   onClose,

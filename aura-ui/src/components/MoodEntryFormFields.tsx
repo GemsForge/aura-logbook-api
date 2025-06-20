@@ -11,10 +11,9 @@ import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { MoodIcons } from "../features/mood/models/MoodIcons";
-import { MoodTypes, type MoodType } from "../features/mood/models/MoodType";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
-import { moodEntrySchema } from "../features/mood/models/MoodSchema";
+import { MoodIcons } from "@/features/mood/models/aura";
+import { type MoodEntry, type MoodType, moodEntrySchema, MoodTypes } from "@/features/mood/models/schema";
+
 
 interface Props {
   entry?: MoodEntry;
@@ -35,7 +34,9 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
   } = useForm({
     resolver: yupResolver(moodEntrySchema),
     defaultValues: {
-      date: entry ? dayjs(entry.date).format("MM-DD-YYYY") : dayjs().format("MM-DD-YYYY"),
+      date: entry
+        ? dayjs(entry.date).format("MM-DD-YYYY")
+        : dayjs().format("MM-DD-YYYY"),
       moods: entry?.moods ?? [],
       comment: entry?.comment ?? "",
     },

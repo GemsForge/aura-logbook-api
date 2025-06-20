@@ -7,11 +7,11 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
-import type { MoodEntry } from "../features/mood/models/MoodEntry";
 import { MoodApi } from "../api/MoodApi";
 import MoodEntryFormFields from "./MoodEntryFormFields";
-import type { MoodType } from "../features/mood/models/MoodType";
+import type { MoodType } from "../features/mood/models/schema";
 import { useToast } from "../hooks/useToast"; // 👈 Toast hook
+import type { MoodEntry } from "../features/mood/models/schema";
 
 export default function MoodUpdateModal({
   entry,
