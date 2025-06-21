@@ -97,5 +97,14 @@
     "DisplayName": "Test",
     "Birthday": "2025-06-20",
     "ZodiacSign": "Gemini"
+  },
+  {
+    "Id": 12,
+    "Email": "admin@email.com",
+    "PasswordHash": "$2a$11$a/AVoZPDbF8vc07.PSl8v.uDHAvZCwbQtZOuakFqUnFztcWhppVVG",
+    "CreatedAt": "6/21/2025 1:37:07 AM",
+    "DisplayName": "Admin",
+    "Birthday": "1997-09-10",
+    "ZodiacSign": "Virgo"
   }
 ]

@@ -90,7 +90,9 @@ public class AuthController : ControllerBase
         {
             user.Id,
             user.Email,
-            user.DisplayName
+            user.DisplayName,
+            user.Birthday,
+            user.ZodiacSign
         });
     }
 }
