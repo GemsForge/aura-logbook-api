@@ -16,4 +16,14 @@ export const registerSchema = yup.object({
     .string()
     .oneOf([yup.ref("password")], "Passwords must match")
     .required("Confirm your password"),
+  displayName: yup
+    .string()
+    .max(30, "Display name must be 30 characters or fewer")
+    .required("Display name is required"),
+
+  birthday: yup
+    .string()
+    .required("Birthday is required"),
 });
+
+export type RegisterFormValues = yup.InferType<typeof registerSchema>;

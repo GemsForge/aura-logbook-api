@@ -10,8 +10,9 @@ export interface LoginResponse {
   export interface RegisterRequest {
     email: string;
     password: string;
-    confirmPassword: string;
-    displayName?: string; 
+    displayName: string;
+    birthday: string; // ISO string format (e.g., "2025-06-21") for DateOnly
+    profilePictureBlob?: string;
   }
   
   export interface RegisterResponse {

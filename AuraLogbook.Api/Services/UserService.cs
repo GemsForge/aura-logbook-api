@@ -67,7 +67,7 @@ public class UserService : IUserService
         // Apply changes
         existingUser.Birthday = request.Birthday;
         existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday);
-        existingUser.ProfilePictureBlob = request.ProfilePictureBlob;
+        // existingUser.ProfilePictureBlob = request.ProfilePictureBlob;
         existingUser.Email = request.Email ?? existingUser.Email;
         existingUser.PasswordHash = request.Password ?? existingUser.PasswordHash;
         existingUser.DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
@@ -134,7 +134,7 @@ public class UserService : IUserService
             CreatedAt = DateTime.UtcNow.ToString(),
             Birthday = request.Birthday,
             ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday),
-            ProfilePictureBlob = request.ProfilePictureBlob
+            // ProfilePictureBlob = request.ProfilePictureBlob
         };
     }
 

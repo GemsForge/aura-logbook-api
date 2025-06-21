@@ -6,8 +6,7 @@
     "CreatedAt": "2025-06-13T19:00:00Z",
     "DisplayName": "Admin",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 2,
@@ -16,8 +15,7 @@
     "CreatedAt": "2025-06-12T15:30:00Z",
     "DisplayName": "User One",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 3,
@@ -26,8 +24,7 @@
     "CreatedAt": "2025-06-10T09:00:00Z",
     "DisplayName": "Aura Bot",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 4,
@@ -36,8 +33,7 @@
     "CreatedAt": "2025-06-09T22:45:00Z",
     "DisplayName": "Test Account",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 5,
@@ -46,8 +42,7 @@
     "CreatedAt": "2025-06-08T17:10:00Z",
     "DisplayName": "Jane Doe",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 6,
@@ -56,8 +51,7 @@
     "CreatedAt": "6/15/2025 1:20:54 AM",
     "DisplayName": "Gems",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 7,
@@ -66,8 +60,7 @@
     "CreatedAt": "6/15/2025 1:23:23 AM",
     "DisplayName": "user@example.com",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 8,
@@ -76,18 +69,16 @@
     "CreatedAt": "6/15/2025 5:04:07 AM",
     "DisplayName": "ADMIN",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
   },
   {
     "Id": 9,
-    "Email": "user26@example.com",
+    "Email": "user27@example.com",
     "PasswordHash": "string",
     "CreatedAt": "6/16/2025 4:10:45 AM",
     "DisplayName": "TEST USER",
     "Birthday": "2025-06-20",
-    "ZodiacSign": "Gemini",
-    "ProfilePictureBlob": ""
+    "ZodiacSign": "Gemini"
   },
   {
     "Id": 10,
@@ -96,7 +87,15 @@
     "CreatedAt": "6/17/2025 6:07:42 PM",
     "DisplayName": "gem.social2023@gmail.com",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null,
-    "ProfilePictureBlob": null
+    "ZodiacSign": null
+  },
+  {
+    "Id": 11,
+    "Email": "use26r@example.com",
+    "PasswordHash": "$2a$11$DnOmiVs5qIA93Esgs0Y2huj30iAAeMFlxE2VRtRvnS9wk/Zm3mmT2",
+    "CreatedAt": "6/20/2025 9:11:03 AM",
+    "DisplayName": "Test",
+    "Birthday": "2025-06-20",
+    "ZodiacSign": "Gemini"
   }
 ]
