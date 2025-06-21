@@ -1,4 +1,5 @@
 // src/store/authSlice.ts
+import type { UserProfile } from "@/features/auth/models";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
@@ -6,16 +7,21 @@ interface AuthState {
   isAuthenticated: boolean;
   userEmail: string | null;
   displayName: string;
+  zodiacSign: string;
+  birthday: string;
 }
 
 const token = localStorage.getItem("token");
 const email = localStorage.getItem("userEmail");
 
+
 const initialState: AuthState = {
   token,
   isAuthenticated: !!token,
   userEmail: email,
-  displayName: ''
+  displayName: '',
+  zodiacSign: '',
+  birthday: '',
 };
 
 const authSlice = createSlice({
@@ -40,8 +46,11 @@ const authSlice = createSlice({
       localStorage.removeItem("token");
       localStorage.removeItem("userEmail");
     },
-    setUserProfile(state, action: PayloadAction<{ displayName: string }>) {
+    setUserProfile(state, action: PayloadAction<UserProfile>) {
       state.displayName = action.payload.displayName;
+      state.birthday = action.payload.birthday;
+      state.zodiacSign = action.payload.zodiacSign;
+      state.userEmail = action.payload.email;
     },
   },
 });

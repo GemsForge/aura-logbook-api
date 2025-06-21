@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { loginSuccess, logout, setUserProfile } from "./store/slices/authSlice";
 import { useToast } from "./hooks/useToast";
 import { AuthApi } from "./api/AuthApi";
+import type { UserProfile } from "./features/auth/models";
 
 const DummyPage = () => (
   <Box p={2}>
@@ -29,9 +30,12 @@ export function App() {
       }
 
       try {
-        const user = await AuthApi.getCurrentUser(); // uses token via interceptor
+        const user: UserProfile = await AuthApi.getCurrentUser(); // uses token via interceptor
+        console.log("Get Current User: ", user);
         dispatch(loginSuccess({ token, email: user.email }));
-        dispatch(setUserProfile({ displayName: user.displayName }));
+        dispatch(
+          setUserProfile(user)
+        );
         showToast("Welcome back!", "info");
       } catch (err) {
         dispatch(logout());
