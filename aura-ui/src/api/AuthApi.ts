@@ -56,7 +56,6 @@ export const AuthApi = {
    */
   getCurrentUser: async(): Promise<UserProfile>=>{
     const res = await api.get(`${API_BASE}/me`);
-    console.log("Get Current User: ", res.data);
     return res.data;
   }
 };

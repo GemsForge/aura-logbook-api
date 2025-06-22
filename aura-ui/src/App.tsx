@@ -4,10 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
-import { loginSuccess, logout, setUserProfile } from "./store/slices/authSlice";
+import { logout } from "./store/slices/authSlice";
 import { useToast } from "./hooks/useToast";
-import { AuthApi } from "./api/AuthApi";
-import type { UserProfile } from "./features/auth/models";
+import { hydrateUserSession } from "./api/hydrateUserSession";
 
 const DummyPage = () => (
   <Box p={2}>
@@ -24,29 +23,38 @@ export function App() {
   useEffect(() => {
     const restoreSession = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
+      const sessionHydrated =
+        localStorage.getItem("session_hydrated") === "true";
+      console.debug(sessionHydrated);
+
+      // 👇 Skip if user just logged in (handled elsewhere)
+      if (!token || sessionHydrated) {
         setCheckingAuth(false);
         return;
       }
 
-      try {
-        const user: UserProfile = await AuthApi.getCurrentUser(); // uses token via interceptor
-        console.log("Get Current User: ", user);
-        dispatch(loginSuccess({ token, email: user.email }));
-        dispatch(
-          setUserProfile(user)
-        );
-        showToast("Welcome back!", "info");
-      } catch (err) {
+      const user = await hydrateUserSession(token, dispatch);
+      if (!user) {
         dispatch(logout());
         showToast("Session expired. Please log in again.", "warning");
-      } finally {
-        setCheckingAuth(false);
+      } else {
+        showToast("Welcome back!", "info");
       }
+
+      setCheckingAuth(false);
     };
 
     restoreSession();
-  }, [dispatch, showToast]);
+  }, []);
+
+  // Optional cleanup: remove hydration flag after short delay
+  useEffect(() => {
+    if (localStorage.getItem("session_hydrated") === "true") {
+      setTimeout(() => {
+        localStorage.removeItem("session_hydrated");
+      }, 2000); // enough time to hydrate before allowing next session check
+    }
+  }, []);
 
   if (checkingAuth) {
     return (

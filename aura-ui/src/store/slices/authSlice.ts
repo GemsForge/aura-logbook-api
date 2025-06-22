@@ -6,9 +6,9 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   userEmail: string | null;
-  displayName: string;
-  zodiacSign: string;
-  birthday: string;
+  displayName?: string;
+  zodiacSign?: string;
+  birthday?: string;
 }
 
 const token = localStorage.getItem("token");
@@ -45,6 +45,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       localStorage.removeItem("token");
       localStorage.removeItem("userEmail");
+      localStorage.removeItem("session_hydrated");
     },
     setUserProfile(state, action: PayloadAction<UserProfile>) {
       state.displayName = action.payload.displayName;

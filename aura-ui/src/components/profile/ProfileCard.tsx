@@ -6,13 +6,13 @@ export default function ProfileCard() {
   const { userEmail, displayName, zodiacSign } = useSelector((state: RootState) => state.auth);
 
   // 🔮 Use hardcoded fallback values for now
-  console.log(userEmail);
-  console.log(displayName);
-  console.log(zodiacSign);
-  
 
   const avatarUrl = "/avatars/avatar-1.png"; // optional: use emoji fallback instead
 
+  if (!displayName && !userEmail && !zodiacSign) {
+    return <Typography>Loading profile...</Typography>;
+  }
+  
   return (
     <Paper
       elevation={2}

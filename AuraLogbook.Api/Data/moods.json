@@ -365,5 +365,16 @@
     ],
     "Comment": "Feeling lightheaded...",
     "CreatedAt": "2025-06-19T02:27:45.4759947Z"
+  },
+  {
+    "Id": 41,
+    "UserId": 12,
+    "Date": "2025-06-21",
+    "Moods": [
+      2,
+      4
+    ],
+    "Comment": null,
+    "CreatedAt": "2025-06-22T00:07:36.7501045Z"
   }
 ]
