@@ -3,12 +3,16 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 
 export default function ProfileCard() {
-  const { userEmail, displayName } = useSelector((state: RootState) => state.auth);
+  const { userEmail, displayName, zodiacSign } = useSelector((state: RootState) => state.auth);
 
   // 🔮 Use hardcoded fallback values for now
-  const zodiacSign = "♌ Leo";
+
   const avatarUrl = "/avatars/avatar-1.png"; // optional: use emoji fallback instead
 
+  if (!displayName && !userEmail && !zodiacSign) {
+    return <Typography>Loading profile...</Typography>;
+  }
+  
   return (
     <Paper
       elevation={2}
@@ -31,7 +35,7 @@ export default function ProfileCard() {
           sx={{ wordBreak: "break-word", px: 1 }}>
           {userEmail}
         </Typography>
-        <Typography variant="body2">🔮 {zodiacSign}</Typography>
+        <Typography variant="body2"> {zodiacSign}</Typography>
         <Button
           disabled
           size="small"

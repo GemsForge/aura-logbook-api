@@ -20,6 +20,7 @@ import { loginSuccess } from "../store/slices/authSlice";
 import { AuthApi } from "../api/AuthApi";
 import { useToast } from "../hooks/useToast";
 import { useState } from "react";
+import { hydrateUserSession } from "@/api/hydrateUserSession";
 
 interface LoginFormProps {
   showTitle?: boolean;
@@ -41,13 +42,18 @@ export function LoginForm({ showTitle }: LoginFormProps) {
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      const response = await AuthApi.login(data);
-      dispatch(loginSuccess({ token: response.token, email: data.email }));
+      const {token} = await AuthApi.login(data);
+      
+    const user = await hydrateUserSession(token, dispatch);
+     
+      user ?
+      dispatch(loginSuccess({ token: token, email: user.email })) : showToast("User is null");
+
       showToast("Login successful!", "success");
       navigate("/dashboard");
     } catch (error: any) {
       const message =
-        error?.response?.data || "Login failed. Please try again.";
+       "Login failed. Please try again.";
       showToast(message, "error");
     } finally {
       setLoading(false);
