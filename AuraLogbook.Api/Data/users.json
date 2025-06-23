@@ -100,8 +100,8 @@
   },
   {
     "Id": 12,
-    "Email": "admin1@email.com",
-    "PasswordHash": "$2a$11$gOdc7OlksO4EnOk7muiqMOgwdY38SX0buPNqUQRKWZS./ZkPZl0wm",
+    "Email": "admin@email.com",
+    "PasswordHash": "$2a$11$sKUPIFmiXPDKnUWjwVEodOKnm9Ri9huz7g289oyj.7u36AgcTG6PK",
     "CreatedAt": "6/21/2025 1:37:07 AM",
     "DisplayName": "Admin Test User",
     "Birthday": "1997-09-24",

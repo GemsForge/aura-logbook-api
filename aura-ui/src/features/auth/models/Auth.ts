@@ -23,7 +23,7 @@ export interface LoginResponse {
   export interface UpdateUserRequest{
     id: number;
     email: string;
-    password: string;
+    password?: string;
     displayName?: string;
     birthday: string;
   }
