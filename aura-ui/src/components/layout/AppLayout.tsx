@@ -13,8 +13,6 @@ const AppLayout = () => {
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
-
       <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         <NavBar />
 
@@ -23,10 +21,11 @@ const AppLayout = () => {
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, md: 3 }}>
                 <ProfileCard />
+                <Sidebar />
               </Grid>
               <Grid size={{ xs: 12, md: 9 }}>
                 <Outlet />
-                <EditProfileModal/>
+                <EditProfileModal />
               </Grid>
             </Grid>
           ) : (
