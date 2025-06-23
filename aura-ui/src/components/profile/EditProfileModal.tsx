@@ -1,19 +1,30 @@
-import { AuthApi } from "@/api/AuthApi";
-import type { UpdateUserRequest } from "@/features/auth/models";
-import { type EditProfileFormData, editProfileSchema } from "@/features/auth/models/EditProfileSchema";
-import { useToast } from "@/hooks/useToast";
-import { setUserProfile } from "@/store/slices/authSlice";
-import {
-    closeProfileModal,
-    selectIsProfileModalOpen,
-} from "@/store/slices/uiSlice";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, Button, Modal, TextField, Typography } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import dayjs from "dayjs";
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Modal,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { AuthApi } from "@/api/AuthApi";
+import { setUserProfile } from "@/store/slices/authSlice";
+import {
+  closeProfileModal,
+  selectIsProfileModalOpen,
+} from "@/store/slices/uiSlice";
+import { useToast } from "@/hooks/useToast";
+import {
+  type EditProfileFormData,
+  editProfileSchema,
+} from "@/features/auth/models/EditProfileSchema";
+import type { UpdateUserRequest } from "@/features/auth/models";
 
 export default function EditProfileModal() {
   const dispatch = useDispatch();
@@ -22,6 +33,7 @@ export default function EditProfileModal() {
   const { displayName, birthday, userEmail } = useSelector(
     (state: any) => state.auth
   );
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const {
     register,
@@ -30,17 +42,18 @@ export default function EditProfileModal() {
     reset,
     formState: { errors },
   } = useForm<EditProfileFormData>({
-    resolver: yupResolver(editProfileSchema),
+    resolver: yupResolver(editProfileSchema, {
+      context: { isChangingPassword },
+    }),
     defaultValues: {
       email: "",
-      password: "",
       displayName: "",
       birthday: "",
+      password: undefined,
+      confirmPassword: undefined,
     },
   });
-  
 
-  // ⏪ Reset form each time modal opens with current user data
   useEffect(() => {
     if (isOpen) {
       reset({
@@ -48,24 +61,27 @@ export default function EditProfileModal() {
         displayName: displayName || "",
         birthday: birthday ? dayjs(birthday).format() : undefined,
         password: "",
+        confirmPassword: "",
       });
+      setIsChangingPassword(false);
     }
   }, [isOpen, displayName, birthday, userEmail, reset]);
-  
+
   const onSubmit = async (data: EditProfileFormData) => {
+    const {confirmPassword, ...rest} = data;
     const payload: UpdateUserRequest = {
-      ...data,
+      ...rest,
       id: 0,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
+      password: isChangingPassword ? data.password : undefined,
     };
     try {
       await AuthApi.updateUser(payload);
       const updatedProfile = await AuthApi.getCurrentUser();
       dispatch(setUserProfile(updatedProfile));
-
       dispatch(closeProfileModal());
       showToast("Profile updated!", "success");
-    } catch (err) {
+    } catch {
       showToast("Failed to update profile", "error");
     }
   };
@@ -100,10 +116,10 @@ export default function EditProfileModal() {
           <TextField
             fullWidth
             label="Email"
+            margin="normal"
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
-            margin="normal"
           />
           <Controller
             name="birthday"
@@ -117,24 +133,38 @@ export default function EditProfileModal() {
               />
             )}
           />
-          <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            margin="normal"
-            {...register("password")}
-            error={!!errors.password}
-            helperText={errors.password?.message}
+          <FormControlLabel
+            sx={{ mt: 2 }}
+            control={
+              <Checkbox
+                checked={isChangingPassword}
+                onChange={(e) => setIsChangingPassword(e.target.checked)}
+              />
+            }
+            label="Change password?"
           />
-          <TextField
-            fullWidth
-            label="Confirm Password"
-            type="password"
-            margin="normal"
-            {...register("confirmPassword")}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
-          />
+          {isChangingPassword && (
+            <>
+              <TextField
+                fullWidth
+                label="New Password"
+                type="password"
+                margin="normal"
+                {...register("password")}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+              />
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                type="password"
+                margin="normal"
+                {...register("confirmPassword")}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+              />
+            </>
+          )}
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
             <Button

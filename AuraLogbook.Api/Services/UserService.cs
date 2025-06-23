@@ -69,7 +69,11 @@ public class UserService : IUserService
         existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday);
         // existingUser.ProfilePictureBlob = request.ProfilePictureBlob;
         existingUser.Email = request.Email ?? existingUser.Email;
-        existingUser.PasswordHash = request.Password ?? existingUser.PasswordHash;
+        if (!string.IsNullOrWhiteSpace(request.Password))
+        {
+            existingUser.PasswordHash = PasswordHelper.HashPassword(request.Password);
+        }
+
         existingUser.DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
             ? existingUser.DisplayName
             : request.DisplayName;
