@@ -21,7 +21,7 @@ const AppLayout = () => {
         <Container sx={{ mt: 4, flexGrow: 1 }}>
           {isAuthenticated ? (
             <Grid container spacing={4}>
-              <Grid size={{ xs: 2, md: 3 }}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <ProfileCard />
               </Grid>
               <Grid size={{ xs: 12, md: 9 }}>
