@@ -100,11 +100,11 @@
   },
   {
     "Id": 12,
-    "Email": "admin@email.com",
-    "PasswordHash": "$2a$11$a/AVoZPDbF8vc07.PSl8v.uDHAvZCwbQtZOuakFqUnFztcWhppVVG",
+    "Email": "admin1@email.com",
+    "PasswordHash": "$2a$11$gOdc7OlksO4EnOk7muiqMOgwdY38SX0buPNqUQRKWZS./ZkPZl0wm",
     "CreatedAt": "6/21/2025 1:37:07 AM",
-    "DisplayName": "Admin",
-    "Birthday": "1997-09-10",
-    "ZodiacSign": "Virgo"
+    "DisplayName": "Admin Test User",
+    "Birthday": "1997-09-24",
+    "ZodiacSign": "Libra"
   }
 ]
