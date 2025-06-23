@@ -1,9 +1,11 @@
-import { Avatar,  Button, Paper, Typography, Stack } from "@mui/material";
-import { useSelector } from "react-redux";
+import { openProfileModal } from "@/store/slices/uiSlice";
+import { Avatar, Button, Paper, Stack, Typography } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 
 export default function ProfileCard() {
   const { userEmail, displayName, zodiacSign } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
 
   // 🔮 Use hardcoded fallback values for now
 
@@ -37,10 +39,9 @@ export default function ProfileCard() {
         </Typography>
         <Typography variant="body2"> {zodiacSign}</Typography>
         <Button
-          disabled
+          onClick={() => dispatch(openProfileModal())}
           size="small"
           variant="text"
-          href="/profile"
           sx={{ textTransform: "none" }}>
           Edit Profile
         </Button>

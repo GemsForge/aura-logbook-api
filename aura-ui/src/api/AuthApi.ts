@@ -1,6 +1,6 @@
 
 import {
-    type LoginRequest,
+  type LoginRequest,
   type LoginResponse,
   type RegisterRequest,
   type UpdateUserRequest,

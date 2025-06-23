@@ -25,5 +25,6 @@ export interface LoginResponse {
     email: string;
     password: string;
     displayName?: string;
+    birthday: string;
   }
   
