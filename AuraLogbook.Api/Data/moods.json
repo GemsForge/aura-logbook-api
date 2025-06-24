@@ -386,5 +386,16 @@
     ],
     "Comment": "I\u0027m proud of the progress I\u0027m making with this app!",
     "CreatedAt": "2025-06-23T19:08:39.1919652Z"
+  },
+  {
+    "Id": 43,
+    "UserId": 12,
+    "Date": "2025-06-23",
+    "Moods": [
+      0,
+      13
+    ],
+    "Comment": null,
+    "CreatedAt": "2025-06-24T01:22:01.6415956Z"
   }
 ]
