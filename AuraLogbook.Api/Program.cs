@@ -43,6 +43,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 builder.Services.AddCors();
+builder.Services
+    .AddHttpClient<IWeatherService, WeatherService>()
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(options =>
