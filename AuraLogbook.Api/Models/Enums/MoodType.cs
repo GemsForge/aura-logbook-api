@@ -2,19 +2,19 @@
 
 public enum MoodType
 {
-    Joyful,
-    Content,
-    Peaceful,
-    Motivated,
-    Tired,
-    Stressed,
+    Empowered,
+    Centered,
+    Harmonious,
+    Flowing,
+    Weary,
+    Tense,
     Frustrated,
-    Anxious,
-    Lonely,
-    Sad,
-    Angry,
-    Overwhelmed,
-    Grateful,
-    Hopeful,
-    Meh
+    Restless,
+    Disconnected,
+    Heavy,
+    Charged,
+    Scattered,
+    Abundant,
+    Visionary,
+    Neutral
 }

@@ -10,78 +10,78 @@ export interface AuraMoodMeta {
 }
 
 export const AuraMoodMap: Record<MoodType, AuraMoodMeta> = {
-  Joyful: {
-    icon: MoodIcons.Joyful,
+  Empowered: {
+    icon: MoodIcons.Empowered,
     auraColor: AuraColor.Yellow,
     chakra: Chakra.SolarPlexus,
   },
-  Content: {
-    icon: MoodIcons.Content,
+  Centered: {
+    icon: MoodIcons.Centered,
     auraColor: AuraColor.Yellow,
     chakra: Chakra.SolarPlexus,
   },
-  Peaceful: {
-    icon: MoodIcons.Peaceful,
+  Harmonious: {
+    icon: MoodIcons.Harmonious,
     auraColor: AuraColor.Blue,
     chakra: Chakra.Throat,
   },
-  Motivated: {
-    icon: MoodIcons.Motivated,
+  Flowing: {
+    icon: MoodIcons.Flowing,
     auraColor: AuraColor.Orange,
     chakra: Chakra.Sacral,
   },
-  Tired: {
-    icon: MoodIcons.Tired,
+  Weary: {
+    icon: MoodIcons.Weary,
     auraColor: AuraColor.Gray,
     chakra: Chakra.Root,
   },
-  Stressed: {
-    icon: MoodIcons.Stressed,
+  Tense: {
+    icon: MoodIcons.Tense,
     auraColor: AuraColor.Red,
     chakra: Chakra.Root,
   },
-  Frustrated: {
-    icon: MoodIcons.Frustrated,
+  Blocked: {
+    icon: MoodIcons.Blocked,
     auraColor: AuraColor.Red,
     chakra: Chakra.Root,
   },
-  Anxious: {
-    icon: MoodIcons.Anxious,
+  Restless: {
+    icon: MoodIcons.Restless,
     auraColor: AuraColor.Indigo,
     chakra: Chakra.ThirdEye,
   },
-  Lonely: {
-    icon: MoodIcons.Lonely,
+  Disconnected: {
+    icon: MoodIcons.Disconnected,
     auraColor: AuraColor.Indigo,
     chakra: Chakra.Heart,
   },
-  Sad: {
-    icon: MoodIcons.Sad,
+  Heavy: {
+    icon: MoodIcons.Heavy,
     auraColor: AuraColor.Blue,
     chakra: Chakra.Heart,
   },
-  Angry: {
-    icon: MoodIcons.Angry,
+  Charged: {
+    icon: MoodIcons.Charged,
     auraColor: AuraColor.Red,
     chakra: Chakra.Root,
   },
-  Overwhelmed: {
-    icon: MoodIcons.Overwhelmed,
+  Scattered: {
+    icon: MoodIcons.Scattered,
     auraColor: AuraColor.Violet,
     chakra: Chakra.Crown,
   },
-  Grateful: {
-    icon: MoodIcons.Grateful,
+  Abundant: {
+    icon: MoodIcons.Abundant,
     auraColor: AuraColor.Green,
     chakra: Chakra.Heart,
   },
-  Hopeful: {
-    icon: MoodIcons.Hopeful,
+  Visionary: {
+    icon: MoodIcons.Visionary,
     auraColor: AuraColor.Pink,
     chakra: Chakra.Crown,
   },
-  Meh: {
-    icon: MoodIcons.Meh,
+  Neutral: {
+    icon: MoodIcons.Neutral,
     auraColor: AuraColor.Gray,
     chakra: Chakra.SolarPlexus,
   },
