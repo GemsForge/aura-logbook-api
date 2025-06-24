@@ -1,3 +1,4 @@
+import type { WeatherDto } from "@/api/WeatherApi";
 import type { MoodType } from "./MoodType";
 
 /**
@@ -12,6 +13,8 @@ export interface MoodEntryRequest {
 
   /** Optional comment about the mood entry */
   comment?: string;
+
+  weather?: WeatherDto;
 }
 
 /**

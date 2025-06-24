@@ -1,6 +1,6 @@
 // src/utils/authUtils.ts
 import { AuthApi } from "@/api/AuthApi";
-import { loginSuccess, setUserProfile } from "@/store/slices/authSlice";
+import { loginSuccess } from "@/store/slices/authSlice";
 import type { AppDispatch } from "@/store/store";
 import type { UserProfile } from "@/features/auth/models";
 import api from "./api";
@@ -16,9 +16,8 @@ export async function hydrateUserSession(
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     
     const user = await AuthApi.getCurrentUser(); // now token is available
-    dispatch(loginSuccess({ token, email: user.email }));
-    dispatch(setUserProfile(user));
-
+    dispatch(loginSuccess({ token, profile: user  }));
+ 
     localStorage.setItem("session_hydrated", "true");
 
     return user;

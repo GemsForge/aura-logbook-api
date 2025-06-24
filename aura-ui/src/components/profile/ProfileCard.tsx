@@ -1,17 +1,19 @@
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { Avatar, Button, Paper, Stack, Typography } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "../../store/store";
+import { selectCurrentUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 export default function ProfileCard() {
-  const { userEmail, displayName, zodiacSign } = useSelector((state: RootState) => state.auth);
-  const dispatch = useDispatch();
+  const user = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
 
   // 🔮 Use hardcoded fallback values for now
 
   const avatarUrl = "/avatars/avatar-1.png"; // optional: use emoji fallback instead
 
-  if (!displayName && !userEmail && !zodiacSign) {
+  if (!user) {
+    console.debug("USER", user);
+    
     return <Typography>Loading profile...</Typography>;
   }
   
@@ -26,18 +28,18 @@ export default function ProfileCard() {
       }}>
       <Stack spacing={2} alignItems="center">
         <Avatar
-          alt={displayName}
+          alt={user.displayName}
           src={avatarUrl}
           sx={{ width: 80, height: 80 }}
         />
-        <Typography variant="h6">{displayName}</Typography>
+        <Typography variant="h6">{user.displayName}</Typography>
         <Typography
           variant="body2"
           color="textSecondary"
           sx={{ wordBreak: "break-word", px: 1 }}>
-          {userEmail}
+          {user.email}
         </Typography>
-        <Typography variant="body2"> {zodiacSign}</Typography>
+        <Typography variant="body2"> {user.zodiacSign}</Typography>
         <Button
           onClick={() => dispatch(openProfileModal())}
           size="small"

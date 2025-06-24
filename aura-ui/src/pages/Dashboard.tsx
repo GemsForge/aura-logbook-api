@@ -11,6 +11,7 @@ import MoodPieChart from "../components/dashboard/MoodPieChart";
 import type { MoodByDate } from "../components/dashboard/MoodTimeLineChart";
 import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
 import { useToast } from "../hooks/useToast";
+import WeatherCard from "@/components/weather/WeatherCard";
 
 function Dashboard() {
   const { showToast } = useToast();
@@ -70,13 +71,13 @@ function Dashboard() {
       </Typography>
 
       <Grid container spacing={2} mt={2}>
-        <Grid>
+        <Grid sx={{ xs: 12, sm: 6, md: 3 }}>
           <MoodStatCard
             title="Total Entries"
             value={`${summary.totalEntries}`}
           />
         </Grid>
-        <Grid>
+        <Grid sx={{ xs: 12, sm: 6, md: 3 }}>
           <MoodStatCard
             title="Most Frequent Mood"
             value={summary.mostFrequentMood ?? "N/A"}
@@ -87,14 +88,14 @@ function Dashboard() {
             }
           />
         </Grid>
-        <Grid>
+        <Grid sx={{ xs: 12, sm: 6, md: 3 }}>
           <MoodStatCard
             title="Current Streak"
             value={`${summary.currentStreak} days`}
             emoji="🔥"
           />
         </Grid>
-        <Grid>
+        <Grid sx={{ xs: 12, sm: 6, md: 3 }}>
           <MoodStatCard
             title="Last Entry"
             value={summary.lastEntryDate ?? "-"}
@@ -103,6 +104,12 @@ function Dashboard() {
         </Grid>
       </Grid>
 
+      {/** --------- Weather ------- */}
+      <Grid container spacing={2} mt={4}>
+        <Grid sx={{ xs: 12, sm: 6, md: 3 }}>
+          <WeatherCard city="Atlanta" state="GA" country="US" />
+        </Grid>
+      </Grid>
       <Box
         display="flex"
         justifyContent="center"
