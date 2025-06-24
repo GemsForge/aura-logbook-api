@@ -12,13 +12,21 @@ interface AuthState {
 const token = localStorage.getItem("token");
 // const email = localStorage.getItem("email");
 
-const savedProfile = localStorage.getItem("userProfile");
-
+const savedProfileRaw = localStorage.getItem("userProfile");
+function loadSavedProfile(): UserProfile|null{
+  if(!savedProfileRaw || savedProfileRaw === "undefined") return null;
+  try{
+    return JSON.parse(savedProfileRaw) as UserProfile;
+    } catch {
+      console.warn("Failed to parse saved userProfile: ", savedProfileRaw);
+      return null;
+  }
+}
 const initialState: AuthState = {
   token,
   isAuthenticated: !!token,
-  user: savedProfile ? JSON.parse(savedProfile) : null,
-};;
+  user: loadSavedProfile()
+};
 
 const authSlice = createSlice({
   name: "auth",

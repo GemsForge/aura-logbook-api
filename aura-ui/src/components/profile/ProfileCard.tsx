@@ -1,18 +1,19 @@
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { Avatar, Button, Paper, Stack, Typography } from "@mui/material";
-import { useDispatch } from "react-redux";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 export default function ProfileCard() {
   const user = useAppSelector(selectCurrentUser);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   // 🔮 Use hardcoded fallback values for now
 
   const avatarUrl = "/avatars/avatar-1.png"; // optional: use emoji fallback instead
 
   if (!user) {
+    console.debug("USER", user);
+    
     return <Typography>Loading profile...</Typography>;
   }
   

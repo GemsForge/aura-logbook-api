@@ -1,33 +1,32 @@
 // src/pages/LoginForm.tsx
+import { hydrateUserSession } from "@/api/hydrateUserSession";
+import { useAppDispatch } from "@/store/hooks";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Box,
   Button,
-  TextField,
-  Typography,
-  Paper,
   CircularProgress,
   Link,
+  Paper,
+  TextField,
+  Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate } from "react-router-dom";
+import { AuthApi } from "../api/AuthApi";
 import {
   loginSchema,
   type LoginFormData,
 } from "../features/auth/models/LoginSchema";
-import { loginSuccess } from "../store/slices/authSlice";
-import { AuthApi } from "../api/AuthApi";
 import { useToast } from "../hooks/useToast";
-import { useState } from "react";
-import { hydrateUserSession } from "@/api/hydrateUserSession";
 
 interface LoginFormProps {
   showTitle?: boolean;
 }
 export function LoginForm({ showTitle }: LoginFormProps) {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -42,18 +41,19 @@ export function LoginForm({ showTitle }: LoginFormProps) {
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      const {token} = await AuthApi.login(data);
-      
-    const user = await hydrateUserSession(token, dispatch);
-     
-      user ?
-      dispatch(loginSuccess({ token: token, email: user.email })) : showToast("User is null");
+      const { token } = await AuthApi.login(data);
+
+      const user = await hydrateUserSession(token, dispatch);
+
+      if (!user) {
+        showToast("Session hydration failed", "error");
+        return;
+      }
 
       showToast("Login successful!", "success");
       navigate("/dashboard");
     } catch (error: any) {
-      const message =
-       "Login failed. Please try again.";
+      const message = "Login failed. Please try again.";
       showToast(message, "error");
     } finally {
       setLoading(false);

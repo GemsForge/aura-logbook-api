@@ -1,10 +1,6 @@
+import type { WeatherDto } from "@/features/weather/WeatherDto";
 import api from "./api";
 
-export interface WeatherDto {
-  temperature: number;
-  description: string;
-  iconCode: string;
-}
 const API_BASE = "/Weather";
 
 export const WeatherApi = {
