@@ -5,4 +5,10 @@ export interface UserProfile {
   token: string;
   birthday: string;
   zodiacSign: string;
+
+  lat?: number;
+  lon?: number;
+  city?: string;
+  state?: string;
+  country?: string;
 }
