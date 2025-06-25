@@ -9,5 +9,7 @@ namespace AuraLogbook.Api.Models.Dto
         [Required(ErrorMessage = "Date is required.")]
         public DateOnly Birthday { get; set; } = DateOnly.MaxValue;
         // public byte[]? ProfilePictureBlob { get; set; }
+        public string? AuraColor { get; set; }
+        public int? AuraIntensity { get; set; }
     }
 }

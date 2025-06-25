@@ -17,6 +17,9 @@ namespace AuraLogbook.Api.Models.Dto
         public string? DisplayName { get; set; }
 
         public DateOnly Birthday { get; set; }
+
+        public string? AuraColor { get; set; }
+        public int? AuraIntensity { get; set; }
     }
 
 

@@ -6,7 +6,9 @@
     "CreatedAt": "2025-06-13T19:00:00Z",
     "DisplayName": "Admin",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 2,
@@ -15,7 +17,9 @@
     "CreatedAt": "2025-06-12T15:30:00Z",
     "DisplayName": "User One",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 3,
@@ -24,7 +28,9 @@
     "CreatedAt": "2025-06-10T09:00:00Z",
     "DisplayName": "Aura Bot",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 4,
@@ -33,7 +39,9 @@
     "CreatedAt": "2025-06-09T22:45:00Z",
     "DisplayName": "Test Account",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 5,
@@ -42,7 +50,9 @@
     "CreatedAt": "2025-06-08T17:10:00Z",
     "DisplayName": "Jane Doe",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 6,
@@ -51,7 +61,9 @@
     "CreatedAt": "6/15/2025 1:20:54 AM",
     "DisplayName": "Gems",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 7,
@@ -60,7 +72,9 @@
     "CreatedAt": "6/15/2025 1:23:23 AM",
     "DisplayName": "user@example.com",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 8,
@@ -69,7 +83,9 @@
     "CreatedAt": "6/15/2025 5:04:07 AM",
     "DisplayName": "ADMIN",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 9,
@@ -78,7 +94,9 @@
     "CreatedAt": "6/16/2025 4:10:45 AM",
     "DisplayName": "TEST USER",
     "Birthday": "2025-06-20",
-    "ZodiacSign": "Gemini"
+    "ZodiacSign": "Gemini",
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 10,
@@ -87,7 +105,9 @@
     "CreatedAt": "6/17/2025 6:07:42 PM",
     "DisplayName": "gem.social2023@gmail.com",
     "Birthday": "0001-01-01",
-    "ZodiacSign": null
+    "ZodiacSign": null,
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 11,
@@ -96,7 +116,9 @@
     "CreatedAt": "6/20/2025 9:11:03 AM",
     "DisplayName": "Test",
     "Birthday": "2025-06-20",
-    "ZodiacSign": "Gemini"
+    "ZodiacSign": "Gemini",
+    "AuraColor": "blue",
+    "AuraIntensity": 500
   },
   {
     "Id": 12,
@@ -105,6 +127,8 @@
     "CreatedAt": "6/21/2025 1:37:07 AM",
     "DisplayName": "Admin Test User",
     "Birthday": "1997-09-24",
-    "ZodiacSign": "Libra"
+    "ZodiacSign": "Libra",
+    "AuraColor": "red",
+    "AuraIntensity": 500
   }
 ]
