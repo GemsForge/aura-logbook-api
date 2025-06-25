@@ -1,40 +1,54 @@
 import { useState, useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import { Controller, useForm, type Resolver } from "react-hook-form";
+import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import {
   Box,
   Button,
   Checkbox,
+  FormControl,
   FormControlLabel,
+  InputLabel,
+  MenuItem,
   Modal,
+  Select,
+  Slider,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AuthApi } from "@/api/AuthApi";
-import { setUserProfile } from "@/store/slices/authSlice";
+import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
 import {
   closeProfileModal,
-  selectIsProfileModalOpen,
 } from "@/store/slices/uiSlice";
 import { useToast } from "@/hooks/useToast";
 import {
   type EditProfileFormData,
   editProfileSchema,
 } from "@/features/auth/models/EditProfileSchema";
-import type { UpdateUserRequest } from "@/features/auth/models";
+import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
+import { AuraColor } from "@/features/mood/models/aura";
+import { auraPalettes } from "@/theme/auraTheme";
+import { useAppDispatch } from "@/store/hooks";
 
-export default function EditProfileModal() {
-  const dispatch = useDispatch();
-  const isOpen = useSelector(selectIsProfileModalOpen);
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
+
+export default function EditProfileModal({ open, onClose }: Props) {
+  const theme = useTheme();
+  const dispatch = useAppDispatch();
+  // const isOpen = useSelector(selectIsProfileModalOpen);
   const { showToast } = useToast();
-  const { displayName, birthday, userEmail } = useSelector(
-    (state: any) => state.auth
-  );
+  const user: UserProfile = useSelector(selectCurrentUser)!;
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
+  const resolver = yupResolver(editProfileSchema, {
+    context: { isChangingPassword },
+  }) as Resolver<EditProfileFormData, any>;
   const {
     register,
     control,
@@ -42,33 +56,37 @@ export default function EditProfileModal() {
     reset,
     formState: { errors },
   } = useForm<EditProfileFormData>({
-    resolver: yupResolver(editProfileSchema, {
-      context: { isChangingPassword },
-    }),
+    resolver,
     defaultValues: {
-      email: "",
-      displayName: "",
-      birthday: "",
-      password: undefined,
-      confirmPassword: undefined,
+      displayName: user.displayName || "",
+      email: user.email || "",
+      birthday: user.birthday ? dayjs(user.birthday).format("YYYY-MM-DD") : "",
+      auraColor: user.auraColor || "blue",
+      auraIntensity: user.auraIntensity ?? 500,
+      password: "",
+      confirmPassword: ""
     },
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       reset({
-        email: userEmail || "",
-        displayName: displayName || "",
-        birthday: birthday ? dayjs(birthday).format() : undefined,
+        displayName: user.displayName || "",
+        email: user.email || "",
+        birthday: user.birthday
+          ? dayjs(user.birthday).format("YYYY-MM-DD")
+          : "",
+        auraColor: user.auraColor || "blue",
+        auraIntensity: user.auraIntensity ?? 500,
         password: "",
         confirmPassword: "",
       });
       setIsChangingPassword(false);
     }
-  }, [isOpen, displayName, birthday, userEmail, reset]);
+  }, [open, user, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
-    const {confirmPassword, ...rest} = data;
+    const { confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
       ...rest,
       id: 0,
@@ -79,48 +97,60 @@ export default function EditProfileModal() {
       await AuthApi.updateUser(payload);
       const updatedProfile = await AuthApi.getCurrentUser();
       dispatch(setUserProfile(updatedProfile));
-      dispatch(closeProfileModal());
+      // dispatch(closeProfileModal());
       showToast("Profile updated!", "success");
+      onClose();
+      
     } catch {
       showToast("Failed to update profile", "error");
     }
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={() => dispatch(closeProfileModal())}
-      disableEscapeKeyDown={false}>
+    <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
       <Box
         sx={{
-          p: 4,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
           width: 400,
-          mx: "auto",
-          mt: "10%",
+          p: 4,
           bgcolor: "background.paper",
           borderRadius: 2,
           boxShadow: 24,
         }}>
-        <Typography variant="h6" mb={2}>
+        <Typography variant="h6" gutterBottom>
           Edit Profile
         </Typography>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2, // uniform 16px between controls
+          }}>
+          {/* Display Name */}
           <TextField
-            fullWidth
             label="Display Name"
-            margin="normal"
             {...register("displayName")}
             error={!!errors.displayName}
             helperText={errors.displayName?.message}
-          />
-          <TextField
             fullWidth
+          />
+
+          {/* Email */}
+          <TextField
             label="Email"
-            margin="normal"
+            type="email"
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
+            fullWidth
           />
+
+          {/* Birthday */}
           <Controller
             name="birthday"
             control={control}
@@ -133,16 +163,82 @@ export default function EditProfileModal() {
               />
             )}
           />
+
+          {/* Aura Color */}
+          <FormControl fullWidth>
+            <InputLabel id="aura-color-label">Aura Color</InputLabel>
+            <Controller
+              name="auraColor"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  labelId="aura-color-label"
+                  label="Aura Color"
+                  fullWidth>
+                  {Object.values(AuraColor).map((c) => (
+                    <MenuItem key={c} value={c}>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "inline-block",
+                          width: 12,
+                          height: 12,
+                          backgroundColor: auraPalettes[c].primary!.main,
+                          borderRadius: "50%",
+                          mr: 1,
+                          verticalAlign: "middle",
+                        }}
+                      />
+                      {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+          </FormControl>
+
+          {/* Intensity Slider */}
+          <Controller
+            name="auraIntensity"
+            control={control}
+            render={({ field }) => (
+              <Box>
+                <Typography gutterBottom>Intensity</Typography>
+                <Slider
+                  min={100}
+                  max={900}
+                  step={100}
+                  value={field.value ?? 500}
+                  onChange={(_, value) => field.onChange(value as number)}
+                  onBlur={field.onBlur}
+                  valueLabelDisplay="auto"
+                  sx={{
+                    // tint track & thumb with current aura color
+                    "& .MuiSlider-thumb": {
+                      color: theme.palette.primary.main,
+                    },
+                    "& .MuiSlider-track": {
+                      color: theme.palette.primary.main,
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          />
+
+          {/* Change Password Checkbox */}
           <FormControlLabel
-            sx={{ mt: 2 }}
             control={
               <Checkbox
                 checked={isChangingPassword}
-                onChange={(e) => setIsChangingPassword(e.target.checked)}
+                onChange={() => setIsChangingPassword((p) => !p)}
               />
             }
             label="Change password?"
+            sx={{ alignSelf: "flex-start" }}
           />
+
           {isChangingPassword && (
             <>
               <TextField
@@ -176,7 +272,7 @@ export default function EditProfileModal() {
               Save Changes
             </Button>
           </Box>
-        </form>
+        </Box>
       </Box>
     </Modal>
   );

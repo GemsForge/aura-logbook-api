@@ -29,6 +29,7 @@ export function getAuraTheme(
     const shades = auraShades[color] || auraShades.blue;
     const mainColor = shades[intensity] || shades[500];
   
+    console.log(`[theming]`, color, intensity, "→", mainColor);
     return createTheme({
       palette: {
         primary: { main: mainColor },

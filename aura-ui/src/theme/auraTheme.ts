@@ -1,5 +1,5 @@
 // src/theme/auraThemes.ts
-import type { PaletteOptions } from "@mui/material/styles";
+import type { SimplePaletteColorOptions } from "@mui/material/styles";
 import {
   red,
   orange,
@@ -13,7 +13,9 @@ import {
 } from "@mui/material/colors";
 import type { AuraColor } from "../features/mood/models/aura";
 
-export const auraPalettes: Record<AuraColor, PaletteOptions> = {
+type AuraPaletteEntry = { primary: SimplePaletteColorOptions };
+
+export const auraPalettes: Record<AuraColor, AuraPaletteEntry> = {
   red: { primary: { main: red[500] } },
   orange: { primary: { main: orange[500] } },
   yellow: { primary: { main: yellow[700] } },
