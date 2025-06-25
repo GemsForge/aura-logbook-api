@@ -2,6 +2,7 @@
 import type { UserProfile } from "@/features/auth/models";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
+import type { AuraColor } from "@/features/mood/models/aura";
 
 interface AuthState {
   token: string | null;
@@ -22,6 +23,7 @@ function loadSavedProfile(): UserProfile|null{
       return null;
   }
 }
+
 const initialState: AuthState = {
   token,
   isAuthenticated: !!token,
@@ -61,11 +63,33 @@ const authSlice = createSlice({
       state.user = { ...state.user, ...action.payload };
       localStorage.setItem("userProfile", JSON.stringify(state.user));
     },
+    // Aura-specific setters
+    setAuraColor(state, action: PayloadAction<AuraColor>) {
+      if (!state.user) return;
+      state.user.auraColor = action.payload;
+      localStorage.setItem("userProfile", JSON.stringify(state.user));
+    },
+    setAuraIntensity(state, action: PayloadAction<number>) {
+      if (!state.user) return;
+      state.user.auraIntensity = action.payload;
+      localStorage.setItem("userProfile", JSON.stringify(state.user));
+    },
   },
 });
 
-export const { loginSuccess, logout, setUserProfile } = authSlice.actions;
+
+export const {
+  loginSuccess,
+  logout,
+  setUserProfile,
+  setAuraColor,
+  setAuraIntensity,
+} = authSlice.actions;
 
 export const selectCurrentUser = (state: RootState) => state.auth.user;
+export const selectAuraColor = (state: RootState) =>
+  (state.auth.user?.auraColor as AuraColor) ?? "blue";
+export const selectAuraIntensity = (state: RootState) =>
+  state.auth.user?.auraIntensity ?? 500;
 
 export default authSlice.reducer;

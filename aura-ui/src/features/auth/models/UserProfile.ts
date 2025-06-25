@@ -1,3 +1,5 @@
+import type { AuraColor } from "@/features/mood/models/aura";
+
 export interface UserProfile {
   id: number;
   email: string;
@@ -5,6 +7,8 @@ export interface UserProfile {
   token: string;
   birthday: string;
   zodiacSign: string;
+  auraColor?: AuraColor;
+  auraIntensity?:number;
 
   lat?: number;
   lon?: number;
