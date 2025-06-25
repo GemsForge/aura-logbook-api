@@ -78,6 +78,11 @@ public class UserService : IUserService
             ? existingUser.DisplayName
             : request.DisplayName;
 
+        if (!string.IsNullOrWhiteSpace(request.AuraColor))
+            existingUser.AuraColor = request.AuraColor;
+        if (request.AuraIntensity.HasValue)
+            existingUser.AuraIntensity = request.AuraIntensity.Value;
+            
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");
     }
@@ -138,6 +143,8 @@ public class UserService : IUserService
             CreatedAt = DateTime.UtcNow.ToString(),
             Birthday = request.Birthday,
             ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday),
+            AuraColor = request.AuraColor ?? "blue",
+            AuraIntensity = request.AuraIntensity ?? 500,
             // ProfilePictureBlob = request.ProfilePictureBlob
         };
     }

@@ -4,15 +4,15 @@ import {
   Checkbox,
   FormControlLabel,
   FormGroup,
-  TextField,
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { MoodIcons } from "@/features/mood/models/aura";
+import { AuraColor, AuraMoodMap } from "@/features/mood/models/aura";
 import { type MoodEntry, type MoodType, moodEntrySchema, MoodTypes } from "@/features/mood/models/schema";
+import { auraPalettes } from "@/theme/auraTheme";
 
 
 interface Props {
@@ -51,6 +51,14 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
     setValue("moods", updated);
   };
 
+  // Group moods by auraColor
+  const auraGroups: Record<AuraColor, MoodType[]> = Object.values(
+    AuraColor
+  ).reduce((acc, color) => {
+    acc[color] = MoodTypes.filter((m) => AuraMoodMap[m].auraColor === color);
+    return acc;
+  }, {} as Record<AuraColor, MoodType[]>);
+  
   const onFormSubmit = (data: any) => {
     onSubmit({
       date: dayjs(data.date).format("YYYY-MM-DD"),
@@ -79,23 +87,56 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         </Typography>
       )}
 
-      <Typography mt={2}>How are you feeling?</Typography>
+      <Typography mt={2} mb={1} variant="subtitle1">
+        How are you feeling?
+      </Typography>
+
       <FormGroup>
-        <Box display="flex" flexWrap="wrap">
-          {MoodTypes.map((mood) => (
-            <Box key={mood} width="50%">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedMoods.includes(mood)}
-                    onChange={() => toggleMood(mood)}
-                  />
-                }
-                label={`${MoodIcons[mood]} ${mood}`}
-              />
+        {Object.entries(auraGroups).map(([colorKey, moods]) => {
+          const color = colorKey as AuraColor;
+          if (moods.length === 0) return null;
+          return (
+            <Box key={color} mb={2}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: auraPalettes[color].primary!.main,
+                  textTransform: "capitalize",
+                  mb: 1,
+                }}>
+                {color}
+              </Typography>
+              <Box display="flex" flexWrap="wrap">
+                {moods.map((mood) => {
+                  const { icon, auraColor } = AuraMoodMap[mood];
+                  const checked = selectedMoods.includes(mood);
+                  const hue = auraPalettes[auraColor].primary!.main;
+                  return (
+                    <Box key={mood} width="50%">
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={checked}
+                            onChange={() => toggleMood(mood)}
+                            sx={{
+                              color: hue,
+                              "&.Mui-checked": { color: hue },
+                            }}
+                          />
+                        }
+                        label={
+                          <span style={{ color: hue }}>
+                            {icon} {mood}
+                          </span>
+                        }
+                      />
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
-          ))}
-        </Box>
+          );
+        })}
         {errors.moods && (
           <Typography color="error" variant="body2" mt={1}>
             {errors.moods.message as string}
@@ -107,14 +148,26 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         name="comment"
         control={control}
         render={({ field }) => (
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="Comment (optional)"
-            margin="normal"
-            {...field}
-          />
+          <Box mt={2} mb={2}>
+            <Typography variant="subtitle2">Comment (optional)</Typography>
+            <Box
+              component="textarea"
+              {...field}
+              style={{
+                width: "100%",
+                minHeight: 80,
+                padding: 8,
+                fontFamily: "inherit",
+                fontSize: "1rem",
+                borderColor: errors.comment ? "red" : "#ccc",
+              }}
+            />
+            {errors.comment && (
+              <Typography color="error" variant="body2">
+                {errors.comment.message}
+              </Typography>
+            )}
+          </Box>
         )}
       />
 

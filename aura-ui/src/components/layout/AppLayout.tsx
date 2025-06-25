@@ -5,11 +5,15 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import ProfileCard from "../profile/ProfileCard";
 import EditProfileModal from "../profile/EditProfileModal";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 
 const AppLayout = () => {
+  const dispatch = useAppDispatch();
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
+  const isProfileModalOpen = useAppSelector(selectIsProfileModalOpen);
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
@@ -25,7 +29,10 @@ const AppLayout = () => {
               </Grid>
               <Grid size={{ xs: 12, md: 9 }}>
                 <Outlet />
-                <EditProfileModal />
+                <EditProfileModal
+                  onClose={() => dispatch(closeProfileModal())}
+                  open={isProfileModalOpen}
+                />
               </Grid>
             </Grid>
           ) : (
