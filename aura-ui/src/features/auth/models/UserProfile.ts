@@ -6,6 +6,7 @@ export interface UserProfile {
   displayName: string;
   token: string;
   birthday: string;
+  avatar?: string;   // base64 or image URL
   zodiacSign: string;
   auraColor?: AuraColor;
   auraIntensity?:number;

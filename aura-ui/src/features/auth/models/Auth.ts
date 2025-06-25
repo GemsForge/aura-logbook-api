@@ -29,6 +29,7 @@ export interface LoginResponse {
     email: string;
     password?: string;
     displayName?: string;
-    birthday: string;
+      birthday: string;
+      avatar?: string;   // base64 or image URL
   }
   
