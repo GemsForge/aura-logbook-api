@@ -4,13 +4,14 @@ import {
   Checkbox,
   FormControlLabel,
   FormGroup,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { AuraColor, AuraMoodMap } from "@/features/mood/models/aura";
+import { AuraColor, AuraColorInfo, AuraMoodMap } from "@/features/mood/models/aura";
 import { type MoodEntry, type MoodType, moodEntrySchema, MoodTypes } from "@/features/mood/models/schema";
 import { auraPalettes } from "@/theme/auraTheme";
 
@@ -95,17 +96,24 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         {Object.entries(auraGroups).map(([colorKey, moods]) => {
           const color = colorKey as AuraColor;
           if (moods.length === 0) return null;
+          const info = AuraColorInfo[color];
+          const hue = auraPalettes[color].primary!.main;
+          
           return (
             <Box key={color} mb={2}>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: auraPalettes[color].primary!.main,
-                  textTransform: "capitalize",
-                  mb: 1,
-                }}>
-                {color}
-              </Typography>
+              <Tooltip title={info.meaning}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: hue,
+                    textTransform: "capitalize",
+                    mb: 1,
+                    cursor: "help", // hint that it's hoverable
+                    display: "inline-block",
+                  }}>
+                  {info.name}
+                </Typography>
+              </Tooltip>
               <Box display="flex" flexWrap="wrap">
                 {moods.map((mood) => {
                   const { icon, auraColor } = AuraMoodMap[mood];
