@@ -3,7 +3,16 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes } from "@/theme/auraTheme";
-import { Avatar, Button, Paper, Stack, Typography } from "@mui/material";
+import { getProfileCompletion } from "@/util/profile";
+import {
+  Avatar,
+  Box,
+  Button,
+  LinearProgress,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 
 export default function ProfileCard() {
   const user = useAppSelector(selectCurrentUser);
@@ -15,14 +24,14 @@ export default function ProfileCard() {
 
     return <Typography>Loading profile...</Typography>;
   }
-  
+  const completion = getProfileCompletion(user);
+
   const key: AuraColor = user.auraColor ?? AuraColor.Blue;
   const avatarVal = user.avatar || "";
   const isImage = avatarVal.startsWith("/") || avatarVal.startsWith("http");
   // background only when initials
   const bgColor = !isImage ? auraPalettes[key].primary.main : undefined;
 
-  
   return (
     <Paper
       elevation={2}
@@ -55,6 +64,29 @@ export default function ProfileCard() {
           {user.email}
         </Typography>
         <Typography variant="body2"> {user.zodiacSign}</Typography>
+        <Box p={2}>
+         {/* … avatar, name, email, zodiac … */}
+
+      {completion < 100 ? (
+        <>
+          <Typography variant="caption" sx={{ mt: 1 }}>
+            Profile Complete: {completion}%
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={completion}
+            sx={{ height: 8, borderRadius: 4, mt: 0.5 }}
+          />
+        </>
+      ) : (
+        <Typography
+          variant="subtitle2"
+          sx={{ mt: 1, color: "success.main", fontWeight: 500 }}
+        >
+          🎉 Profile Complete!
+        </Typography>
+      )}
+
         <Button
           onClick={() => dispatch(openProfileModal())}
           size="small"
@@ -62,6 +94,7 @@ export default function ProfileCard() {
           sx={{ textTransform: "none" }}>
           Edit Profile
         </Button>
+        </Box>
       </Stack>
     </Paper>
   );
