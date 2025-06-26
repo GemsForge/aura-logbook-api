@@ -22,6 +22,7 @@ namespace AuraLogbook.Api.Models.Dto
         public int? AuraIntensity { get; set; }
 
         public string? Avatar { get; set; }
+        public string? Motto { get; set; }
     }
 
 
