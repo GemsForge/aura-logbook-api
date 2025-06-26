@@ -7,7 +7,9 @@ export interface EditProfileFormData {
   email: string;
   displayName: string;
   birthday: string;
-  avatar?: string; 
+  avatar?: string;
+  avatarType: "image" | "initials";
+  initials?: string;
   password?: string;
   confirmPassword?: string;
   auraColor: AuraColor;
@@ -25,7 +27,21 @@ export const editProfileSchema = yup
 
     birthday: yup.string().required("Birthday is required"),
 
-    avatar: yup.string().nullable().notRequired(), 
+    avatar: yup.string().nullable().notRequired(),
+
+    avatarType: yup
+      .mixed<"image" | "initials">()
+      .oneOf(["image", "initials"])
+      .required("Choose avatar style"),
+
+    initials: yup.string().when("avatarType", {
+      is: "initials",
+      then: (s) =>
+        s
+          .required("Enter your initials")
+          .matches(/^[A-Za-z]{1,2}$/, "1–2 letters only"),
+      otherwise: (s) => s.strip(), // remove from payload if not initials
+    }),
 
     password: yup.string().when("$isChangingPassword", {
       is: true,

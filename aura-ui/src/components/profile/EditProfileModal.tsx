@@ -32,8 +32,8 @@ import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
 import { AuraColor } from "@/features/mood/models/aura";
 import { auraPalettes } from "@/theme/auraTheme";
 import { useAppDispatch } from "@/store/hooks";
-import AvatarPickerModal from "./AvatarPickerModal";
 import { presetAvatars } from "@/assets/presetAvatars";
+import { AvatarPickerModal } from "./AvatarPickerModal";
 
 interface Props {
   open: boolean;
@@ -54,6 +54,8 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const {
     register,
     control,
+    watch,
+    setValue,
     handleSubmit,
     reset,
     formState: { errors },
@@ -109,6 +111,16 @@ export default function EditProfileModal({ open, onClose }: Props) {
     }
   };
 
+  const currentAuraBg = auraPalettes[watch("auraColor")].primary.main;
+  
+  const displayName = watch("displayName") || user.displayName || "";
+  const defaultInitials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
       <Box
@@ -135,31 +147,54 @@ export default function EditProfileModal({ open, onClose }: Props) {
           <Controller
             name="avatar"
             control={control}
-            render={({ field }) => (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1,
-                }}>
-                <MuiAvatar src={field.value} sx={{ width: 80, height: 80 }} />
-                <Button
-                  variant="text"
-                  onClick={() => setAvatarPickerOpen(true)}>
-                  Change Avatar
-                </Button>
-                {errors.avatar && (
-                  <Typography color="error">{errors.avatar.message}</Typography>
-                )}
-                <AvatarPickerModal
-                  open={avatarPickerOpen}
-                  onClose={() => setAvatarPickerOpen(false)}
-                  avatars={presetAvatars}
-                  onSelect={(url) => field.onChange(url)}
-                />
-              </Box>
-            )}
+            render={({ field }) =>{
+              const val = field.value || "";
+              // is it one of our preset image URLs?
+              const isImage = presetAvatars.some((a) => a.url === val);
+          
+               return (
+                 <Box
+                   sx={{
+                     display: "flex",
+                     flexDirection: "column",
+                     alignItems: "center",
+                     gap: 1,
+                   }}>
+                   <MuiAvatar
+                     // if it’s an image, give it as src; otherwise leave undefined so we fall back to initials
+                     src={isImage ? val : undefined}
+                     sx={{
+                       width: 80,
+                       height: 80,
+                       // only color-fill the background when it’s initials
+                       bgcolor: !isImage ? currentAuraBg : undefined,
+                     }}>
+                     {/* if it’s NOT an image, render the initials as the child */}
+                     {!isImage ? val : null}
+                   </MuiAvatar>
+                   <Button
+                     variant="text"
+                     onClick={() => setAvatarPickerOpen(true)}>
+                     Change Avatar
+                   </Button>
+                   {errors.avatar && (
+                     <Typography color="error">
+                       {errors.avatar.message}
+                     </Typography>
+                   )}
+                   <AvatarPickerModal
+                     open={avatarPickerOpen}
+                     onClose={() => setAvatarPickerOpen(false)}
+                     avatars={presetAvatars}
+                     userInitials={defaultInitials}
+                     auraBg={currentAuraBg}
+                     onSelect={(val) => {
+                       setValue("avatar", val);
+                       setAvatarPickerOpen(false);
+                     }}
+                   />
+                 </Box>
+               );}}
           />
 
           {/* Display Name */}
