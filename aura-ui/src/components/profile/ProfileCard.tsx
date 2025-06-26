@@ -9,8 +9,6 @@ export default function ProfileCard() {
 
   // 🔮 Use hardcoded fallback values for now
 
-  const avatarUrl = "/avatars/avatar-1.png"; // optional: use emoji fallback instead
-
   if (!user) {
     console.debug("USER", user);
     
@@ -29,7 +27,7 @@ export default function ProfileCard() {
       <Stack spacing={2} alignItems="center">
         <Avatar
           alt={user.displayName}
-          src={avatarUrl}
+          src={user.avatar}
           sx={{ width: 80, height: 80 }}
         />
         <Typography variant="h6">{user.displayName}</Typography>

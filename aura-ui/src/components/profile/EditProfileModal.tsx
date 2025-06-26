@@ -15,8 +15,8 @@ import {
   Slider,
   TextField,
   Typography,
-  useTheme,
   Avatar as MuiAvatar,
+  useTheme,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -32,6 +32,8 @@ import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
 import { AuraColor } from "@/features/mood/models/aura";
 import { auraPalettes } from "@/theme/auraTheme";
 import { useAppDispatch } from "@/store/hooks";
+import AvatarPickerModal from "./AvatarPickerModal";
+import { presetAvatars } from "@/assets/presetAvatars";
 
 interface Props {
   open: boolean;
@@ -44,7 +46,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const { showToast } = useToast();
   const user: UserProfile = useSelector(selectCurrentUser)!;
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const resolver = yupResolver(editProfileSchema, {
     context: { isChangingPassword },
   }) as Resolver<EditProfileFormData, any>;
@@ -129,7 +131,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
           component="form"
           onSubmit={handleSubmit(onSubmit)}
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Avatar Picker */}
+          {/* Current Avatar & Change Button */}
           <Controller
             name="avatar"
             control={control}
@@ -142,22 +144,20 @@ export default function EditProfileModal({ open, onClose }: Props) {
                   gap: 1,
                 }}>
                 <MuiAvatar src={field.value} sx={{ width: 80, height: 80 }} />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = () =>
-                        field.onChange(reader.result as string);
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                />
+                <Button
+                  variant="text"
+                  onClick={() => setAvatarPickerOpen(true)}>
+                  Change Avatar
+                </Button>
                 {errors.avatar && (
                   <Typography color="error">{errors.avatar.message}</Typography>
                 )}
+                <AvatarPickerModal
+                  open={avatarPickerOpen}
+                  onClose={() => setAvatarPickerOpen(false)}
+                  avatars={presetAvatars}
+                  onSelect={(url) => field.onChange(url)}
+                />
               </Box>
             )}
           />
