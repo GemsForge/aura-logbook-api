@@ -71,7 +71,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       avatar: user.avatar || "",
       password: "",
       confirmPassword: "",
-      motto: ""
+      motto: "",
     },
   });
 
@@ -88,14 +88,14 @@ export default function EditProfileModal({ open, onClose }: Props) {
         avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
-        motto: user.motto || ""
+        motto: user.motto || "",
       });
       setIsChangingPassword(false);
     }
   }, [open, user, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
-    const {auraIntensity, confirmPassword, ...rest } = data;
+    const { auraIntensity, confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
       id: user.id,
       ...rest,
@@ -116,7 +116,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
   };
 
   const currentAuraBg = auraPalettes[watch("auraColor")].primary.main;
-  
+
   const displayName = watch("displayName") || user.displayName || "";
   const defaultInitials = displayName
     .split(" ")
@@ -133,7 +133,8 @@ export default function EditProfileModal({ open, onClose }: Props) {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 400,
+          width: { xs: "90%", sm: 600 },
+          maxWidth: 800,
           p: 4,
           bgcolor: "background.paper",
           borderRadius: 2,
@@ -151,54 +152,55 @@ export default function EditProfileModal({ open, onClose }: Props) {
           <Controller
             name="avatar"
             control={control}
-            render={({ field }) =>{
+            render={({ field }) => {
               const val = field.value || "";
               // is it one of our preset image URLs?
               const isImage = presetAvatars.some((a) => a.url === val);
-          
-               return (
-                 <Box
-                   sx={{
-                     display: "flex",
-                     flexDirection: "column",
-                     alignItems: "center",
-                     gap: 1,
-                   }}>
-                   <MuiAvatar
-                     // if it’s an image, give it as src; otherwise leave undefined so we fall back to initials
-                     src={isImage ? val : undefined}
-                     sx={{
-                       width: 80,
-                       height: 80,
-                       // only color-fill the background when it’s initials
-                       bgcolor: !isImage ? currentAuraBg : undefined,
-                     }}>
-                     {/* if it’s NOT an image, render the initials as the child */}
-                     {!isImage ? val : null}
-                   </MuiAvatar>
-                   <Button
-                     variant="text"
-                     onClick={() => setAvatarPickerOpen(true)}>
-                     Change Avatar
-                   </Button>
-                   {errors.avatar && (
-                     <Typography color="error">
-                       {errors.avatar.message}
-                     </Typography>
-                   )}
-                   <AvatarPickerModal
-                     open={avatarPickerOpen}
-                     onClose={() => setAvatarPickerOpen(false)}
-                     avatars={presetAvatars}
-                     userInitials={defaultInitials}
-                     auraBg={currentAuraBg}
-                     onSelect={(val) => {
-                       setValue("avatar", val, { shouldValidate: true });
-                       setAvatarPickerOpen(false);
-                     }}
-                   />
-                 </Box>
-               );}}
+
+              return (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 1,
+                  }}>
+                  <MuiAvatar
+                    // if it’s an image, give it as src; otherwise leave undefined so we fall back to initials
+                    src={isImage ? val : undefined}
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      // only color-fill the background when it’s initials
+                      bgcolor: !isImage ? currentAuraBg : undefined,
+                    }}>
+                    {/* if it’s NOT an image, render the initials as the child */}
+                    {!isImage ? val : null}
+                  </MuiAvatar>
+                  <Button
+                    variant="text"
+                    onClick={() => setAvatarPickerOpen(true)}>
+                    Change Avatar
+                  </Button>
+                  {errors.avatar && (
+                    <Typography color="error">
+                      {errors.avatar.message}
+                    </Typography>
+                  )}
+                  <AvatarPickerModal
+                    open={avatarPickerOpen}
+                    onClose={() => setAvatarPickerOpen(false)}
+                    avatars={presetAvatars}
+                    userInitials={defaultInitials}
+                    auraBg={currentAuraBg}
+                    onSelect={(val) => {
+                      setValue("avatar", val, { shouldValidate: true });
+                      setAvatarPickerOpen(false);
+                    }}
+                  />
+                </Box>
+              );
+            }}
           />
 
           {/* Display Name */}
@@ -233,7 +235,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
               />
             )}
           />
-          <MottoField control={control} name="motto"/>
+          <MottoField control={control} name="motto" />
 
           {/* Aura Color */}
           <FormControl fullWidth>
