@@ -16,17 +16,11 @@ import {
   Box,
   Button,
   Checkbox,
-  FormControl,
   FormControlLabel,
-  InputLabel,
-  MenuItem,
   Modal,
   Avatar as MuiAvatar,
-  Select,
-  Slider,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
@@ -35,6 +29,7 @@ import { Controller, useForm, type Resolver } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { AvatarPickerModal } from "./AvatarPickerModal";
 import { MottoField } from "./MottoField";
+import { AuraSelector } from "./AuraSelectorField";
 
 interface Props {
   open: boolean;
@@ -42,7 +37,6 @@ interface Props {
 }
 
 export default function EditProfileModal({ open, onClose }: Props) {
-  const theme = useTheme();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const user: UserProfile = useSelector(selectCurrentUser)!;
@@ -243,77 +237,9 @@ export default function EditProfileModal({ open, onClose }: Props) {
           />
           <MottoField control={control} name="motto" />
 
-          {/* Aura Color */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {/* color preview */}
-            <Box
-              sx={{
-                width: 24,
-                height: 24,
-                borderRadius: "50%",
-                bgcolor: currentAuraBg,
-                border: "1px solid",
-                borderColor: "grey.400",
-              }}
-            />
-            <FormControl fullWidth>
-              <InputLabel id="aura-color-label">Aura Color</InputLabel>
-              <Controller
-                name="auraColor"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    labelId="aura-color-label"
-                    label="Aura Color"
-                    fullWidth>
-                    {Object.values(AuraColor).map((c) => (
-                      <MenuItem key={c} value={c}>
-                        <Box
-                          component="span"
-                          sx={{
-                            display: "inline-block",
-                            width: 12,
-                            height: 12,
-                            backgroundColor: auraPalettes[c].primary!.main,
-                            borderRadius: "50%",
-                            mr: 1,
-                            verticalAlign: "middle",
-                          }}
-                        />
-                        {c.charAt(0).toUpperCase() + c.slice(1)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-            </FormControl>
-          </Box>
-
-          {/* Intensity Slider */}
-          <Controller
-            name="auraIntensity"
-            control={control}
-            render={({ field }) => (
-              <Box>
-                <Typography gutterBottom>Intensity</Typography>
-                <Slider
-                  min={100}
-                  max={900}
-                  step={100}
-                  value={field.value ?? 500}
-                  onChange={(_, value) => field.onChange(value as number)}
-                  onBlur={field.onBlur}
-                  valueLabelDisplay="auto"
-                  sx={{
-                    "& .MuiSlider-thumb": { color: theme.palette.primary.main },
-                    "& .MuiSlider-track": { color: theme.palette.primary.main },
-                  }}
-                />
-              </Box>
-            )}
-          />
-
+          {/* Aura Color Selector and preview */}
+         <AuraSelector control={control} colorField="auraColor"intensityField="auraIntensity"/>
+         
           {/* Change Password Checkbox */}
           <FormControlLabel
             control={
