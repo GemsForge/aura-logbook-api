@@ -86,6 +86,10 @@ public class UserService : IUserService
         {
             existingUser.Avatar = request.Avatar;
         }
+        if (request.Motto != null)
+                {
+            existingUser.Motto = request.Motto.Trim();
+              }
 
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");

@@ -14,6 +14,7 @@ export interface EditProfileFormData {
   confirmPassword?: string;
   auraColor: AuraColor;
   auraIntensity?: number | null;
+  motto?: string;
 }
 
 export const editProfileSchema = yup
@@ -72,6 +73,13 @@ export const editProfileSchema = yup
       .max(900, "Intensity cannot exceed 900")
       .nonNullable()
       .default(500)
+      .notRequired(),
+
+    motto: yup
+      .string()
+      .trim()
+      .max(100, "Motto can’t exceed 100 characters")
+      .nullable()
       .notRequired(),
   })
   .required();
