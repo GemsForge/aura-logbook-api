@@ -1,7 +1,5 @@
-// src/features/auth/models/EditProfileSchema.ts
 import { AuraColor } from "@/features/mood/models/aura";
 import * as yup from "yup";
-
 
 const auraColors = Object.values(AuraColor) as AuraColor[];
 
@@ -9,6 +7,7 @@ export interface EditProfileFormData {
   email: string;
   displayName: string;
   birthday: string;
+  avatar?: string; 
   password?: string;
   confirmPassword?: string;
   auraColor: AuraColor;
@@ -25,6 +24,8 @@ export const editProfileSchema = yup
     displayName: yup.string().required("Display name is required"),
 
     birthday: yup.string().required("Birthday is required"),
+
+    avatar: yup.string().nullable().notRequired(), 
 
     password: yup.string().when("$isChangingPassword", {
       is: true,
@@ -52,7 +53,8 @@ export const editProfileSchema = yup
     auraIntensity: yup
       .number()
       .min(100, "Intensity must be at least 100")
-      .max(900, "Intensity cannot exceed 900").nullable()
+      .max(900, "Intensity cannot exceed 900")
+      .nullable()
       .notRequired(),
   })
   .required();

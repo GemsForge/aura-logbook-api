@@ -10,4 +10,3 @@
         public string? Avatar { get; set; }
     }
 }
-s

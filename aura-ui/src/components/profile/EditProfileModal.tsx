@@ -16,14 +16,13 @@ import {
   TextField,
   Typography,
   useTheme,
+  Avatar as MuiAvatar,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AuthApi } from "@/api/AuthApi";
 import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
-import {
-  closeProfileModal,
-} from "@/store/slices/uiSlice";
+import { closeProfileModal } from "@/store/slices/uiSlice";
 import { useToast } from "@/hooks/useToast";
 import {
   type EditProfileFormData,
@@ -42,13 +41,14 @@ interface Props {
 export default function EditProfileModal({ open, onClose }: Props) {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  // const isOpen = useSelector(selectIsProfileModalOpen);
   const { showToast } = useToast();
   const user: UserProfile = useSelector(selectCurrentUser)!;
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   const resolver = yupResolver(editProfileSchema, {
     context: { isChangingPassword },
   }) as Resolver<EditProfileFormData, any>;
+
   const {
     register,
     control,
@@ -61,10 +61,11 @@ export default function EditProfileModal({ open, onClose }: Props) {
       displayName: user.displayName || "",
       email: user.email || "",
       birthday: user.birthday ? dayjs(user.birthday).format("YYYY-MM-DD") : "",
-      auraColor: user.auraColor || "blue",
+      auraColor: user.auraColor || AuraColor.Blue,
       auraIntensity: user.auraIntensity ?? 500,
+      avatar: user.avatar || "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
     },
   });
 
@@ -76,8 +77,9 @@ export default function EditProfileModal({ open, onClose }: Props) {
         birthday: user.birthday
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
-        auraColor: user.auraColor || "blue",
+        auraColor: user.auraColor || AuraColor.Blue,
         auraIntensity: user.auraIntensity ?? 500,
+        avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
       });
@@ -88,19 +90,18 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const onSubmit = async (data: EditProfileFormData) => {
     const { confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
+      id: user.id,
       ...rest,
-      id: 0,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
     };
+
     try {
       await AuthApi.updateUser(payload);
       const updatedProfile = await AuthApi.getCurrentUser();
       dispatch(setUserProfile(updatedProfile));
-      // dispatch(closeProfileModal());
       showToast("Profile updated!", "success");
       onClose();
-      
     } catch {
       showToast("Failed to update profile", "error");
     }
@@ -123,14 +124,44 @@ export default function EditProfileModal({ open, onClose }: Props) {
         <Typography variant="h6" gutterBottom>
           Edit Profile
         </Typography>
+
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2, // uniform 16px between controls
-          }}>
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {/* Avatar Picker */}
+          <Controller
+            name="avatar"
+            control={control}
+            render={({ field }) => (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 1,
+                }}>
+                <MuiAvatar src={field.value} sx={{ width: 80, height: 80 }} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = () =>
+                        field.onChange(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                {errors.avatar && (
+                  <Typography color="error">{errors.avatar.message}</Typography>
+                )}
+              </Box>
+            )}
+          />
+
           {/* Display Name */}
           <TextField
             label="Display Name"
@@ -214,13 +245,8 @@ export default function EditProfileModal({ open, onClose }: Props) {
                   onBlur={field.onBlur}
                   valueLabelDisplay="auto"
                   sx={{
-                    // tint track & thumb with current aura color
-                    "& .MuiSlider-thumb": {
-                      color: theme.palette.primary.main,
-                    },
-                    "& .MuiSlider-track": {
-                      color: theme.palette.primary.main,
-                    },
+                    "& .MuiSlider-thumb": { color: theme.palette.primary.main },
+                    "& .MuiSlider-track": { color: theme.palette.primary.main },
                   }}
                 />
               </Box>
