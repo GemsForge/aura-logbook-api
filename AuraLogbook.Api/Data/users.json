@@ -139,8 +139,20 @@
     "DisplayName": "Admin Test User",
     "Birthday": "1997-09-24",
     "ZodiacSign": "Libra",
-    "AuraColor": "green",
-    "AuraIntensity": 700,
-    "Avatar": "G"
+    "AuraColor": "blue",
+    "AuraIntensity": 400,
+    "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg"
+  },
+  {
+    "Id": 13,
+    "Email": "gem@test.com",
+    "PasswordHash": "$2a$11$wqrXVH1ndH81y1eIYLGlLuJIS69HZVnscLenrRGCPi40W0tAmBe3O",
+    "CreatedAt": "6/26/2025 5:57:29 AM",
+    "DisplayName": "Gem",
+    "Birthday": "1998-06-26",
+    "ZodiacSign": "Cancer",
+    "AuraColor": "blue",
+    "AuraIntensity": 500,
+    "Avatar": null
   }
 ]
