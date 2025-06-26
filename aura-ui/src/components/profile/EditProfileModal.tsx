@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/useToast";
 import { useAppDispatch } from "@/store/hooks";
 import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
 import { closeProfileModal } from "@/store/slices/uiSlice";
-import { auraPalettes } from "@/theme/auraTheme";
+import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Box,
@@ -115,8 +115,14 @@ export default function EditProfileModal({ open, onClose }: Props) {
     }
   };
 
-  const currentAuraBg = auraPalettes[watch("auraColor")].primary.main;
+  const colorKey = watch("auraColor");
+  const intensity = (watch("auraIntensity") ?? 500) as ShadeKey;
 
+  // now grab the shade at that intensity
+  const currentAuraBg =
+    auraPalettes[colorKey][intensity].main ??
+    // fallback to primary if something’s missing
+    auraPalettes[colorKey].primary.main;
   const displayName = watch("displayName") || user.displayName || "";
   const defaultInitials = displayName
     .split(" ")
@@ -238,38 +244,51 @@ export default function EditProfileModal({ open, onClose }: Props) {
           <MottoField control={control} name="motto" />
 
           {/* Aura Color */}
-          <FormControl fullWidth>
-            <InputLabel id="aura-color-label">Aura Color</InputLabel>
-            <Controller
-              name="auraColor"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  labelId="aura-color-label"
-                  label="Aura Color"
-                  fullWidth>
-                  {Object.values(AuraColor).map((c) => (
-                    <MenuItem key={c} value={c}>
-                      <Box
-                        component="span"
-                        sx={{
-                          display: "inline-block",
-                          width: 12,
-                          height: 12,
-                          backgroundColor: auraPalettes[c].primary!.main,
-                          borderRadius: "50%",
-                          mr: 1,
-                          verticalAlign: "middle",
-                        }}
-                      />
-                      {c.charAt(0).toUpperCase() + c.slice(1)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {/* color preview */}
+            <Box
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                bgcolor: currentAuraBg,
+                border: "1px solid",
+                borderColor: "grey.400",
+              }}
             />
-          </FormControl>
+            <FormControl fullWidth>
+              <InputLabel id="aura-color-label">Aura Color</InputLabel>
+              <Controller
+                name="auraColor"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    labelId="aura-color-label"
+                    label="Aura Color"
+                    fullWidth>
+                    {Object.values(AuraColor).map((c) => (
+                      <MenuItem key={c} value={c}>
+                        <Box
+                          component="span"
+                          sx={{
+                            display: "inline-block",
+                            width: 12,
+                            height: 12,
+                            backgroundColor: auraPalettes[c].primary!.main,
+                            borderRadius: "50%",
+                            mr: 1,
+                            verticalAlign: "middle",
+                          }}
+                        />
+                        {c.charAt(0).toUpperCase() + c.slice(1)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+            </FormControl>
+          </Box>
 
           {/* Intensity Slider */}
           <Controller
