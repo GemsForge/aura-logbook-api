@@ -150,8 +150,8 @@
     "DisplayName": "Admin Test User",
     "Birthday": "1997-09-24",
     "ZodiacSign": "Libra",
-    "AuraColor": "blue",
-    "AuraIntensity": 400,
+    "AuraColor": "green",
+    "AuraIntensity": 300,
     "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
     "Motto": "\uD83C\uDF3B Growing toward the light"
   },

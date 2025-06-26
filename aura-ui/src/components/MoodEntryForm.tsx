@@ -3,9 +3,12 @@ import { MoodApi } from "../api/MoodApi";
 import type { MoodType } from "../features/mood/models/schema/MoodType";
 import MoodEntryFormFields from "./MoodEntryFormFields";
 import { useToast } from "../hooks/useToast";
+import { useNavigate } from "react-router-dom";
 
 export default function MoodEntryForm() {
   const { showToast } = useToast();
+  const navigate = useNavigate();
+
   const handleSubmit = async (data: {
     date: string;
     moods: MoodType[];
@@ -14,6 +17,7 @@ export default function MoodEntryForm() {
     try {
       await MoodApi.logMood(data);
       showToast("Mood logged successfully!", "success");
+      navigate("/history");
     } catch (err) {
       console.error("Failed to log mood", err);
       showToast("Error logging modd", "error");
