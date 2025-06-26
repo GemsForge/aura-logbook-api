@@ -63,7 +63,7 @@ public class UserService : IUserService
         if (existingUser is null)
             return (false, "User not found.");
 
-        
+
         // Apply changes
         existingUser.Birthday = request.Birthday;
         existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday);
@@ -82,7 +82,11 @@ public class UserService : IUserService
             existingUser.AuraColor = request.AuraColor;
         if (request.AuraIntensity.HasValue)
             existingUser.AuraIntensity = request.AuraIntensity.Value;
-            
+        if (request.Avatar is not null)
+        {
+            existingUser.Avatar = request.Avatar;
+        }
+
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");
     }

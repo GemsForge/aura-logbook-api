@@ -20,6 +20,8 @@ namespace AuraLogbook.Api.Models.Dto
 
         public string? AuraColor { get; set; }
         public int? AuraIntensity { get; set; }
+
+        public string? Avatar { get; set; }
     }
 
 

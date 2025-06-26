@@ -1,7 +1,17 @@
-import { useState, useEffect } from "react";
-import { Controller, useForm, type Resolver } from "react-hook-form";
-import { useSelector } from "react-redux";
-import dayjs from "dayjs";
+import { AuthApi } from "@/api/AuthApi";
+import { presetAvatars } from "@/assets/presetAvatars";
+import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
+import {
+  editProfileSchema,
+  type EditProfileFormData,
+} from "@/features/auth/models/EditProfileSchema";
+import { AuraColor } from "@/features/mood/models/aura";
+import { useToast } from "@/hooks/useToast";
+import { useAppDispatch } from "@/store/hooks";
+import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
+import { closeProfileModal } from "@/store/slices/uiSlice";
+import { auraPalettes } from "@/theme/auraTheme";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Box,
   Button,
@@ -11,6 +21,7 @@ import {
   InputLabel,
   MenuItem,
   Modal,
+  Avatar as MuiAvatar,
   Select,
   Slider,
   TextField,
@@ -18,21 +29,11 @@ import {
   useTheme,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { AuthApi } from "@/api/AuthApi";
-import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
-import {
-  closeProfileModal,
-} from "@/store/slices/uiSlice";
-import { useToast } from "@/hooks/useToast";
-import {
-  type EditProfileFormData,
-  editProfileSchema,
-} from "@/features/auth/models/EditProfileSchema";
-import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
-import { AuraColor } from "@/features/mood/models/aura";
-import { auraPalettes } from "@/theme/auraTheme";
-import { useAppDispatch } from "@/store/hooks";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { Controller, useForm, type Resolver } from "react-hook-form";
+import { useSelector } from "react-redux";
+import { AvatarPickerModal } from "./AvatarPickerModal";
 
 interface Props {
   open: boolean;
@@ -42,16 +43,19 @@ interface Props {
 export default function EditProfileModal({ open, onClose }: Props) {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  // const isOpen = useSelector(selectIsProfileModalOpen);
   const { showToast } = useToast();
   const user: UserProfile = useSelector(selectCurrentUser)!;
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const resolver = yupResolver(editProfileSchema, {
     context: { isChangingPassword },
   }) as Resolver<EditProfileFormData, any>;
+
   const {
     register,
     control,
+    watch,
+    setValue,
     handleSubmit,
     reset,
     formState: { errors },
@@ -61,10 +65,11 @@ export default function EditProfileModal({ open, onClose }: Props) {
       displayName: user.displayName || "",
       email: user.email || "",
       birthday: user.birthday ? dayjs(user.birthday).format("YYYY-MM-DD") : "",
-      auraColor: user.auraColor || "blue",
+      auraColor: user.auraColor || AuraColor.Blue,
       auraIntensity: user.auraIntensity ?? 500,
+      avatar: user.avatar || "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
     },
   });
 
@@ -76,8 +81,9 @@ export default function EditProfileModal({ open, onClose }: Props) {
         birthday: user.birthday
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
-        auraColor: user.auraColor || "blue",
+        auraColor: user.auraColor || AuraColor.Blue,
         auraIntensity: user.auraIntensity ?? 500,
+        avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
       });
@@ -86,25 +92,35 @@ export default function EditProfileModal({ open, onClose }: Props) {
   }, [open, user, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
-    const { confirmPassword, ...rest } = data;
+    const {auraIntensity, confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
+      id: user.id,
       ...rest,
-      id: 0,
+      auraIntensity: auraIntensity ?? user.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
     };
+
     try {
       await AuthApi.updateUser(payload);
       const updatedProfile = await AuthApi.getCurrentUser();
       dispatch(setUserProfile(updatedProfile));
-      // dispatch(closeProfileModal());
       showToast("Profile updated!", "success");
       onClose();
-      
     } catch {
       showToast("Failed to update profile", "error");
     }
   };
+
+  const currentAuraBg = auraPalettes[watch("auraColor")].primary.main;
+  
+  const displayName = watch("displayName") || user.displayName || "";
+  const defaultInitials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
@@ -123,14 +139,65 @@ export default function EditProfileModal({ open, onClose }: Props) {
         <Typography variant="h6" gutterBottom>
           Edit Profile
         </Typography>
+
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2, // uniform 16px between controls
-          }}>
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {/* Current Avatar & Change Button */}
+          <Controller
+            name="avatar"
+            control={control}
+            render={({ field }) =>{
+              const val = field.value || "";
+              // is it one of our preset image URLs?
+              const isImage = presetAvatars.some((a) => a.url === val);
+          
+               return (
+                 <Box
+                   sx={{
+                     display: "flex",
+                     flexDirection: "column",
+                     alignItems: "center",
+                     gap: 1,
+                   }}>
+                   <MuiAvatar
+                     // if it’s an image, give it as src; otherwise leave undefined so we fall back to initials
+                     src={isImage ? val : undefined}
+                     sx={{
+                       width: 80,
+                       height: 80,
+                       // only color-fill the background when it’s initials
+                       bgcolor: !isImage ? currentAuraBg : undefined,
+                     }}>
+                     {/* if it’s NOT an image, render the initials as the child */}
+                     {!isImage ? val : null}
+                   </MuiAvatar>
+                   <Button
+                     variant="text"
+                     onClick={() => setAvatarPickerOpen(true)}>
+                     Change Avatar
+                   </Button>
+                   {errors.avatar && (
+                     <Typography color="error">
+                       {errors.avatar.message}
+                     </Typography>
+                   )}
+                   <AvatarPickerModal
+                     open={avatarPickerOpen}
+                     onClose={() => setAvatarPickerOpen(false)}
+                     avatars={presetAvatars}
+                     userInitials={defaultInitials}
+                     auraBg={currentAuraBg}
+                     onSelect={(val) => {
+                       setValue("avatar", val, { shouldValidate: true });
+                       setAvatarPickerOpen(false);
+                     }}
+                   />
+                 </Box>
+               );}}
+          />
+
           {/* Display Name */}
           <TextField
             label="Display Name"
@@ -214,13 +281,8 @@ export default function EditProfileModal({ open, onClose }: Props) {
                   onBlur={field.onBlur}
                   valueLabelDisplay="auto"
                   sx={{
-                    // tint track & thumb with current aura color
-                    "& .MuiSlider-thumb": {
-                      color: theme.palette.primary.main,
-                    },
-                    "& .MuiSlider-track": {
-                      color: theme.palette.primary.main,
-                    },
+                    "& .MuiSlider-thumb": { color: theme.palette.primary.main },
+                    "& .MuiSlider-track": { color: theme.palette.primary.main },
                   }}
                 />
               </Box>

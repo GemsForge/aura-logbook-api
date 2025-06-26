@@ -94,7 +94,8 @@ public class AuthController : ControllerBase
             user.Birthday,
             user.ZodiacSign,
             user.AuraColor,
-            user.AuraIntensity
+            user.AuraIntensity,
+            user.Avatar
         });
     }
 }

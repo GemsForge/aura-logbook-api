@@ -8,7 +8,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 2,
@@ -19,7 +20,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 3,
@@ -30,7 +32,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 4,
@@ -41,7 +44,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 5,
@@ -52,7 +56,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 6,
@@ -63,7 +68,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 7,
@@ -74,7 +80,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 8,
@@ -85,7 +92,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 9,
@@ -96,7 +104,8 @@
     "Birthday": "2025-06-20",
     "ZodiacSign": "Gemini",
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 10,
@@ -107,7 +116,8 @@
     "Birthday": "0001-01-01",
     "ZodiacSign": null,
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 11,
@@ -118,7 +128,8 @@
     "Birthday": "2025-06-20",
     "ZodiacSign": "Gemini",
     "AuraColor": "blue",
-    "AuraIntensity": 500
+    "AuraIntensity": 500,
+    "Avatar": null
   },
   {
     "Id": 12,
@@ -129,6 +140,7 @@
     "Birthday": "1997-09-24",
     "ZodiacSign": "Libra",
     "AuraColor": "green",
-    "AuraIntensity": 700
+    "AuraIntensity": 700,
+    "Avatar": "G"
   }
 ]

@@ -1,7 +1,5 @@
-// src/features/auth/models/EditProfileSchema.ts
 import { AuraColor } from "@/features/mood/models/aura";
 import * as yup from "yup";
-
 
 const auraColors = Object.values(AuraColor) as AuraColor[];
 
@@ -9,6 +7,9 @@ export interface EditProfileFormData {
   email: string;
   displayName: string;
   birthday: string;
+  avatar?: string;
+  // avatarType: "image" | "initials";
+  initials?: string;
   password?: string;
   confirmPassword?: string;
   auraColor: AuraColor;
@@ -25,6 +26,22 @@ export const editProfileSchema = yup
     displayName: yup.string().required("Display name is required"),
 
     birthday: yup.string().required("Birthday is required"),
+
+    avatar: yup.string().required("Pick an avatar or enter initials"),
+
+    // avatarType: yup
+    //   .mixed<"image" | "initials">()
+    //   .oneOf(["image", "initials"])
+    //   .required("Choose avatar style"),
+
+    // initials: yup.string().when("avatarType", {
+    //   is: "initials",
+    //   then: (s) =>
+    //     s
+    //       .required("Enter your initials")
+    //       .matches(/^[A-Za-z]{1,2}$/, "1–2 letters only"),
+    //   otherwise: (s) => s.strip(), // remove from payload if not initials
+    // }),
 
     password: yup.string().when("$isChangingPassword", {
       is: true,
@@ -52,7 +69,9 @@ export const editProfileSchema = yup
     auraIntensity: yup
       .number()
       .min(100, "Intensity must be at least 100")
-      .max(900, "Intensity cannot exceed 900").nullable()
+      .max(900, "Intensity cannot exceed 900")
+      .nonNullable()
+      .default(500)
       .notRequired(),
   })
   .required();
