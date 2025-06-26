@@ -12,6 +12,7 @@ import type { MoodByDate } from "../components/dashboard/MoodTimeLineChart";
 import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
 import { useToast } from "../hooks/useToast";
 import WeatherCard from "@/components/weather/WeatherCard";
+import { getTimeGreeting } from "@/util/timeGreeting";
 
 function Dashboard() {
   const { showToast } = useToast();
@@ -31,6 +32,7 @@ function Dashboard() {
     []
   );
   const [moodByDate, setMoodByDate] = useState<MoodByDate[]>([]);
+  const greeting = getTimeGreeting();
 
   useEffect(() => {
     (async () => {
@@ -67,7 +69,7 @@ function Dashboard() {
   return (
     <Box maxWidth="md" mx="auto" mt={4}>
       <Typography variant="h5" gutterBottom>
-        Welcome back, {displayName || "Friend"}!
+        {greeting}, {displayName || "Friend"}!
       </Typography>
 
       <Grid container spacing={2} mt={2}>
