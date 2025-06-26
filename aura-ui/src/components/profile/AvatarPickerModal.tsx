@@ -1,14 +1,14 @@
 import type { PresetAvatar } from "@/assets/presetAvatars";
 import {
-  Box,
-  Typography,
-  Grid,
-  Avatar as MuiAvatar,
-  Button,
-  Tab,
-  Tabs,
-  TextField,
-  Modal,
+    Box,
+    Button,
+    Grid,
+    Modal,
+    Avatar as MuiAvatar,
+    Tab,
+    Tabs,
+    TextField,
+    Typography,
 } from "@mui/material";
 import { useState } from "react";
 
@@ -65,7 +65,7 @@ export function AvatarPickerModal({
         {tab === "image" ? (
           <Grid container spacing={2}>
             {avatars.map((img) => (
-              <Grid sx={{ xs: 3 }} key={img.url}>
+              <Grid sx={{ xs: 3 }} key={img.name}>
                 <MuiAvatar
                   src={img.url}
                   sx={{ width: 60, height: 60, cursor: "pointer" }}
@@ -86,7 +86,6 @@ export function AvatarPickerModal({
               }
               label="Initials"
               placeholder="AB"
-              inputProps={{ maxLength: 3 }}
               sx={{ mb: 2 }}
             />
 

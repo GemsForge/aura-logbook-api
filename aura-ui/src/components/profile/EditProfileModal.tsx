@@ -1,7 +1,17 @@
-import { useState, useEffect } from "react";
-import { Controller, useForm, type Resolver } from "react-hook-form";
-import { useSelector } from "react-redux";
-import dayjs from "dayjs";
+import { AuthApi } from "@/api/AuthApi";
+import { presetAvatars } from "@/assets/presetAvatars";
+import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
+import {
+  editProfileSchema,
+  type EditProfileFormData,
+} from "@/features/auth/models/EditProfileSchema";
+import { AuraColor } from "@/features/mood/models/aura";
+import { useToast } from "@/hooks/useToast";
+import { useAppDispatch } from "@/store/hooks";
+import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
+import { closeProfileModal } from "@/store/slices/uiSlice";
+import { auraPalettes } from "@/theme/auraTheme";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Box,
   Button,
@@ -11,28 +21,18 @@ import {
   InputLabel,
   MenuItem,
   Modal,
+  Avatar as MuiAvatar,
   Select,
   Slider,
   TextField,
   Typography,
-  Avatar as MuiAvatar,
   useTheme,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { AuthApi } from "@/api/AuthApi";
-import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
-import { closeProfileModal } from "@/store/slices/uiSlice";
-import { useToast } from "@/hooks/useToast";
-import {
-  type EditProfileFormData,
-  editProfileSchema,
-} from "@/features/auth/models/EditProfileSchema";
-import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
-import { AuraColor } from "@/features/mood/models/aura";
-import { auraPalettes } from "@/theme/auraTheme";
-import { useAppDispatch } from "@/store/hooks";
-import { presetAvatars } from "@/assets/presetAvatars";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { Controller, useForm, type Resolver } from "react-hook-form";
+import { useSelector } from "react-redux";
 import { AvatarPickerModal } from "./AvatarPickerModal";
 
 interface Props {
@@ -92,10 +92,11 @@ export default function EditProfileModal({ open, onClose }: Props) {
   }, [open, user, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
-    const { confirmPassword, ...rest } = data;
+    const {auraIntensity, confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
       id: user.id,
       ...rest,
+      auraIntensity: auraIntensity ?? user.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
     };
@@ -189,7 +190,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
                      userInitials={defaultInitials}
                      auraBg={currentAuraBg}
                      onSelect={(val) => {
-                       setValue("avatar", val);
+                       setValue("avatar", val, { shouldValidate: true });
                        setAvatarPickerOpen(false);
                      }}
                    />

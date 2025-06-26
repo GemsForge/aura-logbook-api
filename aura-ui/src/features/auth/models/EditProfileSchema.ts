@@ -8,7 +8,7 @@ export interface EditProfileFormData {
   displayName: string;
   birthday: string;
   avatar?: string;
-  avatarType: "image" | "initials";
+  // avatarType: "image" | "initials";
   initials?: string;
   password?: string;
   confirmPassword?: string;
@@ -27,21 +27,21 @@ export const editProfileSchema = yup
 
     birthday: yup.string().required("Birthday is required"),
 
-    avatar: yup.string().nullable().notRequired(),
+    avatar: yup.string().required("Pick an avatar or enter initials"),
 
-    avatarType: yup
-      .mixed<"image" | "initials">()
-      .oneOf(["image", "initials"])
-      .required("Choose avatar style"),
+    // avatarType: yup
+    //   .mixed<"image" | "initials">()
+    //   .oneOf(["image", "initials"])
+    //   .required("Choose avatar style"),
 
-    initials: yup.string().when("avatarType", {
-      is: "initials",
-      then: (s) =>
-        s
-          .required("Enter your initials")
-          .matches(/^[A-Za-z]{1,2}$/, "1–2 letters only"),
-      otherwise: (s) => s.strip(), // remove from payload if not initials
-    }),
+    // initials: yup.string().when("avatarType", {
+    //   is: "initials",
+    //   then: (s) =>
+    //     s
+    //       .required("Enter your initials")
+    //       .matches(/^[A-Za-z]{1,2}$/, "1–2 letters only"),
+    //   otherwise: (s) => s.strip(), // remove from payload if not initials
+    // }),
 
     password: yup.string().when("$isChangingPassword", {
       is: true,
@@ -70,7 +70,8 @@ export const editProfileSchema = yup
       .number()
       .min(100, "Intensity must be at least 100")
       .max(900, "Intensity cannot exceed 900")
-      .nullable()
+      .nonNullable()
+      .default(500)
       .notRequired(),
   })
   .required();
