@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { AvatarPickerModal } from "./AvatarPickerModal";
+import { MottoField } from "./MottoField";
 
 interface Props {
   open: boolean;
@@ -70,6 +71,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       avatar: user.avatar || "",
       password: "",
       confirmPassword: "",
+      motto: ""
     },
   });
 
@@ -86,6 +88,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
         avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
+        motto: user.motto || ""
       });
       setIsChangingPassword(false);
     }
@@ -230,6 +233,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
               />
             )}
           />
+          <MottoField control={control} name="motto"/>
 
           {/* Aura Color */}
           <FormControl fullWidth>
