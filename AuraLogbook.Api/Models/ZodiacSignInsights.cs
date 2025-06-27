@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using AuraLogbook.Api.Models.Enums;
+using System.Text.Json.Serialization;
 
 namespace AuraLogbook.Api.Models
 {
@@ -23,7 +24,7 @@ namespace AuraLogbook.Api.Models
     public class InsightTemplate
     {
         [JsonPropertyName("type")]
-        public string Type { get; set; } = default!;
+        public InsightType Type { get; set; } = default!;
 
         [JsonPropertyName("title")]
         public string Title { get; set; } = default!;

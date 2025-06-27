@@ -1,4 +1,5 @@
 ﻿using AuraLogbook.Api.Models.Dto;
+using AuraLogbook.Api.Models.Dto.Insights;
 using AuraLogbook.Api.Models.Enums;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,11 @@ public class MoodController : ControllerBase
 {
     // Inject services/repositories here
     private readonly IMoodService _moodService;
-
-    public MoodController(IMoodService moodService)
+    private readonly IMoodStatsService _moodStatsService;
+    public MoodController(IMoodService moodService, IMoodStatsService moodStatsService)
     {
         _moodService = moodService;
+        _moodStatsService = moodStatsService;
     }
 
     private int GetUserIdFromToken()
@@ -30,7 +32,7 @@ public class MoodController : ControllerBase
     public async Task<IActionResult> GetUserMoods([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
         var userId = GetUserIdFromToken();
-        var moods = await _moodService.GetAllByUserAsync(userId, startDate, endDate);
+        var moods = await _moodService.GetEntriesForUserAsync(userId, startDate, endDate);
         return Ok(moods);
     }
 
@@ -73,7 +75,7 @@ public class MoodController : ControllerBase
     public async Task<IActionResult> GetDashboardSummary()
     {
         var userId = GetUserIdFromToken();
-        var summary = await _moodService.GetDashboardSummaryAsync(userId);
+        var summary = await _moodStatsService.GetDashboardSummaryAsync(userId);
         return Ok(summary);
     }
 
@@ -84,7 +86,7 @@ public class MoodController : ControllerBase
         if (!int.TryParse(range.TrimEnd('d', 'D'), out var days))
             return BadRequest("Invalid range format. Use values like 7d, 30d, etc.");
 
-        var result = await _moodService.GetMoodsByDateRangeAsync(userId, days);
+        var result = await _moodStatsService.GetMoodsByDateRangeAsync(userId, days);
         return Ok(result);
     }
 
@@ -94,8 +96,9 @@ public class MoodController : ControllerBase
         var userId = GetUserIdFromToken();
 
         List<MoodFrequencyResponse> breakdown = percent
-            ? await _moodService.GetMoodBreakdownPercentageAsync(userId)
-            : await _moodService.GetMoodBreakdownCountAsync(userId);
+            ? await _moodStatsService.GetMoodBreakdownPercentageAsync(userId)
+            : await _moodStatsService
+            .GetMoodBreakdownCountAsync(userId);
 
         return Ok(breakdown);
     }

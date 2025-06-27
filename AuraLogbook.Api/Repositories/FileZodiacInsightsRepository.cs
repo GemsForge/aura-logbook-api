@@ -1,6 +1,7 @@
 ﻿using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Repositories.Base;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace AuraLogbook.Api.Repositories
 {
@@ -36,7 +37,7 @@ namespace AuraLogbook.Api.Repositories
         public async Task<InsightTemplate?> GetInsightAsync(string sign, string type)
         {
             var section = await GetBySignAsync(sign);
-            return section?.Insights.FirstOrDefault(i => string.Equals(i.Type, type, StringComparison.OrdinalIgnoreCase));
+            return section?.Insights.FirstOrDefault(i => string.Equals(i.Type.ToString(), type, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
