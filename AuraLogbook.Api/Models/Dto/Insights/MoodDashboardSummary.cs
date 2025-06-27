@@ -1,6 +1,6 @@
 ﻿using AuraLogbook.Api.Models.Enums;
 
-namespace AuraLogbook.Api.Models.Dto
+namespace AuraLogbook.Api.Models.Dto.Insights
 {
     public class MoodDashboardSummary
     {

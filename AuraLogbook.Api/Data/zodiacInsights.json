@@ -1,0 +1,266 @@
+﻿{
+  "aries": {
+    "description": "Bold, courageous, and impulsive, Aries leads with its heart and thrives on new beginnings.",
+    "element": "fire",
+    "insights": "\\",
+    [
+      {
+        "type": "boldAction",
+        "title": "Bold Action Prompt",
+        "message": "Your energy’s high—tackle that project you’ve been putting off right now."
+      },
+      {
+        "type": "pauseToPlan",
+        "title": "Ask Before You Leap",
+        "message": "Impulsivity spikes in your logs—pause for two minutes to map out your next move."
+      },
+      {
+        "type": "calmFocus",
+        "title": "Channel Fire into Creation",
+        "message": "When restlessness hits, focus on one creative outlet to channel your passion constructively."
+      }
+    ]
+  },
+  "taurus": {
+    "description": "Grounded, reliable, and sensual, Taurus finds comfort in routine and the pleasures of the material world.",
+    "element": "earth",
+    "insights": "\\",
+    [
+      {
+        "type": "steadyGround",
+        "title": "Embrace Routine",
+        "message": "When you feel scattered, lean into a simple daily ritual to restore your sense of stability."
+      },
+      {
+        "type": "comfortCheck",
+        "title": "Pleasure vs. Excess",
+        "message": "Your abundant moods shine—note when comfort becomes excess and find balance in moderation."
+      },
+      {
+        "type": "shiftFlexibility",
+        "title": "Try Something New",
+        "message": "A surge of tension? Break routine with a small, unexpected activity to spark fresh perspective."
+      }
+    ]
+  },
+  "gemini": {
+    "description": "Curious, communicative, and adaptable, Gemini thrives on mental stimulation and variety.",
+    "element": "air",
+    "insights": "\\",
+    [
+      {
+        "type": "clarityQuest",
+        "title": "Organize Your Thoughts",
+        "message": "Scattered energy calls for structure—create a quick mind map to bring clarity to buzzing ideas."
+      },
+      {
+        "type": "deepListen",
+        "title": "Slow Down the Inner Chatter",
+        "message": "When you feel rushed, pause and take three deep breaths to reconnect with your deeper voice."
+      },
+      {
+        "type": "authenticVoice",
+        "title": "Speak Your Truth",
+        "message": "Logged neutrality? Share one honest thought with a trusted friend to honor your authentic self."
+      }
+    ]
+  },
+  "cancer": {
+    "description": "Empathetic, nurturing, and intuitive, Cancer creates emotional safety and deeply cares for others.",
+    "element": "water",
+    "insights": "\\",
+    [
+      {
+        "type": "emotionalCare",
+        "title": "Nurture Your Inner World",
+        "message": "When you feel heavy, give yourself a comforting ritual—like journaling or a warm bath—to soothe emotions."
+      },
+      {
+        "type": "safeSpace",
+        "title": "Build Your Sanctuary",
+        "message": "Restlessness signals a need for security—tidy a corner of your space to feel more grounded."
+      },
+      {
+        "type": "releaseMemories",
+        "title": "Let Go of Past Hurts",
+        "message": "Frustration in your logs? Write an unsent letter to release old emotional burdens."
+      }
+    ]
+  },
+  "leo": {
+    "description": "Dramatic, generous, and confident, Leo shines brightest when recognized and leads with a generous heart.",
+    "element": "fire",
+    "insights": "\\",
+    [
+      {
+        "type": "spotlightBalance",
+        "title": "Share the Stage",
+        "message": "Neutral moods invite connection—collaborate on a small task to celebrate collective energies."
+      },
+      {
+        "type": "humbleGlow",
+        "title": "Shine Through Service",
+        "message": "When ego fatigue sets in, volunteer a simple act to uplift someone else’s day."
+      },
+      {
+        "type": "heartCourage",
+        "title": "Lead with Compassion",
+        "message": "Weary moments call for kindness—offer a heartfelt compliment and watch your spirits rise."
+      }
+    ]
+  },
+  "virgo": {
+    "description": "Analytical, service-oriented, and detail-focused, Virgo seeks perfection and practical solutions.",
+    "element": "earth",
+    "insights": "\\",
+    [
+      {
+        "type": "highAnalysis",
+        "title": "Analytical Aura Check",
+        "message": "Your meticulous mind is buzzing—take a 5-minute brain dump to clear mental clutter."
+      },
+      {
+        "type": "highService",
+        "title": "Service-Oriented Boost",
+        "message": "Your heart shines when you help—plan one small act of kindness today."
+      },
+      {
+        "type": "perfectionTrap",
+        "title": "Perfection vs. Progress",
+        "message": "You’ve logged high frustration—celebrate one “good enough” win before chasing perfection."
+      }
+    ]
+  },
+  "libra": {
+    "description": "Diplomatic, fair-minded, and social, Libra seeks harmony and values balanced relationships.",
+    "element": "air",
+    "insights": "\\",
+    [
+      {
+        "type": "harmonySeek",
+        "title": "Balance in Relationships",
+        "message": "Tension in your logs? Reach out to a friend with an open heart to restore connection."
+      },
+      {
+        "type": "decisionEase",
+        "title": "Weigh the Scales Gently",
+        "message": "Restlessness arises from indecision—list pros and cons to move forward with confidence."
+      },
+      {
+        "type": "peacefulAura",
+        "title": "Cultivate Inner Peace",
+        "message": "Heavy moods call for calm—practice a 2-minute meditation to balance your inner scales."
+      }
+    ]
+  },
+  "scorpio": {
+    "description": "Passionate, intense, and transformative, Scorpio dives deep into emotional truths and personal power.",
+    "element": "water",
+    "insights": "\\",
+    [
+      {
+        "type": "transformation",
+        "title": "Embrace the Shadow",
+        "message": "Frustration or heaviness? Reflect on a past challenge you’ve overcome and honor your resilience."
+      },
+      {
+        "type": "powerRelease",
+        "title": "Release Control",
+        "message": "Tense energy signals control issues—practice letting go with a 5-minute mindful breath exercise."
+      },
+      {
+        "type": "passionChannel",
+        "title": "Channel Intensity Positively",
+        "message": "Charged moods are your signature—direct that energy toward a creative or physical outlet."
+      }
+    ]
+  },
+  "sagittarius": {
+    "description": "Adventurous, optimistic, and freedom-loving, Sagittarius seeks truth and new experiences.",
+    "element": "fire",
+    "insights": "\\",
+    [
+      {
+        "type": "adventureCall",
+        "title": "Adventure Over Routine",
+        "message": "Weary moments signal stagnation—plan a mini adventure, even a new route for your walk."
+      },
+      {
+        "type": "truthQuest",
+        "title": "Seek Your Higher Truth",
+        "message": "Scattered energy? Journal a core belief and explore how it guides your daily choices."
+      },
+      {
+        "type": "playfulSpirit",
+        "title": "Infuse Joy into Tasks",
+        "message": "Tension or frustration? Add a playful twist—turn a chore into a fun challenge."
+      }
+    ]
+  },
+  "capricorn": {
+    "description": "Disciplined, ambitious, and practical, Capricorn builds solid foundations and values structure.",
+    "element": "earth",
+    "insights": "\\",
+    [
+      {
+        "type": "structureCheck",
+        "title": "Review Your Foundations",
+        "message": "Restlessness suggests uncertainty—audit your daily routine and reinforce what works."
+      },
+      {
+        "type": "ambitionBalance",
+        "title": "Ambition vs. Burn-Out",
+        "message": "Charged or heavy moods? Schedule a short break to prevent fatigue and sustain momentum."
+      },
+      {
+        "type": "selfCare",
+        "title": "Schedule a Break",
+        "message": "Neutral energy can hide burnout—block 10 minutes for self-care and honor your limits."
+      }
+    ]
+  },
+  "aquarius": {
+    "description": "Innovative, independent, and humanitarian, Aquarius champions progress and collective wellbeing.",
+    "element": "air",
+    "insights": "\\",
+    [
+      {
+        "type": "innovationSpark",
+        "title": "Dare to Be Different",
+        "message": "Scattered ideas? Capture three wild concepts—one might spark your next innovation."
+      },
+      {
+        "type": "communityFlow",
+        "title": "Serve the Collective",
+        "message": "Empowered or flowing moods? Channel that energy into supporting a group cause or friend."
+      },
+      {
+        "type": "detachRoutine",
+        "title": "Freedom from the Familiar",
+        "message": "Tense or frustrated? Break a small habit—reshape your mindset through new perspective."
+      }
+    ]
+  },
+  "pisces": {
+    "description": "Compassionate, imaginative, and intuitive, Pisces swims between dreams and reality with deep empathy.",
+    "element": "water",
+    "insights": "\\",
+    [
+      {
+        "type": "dreamReflection",
+        "title": "Channel Your Imagination",
+        "message": "Visionary moods call for creativity—spend 5 minutes sketching or writing a poetic line."
+      },
+      {
+        "type": "emotionalRelease",
+        "title": "Release Emotional Tides",
+        "message": "Heavy or disconnected? Try a guided visualization to cleanse and reset your emotional waters."
+      },
+      {
+        "type": "spiritualAnchor",
+        "title": "Ground in the Present",
+        "message": "Restlessness signals drift—root yourself with a simple grounding breath exercise."
+      }
+    ]
+  }
+}

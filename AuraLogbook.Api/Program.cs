@@ -43,9 +43,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 builder.Services.AddCors();
-builder.Services
-    .AddHttpClient<IWeatherService, WeatherService>()
-    .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(options =>
@@ -74,10 +71,17 @@ builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("St
 // Repositories
 builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
 builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
+builder.Services.AddSingleton<IFileZodiacInsightsRepository, FileZodiacInsightsRepository>();
+
 // Services
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMoodService, MoodService>();
+builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
+builder.Services
+    .AddHttpClient<IWeatherService, WeatherService>()
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
 var app = builder.Build();
 app.UseCors(policy =>
     policy.AllowAnyOrigin()

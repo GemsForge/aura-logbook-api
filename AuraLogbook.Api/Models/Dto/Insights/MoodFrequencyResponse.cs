@@ -1,7 +1,7 @@
 ﻿using AuraLogbook.Api.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace AuraLogbook.Api.Models.Dto;
+namespace AuraLogbook.Api.Models.Dto.Insights;
 
 /// <summary>
 /// Represents the frequency of a mood, either as a raw count or percentage (but not both).
