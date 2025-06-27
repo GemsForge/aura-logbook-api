@@ -2,10 +2,12 @@ import { AuraColor } from "@/features/mood/models/aura";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { openProfileModal } from "@/store/slices/uiSlice";
+import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { auraPalettes } from "@/theme/auraTheme";
 import { getProfileCompletion } from "@/util/profile";
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   LinearProgress,
@@ -14,23 +16,37 @@ import {
   Typography,
 } from "@mui/material";
 
+const zodiacEmojis: Record<string, string> = {
+  aries: "♈️",
+  taurus: "♉️",
+  gemini: "♊️",
+  cancer: "♋️",
+  leo: "♌️",
+  virgo: "♍️",
+  libra: "♎️",
+  scorpio: "♏️",
+  sagittarius: "♐️",
+  capricorn: "♑️",
+  aquarius: "♒️",
+  pisces: "♓️",
+};
+
 export default function ProfileCard() {
-  const user = useAppSelector(selectCurrentUser);
   const dispatch = useAppDispatch();
+  const user = useAppSelector(selectCurrentUser);
+  const { data: zodiac, isLoading } = useGetZodiacInsightQuery();
 
-  // 🔮 Use hardcoded fallback values for now
   if (!user) {
-    console.debug("USER", user);
-
     return <Typography>Loading profile...</Typography>;
   }
+
   const completion = getProfileCompletion(user);
 
-  const key: AuraColor = user.auraColor ?? AuraColor.Blue;
-  const avatarVal = user.avatar || "";
+  // Determine user avatar
+  const avatarVal = user.avatar ?? "";
   const isImage = avatarVal.startsWith("/") || avatarVal.startsWith("http");
-  // background only when initials
-  const bgColor = !isImage ? auraPalettes[key].primary.main : undefined;
+  const auraKey: AuraColor = user.auraColor ?? AuraColor.Blue;
+  const bgColor = !isImage ? auraPalettes[auraKey].primary.main : undefined;
 
   return (
     <Paper
@@ -38,35 +54,46 @@ export default function ProfileCard() {
       sx={{
         p: { xs: 2, sm: 3 },
         textAlign: "center",
-        mx: "auto", // center on small screens
+        mx: "auto",
         maxWidth: 350,
       }}>
       <Stack spacing={2} alignItems="center">
-        <Avatar
-          alt={user.displayName}
-          // only feed src when it's really an image
-          src={isImage ? avatarVal : undefined}
-          sx={{
-            width: 80,
-            height: 80,
-            bgcolor: bgColor,
-            whiteSpace: "nowrap",
-          }}>
-          {/* only render children when NOT an image */}
-          {!isImage ? avatarVal : null}
-        </Avatar>
+        {/* Zodiac badge around avatar */}
+        <Badge
+          overlap="circular"
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          badgeContent={
+            zodiac && !isLoading ? (
+              <Typography fontSize={24} lineHeight={1}>
+                {zodiacEmojis[zodiac.sign.toLowerCase()] || "?"}
+              </Typography>
+            ) : null
+          }
+        >
+          <Avatar
+            alt={user.displayName}
+            src={isImage ? avatarVal : undefined}
+            sx={{
+              width: 80,
+              height: 80,
+              bgcolor: bgColor,
+              whiteSpace: "nowrap",
+            }}>
+            {!isImage && avatarVal}
+          </Avatar>
+        </Badge>
 
         <Typography variant="h6">{user.displayName}</Typography>
         <Typography
           variant="body2"
-          color="textSecondary"
+          color="text.secondary"
           sx={{ wordBreak: "break-word", px: 1 }}>
           {user.email}
         </Typography>
-        <Typography variant="body2"> {user.zodiacSign}</Typography>
-        
+
+        {/* Remove zodiacSign text display */}
+
         <Box p={2}>
-          {/* avatar, name… */}
           {user.motto && (
             <Typography
               variant="body2"
@@ -75,7 +102,6 @@ export default function ProfileCard() {
             </Typography>
           )}
 
-          {/* …progress bar / complete message… */}
           {completion < 100 ? (
             <>
               <Typography variant="caption" sx={{ mt: 1 }}>
