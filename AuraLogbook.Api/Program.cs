@@ -78,6 +78,8 @@ builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
+builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
+
 builder.Services
     .AddHttpClient<IWeatherService, WeatherService>()
     .SetHandlerLifetime(TimeSpan.FromMinutes(5));
