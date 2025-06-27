@@ -1,65 +1,85 @@
-﻿using AuraLogbook.Api.Repositories;
+﻿using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Dto.Insights;
+using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AuraLogbook.Api.Controllers
 {
-    // Controllers/InsightController.cs
     [ApiController]
     [Route("api/insights")]
     public class InsightController : ControllerBase
     {
-        private readonly IAstrologyService _astro;
-        private readonly MoodStatsService _moodStats;
+        private readonly IFileZodiacInsightsRepository _zodiacRepo;
+        private readonly IMoodStatsService _moodStats;
+        private readonly IInsightTriggerService _trigger;
         private readonly IFileUserRepository _users;
 
         public InsightController(
-            IAstrologyService astro,
-            MoodStatsService moodStats,
+            IFileZodiacInsightsRepository zodiacRepo,
+            IMoodStatsService moodStats,
+            IInsightTriggerService trigger,
             IFileUserRepository users)
         {
-            _astro = astro;
+            _zodiacRepo = zodiacRepo;
             _moodStats = moodStats;
+            _trigger = trigger;
             _users = users;
         }
+
         private int GetUserIdFromToken()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return userIdClaim != null && int.TryParse(userIdClaim.Value, out int id)
-                ? id
-                : throw new UnauthorizedAccessException("Invalid or missing user ID in token.");
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out var id))
+                throw new UnauthorizedAccessException("Invalid or missing user ID.");
+            return id;
         }
 
-        [HttpGet("astro-mood")]
-        public async Task<ActionResult<AstroMoodInsightDto>> GetAstroMoodInsight()
+        /// <summary>
+        /// Returns combined zodiac info, mood stats, and triggered insights for the current user.
+        /// </summary>
+        [HttpGet("zodiac")]
+        public async Task<ActionResult<ZodiacInsightResponse>> GetZodiacInsights()
         {
-            var userId = GetUserIdFromToken();          // from JWT context
+            var userId = GetUserIdFromToken();
             var user = await _users.GetByIdAsync(userId);
+            if (user == null) return NotFound("User not found.");
 
-            // 1) free daily from horoscopefree
-            var daily = await _astro.GetDailyHoroscopeAsync(user.ZodiacSign);
+            // 1. Load zodiac sign details
+            var signKey = user.ZodiacSign.ToLowerInvariant();
+            var zodiac = await _zodiacRepo.GetBySignAsync(signKey);
+            if (zodiac == null) return NotFound($"No zodiac data for sign '{signKey}'.");
 
-            // 2) mood stats
-            var stats = await _moodStats.GetStatsForUserAsync(userId);
+            // 2. Load mood stats
+            var stats = await _moodStats.GetDashboardSummaryAsync(userId);     // basic summary
+            var fullStats = await _moodStats.GetStatsForUserAsync(userId);     // includes TopMoods
 
-            return Ok(new AstroMoodInsightDto(
-                Sign: daily.Sign,
-                Horoscope: daily.Horoscope,
-                TotalEntries: stats.TotalEntries,
-                PositiveCount: stats.PositiveCount,
-                NegativeCount: stats.NegativeCount,
-                MostFrequentMood: stats.MostFrequentMood.ToString()
-            ));
+            // 3. Compute triggered insights
+            var insights = await _trigger.GetTriggeredInsightsAsync(
+                signKey,
+                fullStats
+            );
+
+            // 4. Return everything in one DTO
+            var response = new ZodiacInsightResponse
+            {
+                Sign = zodiac.Sign,
+                Description = zodiac.Description,
+                Element = zodiac.Element,
+
+                // mood summary
+                TotalEntries = stats.TotalEntries,
+                MostFrequentMood = stats.MostFrequentMood,
+                CurrentStreak = stats.CurrentStreak,
+                LastEntryDate = stats.LastEntryDate,
+
+                // mood-driven insights
+                Insights = insights
+            };
+
+            return Ok(response);
         }
-}
-
-    public record AstroMoodInsightDto(
-        string Sign,
-        string Horoscope,
-        int TotalEntries,
-        int PositiveCount,
-        int NegativeCount,
-        string MostFrequentMood
-    );
+    }  
 }
