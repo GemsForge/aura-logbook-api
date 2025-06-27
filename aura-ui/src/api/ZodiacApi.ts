@@ -2,12 +2,12 @@
 import type { ZodiacInsightResponse } from "@/features/zodiac/models/ZodiacInsightResponse";
 import api from "./api";
 
-const API_BASE = "Zodiac";
+// Matches BE: GET /api/insights/zodiac
+const API_BASE = "insights";
 
 export const ZodiacApi = {
   getInsight: async (): Promise<ZodiacInsightResponse> => {
-    const res = await api.get(`${API_BASE}/insights`);
-    console.log(res.data);
+    const res = await api.get(`${API_BASE}/zodiac`);
     return res.data;
   },
 };

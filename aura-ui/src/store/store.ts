@@ -4,6 +4,7 @@ import authReducer from "./slices/authSlice";
 import moodReducer from "./slices/moodSlice"; 
 import uiReducer from "./slices/uiSlice";
 import { weatherApi } from "./weatherApi";
+import { auraApi } from "./auraApi";
 
 export const store = configureStore({
   reducer: {
@@ -11,9 +12,10 @@ export const store = configureStore({
     moods: moodReducer,
     ui: uiReducer,
     [weatherApi.reducerPath]: weatherApi.reducer,
+    [auraApi.reducerPath]: auraApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(weatherApi.middleware),
+    getDefaultMiddleware().concat(weatherApi.middleware, auraApi.middleware),
 });
 
 // Types
