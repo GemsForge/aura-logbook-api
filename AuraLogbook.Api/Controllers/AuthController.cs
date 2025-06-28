@@ -62,15 +62,34 @@ public class AuthController : ControllerBase
         if (User.Identity is not { IsAuthenticated: true })
             return Unauthorized();
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ??
-                          User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                          ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
         if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
             return BadRequest("Could not extract user ID from token.");
 
         updatedUser.Id = userId;
-
         var result = await _userService.UpdateUserAsync(updatedUser);
-        return result.Success ? Ok(result.Message) : BadRequest(result.Message);
+
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        // Fetch the updated user and map to your DTO
+        var fresh = await _userService.GetByIdAsync(userId);
+        // 2) Map to your DTO
+        var dto = new UserProfileDto
+        {
+            Id = fresh.Id,
+            Email = fresh.Email,
+            DisplayName = fresh.DisplayName ?? string.Empty,
+            ZodiacSign = fresh.ZodiacSign,                // may be null
+            Birthday = fresh.Birthday,                  // DateOnly → DateOnly
+            AuraColor = fresh.AuraColor,                 // string → string
+            AuraIntensity = fresh.AuraIntensity,  // int → string (match your DTO)
+            Avatar = fresh.Avatar ?? string.Empty,
+            Motto = fresh.Motto ?? string.Empty,
+        };
+
+        return Ok(dto);
     }
 
     [HttpGet("me")]

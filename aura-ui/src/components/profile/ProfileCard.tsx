@@ -1,8 +1,8 @@
 import { AuraColor } from "@/features/mood/models/aura";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectCurrentUser } from "@/store/slices/authSlice";
-import { openProfileModal } from "@/store/slices/uiSlice";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
+import { useGetCurrentUserQuery } from "@/store/authApi";
+import { useAppDispatch } from "@/store/hooks";
+import { openProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes } from "@/theme/auraTheme";
 import { getProfileCompletion } from "@/util/profile";
 import {
@@ -15,6 +15,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useEffect } from "react";
 
 const zodiacEmojis: Record<string, string> = {
   aries: "♈️",
@@ -33,10 +34,16 @@ const zodiacEmojis: Record<string, string> = {
 
 export default function ProfileCard() {
   const dispatch = useAppDispatch();
-  const user = useAppSelector(selectCurrentUser);
-  const { data: zodiac, isLoading } = useGetZodiacInsightQuery();
+  const { data: user, isFetching: userLoading } = useGetCurrentUserQuery();
+  const { data: zodiac, isLoading, refetch } = useGetZodiacInsightQuery();
 
-  if (!user) {
+  useEffect(() => {
+    if (user?.birthday) {
+      refetch();
+    }
+  }, [user?.birthday, refetch]);
+
+  if (userLoading || !user) {
     return <Typography>Loading profile...</Typography>;
   }
 
