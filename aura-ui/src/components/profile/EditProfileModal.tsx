@@ -19,6 +19,7 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  LinearProgress,
   Modal,
   Avatar as MuiAvatar,
   TextField,
@@ -94,14 +95,14 @@ const {
     }
   }, [open, user, reset]);
 
-  if (loadingUser || !user) return <Typography>Loading…</Typography>;
+  if (!loadingUser &&  !user) return <LinearProgress color="secondary" />;
   
   const onSubmit = async (data: EditProfileFormData) => {
     const { auraIntensity, confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
-      id: user.id,
+      id: user!.id,
       ...rest,
-      auraIntensity: auraIntensity ?? user.auraIntensity ?? 500,
+      auraIntensity: auraIntensity ?? user!.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
     };
@@ -123,7 +124,7 @@ const {
     auraPalettes[colorKey][intensity].main ??
     // fallback to primary if something’s missing
     auraPalettes[colorKey].primary.main;
-  const displayName = watch("displayName") || user.displayName || "";
+  const displayName = watch("displayName") || user!.displayName || "";
   const defaultInitials = displayName
     .split(" ")
     .map((n) => n[0])

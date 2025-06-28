@@ -1,4 +1,5 @@
 import { AuraColor } from "@/features/mood/models/aura";
+import { zodiacEmojis } from "@/features/zodiac/models/ZodiacEmojis";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { useGetCurrentUserQuery } from "@/store/authApi";
 import { useAppDispatch } from "@/store/hooks";
@@ -12,25 +13,13 @@ import {
   Button,
   LinearProgress,
   Paper,
+  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
 import { useEffect } from "react";
 
-const zodiacEmojis: Record<string, string> = {
-  aries: "♈️",
-  taurus: "♉️",
-  gemini: "♊️",
-  cancer: "♋️",
-  leo: "♌️",
-  virgo: "♍️",
-  libra: "♎️",
-  scorpio: "♏️",
-  sagittarius: "♐️",
-  capricorn: "♑️",
-  aquarius: "♒️",
-  pisces: "♓️",
-};
+
 
 export default function ProfileCard() {
   const dispatch = useAppDispatch();
@@ -43,8 +32,25 @@ export default function ProfileCard() {
     }
   }, [user?.birthday, refetch]);
 
+
   if (userLoading || !user) {
-    return <Typography>Loading profile...</Typography>;
+    return (
+      <Box
+        p={2}
+        display="flex"
+        flexDirection="column"
+        gap={1}
+        alignItems="center">
+        {/* Circular avatar placeholder */}
+        <Skeleton variant="circular" width={80} height={80} />
+        {/* Name placeholder */}
+        <Skeleton variant="text" width={120} height={32} />
+        {/* Bio or details placeholder */}
+        <Skeleton variant="rectangular" width="80%" height={24} />
+        {/* Larger section (e.g. stats/card) */}
+        <Skeleton variant="rectangular" width="80%" height={150} />
+      </Box>
+    );
   }
 
   const completion = getProfileCompletion(user);
