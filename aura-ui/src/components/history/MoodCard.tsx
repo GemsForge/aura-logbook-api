@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { MoodTag } from "./MoodTag";
-
+import dayjs from "dayjs";
 
 export function MoodCard({
   entry,
@@ -21,12 +21,13 @@ export function MoodCard({
   onEdit: (entry: MoodEntry) => void;
   onDelete: (entry: MoodEntry) => void;
 }) {
+  const date = dayjs(entry.date).format("LL")
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle2" color="textSecondary">
-            {entry.date}
+            {date}
           </Typography>
           <Box>
             <IconButton size="small" onClick={() => onEdit(entry)}>
@@ -53,3 +54,4 @@ export function MoodCard({
     </Card>
   );
 }
+
