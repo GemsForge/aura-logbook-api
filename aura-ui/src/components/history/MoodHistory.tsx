@@ -1,14 +1,14 @@
 import type { MoodEntry } from "@/features/mood/models/schema";
 import { Box, Button, Typography } from "@mui/material";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import type { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { MoodApi } from "../../api/MoodApi";
 import { useToast } from "../../hooks/useToast";
 import DeleteConfirmDialog from "../DeleteConfirmDialog";
 import MoodUpdateModal from "../MoodUpdateModal";
 import { MoodCard } from "./MoodCard";
-import type { Dayjs } from "dayjs";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 export default function MoodHistoryPage() {
   const [logs, setLogs] = useState<MoodEntry[]>([]);
@@ -24,7 +24,6 @@ export default function MoodHistoryPage() {
   const fetchLogs = async (start?: Dayjs | null, end?: Dayjs | null) => {
     try {
       // pass date or undefined
-
       const res = await MoodApi.getAllMoods(
         start ? start.format("LL") : undefined,
         end ? end.format("LL") : undefined

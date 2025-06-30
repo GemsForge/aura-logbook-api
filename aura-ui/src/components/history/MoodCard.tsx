@@ -9,8 +9,8 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { MoodTag } from "./MoodTag";
 import dayjs from "dayjs";
+import { MoodTag } from "./MoodTag";
 
 export function MoodCard({
   entry,

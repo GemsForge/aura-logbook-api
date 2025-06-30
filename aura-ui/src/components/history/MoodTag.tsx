@@ -1,8 +1,8 @@
+import { AuraMoodMap } from "@/features/mood/models/aura";
+import type { MoodType } from "@/features/mood/models/schema";
+import { auraPalettes } from "@/theme/auraTheme";
 import { Chip } from "@mui/material";
 import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
-import type { MoodType } from "@/features/mood/models/schema";
-import { AuraMoodMap } from "@/features/mood/models/aura";
-import { auraPalettes } from "@/theme/auraTheme";
 
 export function MoodTag({ mood }: { mood: MoodType }) {
   const { auraColor } = AuraMoodMap[mood];
