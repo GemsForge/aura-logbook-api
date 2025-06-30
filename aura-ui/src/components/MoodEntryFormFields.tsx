@@ -3,15 +3,16 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  FormGroup,
+  Grid,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { AuraColor, AuraMoodMap } from "@/features/mood/models/aura";
-import { type MoodEntry, type MoodType, moodEntrySchema, MoodTypes } from "@/features/mood/models/schema";
+import { AuraColor, AuraColorInfo, AuraMoodMap } from "@/features/mood/models/aura";
+import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
 import { auraPalettes } from "@/theme/auraTheme";
 
 
@@ -51,14 +52,15 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
     setValue("moods", updated);
   };
 
-  // Group moods by auraColor
-  const auraGroups: Record<AuraColor, MoodType[]> = Object.values(
-    AuraColor
-  ).reduce((acc, color) => {
-    acc[color] = MoodTypes.filter((m) => AuraMoodMap[m].auraColor === color);
+  // group moods by auraColor
+  const auraGroups = Object.values(AuraColor).reduce((acc, color) => {
+    acc[color] = [];
     return acc;
   }, {} as Record<AuraColor, MoodType[]>);
-  
+  (Object.keys(AuraMoodMap) as MoodType[]).forEach((m) => {
+    auraGroups[AuraMoodMap[m].auraColor].push(m);
+  });
+
   const onFormSubmit = (data: any) => {
     onSubmit({
       date: dayjs(data.date).format("YYYY-MM-DD"),
@@ -91,12 +93,35 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         How are you feeling?
       </Typography>
 
-      <FormGroup>
+      <Grid container spacing={2}>
         {Object.entries(auraGroups).map(([colorKey, moods]) => {
           const color = colorKey as AuraColor;
           if (moods.length === 0) return null;
+
+          const info = AuraColorInfo[color];
+           const swatch = auraPalettes[color].primary!.main;
+          
           return (
-            <Box key={color} mb={2}>
+            <Grid key={color} sx={{xs:12, sm:4}}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Box
+            sx={{
+              width: 12,
+              height: 12,
+              bgcolor: swatch,
+              borderRadius: "50%",
+              mr: 1,
+            }}
+          />
+            <Tooltip
+             title={
+               <Box>
+                 <Typography variant="subtitle2">{info.name}</Typography>
+                 <Typography variant="body2">{info.meaning}</Typography>
+               </Box>
+             }
+             arrow
+           >
               <Typography
                 variant="subtitle2"
                 sx={{
@@ -106,6 +131,8 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
                 }}>
                 {color}
               </Typography>
+              </Tooltip>
+              </Box>
               <Box display="flex" flexWrap="wrap">
                 {moods.map((mood) => {
                   const { icon, auraColor } = AuraMoodMap[mood];
@@ -134,7 +161,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
                   );
                 })}
               </Box>
-            </Box>
+            </Grid>
           );
         })}
         {errors.moods && (
@@ -142,7 +169,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
             {errors.moods.message as string}
           </Typography>
         )}
-      </FormGroup>
+      </Grid>
 
       <Controller
         name="comment"
