@@ -6,6 +6,8 @@ import type {
   LoginRequest,
   LoginResponse,
 } from "@/features/auth/models";
+import { setToken } from "./slices/authSlice";
+import type { AuraColor } from "@/features/mood/models/aura";
 
 export const authApi = createApi({
   reducerPath: "authApi",
@@ -20,6 +22,14 @@ export const authApi = createApi({
   }),
   tagTypes: ["User"],
   endpoints: (build) => ({
+    login: build.mutation<LoginResponse, LoginRequest>({
+      query: (creds) => ({ url: "/login", method: "POST", body: creds }),
+      // stash the token in your slice as soon as login succeeds
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+        dispatch(setToken(data.token));
+      },
+    }),
     // Fetch current user
     getCurrentUser: build.query<UserProfile, void>({
       query: () => "/me",
@@ -35,14 +45,16 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["User"], // auto-refetch getCurrentUser
     }),
-
-    // (optional) login/register if you want here too:
-    login: build.mutation<LoginResponse, LoginRequest>({
-      query: (body) => ({
-        url: "/login",
-        method: "POST",
-        body,
+    updateAura: build.mutation<
+      UserProfile,
+      { auraColor: AuraColor; auraIntensity: number }
+    >({
+      query: ({ auraColor, auraIntensity }) => ({
+        url: "/updateAura",
+        method: "PATCH",
+        body: { auraColor, auraIntensity },
       }),
+      invalidatesTags: ["User"],
     }),
   }),
 });
@@ -51,4 +63,5 @@ export const {
   useGetCurrentUserQuery,
   useUpdateUserMutation,
   useLoginMutation,
+  useUpdateAuraMutation
 } = authApi;
