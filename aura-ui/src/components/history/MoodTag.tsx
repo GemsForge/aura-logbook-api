@@ -1,12 +1,28 @@
+import { AuraMoodMap } from "@/features/mood/models/aura";
+import type { MoodType } from "@/features/mood/models/schema";
+import { auraPalettes } from "@/theme/auraTheme";
 import { Chip } from "@mui/material";
 import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
 
-export function MoodTag({ mood }: { mood: string }) {
+export function MoodTag({ mood }: { mood: MoodType }) {
+  const { auraColor } = AuraMoodMap[mood];
+
+  // pick a light shade (100, 200, 300…)
+  const lightShade = auraPalettes[auraColor][200].main;
+
+  // fallback text color – you can keep this high-contrast
+  const textColor = auraPalettes[auraColor].primary.contrastText ?? "#000";
+
   return (
     <Chip
       label={`${MoodIcons[mood as keyof typeof MoodIcons] ?? ""} ${mood}`}
-      variant="outlined"
-      sx={{ mr: 1, mb: 1 }}
+      variant="filled"
+      sx={{
+        mr: 1,
+        mb: 1,
+        bgcolor: lightShade,
+        color: textColor,
+      }}
     />
   );
 }
