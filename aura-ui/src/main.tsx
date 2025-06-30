@@ -1,27 +1,38 @@
 // src/main.tsx (or index.tsx)
 import { StrictMode, useMemo } from "react";
 import { createRoot } from "react-dom/client";
-import { Provider, useSelector } from "react-redux";
+import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 
-import { ThemeProvider, CssBaseline } from "@mui/material";
+import { ThemeProvider, CssBaseline, Box, CircularProgress } from "@mui/material";
 import { getAuraTheme } from "./theme";
-import { selectAuraColor, selectAuraIntensity } from "./store/slices/authSlice";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ToastProvider } from "./hooks/useToast";
+import { useGetCurrentUserQuery } from "./store/authApi";
 
 function ThemedApp() {
-  const auraColor = useSelector(selectAuraColor);
-  const auraIntensity = useSelector(selectAuraIntensity);
+ 
+  const { data: user, isLoading } = useGetCurrentUserQuery();
+  
+  const auraColor     = user?.auraColor     ?? "blue";
+ const auraIntensity = user?.auraIntensity ?? 500;
 
   const theme = useMemo(
     () => getAuraTheme(auraColor, auraIntensity),
     [auraColor, auraIntensity]
   );
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>

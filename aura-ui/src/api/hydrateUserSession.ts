@@ -1,9 +1,9 @@
 // src/utils/authUtils.ts
 import { AuthApi } from "@/api/AuthApi";
-import { loginSuccess } from "@/store/slices/authSlice";
 import type { AppDispatch } from "@/store/store";
 import type { UserProfile } from "@/features/auth/models";
 import api from "./api";
+import { setToken } from "@/store/slices/authSlice";
 
 export async function hydrateUserSession(
   token: string,
@@ -15,9 +15,9 @@ export async function hydrateUserSession(
     // ✅ Inject token directly into Axios headers
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     
-    const user = await AuthApi.getCurrentUser(); // now token is available
-    dispatch(loginSuccess({ token, profile: user  }));
- 
+    dispatch(setToken(token));  
+    const user = await AuthApi.getCurrentUser(); // now token is available      
+    
     localStorage.setItem("session_hydrated", "true");
 
     return user;
