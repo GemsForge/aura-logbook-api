@@ -1,6 +1,5 @@
-import { AuthApi } from "@/api/AuthApi";
 import { presetAvatars } from "@/assets/presetAvatars";
-import type { UpdateUserRequest, UserProfile } from "@/features/auth/models";
+import type { UpdateUserRequest } from "@/features/auth/models";
 import {
   editProfileSchema,
   type EditProfileFormData,
@@ -8,7 +7,7 @@ import {
 import { AuraColor } from "@/features/mood/models/aura";
 import { useToast } from "@/hooks/useToast";
 import { useAppDispatch } from "@/store/hooks";
-import { selectCurrentUser, setUserProfile } from "@/store/slices/authSlice";
+import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,6 +16,7 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  LinearProgress,
   Modal,
   Avatar as MuiAvatar,
   TextField,
@@ -26,26 +26,48 @@ import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
-import { useSelector } from "react-redux";
 import { AvatarPickerModal } from "./AvatarPickerModal";
 import { MottoField } from "./MottoField";
 import { AuraSelector } from "./AuraSelectorField";
 
-interface Props {
+interface EditProfileModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-export default function EditProfileModal({ open, onClose }: Props) {
+export default function EditProfileModal({
+  open,
+  onClose,
+}: EditProfileModalProps) {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
-  const user: UserProfile = useSelector(selectCurrentUser)!;
+  // 1) Unconditionally call your hooks at the top:
+  const { data: user, isFetching: loadingUser } = useGetCurrentUserQuery();
+  const [updateUser] = useUpdateUserMutation();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
-  const resolver = yupResolver(editProfileSchema, {
-    context: { isChangingPassword },
-  }) as Resolver<EditProfileFormData, any>;
 
+  // 1️⃣ grab the whole form API
+  const form = useForm<EditProfileFormData>({
+    resolver: yupResolver(editProfileSchema, {
+      context: { isChangingPassword },
+    }) as Resolver<EditProfileFormData, any>,
+    defaultValues: {
+      displayName: "",
+      email: user?.email ?? "",
+      birthday: "",
+      auraColor: AuraColor.Blue,
+      auraIntensity: 500,
+      avatar: "",
+      password: "",
+      confirmPassword: "",
+      motto: "",
+    },
+  });
+
+
+
+  // 2️⃣ pull out only the helpers you need
   const {
     register,
     control,
@@ -54,24 +76,11 @@ export default function EditProfileModal({ open, onClose }: Props) {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EditProfileFormData>({
-    resolver,
-    defaultValues: {
-      displayName: user.displayName || "",
-      email: user.email || "",
-      birthday: user.birthday ? dayjs(user.birthday).format("YYYY-MM-DD") : "",
-      auraColor: user.auraColor || AuraColor.Blue,
-      auraIntensity: user.auraIntensity ?? 500,
-      avatar: user.avatar || "",
-      password: "",
-      confirmPassword: "",
-      motto: "",
-    },
-  });
+  } = form;
 
   useEffect(() => {
-    if (open) {
-      reset({
+    if (open && user) {
+      form.reset({
         displayName: user.displayName || "",
         email: user.email || "",
         birthday: user.birthday
@@ -88,22 +97,22 @@ export default function EditProfileModal({ open, onClose }: Props) {
     }
   }, [open, user, reset]);
 
+  if (loadingUser || !user) return <LinearProgress color="secondary" />;
+
   const onSubmit = async (data: EditProfileFormData) => {
     const { auraIntensity, confirmPassword, ...rest } = data;
     const payload: UpdateUserRequest = {
-      id: user.id,
+      id: user!.id,
       ...rest,
-      auraIntensity: auraIntensity ?? user.auraIntensity ?? 500,
+      auraIntensity: auraIntensity ?? user!.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
     };
 
     try {
-      await AuthApi.updateUser(payload);
-      const updatedProfile = await AuthApi.getCurrentUser();
-      dispatch(setUserProfile(updatedProfile));
+      await updateUser(payload).unwrap(); // runs PUT /update
       showToast("Profile updated!", "success");
-      onClose();
+      onClose(); // authApi invalidates “User” → refetches me
     } catch {
       showToast("Failed to update profile", "error");
     }
@@ -117,7 +126,8 @@ export default function EditProfileModal({ open, onClose }: Props) {
     auraPalettes[colorKey][intensity].main ??
     // fallback to primary if something’s missing
     auraPalettes[colorKey].primary.main;
-  const displayName = watch("displayName") || user.displayName || "";
+  // SHOULD I GET RID OF THIS DISPLAY NAME?
+  const displayName = watch("displayName") || user?.displayName || "";
   const defaultInitials = displayName
     .split(" ")
     .map((n) => n[0])
@@ -238,8 +248,12 @@ export default function EditProfileModal({ open, onClose }: Props) {
           <MottoField control={control} name="motto" />
 
           {/* Aura Color Selector and preview */}
-         <AuraSelector control={control} colorField="auraColor"intensityField="auraIntensity"/>
-         
+          <AuraSelector
+            control={control}
+            colorField="auraColor"
+            intensityField="auraIntensity"
+          />
+
           {/* Change Password Checkbox */}
           <FormControlLabel
             control={
