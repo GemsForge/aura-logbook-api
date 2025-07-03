@@ -11,5 +11,7 @@ namespace AuraLogbook.Api.Models.Dto
         // public byte[]? ProfilePictureBlob { get; set; }
         public string? AuraColor { get; set; }
         public int? AuraIntensity { get; set; }
+
+        public List<SpiritualPathway> SpiritualPathways { get; set; } = new();
     }
 }

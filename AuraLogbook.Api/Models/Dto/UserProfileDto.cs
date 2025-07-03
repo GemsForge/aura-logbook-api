@@ -11,5 +11,6 @@
         public required int AuraIntensity { get; set; }
         public required string Avatar { get; set; }
         public required string Motto { get; set; }
+        public required List<SpiritualPathway> SpiritualPathways { get; set; }
     }
 }

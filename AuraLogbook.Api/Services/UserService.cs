@@ -153,6 +153,7 @@ public class UserService : IUserService
             ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday),
             AuraColor = request.AuraColor ?? "blue",
             AuraIntensity = request.AuraIntensity ?? 500,
+            SpiritualPathways = request.SpiritualPathways ?? [SpiritualPathway.Secular]
             // ProfilePictureBlob = request.ProfilePictureBlob
         };
     }
