@@ -116,7 +116,8 @@ public class AuthController : ControllerBase
             user.AuraColor,
             user.AuraIntensity,
             user.Avatar,
-            user.Motto
+            user.Motto,
+            user.SpiritualPathways
         });
     }
 }

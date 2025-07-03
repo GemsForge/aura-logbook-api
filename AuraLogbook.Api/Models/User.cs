@@ -37,5 +37,5 @@ public class User
 
     public string? Motto { get; set; }
     // public string Role { get; set; } = "User";
-    public List<SpiritualPathway> SpiritualPathways { get; set; } = [];
+    public List<SpiritualPathway> SpiritualPathways { get; set; } = [SpiritualPathway.Secular];
 }
