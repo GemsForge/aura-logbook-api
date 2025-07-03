@@ -26,6 +26,3 @@ namespace AuraLogbook.Api.Models.Dto
         public List<SpiritualPathway> SpiritualPathways { get; set; } = new();
     }
 }
-
-
-}

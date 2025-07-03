@@ -87,6 +87,7 @@ public class AuthController : ControllerBase
             AuraIntensity = fresh.AuraIntensity,  // int → string (match your DTO)
             Avatar = fresh.Avatar ?? string.Empty,
             Motto = fresh.Motto ?? string.Empty,
+            SpiritualPathways = fresh.SpiritualPathways?.ToList() ?? [SpiritualPathway.Secular]
         };
 
         return Ok(dto);
