@@ -63,7 +63,6 @@ public class UserService : IUserService
         if (existingUser is null)
             return (false, "User not found.");
 
-
         // Apply changes
         existingUser.Birthday = request.Birthday;
         existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday);
@@ -98,7 +97,6 @@ public class UserService : IUserService
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");
     }
-
 
     /// <summary>
     /// Deletes a user by Id.

@@ -18,7 +18,6 @@ export interface WeatherCardProps {
   country?: string;
 }
 
-
 const WeatherCard: React.FC<WeatherCardProps> = ({
     city,
     state,
@@ -42,7 +41,6 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
   // OpenWeather icon URL pattern
   const iconUrl = `/weather-icons/icons/${weather.iconCode}.png`;  
 
- console.log(weather.iconCode);
   return (
     <Card sx={{ display: "flex", alignItems: "center", p: 2, mb: 2 }}>
       <Box

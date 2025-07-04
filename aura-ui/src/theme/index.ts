@@ -28,8 +28,7 @@ export function getAuraTheme(
     // Select the requested shade, defaulting to 500 if unavailable
     const shades = auraShades[color] || auraShades.blue;
     const mainColor = shades[intensity] || shades[500];
-  
-    console.log(`[theming]`, color, intensity, "→", mainColor);
+    
     return createTheme({
       palette: {
         primary: { main: mainColor },
