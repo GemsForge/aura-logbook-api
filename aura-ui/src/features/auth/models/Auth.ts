@@ -1,4 +1,5 @@
 import type { AuraColor } from "@/features/mood/models/aura";
+import type { SpiritualPathway } from "./SpiritualPathway";
 
 export interface LoginRequest {
   email: string;
@@ -14,7 +15,7 @@ export interface RegisterRequest {
   password: string;
   displayName: string;
   birthday: string; // ISO string format (e.g., "2025-06-21") for DateOnly
-  profilePictureBlob?: string;
+  spiritualPathways: SpiritualPathway[]; // Enum value
 }
 
 export interface RegisterResponse {
@@ -33,4 +34,5 @@ export interface UpdateUserRequest {
   auraIntensity?: number;
   birthday: string;
   avatar?: string; // base64 or image URL
+  spiritualPathways: SpiritualPathway[];
 }

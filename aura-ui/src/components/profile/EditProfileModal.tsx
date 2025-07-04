@@ -1,5 +1,5 @@
 import { presetAvatars } from "@/assets/presetAvatars";
-import type { UpdateUserRequest } from "@/features/auth/models";
+import { SpiritualPathway, type UpdateUserRequest } from "@/features/auth/models";
 import {
   editProfileSchema,
   type EditProfileFormData,
@@ -29,6 +29,7 @@ import { Controller, useForm, type Resolver } from "react-hook-form";
 import { AvatarPickerModal } from "./AvatarPickerModal";
 import { MottoField } from "./MottoField";
 import { AuraSelector } from "./AuraSelectorField";
+import { SpiritualPathwayField } from "./SpiritualPathwayField";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -62,6 +63,7 @@ export default function EditProfileModal({
       password: "",
       confirmPassword: "",
       motto: "",
+      spiritualPathways: [],
     },
   });
 
@@ -92,6 +94,9 @@ export default function EditProfileModal({
         password: "",
         confirmPassword: "",
         motto: user.motto || "",
+        spiritualPathways: user.spiritualPathways?.length
+          ? user.spiritualPathways
+          : [SpiritualPathway.Secular], // 👈 fallback if none saved
       });
       setIsChangingPassword(false);
     }
@@ -107,6 +112,7 @@ export default function EditProfileModal({
       auraIntensity: auraIntensity ?? user!.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
+      spiritualPathways: data.spiritualPathways || [],
     };
 
     try {
@@ -245,6 +251,14 @@ export default function EditProfileModal({
               />
             )}
           />
+
+          {/* Spiritual Pathways Field */}
+          <SpiritualPathwayField
+            control={control}
+            error={!!errors.spiritualPathways}
+            helperText={errors.spiritualPathways?.message}
+          />
+
           <MottoField control={control} name="motto" />
 
           {/* Aura Color Selector and preview */}

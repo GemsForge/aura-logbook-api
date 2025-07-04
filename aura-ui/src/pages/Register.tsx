@@ -1,14 +1,15 @@
-import { Box, Button, TextField, Typography, Link, Paper, CircularProgress } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { Controller, useForm } from "react-hook-form";
+import { SpiritualPathwayField } from "@/components/profile/SpiritualPathwayField";
+import { SpiritualPathway, type RegisterRequest } from "@/features/auth/models";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { registerSchema, type RegisterFormValues } from "../features/auth/models/RegisterSchema";
-import { AuthApi } from "../api/AuthApi";
-import { useToast } from "../hooks/useToast";
+import { Box, Button, CircularProgress, Link, Paper, TextField, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { useState } from "react";
-import type { RegisterRequest } from "@/features/auth/models";
+import { Controller, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { AuthApi } from "../api/AuthApi";
+import { registerSchema, type RegisterFormValues } from "../features/auth/models/RegisterSchema";
+import { useToast } from "../hooks/useToast";
 
 export default function RegisterForm() {
   const { showToast } = useToast();
@@ -29,7 +30,9 @@ const [loading, setLoading] = useState(false);
       password: data.password,
       displayName: data.displayName,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
-
+      spiritualPathways: (data.spiritualPathways ?? []).filter(
+        Boolean
+      ) as SpiritualPathway[],
     };
     setLoading(true);
     try {
@@ -89,6 +92,13 @@ const [loading, setLoading] = useState(false);
             {...register("displayName")}
             error={!!errors.displayName}
             helperText={errors.displayName?.message}
+          />
+
+          {/* Spiritual Pathways Field */}
+          <SpiritualPathwayField
+            control={control}
+            error={!!errors.spiritualPathways}
+            helperText={errors.spiritualPathways?.message}
           />
 
           <Controller
