@@ -1,4 +1,5 @@
 import type { AuraColor } from "@/features/mood/models/aura";
+import type { SpiritualPathway } from "./SpiritualPathway";
 
 export interface UserProfile {
   id: number;
@@ -11,6 +12,7 @@ export interface UserProfile {
   auraColor?: AuraColor;
   auraIntensity?: number;
   motto?: string;
+  spiritualPathways?: SpiritualPathway[]; // Array of SpiritualPathway values
 
   lat?: number;
   lon?: number;

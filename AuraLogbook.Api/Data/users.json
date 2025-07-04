@@ -10,7 +10,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 2,
@@ -23,7 +26,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 3,
@@ -36,7 +42,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 4,
@@ -49,7 +58,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 5,
@@ -62,7 +74,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 6,
@@ -75,7 +90,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 7,
@@ -88,7 +106,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 8,
@@ -101,7 +122,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 9,
@@ -114,7 +138,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 10,
@@ -127,7 +154,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 11,
@@ -140,7 +170,10 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   },
   {
     "Id": 12,
@@ -150,10 +183,14 @@
     "DisplayName": "Admin",
     "Birthday": "1997-09-25",
     "ZodiacSign": "Libra",
-    "AuraColor": "green",
-    "AuraIntensity": 200,
-    "Avatar": "/avatars/hand-drawn-profile-avatar-4.jpg",
-    "Motto": "\uD83C\uDF3B Growing toward the light"
+    "AuraColor": "violet",
+    "AuraIntensity": 700,
+    "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
+    "Motto": "\uD83C\uDF3B Growing toward the light",
+    "SpiritualPathways": [
+      0,
+      1
+    ]
   },
   {
     "Id": 13,
@@ -166,6 +203,9 @@
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": null,
-    "Motto": null
+    "Motto": null,
+    "SpiritualPathways": [
+      0
+    ]
   }
 ]

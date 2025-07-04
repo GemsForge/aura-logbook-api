@@ -1,5 +1,6 @@
 import { AuraColor } from "@/features/mood/models/aura";
 import * as yup from "yup";
+import { SpiritualPathway } from "./SpiritualPathway";
 
 const auraColors = Object.values(AuraColor) as AuraColor[];
 
@@ -15,6 +16,7 @@ export interface EditProfileFormData {
   auraColor: AuraColor;
   auraIntensity?: number | null;
   motto?: string;
+  spiritualPathways?: SpiritualPathway[]; // Array of SpiritualPathway values
 }
 
 export const editProfileSchema = yup
@@ -28,21 +30,12 @@ export const editProfileSchema = yup
 
     birthday: yup.string().required("Birthday is required"),
 
+    spiritualPathways: yup
+      .array()
+      .of(yup.string().oneOf(Object.values(SpiritualPathway)))
+      .min(1, "Please select at least one pathway").required(),
+
     avatar: yup.string().required("Pick an avatar or enter initials"),
-
-    // avatarType: yup
-    //   .mixed<"image" | "initials">()
-    //   .oneOf(["image", "initials"])
-    //   .required("Choose avatar style"),
-
-    // initials: yup.string().when("avatarType", {
-    //   is: "initials",
-    //   then: (s) =>
-    //     s
-    //       .required("Enter your initials")
-    //       .matches(/^[A-Za-z]{1,2}$/, "1–2 letters only"),
-    //   otherwise: (s) => s.strip(), // remove from payload if not initials
-    // }),
 
     password: yup.string().when("$isChangingPassword", {
       is: true,
