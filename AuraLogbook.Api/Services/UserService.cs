@@ -90,6 +90,10 @@ public class UserService : IUserService
                 {
             existingUser.Motto = request.Motto.Trim();
               }
+        if (request.SpiritualPathways != null && request.SpiritualPathways.Any())
+        {
+            existingUser.SpiritualPathways = request.SpiritualPathways;
+        }
 
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");
@@ -153,7 +157,7 @@ public class UserService : IUserService
             ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday),
             AuraColor = request.AuraColor ?? "blue",
             AuraIntensity = request.AuraIntensity ?? 500,
-            SpiritualPathways = request.SpiritualPathways ?? [SpiritualPathway.Secular]
+            SpiritualPathways = request.SpiritualPathways 
             // ProfilePictureBlob = request.ProfilePictureBlob
         };
     }
