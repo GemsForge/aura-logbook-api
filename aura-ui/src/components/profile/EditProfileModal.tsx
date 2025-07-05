@@ -96,7 +96,7 @@ export default function EditProfileModal({
         motto: user.motto || "",
         spiritualPathways: user.spiritualPathways?.length
           ? user.spiritualPathways
-          : [SpiritualPathway.Secular], // 👈 fallback if none saved
+          : [SpiritualPathway.Mindfulness], // 👈 fallback if none saved
       });
       setIsChangingPassword(false);
     }
