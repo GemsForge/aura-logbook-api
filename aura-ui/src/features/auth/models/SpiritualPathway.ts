@@ -2,7 +2,7 @@ export type SpiritualPathway = "Mindfulness" | "Energy" | "Faith";
 
 export const SpiritualPathway = {
   Mindfulness: "Mindfulness" as SpiritualPathway,
-  Energy: "Spiritual" as SpiritualPathway,
+  Energy: "Energy" as SpiritualPathway,
   Faith: "Faith" as SpiritualPathway,
 };
 
