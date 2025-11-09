@@ -73,6 +73,7 @@ public class UserService : IUserService
         {
             existingUser.PasswordHash = PasswordHelper.HashPassword(request.Password);
         }
+        existingUser.UpdatedAt = DateTime.UtcNow.ToString();
 
         existingUser.DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
             ? existingUser.DisplayName
