@@ -114,6 +114,25 @@ public class UserService : IUserService
     }
 
     /// <summary>
+    /// Updates a user's password using their email (username).
+    /// Returns success/failure and message.
+    /// </summary>
+    public async Task<(bool Success, string Message)> UpdatePasswordByEmailAsync(string email, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(newPassword))
+            return (false, "Email and password must be provided.");
+
+        var existingUser = await _userRepo.GetByEmailAsync(email);
+        if (existingUser is null)
+            return (false, "User not found.");
+
+        existingUser.PasswordHash = PasswordHelper.HashPassword(newPassword);
+
+        var updated = await _userRepo.UpdateAsync(existingUser);
+        return updated ? (true, "Password updated.") : (false, "Failed to update password.");
+    }
+
+    /// <summary>
     /// Gets the total number of users.
     /// </summary>
     public async Task<int> GetUserCountAsync()

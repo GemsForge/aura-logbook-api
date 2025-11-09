@@ -98,7 +98,7 @@
   {
     "Id": 7,
     "Email": "user@example.com",
-    "PasswordHash": "p@ssw0rd!",
+    "PasswordHash": "$2a$11$Ay3DVN47RVkQnlK7k9WKL.PZCWuHIXFQevoWdIqS2zCwj3L.GFDnq",
     "CreatedAt": "6/15/2025 1:23:23 AM",
     "DisplayName": "user@example.com",
     "Birthday": "0001-01-01",

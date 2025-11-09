@@ -55,6 +55,21 @@ public class AuthController : ControllerBase
         return result.Success ? Ok(result.Message) : BadRequest(result.Message);
     }
 
+    /// <summary>
+    /// Reset or update a user's password using their login email/username.
+    /// This endpoint accepts an email and a new password. In a production app
+    /// this should be protected by a password-reset token or similar flow.
+    /// </summary>
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] UpdatePasswordRequest req)
+    {
+        var result = await _userService.UpdatePasswordByEmailAsync(req.Email, req.NewPassword);
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return Ok(result.Message);
+    }
+
     [Authorize]
     [HttpPut("update")]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest updatedUser)
