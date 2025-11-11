@@ -1,13 +1,16 @@
 import { presetAvatars } from "@/assets/presetAvatars";
-import { SpiritualPathway, type UpdateUserRequest } from "@/features/auth/models";
+import {
+  SpiritualPathway,
+  type UpdateUserRequest,
+} from "@/features/auth/models";
 import {
   editProfileSchema,
   type EditProfileFormData,
 } from "@/features/auth/models/EditProfileSchema";
 import { AuraColor } from "@/features/mood/models/aura";
 import { useToast } from "@/hooks/useToast";
-import { useAppDispatch } from "@/store/hooks";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
+import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -26,9 +29,9 @@ import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
+import { AuraSelector } from "./AuraSelectorField";
 import { AvatarPickerModal } from "./AvatarPickerModal";
 import { MottoField } from "./MottoField";
-import { AuraSelector } from "./AuraSelectorField";
 import { SpiritualPathwayField } from "./SpiritualPathwayField";
 
 interface EditProfileModalProps {
@@ -50,9 +53,10 @@ export default function EditProfileModal({
 
   // 1️⃣ grab the whole form API
   const form = useForm<EditProfileFormData>({
-    resolver: yupResolver(editProfileSchema, {
-      context: { isChangingPassword },
-    }) as Resolver<EditProfileFormData, any>,
+    resolver: yupResolver(editProfileSchema, {}) as Resolver<
+      EditProfileFormData,
+      any
+    >,
     defaultValues: {
       displayName: "",
       email: user?.email ?? "",
@@ -64,10 +68,9 @@ export default function EditProfileModal({
       confirmPassword: "",
       motto: "",
       spiritualPathways: [],
+      isChangingPassword: false,
     },
   });
-
-
 
   // 2️⃣ pull out only the helpers you need
   const {
@@ -79,6 +82,13 @@ export default function EditProfileModal({
     reset,
     formState: { errors },
   } = form;
+
+  // sync local checkbox state into the form so validation sees it immediately
+  useEffect(() => {
+    setValue("isChangingPassword", isChangingPassword, {
+      shouldValidate: true,
+    });
+  }, [isChangingPassword, setValue]);
 
   useEffect(() => {
     if (open && user) {
@@ -97,10 +107,11 @@ export default function EditProfileModal({
         spiritualPathways: user.spiritualPathways?.length
           ? user.spiritualPathways
           : [SpiritualPathway.Secular], // 👈 fallback if none saved
+        isChangingPassword: false,
       });
       setIsChangingPassword(false);
     }
-  }, [open, user, reset]);
+  }, [open, user, reset, form]);
 
   if (loadingUser || !user) return <LinearProgress color="secondary" />;
 

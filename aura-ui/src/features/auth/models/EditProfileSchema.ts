@@ -17,6 +17,7 @@ export interface EditProfileFormData {
   auraIntensity?: number | null;
   motto?: string;
   spiritualPathways?: SpiritualPathway[]; // Array of SpiritualPathway values
+  isChangingPassword: boolean;
 }
 
 export const editProfileSchema = yup
@@ -33,20 +34,28 @@ export const editProfileSchema = yup
     spiritualPathways: yup
       .array()
       .of(yup.string().oneOf(Object.values(SpiritualPathway)))
-      .min(1, "Please select at least one pathway").required(),
+      .min(1, "Please select at least one pathway")
+      .required(),
 
     avatar: yup.string().required("Pick an avatar or enter initials"),
 
-    password: yup.string().when("$isChangingPassword", {
-      is: true,
-      then: (schema) =>
-        schema
-          .min(6, "Password must be at least 6 characters")
-          .required("Password is required"),
-      otherwise: (schema) => schema.notRequired(),
-    }),
+    isChangingPassword: yup.boolean().notRequired(),
 
-    confirmPassword: yup.string().when("$isChangingPassword", {
+    password: yup
+      .string()
+      .transform((value, originalValue) =>
+        originalValue === "" ? undefined : value
+      )
+      .when("isChangingPassword", {
+        is: true,
+        then: (schema) =>
+          schema
+            .min(6, "Password must be at least 6 characters")
+            .required("Password is required"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+
+    confirmPassword: yup.string().when("isChangingPassword", {
       is: true,
       then: (schema) =>
         schema
