@@ -106,16 +106,17 @@
     "Email": "user@example.com",
     "PasswordHash": "$2a$11$xBCpib30NHhlF2ag2pfD0OntdSNdv.pQZf1IGUqvg8PJzU7BPJBpy",
     "CreatedAt": "6/15/2025 1:23:23 AM",
-    "UpdatedAt": "6/15/2025 1:23:23 AM",
+    "UpdatedAt": "11/11/2025 2:53:52\u202FAM",
     "DisplayName": "user@example.com",
-    "Birthday": "0001-01-01",
-    "ZodiacSign": null,
+    "Birthday": "1901-01-01",
+    "ZodiacSign": "Capricorn",
     "AuraColor": "blue",
     "AuraIntensity": 500,
-    "Avatar": null,
-    "Motto": null,
+    "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
+    "Motto": "\uD83E\uDDD8\u200D\u2640\uFE0F Embracing balance",
     "SpiritualPathways": [
-      0
+      0,
+      1
     ]
   },
   {
