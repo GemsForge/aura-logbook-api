@@ -20,6 +20,7 @@ import {
   type LoginFormData,
 } from "../features/auth/models/LoginSchema";
 import { useToast } from "../hooks/useToast";
+import { ForgotPasswordModal } from "@/components/profile/EditProfile/ForgetPasswordModal";
 
 interface LoginFormProps {
   showTitle?: boolean;
@@ -29,6 +30,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const {
     register,
@@ -106,6 +108,14 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           </Button>
         </form>
 
+        <Button
+          variant="text"
+          size="small"
+          onClick={() => setForgotPasswordOpen(true)}
+          sx={{ mt: 1, textTransform: "none" }}>
+          Forgot password?
+        </Button>
+
         <Typography variant="body2" mt={2}>
           Don’t have an account?{" "}
           <Link href="/register" underline="hover">
@@ -113,6 +123,10 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           </Link>
         </Typography>
       </Paper>
+      <ForgotPasswordModal
+        open={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+      />
     </Box>
   );
 }
