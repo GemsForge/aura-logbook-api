@@ -23,7 +23,12 @@ public class User
     /// <summary>
     /// Gets or sets the UTC timestamp for when the user was created.
     /// </summary>
-    public String CreatedAt { get; set; } = DateTime.UtcNow.ToString();
+    public string CreatedAt { get; set; } = DateTime.UtcNow.ToString();
+
+    /// <summary>
+    /// Gets or sets the UTC timestamp for when the user was last updated.
+    /// </summary>
+    public string UpdatedAt { get; set; } = DateTime.UtcNow.ToString();
 
     public string? DisplayName { get; set; }
 

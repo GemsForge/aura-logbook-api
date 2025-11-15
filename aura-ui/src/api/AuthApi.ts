@@ -51,6 +51,14 @@ export const AuthApi = {
     return res.data;
   },
 
+  resetPassword: async (email: string, newPassword: string): Promise<{message: string}> => {
+    const res = await api.post(`${API_BASE}/reset-password`, {
+      email,
+      newPassword,
+    });
+    return res.data;
+  },
+
   /**
    * Get current authenticated user profile (id, email, displayName)
    */

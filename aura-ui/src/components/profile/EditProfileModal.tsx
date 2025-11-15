@@ -1,35 +1,28 @@
-import { presetAvatars } from "@/assets/presetAvatars";
-import { SpiritualPathway, type UpdateUserRequest } from "@/features/auth/models";
+import {
+  SpiritualPathway,
+  type UpdateUserRequest,
+} from "@/features/auth/models";
 import {
   editProfileSchema,
   type EditProfileFormData,
 } from "@/features/auth/models/EditProfileSchema";
 import { AuraColor } from "@/features/mood/models/aura";
 import { useToast } from "@/hooks/useToast";
-import { useAppDispatch } from "@/store/hooks";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
+import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
   LinearProgress,
   Modal,
-  Avatar as MuiAvatar,
-  TextField,
   Typography,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { Controller, useForm, type Resolver } from "react-hook-form";
-import { AvatarPickerModal } from "./AvatarPickerModal";
-import { MottoField } from "./MottoField";
-import { AuraSelector } from "./AuraSelectorField";
-import { SpiritualPathwayField } from "./SpiritualPathwayField";
+import { useForm, type Resolver } from "react-hook-form";
+import EditProfileForm from "./EditProfile/EditProfileForm";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -50,9 +43,10 @@ export default function EditProfileModal({
 
   // 1️⃣ grab the whole form API
   const form = useForm<EditProfileFormData>({
-    resolver: yupResolver(editProfileSchema, {
-      context: { isChangingPassword },
-    }) as Resolver<EditProfileFormData, any>,
+    resolver: yupResolver(editProfileSchema, {}) as Resolver<
+      EditProfileFormData,
+      any
+    >,
     defaultValues: {
       displayName: "",
       email: user?.email ?? "",
@@ -64,21 +58,23 @@ export default function EditProfileModal({
       confirmPassword: "",
       motto: "",
       spiritualPathways: [],
+      isChangingPassword: false,
     },
   });
 
-
-
   // 2️⃣ pull out only the helpers you need
   const {
-    register,
-    control,
     watch,
     setValue,
-    handleSubmit,
     reset,
-    formState: { errors },
   } = form;
+
+  // sync local checkbox state into the form so validation sees it immediately
+  useEffect(() => {
+    setValue("isChangingPassword", isChangingPassword, {
+      shouldValidate: true,
+    });
+  }, [isChangingPassword, setValue]);
 
   useEffect(() => {
     if (open && user) {
@@ -97,10 +93,11 @@ export default function EditProfileModal({
         spiritualPathways: user.spiritualPathways?.length
           ? user.spiritualPathways
           : [SpiritualPathway.Secular], // 👈 fallback if none saved
+        isChangingPassword: false,
       });
       setIsChangingPassword(false);
     }
-  }, [open, user, reset]);
+  }, [open, user, reset, form]);
 
   if (loadingUser || !user) return <LinearProgress color="secondary" />;
 
@@ -142,179 +139,36 @@ export default function EditProfileModal({
     .toUpperCase();
 
   return (
-    <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "90%", sm: 600 },
-          maxWidth: 800,
-          p: 4,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          boxShadow: 24,
-        }}>
-        <Typography variant="h6" gutterBottom>
-          Edit Profile
-        </Typography>
+  <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: { xs: "90%", sm: 600 },
+        maxWidth: 800,
+        p: 4,
+        bgcolor: "background.paper",
+        borderRadius: 2,
+        boxShadow: 24,
+      }}>
+      <Typography variant="h6" gutterBottom>
+        Edit Profile
+      </Typography>
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Current Avatar & Change Button */}
-          <Controller
-            name="avatar"
-            control={control}
-            render={({ field }) => {
-              const val = field.value || "";
-              // is it one of our preset image URLs?
-              const isImage = presetAvatars.some((a) => a.url === val);
-
-              return (
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 1,
-                  }}>
-                  <MuiAvatar
-                    // if it’s an image, give it as src; otherwise leave undefined so we fall back to initials
-                    src={isImage ? val : undefined}
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      // only color-fill the background when it’s initials
-                      bgcolor: !isImage ? currentAuraBg : undefined,
-                    }}>
-                    {/* if it’s NOT an image, render the initials as the child */}
-                    {!isImage ? val : null}
-                  </MuiAvatar>
-                  <Button
-                    variant="text"
-                    onClick={() => setAvatarPickerOpen(true)}>
-                    Change Avatar
-                  </Button>
-                  {errors.avatar && (
-                    <Typography color="error">
-                      {errors.avatar.message}
-                    </Typography>
-                  )}
-                  <AvatarPickerModal
-                    open={avatarPickerOpen}
-                    onClose={() => setAvatarPickerOpen(false)}
-                    avatars={presetAvatars}
-                    userInitials={defaultInitials}
-                    auraBg={currentAuraBg}
-                    onSelect={(val) => {
-                      setValue("avatar", val, { shouldValidate: true });
-                      setAvatarPickerOpen(false);
-                    }}
-                  />
-                </Box>
-              );
-            }}
-          />
-
-          {/* Display Name */}
-          <TextField
-            label="Display Name"
-            {...register("displayName")}
-            error={!!errors.displayName}
-            helperText={errors.displayName?.message}
-            fullWidth
-          />
-
-          {/* Email */}
-          <TextField
-            label="Email"
-            type="email"
-            {...register("email")}
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            fullWidth
-          />
-
-          {/* Birthday */}
-          <Controller
-            name="birthday"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                label="Birthday"
-                value={dayjs(field.value)}
-                onChange={(newDate) => newDate && field.onChange(newDate)}
-                format="MM-DD-YYYY"
-              />
-            )}
-          />
-
-          {/* Spiritual Pathways Field */}
-          <SpiritualPathwayField
-            control={control}
-            error={!!errors.spiritualPathways}
-            helperText={errors.spiritualPathways?.message}
-          />
-
-          <MottoField control={control} name="motto" />
-
-          {/* Aura Color Selector and preview */}
-          <AuraSelector
-            control={control}
-            colorField="auraColor"
-            intensityField="auraIntensity"
-          />
-
-          {/* Change Password Checkbox */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isChangingPassword}
-                onChange={() => setIsChangingPassword((p) => !p)}
-              />
-            }
-            label="Change password?"
-            sx={{ alignSelf: "flex-start" }}
-          />
-
-          {isChangingPassword && (
-            <>
-              <TextField
-                fullWidth
-                label="New Password"
-                type="password"
-                margin="normal"
-                {...register("password")}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-              />
-              <TextField
-                fullWidth
-                label="Confirm Password"
-                type="password"
-                margin="normal"
-                {...register("confirmPassword")}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-              />
-            </>
-          )}
-
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => dispatch(closeProfileModal())}>
-              Cancel
-            </Button>
-            <Button variant="contained" type="submit">
-              Save Changes
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-    </Modal>
+      <EditProfileForm
+        form={form}
+        isChangingPassword={isChangingPassword}
+        onIsChangingPasswordChange={setIsChangingPassword}
+        avatarPickerOpen={avatarPickerOpen}
+        onAvatarPickerOpenChange={setAvatarPickerOpen}
+        currentAuraBg={currentAuraBg}
+        defaultInitials={defaultInitials}
+        onSubmit={onSubmit}
+        onCancel={() => dispatch(closeProfileModal())}
+      />
+    </Box>
+  </Modal>
   );
 }
