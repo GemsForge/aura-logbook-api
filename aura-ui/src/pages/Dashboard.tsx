@@ -1,24 +1,25 @@
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Divider,
-  CircularProgress,
-} from "@mui/material";
+import WeatherCard from "@/components/weather/WeatherCard";
+import { MoodIcons } from "@/features/mood/models/aura";
+import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import {
   useGetCurrentUserQuery,
 } from "@/store/authApi"; // ①
-import { useGetZodiacInsightQuery } from "@/store/auraApi";
-import { auraPalettes } from "@/theme/auraTheme";
-import MoodStatCard from "../components/dashboard/MoodStatCard";
-import MoodPieChart from "../components/dashboard/MoodPieChart";
-import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
-import WeatherCard from "@/components/weather/WeatherCard";
-import { getTimeGreeting } from "@/util/timeGreeting";
-import { MoodIcons } from "@/features/mood/models/aura";
 import { useGetDashboardSummaryQuery, useGetMoodBreakdownQuery, useGetMoodsByDateRangeQuery } from "@/store/moodApi";
+import { auraPalettes } from "@/theme/auraTheme";
+import { getTimeGreeting } from "@/util/timeGreeting";
+import {
+  Box,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  Grid,
+  Typography,
+} from "@mui/material";
+import dayjs from "dayjs";
+import MoodPieChart from "../components/dashboard/MoodPieChart";
+import MoodStatCard from "../components/dashboard/MoodStatCard";
+import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
 
 export default function Dashboard() {
   const greeting = getTimeGreeting();
@@ -58,7 +59,8 @@ export default function Dashboard() {
   const totalEntries = summary?.totalEntries ?? 0;
   const mostFrequent = summary?.mostFrequentMood ?? "";
   const currentStreak = summary?.currentStreak ?? 0;
-  const lastEntryDate = summary?.lastEntryDate ?? "-";
+  const lastEntryDate =
+    dayjs(summary?.lastEntryDate).format("MMMM D, YYYY") ?? "-";
 
   return (
     <Box maxWidth="md" mx="auto" mt={4}>
