@@ -34,5 +34,8 @@ export interface UpdateUserRequest {
   auraIntensity?: number;
   birthday: string;
   avatar?: string; // base64 or image URL
+  /**@deprecated pulling a single spiritual pathway instead.
+   * Use @property spiritualPathway */
   spiritualPathways: SpiritualPathway[];
+  spiritualPathway: SpiritualPathway;
 }
