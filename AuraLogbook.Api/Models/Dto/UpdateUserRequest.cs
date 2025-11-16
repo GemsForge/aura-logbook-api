@@ -23,6 +23,8 @@ namespace AuraLogbook.Api.Models.Dto
 
         public string? Avatar { get; set; }
         public string? Motto { get; set; }
+        [Obsolete("Return only one spiritual pathway")]
         public List<SpiritualPathway> SpiritualPathways { get; set; } = new();
-    }
+        public SpiritualPathway SelectedPathway { get; set;}
+}
 }
