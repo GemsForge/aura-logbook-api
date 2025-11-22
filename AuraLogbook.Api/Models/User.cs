@@ -42,8 +42,5 @@ public class User
 
     public string? Motto { get; set; }
     // public string Role { get; set; } = "User";
-    // TODO: Refactor to return only one spiritual pathway
-    [Obsolete("Return only one spiritual pathway")]
-    public List<SpiritualPathway> SpiritualPathways { get; set; } = [SpiritualPathway.Mindfulness];
-    public SpiritualPathway? SelectedPathway { get; set; }
+    public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
 }
