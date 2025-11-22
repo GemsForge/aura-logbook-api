@@ -88,10 +88,10 @@ public class UserService : IUserService
             existingUser.Avatar = request.Avatar;
         }
         if (request.Motto != null)
-                {
+        {
             existingUser.Motto = request.Motto.Trim();
-              }
-        
+        }
+
         existingUser.SelectedPathway = request.SelectedPathway;
 
         var updated = await _userRepo.UpdateAsync(existingUser);
