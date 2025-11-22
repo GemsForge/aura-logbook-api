@@ -11,10 +11,10 @@ import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, type UseFormReturn } from "react-hook-form";
 import { presetAvatars } from "@/assets/presetAvatars";
+import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { AuraSelector } from "../AuraSelectorField";
 import { AvatarPickerModal } from "../AvatarPickerModal";
 import { MottoField } from "../MottoField";
-import { SpiritualPathwayField } from "../SpiritualPathwayField";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface EditProfileFormProps {
@@ -136,10 +136,9 @@ export function EditProfileForm({
       />
 
       {/* Spiritual Pathways Field */}
-      <SpiritualPathwayField
+      <MyPathwaySelector
         control={control}
-        error={!!errors.spiritualPathways}
-        helperText={errors.spiritualPathways?.message}
+        errorMessage={errors.spiritualPathway?.message}
       />
 
       <MottoField control={control} name="motto" />

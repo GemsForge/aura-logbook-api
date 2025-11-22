@@ -43,7 +43,7 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials");
 
         var user = await _userService.GetByEmailAsync(authRequest.Email);
-        var token = _jwtService.GenerateToken(user!.Id, user!.Email, user!.DisplayName);
+        var token = _jwtService.GenerateToken(user!.Id, user!.Email, user!.DisplayName ?? string.Empty);
         return Ok(new { token });
     }
 
@@ -90,19 +90,22 @@ public class AuthController : ControllerBase
 
         // Fetch the updated user and map to your DTO
         var fresh = await _userService.GetByIdAsync(userId);
+        if (fresh is null)
+            return NotFound("User not found after update.");
+
         // 2) Map to your DTO
         var dto = new UserProfileDto
         {
             Id = fresh.Id,
             Email = fresh.Email,
             DisplayName = fresh.DisplayName ?? string.Empty,
-            ZodiacSign = fresh.ZodiacSign,                // may be null
-            Birthday = fresh.Birthday,                  // DateOnly → DateOnly
-            AuraColor = fresh.AuraColor,                 // string → string
-            AuraIntensity = fresh.AuraIntensity,  // int → string (match your DTO)
+            ZodiacSign = fresh.ZodiacSign,                
+            Birthday = fresh.Birthday,                  
+            AuraColor = fresh.AuraColor,                 
+            AuraIntensity = fresh.AuraIntensity,  
             Avatar = fresh.Avatar ?? string.Empty,
             Motto = fresh.Motto ?? string.Empty,
-            SpiritualPathways = fresh.SpiritualPathways?.ToList()
+            SelectedPathway = fresh.SelectedPathway
         };
         return Ok(dto);
     }
@@ -131,7 +134,7 @@ public class AuthController : ControllerBase
             user.AuraIntensity,
             user.Avatar,
             user.Motto,
-            user.SpiritualPathways
+            user.SelectedPathway
         });
     }
 }

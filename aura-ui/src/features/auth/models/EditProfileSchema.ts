@@ -16,7 +16,7 @@ export interface EditProfileFormData {
   auraColor: AuraColor;
   auraIntensity?: number | null;
   motto?: string;
-  spiritualPathways?: SpiritualPathway[]; // Array of SpiritualPathway values
+  spiritualPathway: SpiritualPathway;
   isChangingPassword: boolean;
 }
 
@@ -31,11 +31,13 @@ export const editProfileSchema = yup
 
     birthday: yup.string().required("Birthday is required"),
 
-    spiritualPathways: yup
-      .array()
-      .of(yup.string().oneOf(Object.values(SpiritualPathway)))
-      .min(1, "Please select at least one pathway")
-      .required(),
+    spiritualPathway: yup
+      .mixed<SpiritualPathway>()
+      .oneOf(
+        Object.values(SpiritualPathway),
+        "Select a valid spiritual pathway"
+      )
+      .required("Spiritual pathway is required"),
 
     avatar: yup.string().required("Pick an avatar or enter initials"),
 

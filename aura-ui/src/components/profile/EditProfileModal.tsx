@@ -13,12 +13,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  Box,
-  LinearProgress,
-  Modal,
-  Typography,
-} from "@mui/material";
+import { Box, LinearProgress, Modal, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -57,17 +52,13 @@ export default function EditProfileModal({
       password: "",
       confirmPassword: "",
       motto: "",
-      spiritualPathways: [],
+      spiritualPathway: SpiritualPathway.Mindfulness,
       isChangingPassword: false,
     },
   });
 
   // 2️⃣ pull out only the helpers you need
-  const {
-    watch,
-    setValue,
-    reset,
-  } = form;
+  const { watch, setValue, reset } = form;
 
   // sync local checkbox state into the form so validation sees it immediately
   useEffect(() => {
@@ -90,9 +81,7 @@ export default function EditProfileModal({
         password: "",
         confirmPassword: "",
         motto: user.motto || "",
-        spiritualPathways: user.spiritualPathways?.length
-          ? user.spiritualPathways
-          : [SpiritualPathway.Mindfulness], // 👈 fallback if none saved
+        spiritualPathway: user.selectedPathway ?? SpiritualPathway.Mindfulness,
       });
       setIsChangingPassword(false);
     }
@@ -101,14 +90,14 @@ export default function EditProfileModal({
   if (loadingUser || !user) return <LinearProgress color="secondary" />;
 
   const onSubmit = async (data: EditProfileFormData) => {
-    const { auraIntensity, confirmPassword, ...rest } = data;
+    const { auraIntensity, spiritualPathway, ...rest } = data;
     const payload: UpdateUserRequest = {
       id: user!.id,
       ...rest,
       auraIntensity: auraIntensity ?? user!.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
-      spiritualPathways: data.spiritualPathways || [],
+      selectedPathway: spiritualPathway,
     };
 
     try {
@@ -138,36 +127,36 @@ export default function EditProfileModal({
     .toUpperCase();
 
   return (
-  <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
-    <Box
-      sx={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: { xs: "90%", sm: 600 },
-        maxWidth: 800,
-        p: 4,
-        bgcolor: "background.paper",
-        borderRadius: 2,
-        boxShadow: 24,
-      }}>
-      <Typography variant="h6" gutterBottom>
-        Edit Profile
-      </Typography>
+    <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: { xs: "90%", sm: 600 },
+          maxWidth: 800,
+          p: 4,
+          bgcolor: "background.paper",
+          borderRadius: 2,
+          boxShadow: 24,
+        }}>
+        <Typography variant="h6" gutterBottom>
+          Edit Profile
+        </Typography>
 
-      <EditProfileForm
-        form={form}
-        isChangingPassword={isChangingPassword}
-        onIsChangingPasswordChange={setIsChangingPassword}
-        avatarPickerOpen={avatarPickerOpen}
-        onAvatarPickerOpenChange={setAvatarPickerOpen}
-        currentAuraBg={currentAuraBg}
-        defaultInitials={defaultInitials}
-        onSubmit={onSubmit}
-        onCancel={() => dispatch(closeProfileModal())}
-      />
-    </Box>
-  </Modal>
+        <EditProfileForm
+          form={form}
+          isChangingPassword={isChangingPassword}
+          onIsChangingPasswordChange={setIsChangingPassword}
+          avatarPickerOpen={avatarPickerOpen}
+          onAvatarPickerOpenChange={setAvatarPickerOpen}
+          currentAuraBg={currentAuraBg}
+          defaultInitials={defaultInitials}
+          onSubmit={onSubmit}
+          onCancel={() => dispatch(closeProfileModal())}
+        />
+      </Box>
+    </Modal>
   );
 }

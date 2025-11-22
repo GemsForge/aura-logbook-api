@@ -34,7 +34,7 @@ public class User
 
     public DateOnly Birthday { get; set; }
 
-    public string ZodiacSign { get; set; }
+    public string ZodiacSign { get; set; } = string.Empty;
 
     public string AuraColor { get; set; } = "blue";
     public int AuraIntensity { get; set; } = 500;
@@ -42,5 +42,5 @@ public class User
 
     public string? Motto { get; set; }
     // public string Role { get; set; } = "User";
-    public List<SpiritualPathway> SpiritualPathways { get; set; } = [SpiritualPathway.Mindfulness];
+    public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
 }

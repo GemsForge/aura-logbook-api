@@ -12,9 +12,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 2,
@@ -29,9 +27,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 3,
@@ -46,9 +42,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 4,
@@ -63,9 +57,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 5,
@@ -80,9 +72,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 6,
@@ -97,26 +87,22 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 7,
     "Email": "user@example.com",
     "PasswordHash": "$2a$11$PrE/3sgbkc5rkGZ3iUBcd.jle6LBUhDZ.5saLkzuFeFOY12k1NfPK",
     "CreatedAt": "6/15/2025 1:23:23 AM",
-    "UpdatedAt": "11/11/2025 4:00:48\u202FAM",
+    "UpdatedAt": "11/11/2025 4:00:48\u202fAM",
     "DisplayName": "user@example.com",
     "Birthday": "1901-01-01",
     "ZodiacSign": "Capricorn",
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
-    "Motto": "\uD83C\uDF0A Flowing with ease",
-    "SpiritualPathways": [
-      0
-    ]
+    "Motto": "\ud83c\udf0a Flowing with ease",
+    "SelectedPathway": 0
   },
   {
     "Id": 8,
@@ -131,9 +117,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 9,
@@ -148,9 +132,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 10,
@@ -165,9 +147,7 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 11,
@@ -182,27 +162,22 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   },
   {
     "Id": 12,
     "Email": "admin@email.com",
     "PasswordHash": "$2a$11$sKUPIFmiXPDKnUWjwVEodOKnm9Ri9huz7g289oyj.7u36AgcTG6PK",
     "CreatedAt": "6/21/2025 1:37:07 AM",
-    "UpdatedAt": "6/21/2025 1:37:07 AM",
+    "UpdatedAt": "11/22/2025 2:05:25\u202fAM",
     "DisplayName": "Admin",
     "Birthday": "1997-09-25",
     "ZodiacSign": "Libra",
     "AuraColor": "indigo",
     "AuraIntensity": 700,
     "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
-    "Motto": "\uD83C\uDF3B Growing toward the light",
-    "SpiritualPathways": [
-      0,
-      1
-    ]
+    "Motto": "\ud83c\udf3b Growing toward the light",
+    "SelectedPathway": 0
   },
   {
     "Id": 13,
@@ -217,8 +192,6 @@
     "AuraIntensity": 500,
     "Avatar": null,
     "Motto": null,
-    "SpiritualPathways": [
-      0
-    ]
+    "SelectedPathway": 0
   }
 ]

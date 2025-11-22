@@ -1,3 +1,4 @@
+namespace AuraLogbook.Api.Models;
 public enum SpiritualPathway
 {
     Mindfulness,
@@ -28,7 +29,7 @@ public static class SpiritualPathwayDisplay
 {
     { SpiritualPathway.Mindfulness, "Mindful Living" },
     { SpiritualPathway.Energy, "Astrology & Energy" },
-    { SpiritualPathway.Faith, "Christian Faith" }
+    { SpiritualPathway.Faith, "Faith & Religion" }
 };
 
     /// <summary>

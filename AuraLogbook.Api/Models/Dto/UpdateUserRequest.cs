@@ -23,6 +23,7 @@ namespace AuraLogbook.Api.Models.Dto
 
         public string? Avatar { get; set; }
         public string? Motto { get; set; }
-        public List<SpiritualPathway> SpiritualPathways { get; set; } = new();
-    }
+        [Required]
+        public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+}
 }
