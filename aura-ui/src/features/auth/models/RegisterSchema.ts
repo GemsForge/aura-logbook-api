@@ -20,10 +20,10 @@ export const registerSchema = yup.object({
     .max(30, "Display name must be 30 characters or fewer")
     .required("Display name is required"),
   birthday: yup.string().required("Birthday is required"),
-  spiritualPathways: yup
-    .array()
-    .of(yup.string().oneOf(Object.values(SpiritualPathway)))
-    .min(1, "Please select at least one pathway").required(),
+  spiritualPathway: yup
+    .mixed<SpiritualPathway>()
+    .oneOf(Object.values(SpiritualPathway), "Select a pathway")
+    .required("Select a pathway"),
 });
 
 export type RegisterFormValues = yup.InferType<typeof registerSchema>;

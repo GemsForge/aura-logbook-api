@@ -12,7 +12,7 @@ export interface UserProfile {
   auraColor?: AuraColor;
   auraIntensity?: number;
   motto?: string;
-  spiritualPathways?: SpiritualPathway[]; // Array of SpiritualPathway values
+  selectedPathway?: SpiritualPathway;
 
   lat?: number;
   lon?: number;

@@ -15,7 +15,7 @@ export interface RegisterRequest {
   password: string;
   displayName: string;
   birthday: string; // ISO string format (e.g., "2025-06-21") for DateOnly
-  spiritualPathways: SpiritualPathway[]; // Enum value
+  selectedPathway: SpiritualPathway;
 }
 
 export interface RegisterResponse {
@@ -34,8 +34,5 @@ export interface UpdateUserRequest {
   auraIntensity?: number;
   birthday: string;
   avatar?: string; // base64 or image URL
-  /**@deprecated pulling a single spiritual pathway instead.
-   * Use @property spiritualPathway */
-  spiritualPathways: SpiritualPathway[];
-  spiritualPathway: SpiritualPathway;
+  selectedPathway: SpiritualPathway;
 }

@@ -1,4 +1,4 @@
-import { SpiritualPathwayField } from "@/components/profile/SpiritualPathwayField";
+import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { SpiritualPathway, type RegisterRequest } from "@/features/auth/models";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Button, CircularProgress, Link, Paper, TextField, Typography } from "@mui/material";
@@ -21,7 +21,10 @@ const [loading, setLoading] = useState(false);
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormValues>({
-    resolver: yupResolver(registerSchema)
+    resolver: yupResolver(registerSchema),
+    defaultValues: {
+      spiritualPathway: SpiritualPathway.Mindfulness,
+    },
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
@@ -30,9 +33,7 @@ const [loading, setLoading] = useState(false);
       password: data.password,
       displayName: data.displayName,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
-      spiritualPathways: (data.spiritualPathways ?? []).filter(
-        Boolean
-      ) as SpiritualPathway[],
+      selectedPathway: data.spiritualPathway,
     };
     setLoading(true);
     try {
@@ -95,10 +96,9 @@ const [loading, setLoading] = useState(false);
           />
 
           {/* Spiritual Pathways Field */}
-          <SpiritualPathwayField
+          <MyPathwaySelector
             control={control}
-            error={!!errors.spiritualPathways}
-            helperText={errors.spiritualPathways?.message}
+            errorMessage={errors.spiritualPathway?.message}
           />
 
           <Controller
