@@ -34,7 +34,7 @@ public class User
 
     public DateOnly Birthday { get; set; }
 
-    public string ZodiacSign { get; set; }
+    public string ZodiacSign { get; set; } = string.Empty;
 
     public string AuraColor { get; set; } = "blue";
     public int AuraIntensity { get; set; } = 500;
