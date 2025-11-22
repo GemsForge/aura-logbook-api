@@ -1,8 +1,10 @@
+import { SpiritualPathwayDescriptions } from "@/features/auth/models/SpiritualPathway";
 import { AuraColor } from "@/features/mood/models/aura";
 import { zodiacEmojis } from "@/features/zodiac/models/ZodiacEmojis";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { useGetCurrentUserQuery } from "@/store/authApi";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes } from "@/theme/auraTheme";
 import { getProfileCompletion } from "@/util/profile";
@@ -23,7 +25,8 @@ import { useEffect } from "react";
 
 export default function ProfileCard() {
   const dispatch = useAppDispatch();
-  const { data: user, isFetching: userLoading } = useGetCurrentUserQuery();
+  const { isFetching: userLoading } = useGetCurrentUserQuery();
+  const user = useAppSelector(selectCurrentUser);
   const { data: zodiac, isLoading, refetch } = useGetZodiacInsightQuery();
 
   useEffect(() => {
@@ -113,6 +116,18 @@ export default function ProfileCard() {
               sx={{ fontStyle: "italic", color: "text.secondary", mt: 1 }}>
               “{user.motto}”
             </Typography>
+          )}
+
+          {user.selectedPathway && (
+            <Box mt={2}>
+              <Typography variant="subtitle2" fontWeight={600}>
+                My Pathway
+              </Typography>
+              <Typography variant="body1">{user.selectedPathway}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {SpiritualPathwayDescriptions[user.selectedPathway]}
+              </Typography>
+            </Box>
           )}
 
           {completion < 100 ? (

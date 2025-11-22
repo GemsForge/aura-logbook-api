@@ -1,23 +1,44 @@
 // src/store/moodApi.ts
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { MoodByDate } from "@/components/dashboard/MoodTimeLineChart";
 import type {
+  MoodDashboardSummary,
   MoodEntry,
   MoodEntryRequest,
-  MoodDashboardSummary,
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
-import type { MoodByDate } from "@/components/dashboard/MoodTimeLineChart";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { logout } from "./slices/authSlice";
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: import.meta.env.VITE_API_BASE_URL + "/Mood",
+  prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as any).auth.token;
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return headers;
+  },
+});
+
+const baseQueryWithLogout: typeof rawBaseQuery = async (
+  args,
+  api,
+  extraOptions
+) => {
+  const result = await rawBaseQuery(args, api, extraOptions);
+  if (
+    result.error &&
+    (result.error.status === 401 || result.error.status === 403)
+  ) {
+    api.dispatch(logout());
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+  }
+  return result;
+};
 
 export const moodApi = createApi({
   reducerPath: "moodApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL + "/Mood",
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as any).auth.token;
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithLogout,
   tagTypes: ["Moods", "Dashboard"],
   endpoints: (build) => ({
     // GET /Mood?startDate=&endDate=

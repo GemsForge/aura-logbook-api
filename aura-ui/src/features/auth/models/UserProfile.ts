@@ -5,14 +5,13 @@ export interface UserProfile {
   id: number;
   email: string;
   displayName: string;
-  token: string;
   birthday: string;
   avatar?: string; // base64 or image URL
   zodiacSign: string;
   auraColor?: AuraColor;
   auraIntensity?: number;
   motto?: string;
-  selectedPathway?: SpiritualPathway;
+  selectedPathway: SpiritualPathway;
 
   lat?: number;
   lon?: number;

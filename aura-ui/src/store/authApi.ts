@@ -1,25 +1,44 @@
 // src/store/authApi.ts
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type {
-  UserProfile,
-  UpdateUserRequest,
   LoginRequest,
   LoginResponse,
+  UpdateUserRequest,
+  UserProfile,
 } from "@/features/auth/models";
-import { setToken } from "./slices/authSlice";
 import type { AuraColor } from "@/features/mood/models/aura";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { logout, setToken } from "./slices/authSlice";
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: import.meta.env.VITE_API_BASE_URL + "/Auth",
+  prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as any).auth.token;
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return headers;
+  },
+});
+
+const baseQueryWithLogout: typeof rawBaseQuery = async (
+  args,
+  api,
+  extraOptions
+) => {
+  const result = await rawBaseQuery(args, api, extraOptions);
+  if (
+    result.error &&
+    (result.error.status === 401 || result.error.status === 403)
+  ) {
+    api.dispatch(logout());
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+  }
+  return result;
+};
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL + "/Auth",
-    prepareHeaders: (headers, { getState }) => {
-      // if you store your JWT in redux or localStorage, inject it here:
-      const token = (getState() as any).auth.token;
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithLogout,
   tagTypes: ["User"],
   endpoints: (build) => ({
     login: build.mutation<LoginResponse, LoginRequest>({
