@@ -13,7 +13,9 @@ import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, LinearProgress, Modal, Typography } from "@mui/material";
+import { LinearProgress, Typography } from "@mui/material";
+import Modal from "@mui/joy/Modal";
+import ModalDialog from "@mui/joy/ModalDialog";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -128,18 +130,14 @@ export default function EditProfileModal({
 
   return (
     <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
-      <Box
+      <ModalDialog
+        variant="outlined"
         sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
           width: { xs: "90%", sm: 600 },
           maxWidth: 800,
           p: 4,
-          bgcolor: "background.paper",
           borderRadius: 2,
-          boxShadow: 24,
+          bgcolor: "background.paper",
         }}>
         <Typography variant="h6" gutterBottom>
           Edit Profile
@@ -156,7 +154,7 @@ export default function EditProfileModal({
           onSubmit={onSubmit}
           onCancel={() => dispatch(closeProfileModal())}
         />
-      </Box>
+      </ModalDialog>
     </Modal>
   );
 }

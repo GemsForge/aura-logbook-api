@@ -1,15 +1,16 @@
 import type { PresetAvatar } from "@/assets/presetAvatars";
 import {
-    Box,
-    Button,
-    Grid,
-    Modal,
-    Avatar as MuiAvatar,
-    Tab,
-    Tabs,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  Grid,
+  Avatar as MuiAvatar,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
+import Modal from "@mui/joy/Modal";
+import ModalDialog from "@mui/joy/ModalDialog";
 import { useState } from "react";
 
 interface AvatarPickerModalProps {
@@ -34,18 +35,7 @@ export function AvatarPickerModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 360,
-          p: 3,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          boxShadow: 24,
-        }}>
+      <ModalDialog sx={{ width: 360, p: 3, borderRadius: 2 }}>
         <Typography variant="subtitle1" gutterBottom>
           Select an Avatar
         </Typography>
@@ -112,7 +102,7 @@ export function AvatarPickerModal({
             </Button>
           </Box>
         )}
-      </Box>
+      </ModalDialog>
     </Modal>
   );
 }
