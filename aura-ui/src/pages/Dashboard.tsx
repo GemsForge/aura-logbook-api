@@ -1,10 +1,11 @@
 import WeatherCard from "@/components/weather/WeatherCard";
+import { SpiritualPathwayDescriptions } from "@/features/auth/models/SpiritualPathway";
 import { MoodIcons } from "@/features/mood/models/aura";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
-import {
-  useGetCurrentUserQuery,
-} from "@/store/authApi"; // ①
+import { useGetCurrentUserQuery } from "@/store/authApi"; // ①
+import { useAppSelector } from "@/store/hooks";
 import { useGetDashboardSummaryQuery, useGetMoodBreakdownQuery, useGetMoodsByDateRangeQuery } from "@/store/moodApi";
+import { selectCurrentUser } from "@/store/slices/authSlice";
 import { auraPalettes } from "@/theme/auraTheme";
 import { getTimeGreeting } from "@/util/timeGreeting";
 import {
@@ -23,9 +24,10 @@ import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
 
 export default function Dashboard() {
   const greeting = getTimeGreeting();
+  const user = useAppSelector(selectCurrentUser);
 
   // —— 1. RTK-Query hooks everywhere ——
-  const { data: user, isLoading: loadingUser } = useGetCurrentUserQuery();
+  const { isLoading: loadingUser } = useGetCurrentUserQuery();
   const { data: summary, isLoading: loadingSummary } =
     useGetDashboardSummaryQuery();
   const { data: breakdown, isLoading: loadingBreakdown } =
@@ -56,6 +58,7 @@ export default function Dashboard() {
   // —— 3. Derive values with safe fallbacks ——
   const auraColor = user?.auraColor ?? "blue";
   const displayName = user?.displayName ?? "Friend";
+  const selectedPathway = user?.selectedPathway;
   const totalEntries = summary?.totalEntries ?? 0;
   const mostFrequent = summary?.mostFrequentMood ?? "";
   const currentStreak = summary?.currentStreak ?? 0;
@@ -68,6 +71,20 @@ export default function Dashboard() {
       <Typography variant="h5" gutterBottom>
         {greeting}, {displayName}!
       </Typography>
+
+      {selectedPathway && (
+        <Card variant="outlined" sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="subtitle2" color="text.secondary">
+              My Pathway
+            </Typography>
+            <Typography variant="h6">{selectedPathway}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {SpiritualPathwayDescriptions[selectedPathway]}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Zodiac Insights */}
       {zodiac && (

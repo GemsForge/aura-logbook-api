@@ -1,3 +1,4 @@
+import { SpiritualPathwayDescriptions } from "@/features/auth/models/SpiritualPathway";
 import { AuraColor } from "@/features/mood/models/aura";
 import { zodiacEmojis } from "@/features/zodiac/models/ZodiacEmojis";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
@@ -115,6 +116,18 @@ export default function ProfileCard() {
               sx={{ fontStyle: "italic", color: "text.secondary", mt: 1 }}>
               “{user.motto}”
             </Typography>
+          )}
+
+          {user.selectedPathway && (
+            <Box mt={2}>
+              <Typography variant="subtitle2" fontWeight={600}>
+                My Pathway
+              </Typography>
+              <Typography variant="body1">{user.selectedPathway}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {SpiritualPathwayDescriptions[user.selectedPathway]}
+              </Typography>
+            </Box>
           )}
 
           {completion < 100 ? (
