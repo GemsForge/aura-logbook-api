@@ -46,7 +46,7 @@ export const AuthApi = {
   /**
    * Update the current authenticated user's profile.
    */
-  updateUser: async (payload: UpdateUserRequest): Promise<string> => {
+  updateUser: async (payload: UpdateUserRequest): Promise<UserProfile> => {
     const res = await api.put(`${API_BASE}/update`, payload);
     return res.data;
   },
@@ -67,4 +67,3 @@ export const AuthApi = {
     return res.data;
   }
 };
-

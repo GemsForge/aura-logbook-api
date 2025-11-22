@@ -2,7 +2,8 @@ import { AuraColor } from "@/features/mood/models/aura";
 import { zodiacEmojis } from "@/features/zodiac/models/ZodiacEmojis";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { useGetCurrentUserQuery } from "@/store/authApi";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes } from "@/theme/auraTheme";
 import { getProfileCompletion } from "@/util/profile";
@@ -23,7 +24,8 @@ import { useEffect } from "react";
 
 export default function ProfileCard() {
   const dispatch = useAppDispatch();
-  const { data: user, isFetching: userLoading } = useGetCurrentUserQuery();
+  const { isFetching: userLoading } = useGetCurrentUserQuery();
+  const user = useAppSelector(selectCurrentUser);
   const { data: zodiac, isLoading, refetch } = useGetZodiacInsightQuery();
 
   useEffect(() => {

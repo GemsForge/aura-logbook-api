@@ -10,6 +10,7 @@ export function getProfileCompletion(user: UserProfile): number {
     user.avatar, // covers both image URLs or initials
     user.auraColor,
     user.auraIntensity,
+    user.selectedPathway,
   ];
   const filled = fields.filter(
     (f) => f !== undefined && f !== null && f !== ""
