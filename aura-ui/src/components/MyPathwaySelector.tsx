@@ -33,7 +33,7 @@ const PATHWAY_ORDER: SpiritualPathway[] = [
 const PATHWAY_TITLES: Record<string, string> = {
   [SpiritualPathway.Mindfulness]: "Mindfulness",
   [SpiritualPathway.Energy]: "Astrology & Energy",
-  [SpiritualPathway.Faith]: "Christian Faith",
+  [SpiritualPathway.Faith]: "Faith & Religion",
 };
 
 export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
