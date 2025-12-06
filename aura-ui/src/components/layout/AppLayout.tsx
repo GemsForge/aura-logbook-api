@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import ProfileCard from "../profile/ProfileCard";
-import EditProfileModal from "../profile/EditProfileModal";
+import AuraEditProfileModal from "../profile/EditProfileModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 
@@ -29,7 +29,7 @@ const AppLayout = () => {
               </Grid>
               <Grid size={{ xs: 12, md: 9 }}>
                 <Outlet />
-                <EditProfileModal
+                <AuraEditProfileModal
                   onClose={() => dispatch(closeProfileModal())}
                   open={isProfileModalOpen}
                 />

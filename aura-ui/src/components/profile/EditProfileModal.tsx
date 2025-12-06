@@ -13,10 +13,11 @@ import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, LinearProgress, Modal, Typography } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useForm, type Resolver, type UseFormReturn } from "react-hook-form";
+import AuraModal from "../ui/modal/AuraModal";
 import EditProfileForm from "./EditProfile/EditProfileForm";
 
 interface EditProfileModalProps {
@@ -24,10 +25,102 @@ interface EditProfileModalProps {
   onClose: () => void;
 }
 
-export default function EditProfileModal({
+// export default function EditProfileModal({
+//   open,
+//   onClose,
+// }: EditProfileModalProps) {
+//   const controller = useEditProfileModalController(open, onClose);
+
+//   if (controller.loadingUser || !controller.user)
+//     return <LinearProgress color="secondary" />;
+
+//   return (
+//     <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
+//       <Box
+//         sx={{
+//           position: "absolute",
+//           top: "50%",
+//           left: "50%",
+//           transform: "translate(-50%, -50%)",
+//           width: { xs: "90%", sm: 600 },
+//           maxWidth: 800,
+//           p: 4,
+//           bgcolor: "background.paper",
+//           borderRadius: 2,
+//           boxShadow: 24,
+//         }}>
+//         <EditProfileModalBody {...controller} />
+//       </Box>
+//     </Modal>
+//   );
+// }
+
+export default function AuraEditProfileModal({
   open,
   onClose,
 }: EditProfileModalProps) {
+  const controller = useEditProfileModalController(open, onClose);
+
+  if (controller.loadingUser || !controller.user)
+    return <LinearProgress color="secondary" />;
+
+  return (
+    <AuraModal
+      title="Edit Profile"
+      open={open}
+      onClose={onClose}
+      layout="center"
+      color="primary"
+      size="sm"
+      variant="plain"
+      overflow="scrollable">
+      <EditProfileModalBody {...controller} />
+    </AuraModal>
+  );
+}
+
+interface EditProfileModalBodyProps {
+  form: UseFormReturn<EditProfileFormData>;
+  isChangingPassword: boolean;
+  setIsChangingPassword: Dispatch<SetStateAction<boolean>>;
+  avatarPickerOpen: boolean;
+  setAvatarPickerOpen: Dispatch<SetStateAction<boolean>>;
+  currentAuraBg: string;
+  defaultInitials: string;
+  onSubmit: (data: EditProfileFormData) => Promise<void>;
+  onCancel: () => void;
+}
+
+function EditProfileModalBody({
+  form,
+  isChangingPassword,
+  setIsChangingPassword,
+  avatarPickerOpen,
+  setAvatarPickerOpen,
+  currentAuraBg,
+  defaultInitials,
+  onSubmit,
+  onCancel,
+}: EditProfileModalBodyProps) {
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+
+      <EditProfileForm
+        form={form}
+        isChangingPassword={isChangingPassword}
+        onIsChangingPasswordChange={setIsChangingPassword}
+        avatarPickerOpen={avatarPickerOpen}
+        onAvatarPickerOpenChange={setAvatarPickerOpen}
+        currentAuraBg={currentAuraBg}
+        defaultInitials={defaultInitials}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
+    </Box>
+  );
+}
+
+function useEditProfileModalController(open: boolean, onClose: () => void) {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   // 1) Unconditionally call your hooks at the top:
@@ -69,7 +162,7 @@ export default function EditProfileModal({
 
   useEffect(() => {
     if (open && user) {
-      form.reset({
+      reset({
         displayName: user.displayName || "",
         email: user.email || "",
         birthday: user.birthday
@@ -85,16 +178,15 @@ export default function EditProfileModal({
       });
       setIsChangingPassword(false);
     }
-  }, [open, user, reset, form]);
-
-  if (loadingUser || !user) return <LinearProgress color="secondary" />;
+  }, [open, user, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
+    if (!user) return;
     const { auraIntensity, spiritualPathway, ...rest } = data;
     const payload: UpdateUserRequest = {
-      id: user!.id,
+      id: user.id,
       ...rest,
-      auraIntensity: auraIntensity ?? user!.auraIntensity ?? 500,
+      auraIntensity: auraIntensity ?? user.auraIntensity ?? 500,
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
       selectedPathway: spiritualPathway,
@@ -126,37 +218,17 @@ export default function EditProfileModal({
     .slice(0, 2)
     .toUpperCase();
 
-  return (
-    <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "90%", sm: 600 },
-          maxWidth: 800,
-          p: 4,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          boxShadow: 24,
-        }}>
-        <Typography variant="h6" gutterBottom>
-          Edit Profile
-        </Typography>
-
-        <EditProfileForm
-          form={form}
-          isChangingPassword={isChangingPassword}
-          onIsChangingPasswordChange={setIsChangingPassword}
-          avatarPickerOpen={avatarPickerOpen}
-          onAvatarPickerOpenChange={setAvatarPickerOpen}
-          currentAuraBg={currentAuraBg}
-          defaultInitials={defaultInitials}
-          onSubmit={onSubmit}
-          onCancel={() => dispatch(closeProfileModal())}
-        />
-      </Box>
-    </Modal>
-  );
+  return {
+    user,
+    loadingUser,
+    form,
+    isChangingPassword,
+    setIsChangingPassword,
+    avatarPickerOpen,
+    setAvatarPickerOpen,
+    currentAuraBg,
+    defaultInitials,
+    onSubmit,
+    onCancel: () => dispatch(closeProfileModal()),
+  };
 }
