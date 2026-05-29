@@ -33,8 +33,11 @@ export interface AuraModalProps extends Omit<ModalProps, "title"> {
 }
 
 /**
- * AuraModal mirrors Joy UI's <Modal> + <ModalDialog> pattern.
+ * AuraModal follows a Joy-inspired <Modal> + <ModalDialog> composition pattern
+ * while using Material UI's stable Modal primitive for portal, backdrop,
+ * focus lock, and accessibility behavior.
  *
+ * The component composition is as follows:
  * - The MUI <Modal> handles the portal, backdrop, focus lock, etc.
  * - <AuraModalDialog> renders the styled dialog surface and receives
  *   variant, color, layout, and id props.
