@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../store/slices/authSlice";
-// import moodReducer from "../store/slices/moodSlice";
+import uiReducer from "../store/slices/uiSlice";
 
 /**
  * Utility function to render a component with Redux and React Router context for testing.
@@ -45,7 +45,7 @@ export function renderWithProviders(
   const store = configureStore({
     reducer: {
       auth: authReducer,
-      //moods: moodReducer,
+      ui: uiReducer,
     },
     preloadedState,
   });
@@ -82,6 +82,15 @@ export function createUnauthenticatedState() {
       token: null,
       isAuthenticated: false,
       profile: null,
+    },
+  };
+}
+
+// This helper creates a fake Redux state with the profile modal open.
+export function createProfileModalOpenState() {
+  return {
+    ui: {
+      isProfileModalOpen: true,
     },
   };
 }
