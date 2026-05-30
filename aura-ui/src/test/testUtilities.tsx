@@ -74,3 +74,14 @@ export function createAuthenticatedState() {
     },
   };
 }
+
+// This helper creates a fake "logged-out user" Redux state.
+export function createUnauthenticatedState() {
+  return {
+    auth: {
+      token: null,
+      isAuthenticated: false,
+      profile: null,
+    },
+  };
+}
