@@ -59,3 +59,18 @@ export function renderWithProviders(
     ),
   };
 }
+
+// This helper creates a fake “logged-in user” Redux state.
+export function createAuthenticatedState() {
+  return {
+    auth: {
+      token: "test-token",
+      isAuthenticated: true,
+      profile: {
+        id: 1,
+        email: "gem@example.com",
+        displayName: "Gem",
+      },
+    },
+  };
+}
