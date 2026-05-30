@@ -1,5 +1,12 @@
 // @vitest-environment jsdom
-import authReducer, { logout, setProfile, setToken } from "./authSlice";
+import type { RootState } from "../store";
+import type { UnknownAction } from "@reduxjs/toolkit";
+import authReducer, {
+  logout,
+  selectCurrentUser,
+  setProfile,
+  setToken,
+} from "./authSlice";
 import type { UserProfile } from "@/features/auth/models";
 
 const testData = {
@@ -11,14 +18,44 @@ const testData = {
   } as UserProfile,
 };
 
-const testCases = {
-    returnsInitialState: { description: "should return the initial state", action: { type: "unknown" } as any, expectedState: { token: null, isAuthenticated: false, profile: null } },
-    setsToken: { description: "sets token, authenticates user, and stores token in localStorage", action: setToken(testData.token), expectedState: { token: testData.token, isAuthenticated: true } },
-    clearsTokenOnLogout: { description: "clears token, profile, auth state, and session storage on logout", action: logout(), expectedState: { token: null, isAuthenticated: false, profile: null } },
-    setsUserProfile: { description: "sets the user profile and marks user as authenticated", action: setProfile(testData.userProfile), expectedState: { profile: testData.userProfile, isAuthenticated: true } },
+const unknownAction: UnknownAction = { type: "unknown" };
 
-    clearsProfileWithoutChangingToken: { description: "allows profile to be cleared without changing token directly", action: setProfile(null), expectedState: { profile: null } },
-}
+const testCases = {
+  returnsInitialState: {
+    description: "should return the initial state",
+    action: unknownAction,
+    expectedState: { token: null, isAuthenticated: false, profile: null },
+  },
+  setsToken: {
+    description:
+      "sets token, authenticates user, and stores token in localStorage",
+    action: setToken(testData.token),
+    expectedState: { token: testData.token, isAuthenticated: true },
+  },
+  clearsTokenOnLogout: {
+    description:
+      "clears token, profile, auth state, and session storage on logout",
+    action: logout(),
+    expectedState: { token: null, isAuthenticated: false, profile: null },
+  },
+  setsUserProfile: {
+    description: "sets the user profile and marks user as authenticated",
+    action: setProfile(testData.userProfile),
+    expectedState: { profile: testData.userProfile, isAuthenticated: true },
+  },
+
+  clearsProfileWithoutChangingToken: {
+    description: "allows profile to be cleared without changing token directly",
+    action: setProfile(null),
+    expectedState: { profile: null },
+  },
+  
+  selectCurrentUser:{
+    description: "selects the current user profile from the state",
+    action: null, // No action needed for selector test
+    expectedState: testData.userProfile,
+  }
+};
 
 //Encapsulate tests for authSlice in a describe block to group them together and provide a clear structure for the test suite.
 describe("authSlice", () => {
@@ -28,7 +65,7 @@ describe("authSlice", () => {
   });
   // Test casting the initial state to the expected AuthState type to ensure type safety and prevent TypeScript errors during testing.
   it(testCases.returnsInitialState.description, () => {
-    const state = authReducer(undefined, { type: "unknown" } as any);
+    const state = authReducer(undefined, testCases.returnsInitialState.action);
 
     expect(state).toEqual(testCases.returnsInitialState.expectedState);
   });
@@ -85,5 +122,18 @@ describe("authSlice", () => {
     expect(state.profile).toBeNull();
     expect(state.token).toBe(testData.token);
     expect(state.isAuthenticated).toBe(true);
+  });
+
+  it(testCases.selectCurrentUser.description, () => {
+    const mockState: Pick<RootState, "auth"> = {
+      auth: {
+        token: testData.token,
+        isAuthenticated: true,
+        profile: testCases.selectCurrentUser.expectedState,
+      },
+    };
+    const result = selectCurrentUser(mockState as RootState);
+
+    expect(result).toEqual(testCases.selectCurrentUser.expectedState);
   });
 });
