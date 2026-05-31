@@ -6,6 +6,7 @@ import {
 } from "../../test/testUtilities";
 import Dashboard from "../Dashboard";
 
+// This mocks useAppSelector
 vi.mock("../../store/hooks", async () => {
   const actual = await vi.importActual<typeof import("../../store/hooks")>(
     "../../store/hooks"
@@ -21,6 +22,7 @@ vi.mock("../../store/hooks", async () => {
   };
 });
 
+// This mocks useGetCurrentUserQuery
 vi.mock("../../store/authApi", async () => {
   const actual = await vi.importActual<typeof import("../../store/authApi")>(
     "../../store/authApi"
@@ -34,6 +36,7 @@ vi.mock("../../store/authApi", async () => {
   };
 });
 
+// This mocks all the moodApi hooks used in the Dashboard
 vi.mock("../../store/moodApi", () => ({
   useGetDashboardSummaryQuery: () => ({
     isLoading: false,
@@ -65,6 +68,7 @@ vi.mock("../../store/moodApi", () => ({
   }),
 }));
 
+// This mocks the zodiacApi hook used in the Dashboard
 vi.mock("../../store/auraApi", () => ({
   useGetZodiacInsightQuery: () => ({
     isLoading: false,
@@ -81,14 +85,17 @@ vi.mock("../../store/auraApi", () => ({
   }),
 }));
 
+// Mock the child components used in the Dashboard
 vi.mock("../../components/weather/WeatherCard", () => ({
   default: () => <div data-testid="weather-card">Weather Card</div>,
 }));
 
+// Mock the chart components to avoid rendering actual charts in the test
 vi.mock("../../components/dashboard/MoodPieChart", () => ({
   default: () => <div data-testid="mood-pie-chart">Mood Pie Chart</div>,
 }));
 
+// Mock the MoodStatCard to display the title and value for testing purposes
 vi.mock("../../components/dashboard/MoodStatCard", () => ({
   default: ({ title, value }: { title: string; value: string }) => (
     <div data-testid="mood-stat-card">
