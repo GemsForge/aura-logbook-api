@@ -8,7 +8,7 @@ import HomePage from "../Home";
  * HomePage layout and visible landing page content rather than the
  * implementation details of the nested AuraFeatureCards component.
  */
-vi.mock("../../components/home/AuraFeatureCard", () => ({
+vi.mock("@/components/home/AuraFeatureCard", () => ({
   default: () => <div data-testid="aura-feature-cards">Aura Feature Cards</div>,
 }));
 

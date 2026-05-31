@@ -1,15 +1,23 @@
-
-
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../test/testUtilities";
 import { LoginForm } from "../Login";
 
-vi.mock("../../hooks/useToast", () => ({
-  useToast: () => ({
-    showToast: vi.fn(),
-  }),
-}));
+/**
+ * Keeps the real ToastProvider available for renderWithProviders while
+ * replacing useToast with a mock so the smoke test does not trigger real
+ * toast behavior.
+ */
+vi.mock("../../hooks/useToast", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../hooks/useToast")>();
+
+  return {
+    ...actual,
+    useToast: () => ({
+      showToast: vi.fn(),
+    }),
+  };
+});
 
 describe("LoginForm", () => {
   it("should render the login form", () => {

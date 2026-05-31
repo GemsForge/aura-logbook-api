@@ -2,26 +2,36 @@
 
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithProviders } from "../../test/testUtilities";
+import { renderWithProviders } from "@/test/testUtilities";
 import RegisterForm from "../Register";
 
-vi.mock("../../hooks/useToast", () => ({
-  useToast: () => ({
-    showToast: vi.fn(),
-  }),
-}));
+vi.mock("../../hooks/useToast", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../hooks/useToast")>();
 
-vi.mock("../../components/MyPathwaySelector", () => ({
+  return {
+    ...actual,
+    useToast: () => ({
+      showToast: vi.fn(),
+    }),
+  };
+});
+
+vi.mock("@/components/MyPathwaySelector", () => ({
   MyPathwaySelector: () => (
     <div data-testid="pathway-selector">Spiritual Pathway</div>
   ),
 }));
 
-vi.mock("@mui/x-date-pickers", () => ({
-  DatePicker: ({ label }: { label: string }) => (
-    <input aria-label={label} readOnly />
-  ),
-}));
+vi.mock("@mui/x-date-pickers", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@mui/x-date-pickers")>();
+
+  return {
+    ...actual,
+    DatePicker: ({ label }: { label: string }) => (
+      <input aria-label={label} readOnly />
+    ),
+  };
+});
 
 describe("RegisterForm", () => {
   it("should render the register form", () => {
