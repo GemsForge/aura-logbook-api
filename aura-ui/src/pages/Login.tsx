@@ -54,7 +54,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
 
       showToast("Login successful!", "success");
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch {
       const message = "Login failed. Please try again.";
       showToast(message, "error");
     } finally {
