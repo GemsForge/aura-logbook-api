@@ -40,8 +40,11 @@ const [loading, setLoading] = useState(false);
       await AuthApi.register(payload);
       showToast("Account successfully created!", "success");
       navigate("/login");
-    } catch (err: any) {
-      const message = err.response?.data || "Registration failed";
+    } catch (err: unknown) {
+      const response = typeof err === "object" && err !== null && "response" in err
+        ? (err as { response?: { data?: unknown } }).response
+        : undefined;
+      const message = typeof response?.data === "string" ? response.data : "Registration failed";
       showToast(message, "error");
     } finally {
       setLoading(false);
