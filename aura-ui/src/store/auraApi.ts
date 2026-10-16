@@ -23,7 +23,7 @@ export const auraApi = createApi({
             : undefined;
           return {
             error: {
-              status: response?.status,
+              status: response?.status ?? 500,
               data: response?.data ?? error.message,
             },
           };
