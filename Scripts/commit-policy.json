@@ -1,0 +1,6 @@
+{
+  "types": ["feat", "fix", "refactor", "test", "docs", "chore", "ci"],
+  "format": "type(scope): #issue short imperative description",
+  "example": "chore(ci): #166 adopt GitHub project management workflow",
+  "legacyBase": "866a030e3e6759854d3d62502c78cbf965767054"
+}
