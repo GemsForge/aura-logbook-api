@@ -31,7 +31,7 @@ export const weatherApi = createApi({
           // RTKQ expects you to return `{ error: { status, data } }`
           return {
             error: {
-              status: response?.status,
+              status: response?.status ?? 500,
               data: response?.data ?? error.message,
             },
           };
