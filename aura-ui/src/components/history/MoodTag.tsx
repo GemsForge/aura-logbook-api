@@ -1,7 +1,7 @@
 import { AuraMoodMap } from "@/features/mood/models/aura";
 import type { MoodType } from "@/features/mood/models/schema";
 import { auraPalettes } from "@/theme/auraTheme";
-import { Chip } from "@mui/material";
+import Chip from "@mui/joy/Chip";
 import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
 
 export function MoodTag({ mood }: { mood: MoodType }) {
@@ -15,14 +15,15 @@ export function MoodTag({ mood }: { mood: MoodType }) {
 
   return (
     <Chip
-      label={`${MoodIcons[mood as keyof typeof MoodIcons] ?? ""} ${mood}`}
-      variant="filled"
+      variant="solid"
       sx={{
         mr: 1,
         mb: 1,
         bgcolor: lightShade,
         color: textColor,
       }}
-    />
+    >
+      {`${MoodIcons[mood as keyof typeof MoodIcons] ?? ""} ${mood}`}
+    </Chip>
   );
 }
