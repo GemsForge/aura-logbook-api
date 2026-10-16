@@ -33,25 +33,30 @@ cd AuraLogbook.Api
 dotnet restore
 ```
 
-# Run the API
+# Run the API on the port used by the frontend
 ```
-dotnet run
+dotnet run --launch-profile http
 ```
-Swagger is enabled at: https://localhost:{port}/swagger
+The API is available at: http://localhost:5081/api  
+Swagger is enabled at: http://localhost:5081/swagger
 
 Uses file-based JSON storage for Users & MoodEntries (configurable in appsettings.json)
 ---
 
 ### Frontend – aura-ui (React + MUI)
-bash
-Copy code
+```bash
 cd aura-ui
+```
 
 # Install dependencies
+```
 npm install
+```
 
 # Start the development server
+```
 npm run dev
+```
 * Accessible at: http://localhost:5173 (Vite default)
 * Uses Material UI (MUI) for styled components
 * Axios is preconfigured with a base API URL for backend integration
@@ -63,11 +68,10 @@ npm run dev
 * 📆 Filter moods by date range
 * 📦 JSON-based data storage (simple local persistence for development)
 ---
-
 # 📁 Environment Configuration
-.env for React (aura-ui/.env)
+`.env.local` for React (`aura-ui/.env.local`)
 ```env
-VITE_API_BASE_URL=https://localhost:5001/api
+VITE_API_BASE_URL=http://localhost:5081/api
 ```
 appsettings.json for API (AuraLogbook.Api/appsettings.json)
 ```json
@@ -78,24 +82,20 @@ appsettings.json for API (AuraLogbook.Api/appsettings.json)
 },
 "Storage": {
   "UserFilePath": "Data/users.json",
-  "MoodFilePath": "Data/moods.json"
+"MoodFilePath": "Data/moods.json"
 }
 ```
 ---
-
 # 💻 Development Tools
 * Swagger for API testing
 * Dummy mood seeder available for generating test data
 * Environment-aware JWT authentication
 * Role-based auth-ready foundation
 ---
-
 # 📌 Milestones
 * ✅ v0.1 - MVP API complete
 * 🧠 v0.2 - Mood dashboard analytics
 * 🎨 v0.3 - Frontend UI with login, mood entry, summaries
 ---
 # 📃 License
-MIT License – Feel free to fork, use, or contribute!
-
-
+MIT License – Feel free to fork, use, and contribute!
