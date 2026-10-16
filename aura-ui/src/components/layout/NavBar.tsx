@@ -1,4 +1,7 @@
-import { AppBar, Toolbar, Typography, Box } from "@mui/material";
+import Box from "@mui/joy/Box";
+import Link from "@mui/joy/Link";
+import Sheet from "@mui/joy/Sheet";
+import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -18,12 +21,21 @@ const NavBar = () => {
   };
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Aura Logbook
+    <Sheet component="header" variant="solid" color="primary">
+      <Box sx={{ display: "flex", alignItems: "center", minHeight: 64, px: 2 }}>
+        <Typography level="title-lg" sx={{ flexGrow: 1 }}>
+          <Link
+            component="button"
+            type="button"
+            color="neutral"
+            underline="none"
+            onClick={() => navigate("/home")}
+            sx={{ font: "inherit", fontWeight: "inherit", color: "inherit" }}
+          >
+            Aura Logbook
+          </Link>
         </Typography>
-        <Box>
+        <Box component="nav" aria-label="Main navigation" sx={{ display: "flex", gap: 1 }}>
           <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/home")}>
             Home
           </Button>
@@ -48,8 +60,8 @@ const NavBar = () => {
             </>
           )}
         </Box>
-      </Toolbar>
-    </AppBar>
+      </Box>
+    </Sheet>
   );
 };
 
