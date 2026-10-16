@@ -61,7 +61,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
     auraGroups[AuraMoodMap[m].auraColor].push(m);
   });
 
-  const onFormSubmit = (data: any) => {
+  const onFormSubmit = (data: { date: string; moods: MoodType[]; comment?: string }) => {
     onSubmit({
       date: dayjs(data.date).format("YYYY-MM-DD"),
       moods: data.moods,
