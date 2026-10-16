@@ -15,7 +15,7 @@ name: Sync issue and pull request metadata
 # 7. A merged same-repository pull request deletes its source branch after
 #    metadata and project reconciliation; closed-but-unmerged and fork branches remain.
 #
-# Lifecycle policy (uses the existing Status options in the Aura Logbook project)
+# Lifecycle policy (uses the existing Status options in the @GemsForge's Aura Log (#6) project)
 # - Development branch created: In progress; branch name identifies the issue.
 # - Open PR (including draft): In review; issue and PR receive that status.
 # - Closes #170 in a PR body closes #170 only on merge into the default branch.
@@ -297,7 +297,7 @@ jobs:
             const projectsToken = process.env.AURALOGBOOK_PROJECTS_TOKEN;
             if (!projectsToken) {
               core.setFailed(
-                "AURALOGBOOK_PROJECTS_TOKEN is required to synchronize the Aura Logbook project.",
+                "AURALOGBOOK_PROJECTS_TOKEN is required to synchronize the @GemsForge's Aura Log (#6) project.",
               );
               return;
             }
@@ -367,7 +367,7 @@ jobs:
             const visibleProjects = projectData.user?.projectsV2?.nodes ?? [];
             const project = visibleProjects.find(
               (candidate) =>
-                candidate.title?.trim() === "Aura Logbook",
+                candidate.number === 6 && candidate.title?.trim() === "@GemsForge's Aura Log",
             );
 
             if (!project) {
@@ -376,7 +376,7 @@ jobs:
                   .map((candidate) => `#${candidate.number} ${candidate.title}`)
                   .join(", ") || "none";
               core.setFailed(
-                `AURALOGBOOK_PROJECTS_TOKEN authenticated as ${projectData.viewer?.login ?? "unknown"} but could not see user project Aura Logbook (Aura Logbook project). Visible user projects: ${visibleProjectSummary}. Confirm the repository secret contains a classic PAT generated for GemsForge with both project and repo scopes.`,
+                `AURALOGBOOK_PROJECTS_TOKEN authenticated as ${projectData.viewer?.login ?? "unknown"} but could not see user project @GemsForge's Aura Log (#6) (@GemsForge's Aura Log (#6) project). Visible user projects: ${visibleProjectSummary}. Confirm the repository secret contains a classic PAT generated for GemsForge with both project and repo scopes.`,
               );
               return;
             }
@@ -435,7 +435,7 @@ jobs:
                 fieldValues: { nodes: [] },
               };
               core.notice(
-                `Added issue #${issueNumber} to the Aura Logbook project.`,
+                `Added issue #${issueNumber} to the @GemsForge's Aura Log (#6) project.`,
               );
             }
 
@@ -534,10 +534,10 @@ jobs:
                 pullRequest.state === "closed" ? "Done" : desiredStatus);
 
             core.notice(
-              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${labels.length} labels, ${assignees.length} assignees, milestone ${issue.milestone?.title ?? "none"}, and project Aura Logbook.`,
+              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${labels.length} labels, ${assignees.length} assignees, milestone ${issue.milestone?.title ?? "none"}, and project @GemsForge's Aura Log (#6).`,
             );
             } else {
-              core.notice(`Issue #${issueNumber} is in project Aura Logbook.`);
+              core.notice(`Issue #${issueNumber} is in project @GemsForge's Aura Log (#6).`);
             }
 
             // Remove only the repository branch that produced a merged PR.
