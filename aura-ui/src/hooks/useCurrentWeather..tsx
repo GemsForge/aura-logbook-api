@@ -14,7 +14,7 @@ export interface UseCurrentWeather {
  */
 export function useCurrentWeather(): UseCurrentWeather {
  
-const user = useAppSelector((state) => state.auth.user);
+  const user = useAppSelector((state) => state.auth.profile);
 
   const [weather, setWeather] = useState<WeatherDto | null>(null);
   const [loading, setLoading] = useState(false);
