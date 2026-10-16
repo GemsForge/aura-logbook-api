@@ -4,13 +4,11 @@ import {
 } from "@/features/auth/models";
 import {
   Box,
-  Card,
-  CardContent,
-  CardHeader,
   FormHelperText,
   Switch,
   Typography,
 } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
 import type { Control, FieldValues, Path } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -42,13 +40,11 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
   errorMessage,
 }: MyPathwaySelectorProps<TForm>) {
   return (
-    <Card variant="outlined" sx={{ mt: 2 }}>
-      <CardHeader
-        title="My Pathway"
-        subheader="Choose the primary journey that guides your reflections."
-        sx={{ pb: 0 }}
-      />
-      <CardContent>
+    <Sheet variant="outlined" sx={{ mt: 2, p: 2 }}>
+      <Typography variant="h6">My Pathway</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Choose the primary journey that guides your reflections.
+      </Typography>
         <Controller
           name={(name ?? ("spiritualPathway" as Path<TForm>)) as Path<TForm>}
           control={control}
@@ -95,7 +91,6 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
             </>
           )}
         />
-      </CardContent>
-    </Card>
+    </Sheet>
   );
 }
