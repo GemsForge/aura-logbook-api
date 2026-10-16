@@ -1,0 +1,28 @@
+name: Branch workflow policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  branch-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require issue branch reviewed into master
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ "$BASE" != "master" ]; then
+            echo "Pull requests must target master."
+            exit 1
+          fi
+          if ! printf '%s\n' "$HEAD" | grep -Eq '^(feat|fix|docs|refactor|test|chore|ci|build|perf|style)/[1-9][0-9]*(|[-/].*)$'; then
+            echo "Pull requests into master must come from an issue-numbered branch."
+            exit 1
+          fi
+          echo "Branch workflow policy passed: $HEAD -> $BASE"
