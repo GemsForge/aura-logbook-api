@@ -1,7 +1,10 @@
 import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { SpiritualPathway, type RegisterRequest } from "@/features/auth/models";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, CircularProgress, Link, Typography } from "@mui/material";
+import Box from "@mui/joy/Box";
+import CircularProgress from "@mui/joy/CircularProgress";
+import Link from "@mui/joy/Link";
+import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
@@ -17,7 +20,7 @@ import { useToast } from "../hooks/useToast";
 export default function RegisterForm() {
   const { showToast } = useToast();
   const navigate = useNavigate();
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const {
     register,
     control,
@@ -56,13 +59,16 @@ const [loading, setLoading] = useState(false);
 
   return (
     <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="100vh"
-      sx={{ backgroundColor: "#f9f9f9" }}>
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f9f9f9",
+      }}
+    >
       <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
-        <Typography variant="h5" mb={2}>
+        <Typography level="h3" sx={{ mb: 2 }}>
           Create an Account
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -126,10 +132,10 @@ const [loading, setLoading] = useState(false);
             variant="contained"
             sx={{ mt: 2 }}
             disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : "Register"}
+            {loading ? <CircularProgress size="md" /> : "Register"}
           </Button>
         </form>
-        <Typography variant="body2" mt={2}>
+        <Typography level="body-sm" sx={{ mt: 2 }}>
           Already have an account?{" "}
           <Link href="/login" underline="hover">
             Login

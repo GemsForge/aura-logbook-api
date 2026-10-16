@@ -2,12 +2,10 @@
 import { hydrateUserSession } from "@/api/hydrateUserSession";
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  Box,
-  CircularProgress,
-  Link,
-  Typography,
-} from "@mui/material";
+import Box from "@mui/joy/Box";
+import CircularProgress from "@mui/joy/CircularProgress";
+import Link from "@mui/joy/Link";
+import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
@@ -64,14 +62,17 @@ export function LoginForm({ showTitle }: LoginFormProps) {
 
   return (
     <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="100vh"
-      sx={{ backgroundColor: "#f9f9f9" }}>
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f9f9f9",
+      }}
+    >
       <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
         {showTitle && (
-          <Typography variant="h5" mb={2} textAlign="center">
+          <Typography level="h3" sx={{ mb: 2, textAlign: "center" }}>
             Sign In
           </Typography>
         )}
@@ -104,7 +105,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
             fullWidth
             sx={{ mt: 2 }}
             disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : "Login"}
+            {loading ? <CircularProgress size="md" /> : "Login"}
           </Button>
         </form>
 
@@ -116,7 +117,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           Forgot password?
         </Button>
 
-        <Typography variant="body2" mt={2}>
+        <Typography level="body-sm" sx={{ mt: 2 }}>
           Don’t have an account?{" "}
           <Link href="/register" underline="hover">
             Sign up
