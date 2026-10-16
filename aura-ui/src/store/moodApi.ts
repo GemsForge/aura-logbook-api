@@ -7,12 +7,13 @@ import type {
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { RootState } from "./store";
 import { logout } from "./slices/authSlice";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL + "/Mood",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as any).auth.token;
+    const token = (getState() as RootState).auth.token;
     if (token) headers.set("Authorization", `Bearer ${token}`);
     return headers;
   },
