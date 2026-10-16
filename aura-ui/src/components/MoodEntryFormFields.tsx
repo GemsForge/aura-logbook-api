@@ -1,11 +1,7 @@
-import {
-  Box,
-  Checkbox,
-  FormControlLabel,
-  Grid,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import Box from "@mui/joy/Box";
+import Checkbox from "@mui/joy/Checkbox";
+import Tooltip from "@mui/joy/Tooltip";
+import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import Textarea from "@mui/joy/Textarea";
 import { DatePicker } from "@mui/x-date-pickers";
@@ -77,7 +73,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onFormSubmit)} mt={2}>
+    <Box component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ mt: 2 }}>
       <Controller
         name="date"
         control={control}
@@ -91,99 +87,96 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         )}
       />
       {errors.date && (
-        <Typography color="error" variant="body2">
+        <Typography color="danger" level="body-sm">
           {errors.date.message}
         </Typography>
       )}
 
-      <Typography mt={2} mb={1} variant="subtitle1">
+      <Typography level="title-md" sx={{ mt: 2, mb: 1 }}>
         How are you feeling?
       </Typography>
 
-      <Grid container spacing={2}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, minmax(0, 1fr))" },
+          gap: 2,
+        }}
+      >
         {Object.entries(auraGroups).map(([colorKey, moods]) => {
           const color = colorKey as AuraColor;
           if (moods.length === 0) return null;
 
           const info = AuraColorInfo[color];
-           const swatch = auraPalettes[color].primary!.main;
-          
+          const swatch = auraPalettes[color].primary!.main;
+
           return (
-            <Grid key={color} sx={{xs:12, sm:4}}>
-        <Box display="flex" alignItems="center" mb={1}>
-          <Box
-            sx={{
-              width: 12,
-              height: 12,
-              bgcolor: swatch,
-              borderRadius: "50%",
-              mr: 1,
-            }}
-          />
-            <Tooltip
-             title={
-               <Box>
-                 <Typography variant="subtitle2">{info.name}</Typography>
-                 <Typography variant="body2">{info.meaning}</Typography>
-               </Box>
-             }
-             arrow
-           >
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: auraPalettes[color].primary!.main,
-                  textTransform: "capitalize",
-                  mb: 1,
-                }}>
-                {color}
-              </Typography>
-              </Tooltip>
+            <Box key={color}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    bgcolor: swatch,
+                    borderRadius: "50%",
+                    mr: 1,
+                  }}
+                />
+                <Tooltip
+                  title={
+                    <Box>
+                      <Typography level="title-sm">{info.name}</Typography>
+                      <Typography level="body-sm">{info.meaning}</Typography>
+                    </Box>
+                  }
+                  arrow
+                >
+                  <Typography
+                    level="title-sm"
+                    sx={{
+                      color: auraPalettes[color].primary!.main,
+                      textTransform: "capitalize",
+                      mb: 1,
+                    }}
+                  >
+                    {color}
+                  </Typography>
+                </Tooltip>
               </Box>
-              <Box display="flex" flexWrap="wrap">
+              <Box sx={{ display: "flex", flexWrap: "wrap" }}>
                 {moods.map((mood) => {
                   const { icon, auraColor } = AuraMoodMap[mood];
                   const checked = selectedMoods.includes(mood);
                   const hue = auraPalettes[auraColor].primary!.main;
                   return (
-                    <Box key={mood} width="50%">
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={checked}
-                            onChange={() => toggleMood(mood)}
-                            sx={{
-                              color: hue,
-                              "&.Mui-checked": { color: hue },
-                            }}
-                          />
-                        }
-                        label={
-                          <span style={{ color: hue }}>
-                            {icon} {mood}
-                          </span>
-                        }
+                    <Box key={mood} sx={{ width: "50%" }}>
+                      <Checkbox
+                        checked={checked}
+                        onChange={() => toggleMood(mood)}
+                        label={`${icon} ${mood}`}
+                        variant="plain"
+                        sx={{ color: hue }}
                       />
                     </Box>
                   );
                 })}
               </Box>
-            </Grid>
+            </Box>
           );
         })}
         {errors.moods && (
-          <Typography color="error" variant="body2" mt={1}>
+          <Typography color="danger" level="body-sm" sx={{ mt: 1 }}>
             {errors.moods.message as string}
           </Typography>
         )}
-      </Grid>
+      </Box>
 
       <Controller
         name="comment"
         control={control}
         render={({ field }) => (
-          <Box mt={2} mb={2}>
-            <Typography variant="subtitle2">Comment (optional)</Typography>
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <Typography level="title-sm">Comment (optional)</Typography>
             <Textarea
               {...field}
               minRows={3}
@@ -191,7 +184,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
               sx={{ width: "100%", fontFamily: "inherit" }}
             />
             {errors.comment && (
-              <Typography color="error" variant="body2">
+              <Typography color="danger" level="body-sm">
                 {errors.comment.message}
               </Typography>
             )}
