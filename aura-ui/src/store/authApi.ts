@@ -8,11 +8,12 @@ import type {
 import type { AuraColor } from "@/features/mood/models/aura";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logout, setToken } from "./slices/authSlice";
+import type { RootState } from "./store";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL + "/Auth",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as any).auth.token;
+    const token = (getState() as RootState).auth.token;
     if (token) headers.set("Authorization", `Bearer ${token}`);
     return headers;
   },
