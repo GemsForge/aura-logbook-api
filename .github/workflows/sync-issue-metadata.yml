@@ -241,12 +241,20 @@ jobs:
               (parentNumber && !currentParent ? 1 : 0) + " parent link and " +
               dependencyPlans.length + " dependency links added.");
 
-            const labels = issue.labels.map((label) =>
+            const issueLabels = issue.labels.map((label) =>
               typeof label === "string" ? label : label.name,
             );
-            const assignees = issue.assignees.map((assignee) => assignee.login);
+            const issueAssignees = issue.assignees.map((assignee) => assignee.login);
 
             if (pullRequest) {
+              const labels = issueLabels.length > 0
+                ? issueLabels
+                : pullRequest.labels.map((label) =>
+                    typeof label === "string" ? label : label.name,
+                  );
+              const assignees = issueAssignees.length > 0
+                ? issueAssignees
+                : pullRequest.assignees.map((assignee) => assignee.login);
               await github.rest.issues.setLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -257,19 +265,6 @@ jobs:
               const currentAssignees = pullRequest.assignees.map(
                 (assignee) => assignee.login,
               );
-              const staleAssignees = currentAssignees.filter(
-                (assignee) => !assignees.includes(assignee),
-              );
-
-              if (staleAssignees.length > 0) {
-                await github.rest.issues.removeAssignees({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: pullRequest.number,
-                  assignees: staleAssignees,
-                });
-              }
-
               const newAssignees = assignees.filter(
                 (assignee) => !currentAssignees.includes(assignee),
               );
@@ -291,7 +286,7 @@ jobs:
               });
 
               core.notice(
-                `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${labels.length} labels, ${assignees.length} assignees, and milestone ${issue.milestone?.title ?? "none"}.`,
+                `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${labels.length} labels, ${assignees.length} assignees, and milestone ${issue.milestone?.title ?? "preserved"}.`,
               );
             }
             const projectsToken = process.env.AURALOGBOOK_PROJECTS_TOKEN;
