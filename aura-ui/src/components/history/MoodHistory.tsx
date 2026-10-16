@@ -1,5 +1,6 @@
 import type { MoodEntry } from "@/features/mood/models/schema";
-import { Box, Typography } from "@mui/material";
+import Box from "@mui/joy/Box";
+import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -55,7 +56,7 @@ export default function MoodHistoryPage() {
 
   return (
     <Box maxWidth={600} mx="auto" mt={4}>
-      <Typography variant="h5" gutterBottom>
+      <Typography component="h1" level="title-lg" mb={1}>
         Mood History
       </Typography>
 
