@@ -1,5 +1,6 @@
-import { Typography, Stack } from "@mui/material";
+import Stack from "@mui/joy/Stack";
 import Sheet from "@mui/joy/Sheet";
+import Typography from "@mui/joy/Typography";
 import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
@@ -11,12 +12,13 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <Stack spacing={2} sx={{mt:2}}>
+    <Stack spacing={2} sx={{ mt: 2 }}>
       {navItems.map(({ label, path }) => (
         <Sheet
           component={Link}
           to={path}
           variant="outlined"
+          aria-current={location.pathname === path ? "page" : undefined}
           key={label}
           sx={{
             bgcolor:
@@ -29,8 +31,9 @@ const Sidebar = () => {
             transition: "0.2s",
             display: "block",
             textDecoration: "none",
-          }}>
-          <Typography variant="subtitle1" align="center" sx={{ p: 2 }}>
+          }}
+        >
+          <Typography level="title-md" textAlign="center" sx={{ p: 2 }}>
             {label}
           </Typography>
         </Sheet>

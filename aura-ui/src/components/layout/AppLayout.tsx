@@ -1,4 +1,5 @@
-import { Box, Container, Grid } from "@mui/material";
+import Box from "@mui/joy/Box";
+import Container from "@mui/joy/Container";
 import { Footer, NavBar, Sidebar } from ".";
 import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -22,19 +23,25 @@ const AppLayout = () => {
 
         <Container sx={{ mt: 4, flexGrow: 1 }}>
           {isAuthenticated ? (
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, md: 3 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "repeat(12, minmax(0, 1fr))" },
+                gap: 4,
+              }}
+            >
+              <Box sx={{ gridColumn: { xs: "span 1", md: "span 3" } }}>
                 <ProfileCard />
                 <Sidebar />
-              </Grid>
-              <Grid size={{ xs: 12, md: 9 }}>
+              </Box>
+              <Box sx={{ gridColumn: { xs: "span 1", md: "span 9" }, minWidth: 0 }}>
                 <Outlet />
                 <EditProfileModal
                   onClose={() => dispatch(closeProfileModal())}
                   open={isProfileModalOpen}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           ) : (
             <Outlet />
           )}
