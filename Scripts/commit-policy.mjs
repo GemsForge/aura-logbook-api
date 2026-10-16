@@ -10,12 +10,12 @@ const zero = value => /^0+$/.test(value);
 const git = args => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 
 export function validateSubject(subject, rules = policy) {
-  const match = /^([a-z]+)\\(([a-z][a-z0-9-]*)\\): #([1-9]\\d*) (.+)$/.exec(subject);
+  const match = /^([a-z]+)\(([a-z][a-z0-9-]*)\): #([1-9]\d*) (.+)$/.exec(subject);
   if (!match) return [`Expected ${rules.format}; use lowercase type/scope and a positive issue number.`];
   const errors = [];
   if (!rules.types.includes(match[1])) errors.push(`Unapproved type '${match[1]}'. Allowed: ${rules.types.join(", ")}.`);
   const description = match[4];
-  if (description.trim() !== description || !/^[a-z][a-z0-9-]*(?:\\s+\\S.*)?$/.test(description) || /[\\x00-\\x1f\\x7f]/.test(description)) {
+  if (description.trim() !== description || !/^[a-z][a-z0-9-]*(?:\s+\S.*)?$/.test(description) || /[\x00-\x1f\x7f]/.test(description)) {
     errors.push("Description must start with a lowercase word and contain no surrounding whitespace/control characters.");
   }
   return errors;
@@ -24,13 +24,13 @@ export function validateSubject(subject, rules = policy) {
 function commitsBetween(head, base) {
   const range = base && !zero(base) ? [head, `^${base}`] : [head];
   const output = git(["rev-list", ...range]);
-  return output ? output.split("\\n") : [];
+  return output ? output.split("\n") : [];
 }
 
 export function prePush(input) {
   const commits = [];
-  for (const line of input.split(/\\r?\\n/).filter(Boolean)) {
-    const fields = line.trim().split(/\\s+/);
+  for (const line of input.split(/\r?\n/).filter(Boolean)) {
+    const fields = line.trim().split(/\s+/);
     if (fields.length !== 4) throw new Error("Invalid pre-push ref input.");
     const [, local, remoteRef, remote] = fields;
     if (remoteRef === "refs/heads/master") throw new Error("Direct pushes to master are blocked. Push to dev or an issue branch and open a pull request.");
