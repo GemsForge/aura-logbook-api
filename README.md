@@ -82,7 +82,7 @@ appsettings.json for API (AuraLogbook.Api/appsettings.json)
 },
 "Storage": {
   "UserFilePath": "Data/users.json",
-"MoodFilePath": "Data/moods.json"
+  "MoodFilePath": "Data/moods.json"
 }
 ```
 ---
