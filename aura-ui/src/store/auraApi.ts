@@ -12,15 +12,19 @@ export const auraApi = createApi({
   endpoints: (build) => ({
     getZodiacInsight: build.query<ZodiacInsightResponse, void>({
       // instead of build.query({ query: ... }), we call our existing Axios wrapper:
-      async queryFn(_arg, _queryApi, _extraOptions) {
+      async queryFn() {
         try {
           const data = await ZodiacApi.getInsight(); // your existing client method :contentReference[oaicite:0]{index=0}
           return { data };
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const error = err instanceof Error ? err : new Error("Zodiac request failed");
+          const response = typeof err === "object" && err !== null && "response" in err
+            ? (err as { response?: { status?: number; data?: unknown } }).response
+            : undefined;
           return {
             error: {
-              status: err.response?.status,
-              data: err.response?.data ?? err.message,
+              status: response?.status,
+              data: response?.data ?? error.message,
             },
           };
         }
