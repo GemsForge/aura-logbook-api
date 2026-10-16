@@ -1,6 +1,6 @@
 # Aura Logbook issue and pull request workflow
 
-The working issue is the source of truth for scope, labels, milestone, assignee, and native issue relationships.
+The working issue is the source of truth for scope, labels, milestone, assignee, and native issue relationships. The delivery path is issue branch → reviewed pull request → `master`.
 
 ## Story format
 
@@ -16,13 +16,7 @@ Stories should include a goal, scope, definition of done, and explicit relations
 
 ## Branches and pull requests
 
-Branches include the issue number, for example `feat/166-project-workflow`.
-
-PR titles and commit subjects use:
-
-`type(scope): #issue short imperative description`
-
-PR bodies should include `Closes #issue` when merging the PR should close the working issue. PR creation and merging remain separate authorized steps.
+Branches include the issue number, for example `refactor/168-ui-lint-type-safety`.\n\nPull requests from issue-numbered branches target `master` and require review before merge. PR bodies should include `Closes #issue` when merging the PR should close the working issue. PR creation and merging remain separate authorized steps.
 
 ## Commit policy
 
