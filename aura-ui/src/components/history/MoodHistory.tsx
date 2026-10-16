@@ -1,9 +1,10 @@
 import type { MoodEntry } from "@/features/mood/models/schema";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MoodApi } from "../../api/MoodApi";
 import { useToast } from "../../hooks/useToast";
 import DeleteConfirmDialog from "../DeleteConfirmDialog";
@@ -21,18 +22,20 @@ export default function MoodHistoryPage() {
 
   const { showToast } = useToast();
 
-  const fetchLogs = async (start?: Dayjs | null, end?: Dayjs | null) => {
-    try {
-      // pass date or undefined
-      const res = await MoodApi.getAllMoods(
-        start ? start.format("LL") : undefined,
-        end ? end.format("LL") : undefined
-      );
-      setLogs(res);
-    } catch (error: any) {
-      showToast("Failed to load mood history", "error");
-    }
-  };
+  const fetchLogs = useCallback(
+    async (start?: Dayjs | null, end?: Dayjs | null) => {
+      try {
+        const res = await MoodApi.getAllMoods(
+          start ? start.format("LL") : undefined,
+          end ? end.format("LL") : undefined,
+        );
+        setLogs(res);
+      } catch {
+        showToast("Failed to load mood history", "error");
+      }
+    },
+    [showToast],
+  );
 
   const handleDelete = async () => {
     if (!entryToDelete) return;
@@ -41,14 +44,14 @@ export default function MoodHistoryPage() {
       showToast("Mood entry deleted", "success");
       setEntryToDelete(null);
       fetchLogs();
-    } catch (error: any) {
+    } catch {
       showToast("Failed to delete mood entry", "error");
     }
   };
 
   useEffect(() => {
     fetchLogs(null, null);
-  }, []);
+  }, [fetchLogs]);
 
   return (
     <Box maxWidth={600} mx="auto" mt={4}>

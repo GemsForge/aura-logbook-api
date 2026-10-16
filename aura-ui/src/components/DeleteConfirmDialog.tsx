@@ -1,9 +1,9 @@
 import type { MoodEntry } from "@/features/mood/models/schema";
 import {
-  Button,
   Typography,
 } from "@mui/material";
 import { AuraModal } from "./ui/AuraModal";
+import { AuraButton as Button } from "./ui/AuraButton";
 
 
 export default function DeleteConfirmDialog({
