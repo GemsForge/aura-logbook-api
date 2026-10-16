@@ -8,15 +8,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Button,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
+import { AuraModal } from "../../ui/AuraModal";
 
 interface ForgotPasswordModalProps {
   open: boolean;
@@ -36,10 +33,7 @@ export function ForgotPasswordModal({
     reset,
     formState: { errors },
   } = useForm<ForgotPasswordFormData>({
-    resolver: yupResolver(forgotPasswordSchema, {}) as Resolver<
-      ForgotPasswordFormData,
-      any
-    >,
+    resolver: yupResolver(forgotPasswordSchema, {}) as Resolver<ForgotPasswordFormData>,
     defaultValues: {
       email: "",
       newPassword: "",
@@ -55,10 +49,20 @@ export function ForgotPasswordModal({
       showToast("Password updated successfully!", "success");
       reset();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const response =
+        typeof error === "object" && error !== null && "response" in error
+          ? error.response
+          : undefined;
+      const data =
+        typeof response === "object" && response !== null && "data" in response
+          ? response.data
+          : undefined;
       const message =
-        error?.response?.data?.message ||
-        "Failed to reset password. Please try again.";
+        typeof data === "object" && data !== null && "message" in data &&
+        typeof data.message === "string"
+          ? data.message
+          : "Failed to reset password. Please try again.";
       showToast(message, "error");
     } finally {
       setLoading(false);
@@ -71,9 +75,27 @@ export function ForgotPasswordModal({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Reset Password</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <AuraModal
+      open={open}
+      onClose={handleClose}
+      title="Reset Password"
+      size="md"
+      contentSx={{ display: "flex", flexDirection: "column", gap: 2 }}
+      actionsSx={{ p: 2, gap: 1 }}
+      actions={
+        <>
+          <Button onClick={handleClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            variant="contained"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : null}>
+            {loading ? "Resetting..." : "Reset Password"}
+          </Button>
+        </>
+      }>
         <Typography variant="body2" sx={{ mt: 1 }}>
           Enter your email and create a new password.
         </Typography>
@@ -119,19 +141,6 @@ export function ForgotPasswordModal({
             disabled={loading}
           />
         </form>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button onClick={handleClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit(onSubmit)}
-          variant="contained"
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : null}>
-          {loading ? "Resetting..." : "Reset Password"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    </AuraModal>
   );
 }

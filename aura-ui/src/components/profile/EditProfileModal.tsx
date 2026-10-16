@@ -13,11 +13,12 @@ import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
 import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, LinearProgress, Modal, Typography } from "@mui/material";
+import { LinearProgress } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import EditProfileForm from "./EditProfile/EditProfileForm";
+import { AuraModal } from "../ui/AuraModal";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -38,10 +39,7 @@ export default function EditProfileModal({
 
   // 1️⃣ grab the whole form API
   const form = useForm<EditProfileFormData>({
-    resolver: yupResolver(editProfileSchema, {}) as Resolver<
-      EditProfileFormData,
-      any
-    >,
+    resolver: yupResolver(editProfileSchema, {}) as Resolver<EditProfileFormData>,
     defaultValues: {
       displayName: "",
       email: user?.email ?? "",
@@ -127,24 +125,7 @@ export default function EditProfileModal({
     .toUpperCase();
 
   return (
-    <Modal open={open} onClose={onClose} disableEscapeKeyDown={false}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "90%", sm: 600 },
-          maxWidth: 800,
-          p: 4,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          boxShadow: 24,
-        }}>
-        <Typography variant="h6" gutterBottom>
-          Edit Profile
-        </Typography>
-
+    <AuraModal open={open} onClose={onClose} title="Edit Profile" size="lg">
         <EditProfileForm
           form={form}
           isChangingPassword={isChangingPassword}
@@ -156,7 +137,6 @@ export default function EditProfileModal({
           onSubmit={onSubmit}
           onCancel={() => dispatch(closeProfileModal())}
         />
-      </Box>
-    </Modal>
+    </AuraModal>
   );
 }

@@ -3,7 +3,6 @@ import {
     Box,
     Button,
     Grid,
-    Modal,
     Avatar as MuiAvatar,
     Tab,
     Tabs,
@@ -11,6 +10,7 @@ import {
     Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { AuraModal } from "../ui/AuraModal";
 
 interface AvatarPickerModalProps {
   open: boolean;
@@ -33,22 +33,8 @@ export function AvatarPickerModal({
   const [initials, setInitials] = useState(userInitials);
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 360,
-          p: 3,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          boxShadow: 24,
-        }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Select an Avatar
-        </Typography>
+    <AuraModal open={open} onClose={onClose} title="Select an Avatar" size="sm">
+      <Box sx={{ py: 1 }}>
         <Typography variant="subtitle2" gutterBottom>
           Pick a profile picture
         </Typography>
@@ -113,6 +99,6 @@ export function AvatarPickerModal({
           </Box>
         )}
       </Box>
-    </Modal>
+    </AuraModal>
   );
 }

@@ -1,8 +1,4 @@
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   CircularProgress,
 } from "@mui/material";
@@ -12,6 +8,7 @@ import MoodEntryFormFields from "./MoodEntryFormFields";
 import type { MoodType } from "../features/mood/models/schema";
 import { useToast } from "../hooks/useToast"; // 👈 Toast hook
 import type { MoodEntry } from "../features/mood/models/schema";
+import { AuraModal } from "./ui/AuraModal";
 
 export default function MoodUpdateModal({
   entry,
@@ -60,23 +57,25 @@ export default function MoodUpdateModal({
   };
 
   return (
-    <Dialog open onClose={onClose}>
-      <DialogTitle>Edit Mood Entry</DialogTitle>
-      <DialogContent>
+    <AuraModal
+      open
+      onClose={onClose}
+      title="Edit Mood Entry"
+      actions={
+        <>
+          <Button onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {}}
+            disabled={loading}
+            type="submit"
+            form="mood-form">
+            {loading ? <CircularProgress size={16} /> : "Update"}
+          </Button>
+        </>
+      }>
         <MoodEntryFormFields entry={entry} onSubmit={handleSubmit} />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={() => {}}
-          disabled={loading}
-          type="submit"
-          form="mood-form">
-          {loading ? <CircularProgress size={16} /> : "Update"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    </AuraModal>
   );
 }
