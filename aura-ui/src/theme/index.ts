@@ -1,5 +1,6 @@
 // src/theme/index.ts
 import { createTheme, type Theme } from "@mui/material/styles";
+import { extendTheme as extendJoyTheme } from "@mui/joy/styles";
 import { AuraColor } from "../features/mood/models/aura";
 import { blue, green, grey, indigo, orange, pink, purple, red, yellow } from "@mui/material/colors";
 
@@ -44,4 +45,44 @@ export function getAuraTheme(
       // Component overrides or shape settings can be added here
     });
   }
+
+export function getAuraJoyTheme(color: AuraColor, intensity: number = 500) {
+  const palettes: Record<AuraColor, Record<number, string>> = {
+    red,
+    orange,
+    yellow,
+    green,
+    blue,
+    indigo,
+    violet: purple,
+    gray: grey,
+    pink,
+  };
+  const shades = palettes[color] ?? palettes.blue;
+  const selected = shades[intensity] ?? shades[500];
+
+  return extendJoyTheme({
+    colorSchemes: {
+      light: {
+        palette: {
+          primary: {
+            50: shades[50],
+            100: shades[100],
+            200: shades[200],
+            300: shades[300],
+            400: shades[400],
+            500: shades[500],
+            600: shades[600],
+            700: shades[700],
+            800: shades[800],
+            900: shades[900],
+            solidBg: selected,
+            solidHoverBg: shades[Math.min(intensity + 100, 900)] ?? shades[600],
+            solidActiveBg: shades[Math.min(intensity + 200, 900)] ?? shades[700],
+          },
+        },
+      },
+    },
+  });
+}
   
