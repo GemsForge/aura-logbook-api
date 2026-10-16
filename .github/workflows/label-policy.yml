@@ -20,12 +20,12 @@ jobs:
         run: |
           set -eu
           title=$(gh pr view "$PR" --repo "$REPO" --json title --jq .title)
-          if ! printf '%s\n' "$title" | grep -Eq '^(feat|fix|refactor|test|docs|chore|ci)\\([a-z0-9-]+\\): #[1-9][0-9]* [a-z][a-z0-9-]*( |$)'; then
+          if ! printf '%s\n' "$title" | grep -Eq '^(feat|fix|refactor|test|docs|chore|ci)\([a-z0-9-]+\): #[1-9][0-9]* [a-z][a-z0-9-]*( |$)'; then
             echo "PR title must match: type(scope): #issue short imperative description"
             exit 1
           fi
           labels=$(gh pr view "$PR" --repo "$REPO" --json labels --jq '.labels[].name')
-          type=$(printf '%s\n' "$title" | sed -E 's/^([^:]+)\\(.*/\\1/')
+          type=$(printf '%s\n' "$title" | sed -E 's/^([^:]+)\(.*/\1/')
           case "$type" in
             feat) required="feature" ;;
             fix) required="fix" ;;
