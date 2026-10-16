@@ -13,16 +13,18 @@ namespace AuraLogbook.Api.Services
         public WeatherService(HttpClient http, IConfiguration cfg)
         {
             _http = http;
-            _apiKey = cfg["Weatherbit:ApiKey"];
-            _baseUrl = cfg["Weatherbit:BaseUrl"];
+            _apiKey = cfg["Weatherbit:ApiKey"]
+                ?? throw new InvalidOperationException("Weatherbit:ApiKey is not configured.");
+            _baseUrl = cfg["Weatherbit:BaseUrl"]
+                ?? throw new InvalidOperationException("Weatherbit:BaseUrl is not configured.");
         }
 
-        async Task<WeatherDto> IWeatherService.GetCurrentAsync(
+        public async Task<WeatherDto> GetCurrentAsync(
             double? lat,
             double? lon,
-            string city,
-            string state,
-            string country)
+            string? city,
+            string? state,
+            string? country)
         {
             // Build base URL
             // After:
@@ -48,8 +50,10 @@ namespace AuraLogbook.Api.Services
 
             // Call Weatherbit
             var url = sb.ToString();
-            var resp = await _http.GetFromJsonAsync<WeatherbitResponse>(url);
-            var w = resp.Data.First();
+            var resp = await _http.GetFromJsonAsync<WeatherbitResponse>(url)
+                ?? throw new InvalidOperationException("Weather provider returned an empty response.");
+            var w = resp.Data.FirstOrDefault()
+                ?? throw new InvalidOperationException("Weather provider returned no observations.");
 
             return new WeatherDto
             {
