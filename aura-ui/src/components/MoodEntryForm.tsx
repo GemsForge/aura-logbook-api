@@ -1,4 +1,5 @@
-import { Box, Typography } from "@mui/material";
+import Box from "@mui/joy/Box";
+import Typography from "@mui/joy/Typography";
 import { MoodApi } from "../api/MoodApi";
 import type { MoodType } from "../features/mood/models/schema/MoodType";
 import MoodEntryFormFields from "./MoodEntryFormFields";
@@ -25,8 +26,8 @@ export default function MoodEntryForm() {
   };
 
   return (
-    <Box maxWidth={500} mx="auto" mt={4}>
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
+      <Typography level="h3" sx={{ mb: 1 }}>
         Log Your Mood
       </Typography>
 
