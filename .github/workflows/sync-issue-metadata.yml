@@ -286,7 +286,7 @@ jobs:
               });
 
               core.notice(
-                `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${labels.length} labels, ${assignees.length} assignees, and milestone ${issue.milestone?.title ?? "preserved"}.`,
+              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and project @GemsForge's Aura Log (#6).`,
               );
             }
             const projectsToken = process.env.AURALOGBOOK_PROJECTS_TOKEN;
@@ -529,7 +529,7 @@ jobs:
                 pullRequest.state === "closed" ? "Done" : desiredStatus);
 
             core.notice(
-              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${labels.length} labels, ${assignees.length} assignees, milestone ${issue.milestone?.title ?? "none"}, and project @GemsForge's Aura Log (#6).`,
+              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and project @GemsForge's Aura Log (#6).`,
             );
             } else {
               core.notice(`Issue #${issueNumber} is in project @GemsForge's Aura Log (#6).`);
