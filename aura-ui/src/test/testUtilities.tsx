@@ -3,11 +3,13 @@ import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { configureStore } from "@reduxjs/toolkit";
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
+import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy/styles";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ToastProvider } from "../hooks/useToast";
-import { getAuraTheme } from "../theme";
+import { getAuraJoyTheme, getAuraTheme } from "../theme";
 import authReducer from "../store/slices/authSlice";
 import uiReducer from "../store/slices/uiSlice";
 import { AuraColor } from "@/features/mood/models/aura";
@@ -68,18 +70,21 @@ export function renderWithProviders(
   });
 
   const theme = getAuraTheme(auraColor, auraIntensity);
+  const joyTheme = getAuraJoyTheme(auraColor, auraIntensity);
 
   return {
     store,
     ...render(
       <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <ToastProvider>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
-            </LocalizationProvider>
-          </ToastProvider>
+        <ThemeProvider theme={{ [MATERIAL_THEME_ID]: theme }}>
+          <JoyCssVarsProvider theme={joyTheme}>
+            <CssBaseline enableColorScheme />
+            <ToastProvider>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+              </LocalizationProvider>
+            </ToastProvider>
+          </JoyCssVarsProvider>
         </ThemeProvider>
       </Provider>
     ),

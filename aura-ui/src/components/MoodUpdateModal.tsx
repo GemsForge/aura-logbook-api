@@ -1,7 +1,7 @@
 import {
-  Button,
   CircularProgress,
 } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useState } from "react";
 import { MoodApi } from "../api/MoodApi";
 import MoodEntryFormFields from "./MoodEntryFormFields";

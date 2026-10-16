@@ -1,4 +1,5 @@
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Box } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../store/store";
@@ -23,25 +24,25 @@ const NavBar = () => {
           Aura Logbook
         </Typography>
         <Box>
-          <Button color="inherit" onClick={() => navigate("/home")}>
+          <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/home")}>
             Home
           </Button>
           {isAuthenticated && (
             <>
-              <Button color="inherit" onClick={() => navigate("/dashboard")}>
+              <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/dashboard")}>
                 Dashboard
               </Button>
-              <Button color="inherit" onClick={handleLogout}>
+              <Button color="inherit" sx={{ color: "inherit" }} onClick={handleLogout}>
                 Logout
               </Button>
             </>
           )}
           {!isAuthenticated && (
             <>
-              <Button color="inherit" onClick={() => navigate("/login")}>
+              <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/login")}>
                 Login
               </Button>
-              <Button color="inherit" onClick={() => navigate("/register")}>
+              <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/register")}>
                 Register
               </Button>
             </>

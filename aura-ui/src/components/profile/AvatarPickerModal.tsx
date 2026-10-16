@@ -1,16 +1,16 @@
 import type { PresetAvatar } from "@/assets/presetAvatars";
 import {
     Box,
-    Button,
     Grid,
     Avatar as MuiAvatar,
     Tab,
     Tabs,
-    TextField,
     Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { AuraModal } from "../ui/AuraModal";
+import { AuraButton as Button } from "../ui/AuraButton";
+import { AuraInput as TextField } from "../ui/AuraInput";
 
 interface AvatarPickerModalProps {
   open: boolean;

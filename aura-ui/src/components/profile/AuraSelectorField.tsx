@@ -3,13 +3,13 @@ import React from "react";
 import {
   Box,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Slider,
   useTheme,
 } from "@mui/material";
+import FormControl from "@mui/joy/FormControl";
+import FormLabel from "@mui/joy/FormLabel";
+import Option from "@mui/joy/Option";
+import Select from "@mui/joy/Select";
 import { Controller, type Control, type Path, useWatch } from "react-hook-form";
 import { AuraColor } from "@/features/mood/models/aura";
 import { auraPalettes, type AuraPaletteEntry } from "@/theme/auraTheme";
@@ -49,15 +49,24 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
             borderColor: "grey.400",
           }}
         />
-        <FormControl fullWidth>
-          <InputLabel id="aura-color-label">Aura Color</InputLabel>
+        <FormControl sx={{ width: "100%" }}>
+          <FormLabel id="aura-color-label">Aura Color</FormLabel>
           <Controller
             name={colorField}
             control={control}
             render={({ field }) => (
-              <Select {...field} labelId="aura-color-label" label="Aura Color">
+              <Select
+                name={field.name}
+                value={field.value}
+                onChange={(_, value) => {
+                  if (value !== null) field.onChange(value);
+                }}
+                onBlur={field.onBlur}
+                slotProps={{
+                  button: { "aria-labelledby": "aura-color-label" },
+                }}>
                 {Object.values(AuraColor).map((c) => (
-                  <MenuItem key={c} value={c}>
+                  <Option key={c} value={c}>
                     <Box
                       component="span"
                       sx={{
@@ -72,7 +81,7 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
                       }}
                     />
                     {c.charAt(0).toUpperCase() + c.slice(1)}
-                  </MenuItem>
+                  </Option>
                 ))}
               </Select>
             )}

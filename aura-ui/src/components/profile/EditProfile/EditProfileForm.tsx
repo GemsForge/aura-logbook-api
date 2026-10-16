@@ -1,12 +1,12 @@
 import {
   Box,
-  Button,
   Checkbox,
   FormControlLabel,
   Avatar as MuiAvatar,
-  TextField,
   Typography,
 } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
+import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, type UseFormReturn } from "react-hook-form";

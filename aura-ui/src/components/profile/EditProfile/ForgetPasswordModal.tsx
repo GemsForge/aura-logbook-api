@@ -6,11 +6,11 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  Button,
   CircularProgress,
-  TextField,
   Typography,
 } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
+import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { AuraModal } from "../../ui/AuraModal";

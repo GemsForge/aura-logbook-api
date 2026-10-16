@@ -1,10 +1,5 @@
-import {
-  Card,
-  CardActionArea,
-  CardContent,
-  Typography,
-  Stack,
-} from "@mui/material";
+import { Typography, Stack } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
 import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
@@ -18,26 +13,27 @@ const Sidebar = () => {
   return (
     <Stack spacing={2} sx={{mt:2}}>
       {navItems.map(({ label, path }) => (
-        <Card
+        <Sheet
+          component={Link}
+          to={path}
+          variant="outlined"
           key={label}
           sx={{
             bgcolor:
-              location.pathname === path ? "primary.light" : "background.paper",
+              location.pathname === path ? "primary.softBg" : "background.surface",
             border: location.pathname === path ? "2px solid" : "1px solid",
             borderColor:
-              location.pathname === path ? "primary.main" : "grey.300",
-            borderRadius: 2,
-            boxShadow: 1,
+              location.pathname === path ? "primary.solidBg" : "neutral.outlinedBorder",
+            borderRadius: "md",
+            boxShadow: "sm",
             transition: "0.2s",
+            display: "block",
+            textDecoration: "none",
           }}>
-          <CardActionArea component={Link} to={path}>
-            <CardContent>
-              <Typography variant="subtitle1" align="center">
-                {label}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-        </Card>
+          <Typography variant="subtitle1" align="center" sx={{ p: 2 }}>
+            {label}
+          </Typography>
+        </Sheet>
       ))}
     </Stack>
   );

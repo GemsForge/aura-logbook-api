@@ -4,13 +4,13 @@ import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Box,
-  Button,
   CircularProgress,
   Link,
-  Paper,
-  TextField,
   Typography,
 } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
+import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -69,7 +69,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
       justifyContent="center"
       minHeight="100vh"
       sx={{ backgroundColor: "#f9f9f9" }}>
-      <Paper elevation={4} sx={{ padding: 4, width: 400 }}>
+      <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
         {showTitle && (
           <Typography variant="h5" mb={2} textAlign="center">
             Sign In
@@ -122,7 +122,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
             Sign up
           </Link>
         </Typography>
-      </Paper>
+      </Sheet>
       <ForgotPasswordModal
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}

@@ -12,13 +12,13 @@ import {
   Avatar,
   Badge,
   Box,
-  Button,
   LinearProgress,
-  Paper,
   Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useEffect } from "react";
 
 
@@ -65,8 +65,8 @@ export default function ProfileCard() {
   const bgColor = !isImage ? auraPalettes[auraKey].primary.main : undefined;
 
   return (
-    <Paper
-      elevation={2}
+    <Sheet
+      variant="outlined"
       sx={{
         p: { xs: 2, sm: 3 },
         textAlign: "center",
@@ -158,6 +158,6 @@ export default function ProfileCard() {
           </Button>
         </Box>
       </Stack>
-    </Paper>
+    </Sheet>
   );
 }

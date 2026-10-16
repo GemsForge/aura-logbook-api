@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Typography } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../store/store";

@@ -6,8 +6,10 @@ import { store } from "./store/store";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 
-import { ThemeProvider, CssBaseline, Box, CircularProgress } from "@mui/material";
-import { getAuraTheme } from "./theme";
+import { Box, CircularProgress, CssBaseline } from "@mui/material";
+import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
+import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy/styles";
+import { getAuraJoyTheme, getAuraTheme } from "./theme";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -25,6 +27,10 @@ function ThemedApp() {
     () => getAuraTheme(auraColor, auraIntensity),
     [auraColor, auraIntensity]
   );
+  const joyTheme = useMemo(
+    () => getAuraJoyTheme(auraColor, auraIntensity),
+    [auraColor, auraIntensity],
+  );
 
   if (isLoading) {
     return (
@@ -35,13 +41,15 @@ function ThemedApp() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ToastProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <RouterProvider router={router} />
-        </LocalizationProvider>
-      </ToastProvider>
+    <ThemeProvider theme={{ [MATERIAL_THEME_ID]: theme }}>
+      <JoyCssVarsProvider theme={joyTheme}>
+        <CssBaseline enableColorScheme />
+        <ToastProvider>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <RouterProvider router={router} />
+          </LocalizationProvider>
+        </ToastProvider>
+      </JoyCssVarsProvider>
     </ThemeProvider>
   );
 }

@@ -3,12 +3,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import {
   Box,
-  Card,
-  CardContent,
-  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
+import IconButton from "@mui/joy/IconButton";
 import dayjs from "dayjs";
 import { MoodTag } from "./MoodTag";
 
@@ -23,17 +22,16 @@ export function MoodCard({
 }) {
   const date = dayjs(entry.date).format("LL")
   return (
-    <Card variant="outlined" sx={{ mb: 2 }}>
-      <CardContent>
+    <Sheet variant="outlined" sx={{ mb: 2, p: 2 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle2" color="textSecondary">
             {date}
           </Typography>
           <Box>
-            <IconButton size="small" onClick={() => onEdit(entry)}>
+            <IconButton size="sm" onClick={() => onEdit(entry)} aria-label="Edit mood entry">
               <EditIcon fontSize="small" />
             </IconButton>
-            <IconButton size="small" onClick={() => onDelete(entry)}>
+            <IconButton size="sm" onClick={() => onDelete(entry)} aria-label="Delete mood entry">
               <DeleteIcon fontSize="small" />
             </IconButton>
           </Box>
@@ -50,8 +48,7 @@ export function MoodCard({
             {entry.comment}
           </Typography>
         )}
-      </CardContent>
-    </Card>
+    </Sheet>
   );
 }
 

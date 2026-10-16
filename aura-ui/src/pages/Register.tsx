@@ -1,7 +1,10 @@
 import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { SpiritualPathway, type RegisterRequest } from "@/features/auth/models";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, Button, CircularProgress, Link, Paper, TextField, Typography } from "@mui/material";
+import { Box, CircularProgress, Link, Typography } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
+import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { useState } from "react";
@@ -58,7 +61,7 @@ const [loading, setLoading] = useState(false);
       justifyContent="center"
       minHeight="100vh"
       sx={{ backgroundColor: "#f9f9f9" }}>
-      <Paper elevation={4} sx={{ padding: 4, width: 400 }}>
+      <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
         <Typography variant="h5" mb={2}>
           Create an Account
         </Typography>
@@ -132,7 +135,7 @@ const [loading, setLoading] = useState(false);
             Login
           </Link>
         </Typography>
-      </Paper>
+      </Sheet>
     </Box>
   );
 }

@@ -1,12 +1,13 @@
 import {
   Box,
-  Button,
   Checkbox,
   FormControlLabel,
   Grid,
   Tooltip,
   Typography,
 } from "@mui/material";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
+import Textarea from "@mui/joy/Textarea";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, useForm, type Resolver } from "react-hook-form";
@@ -183,17 +184,11 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         render={({ field }) => (
           <Box mt={2} mb={2}>
             <Typography variant="subtitle2">Comment (optional)</Typography>
-            <Box
-              component="textarea"
+            <Textarea
               {...field}
-              style={{
-                width: "100%",
-                minHeight: 80,
-                padding: 8,
-                fontFamily: "inherit",
-                fontSize: "1rem",
-                borderColor: errors.comment ? "red" : "#ccc",
-              }}
+              minRows={3}
+              error={!!errors.comment}
+              sx={{ width: "100%", fontFamily: "inherit" }}
             />
             {errors.comment && (
               <Typography color="error" variant="body2">

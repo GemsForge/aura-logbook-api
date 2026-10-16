@@ -1,4 +1,5 @@
-import { Card, CardContent, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
 
 interface MoodStatCardProps {
   title: string;
@@ -12,8 +13,7 @@ export default function MoodStatCard({
   emoji,
 }: MoodStatCardProps) {
   return (
-    <Card sx={{ minWidth: 150, textAlign: "center" }}>
-      <CardContent>
+    <Sheet variant="outlined" sx={{ minWidth: 150, textAlign: "center", p: 2 }}>
         <Typography variant="subtitle2" color="text.secondary">
           {title}
         </Typography>
@@ -21,7 +21,6 @@ export default function MoodStatCard({
           {emoji && <span style={{ marginRight: 4 }}>{emoji}</span>}
           {value}
         </Typography>
-      </CardContent>
-    </Card>
+    </Sheet>
   );
 }
