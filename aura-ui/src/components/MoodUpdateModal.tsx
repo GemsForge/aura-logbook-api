@@ -48,8 +48,11 @@ export default function MoodUpdateModal({
       showToast("Mood updated successfully!", "success"); // ✅ Success toast
       onSuccess();
       onClose();
-    } catch (error: any) {
-      const message = error?.response?.data || "Failed to update mood.";
+    } catch (error: unknown) {
+      const response = typeof error === "object" && error !== null && "response" in error
+        ? (error as { response?: { data?: unknown } }).response
+        : undefined;
+      const message = typeof response?.data === "string" ? response.data : "Failed to update mood.";
       showToast(message, "error"); // ❌ Error toast
     } finally {
       setLoading(false);
