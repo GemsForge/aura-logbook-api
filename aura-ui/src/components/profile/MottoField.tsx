@@ -1,6 +1,8 @@
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 import { DEFAULT_MOTTOS } from "@/features/profile/DEFAULT_MOTTOS";
-import { Autocomplete, TextField } from "@mui/material";
+import Autocomplete from "@mui/joy/Autocomplete";
+import FormControl from "@mui/joy/FormControl";
+import FormLabel from "@mui/joy/FormLabel";
 import { type Control, Controller } from "react-hook-form";
 
 interface MottoFieldProps {
@@ -13,21 +15,16 @@ export const MottoField: React.FC<MottoFieldProps> = ({ control, name }) => (
     name={name}
     control={control}
     render={({ field }) => (
-      <Autocomplete
-        freeSolo
-        options={DEFAULT_MOTTOS}
-        inputValue={field.value ?? ""}
-        onInputChange={(_, newValue) => field.onChange(newValue)}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Motto (optional)"
-            placeholder="Choose or write your own"
-            fullWidth
-            margin="normal"
-          />
-        )}
-      />
+      <FormControl sx={{ my: 1 }}>
+        <FormLabel>Motto (optional)</FormLabel>
+        <Autocomplete
+          freeSolo
+          options={DEFAULT_MOTTOS}
+          inputValue={field.value ?? ""}
+          onInputChange={(_, newValue) => field.onChange(newValue)}
+          slotProps={{ input: { placeholder: "Choose or write your own" } }}
+        />
+      </FormControl>
     )}
   />
 );
