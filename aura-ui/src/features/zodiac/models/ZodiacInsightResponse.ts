@@ -11,7 +11,7 @@ export interface InsightTemplate {
   // e.g. templateId: string;
   // e.g. title: string;
   // e.g. message: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
