@@ -1,12 +1,11 @@
 // src/components/weather/WeatherCard.tsx
 import React from "react";
 import {
-  Card,
-  CardContent,
   Typography,
   Box,
   CircularProgress
 } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
 import { useGetCurrentWeatherQuery } from "../../store/weatherApi";
 
 export interface WeatherCardProps {
@@ -44,14 +43,14 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
  console.log(weather.iconCode);
   return (
-    <Card sx={{ display: "flex", alignItems: "center", p: 2, mb: 2 }}>
+    <Sheet variant="outlined" sx={{ display: "flex", alignItems: "center", p: 2, mb: 2 }}>
       <Box
         component="img"
         src={iconUrl}
         alt={weather.description}
         sx={{ width: 64, height: 64, mr: 2 }}
       />
-      <CardContent sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1 }}>
         <Typography variant="h5">
           {Math.round(weather.temperature)}°{/* adjust unit if needed */}
         </Typography>
@@ -67,8 +66,8 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
             {[city, state, country].filter(Boolean).join(", ")}
           </Typography>
         )}
-      </CardContent>
-    </Card>
+      </Box>
+    </Sheet>
   );
 };
 

@@ -10,13 +10,12 @@ import { auraPalettes } from "@/theme/auraTheme";
 import { getTimeGreeting } from "@/util/timeGreeting";
 import {
   Box,
-  Card,
-  CardContent,
   CircularProgress,
   Divider,
   Grid,
   Typography,
 } from "@mui/material";
+import Sheet from "@mui/joy/Sheet";
 import dayjs from "dayjs";
 import MoodPieChart from "../components/dashboard/MoodPieChart";
 import MoodStatCard from "../components/dashboard/MoodStatCard";
@@ -73,8 +72,7 @@ export default function Dashboard() {
       </Typography>
 
       {selectedPathway && (
-        <Card variant="outlined" sx={{ mb: 3 }}>
-          <CardContent>
+        <Sheet variant="outlined" sx={{ mb: 3, p: 2 }}>
             <Typography variant="subtitle2" color="text.secondary">
               My Pathway
             </Typography>
@@ -82,21 +80,21 @@ export default function Dashboard() {
             <Typography variant="body2" color="text.secondary">
               {SpiritualPathwayDescriptions[selectedPathway]}
             </Typography>
-          </CardContent>
-        </Card>
+        </Sheet>
       )}
 
       {/* Zodiac Insights */}
       {zodiac && (
         <Grid container spacing={2} mt={2}>
           <Grid sx={{ xs: 12 }}>
-            <Card
+            <Sheet
+              variant="outlined"
               sx={{
                 border: 2,
                 borderColor: auraPalettes[auraColor].primary.main,
                 borderRadius: 2,
               }}>
-              <CardContent>
+              <Box sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   {zodiac.sign.toUpperCase()} • {zodiac.element}
                 </Typography>
@@ -109,8 +107,8 @@ export default function Dashboard() {
                     • {String(ins.message ?? "")}
                   </Typography>
                 ))}
-              </CardContent>
-            </Card>
+              </Box>
+            </Sheet>
           </Grid>
         </Grid>
       )}
