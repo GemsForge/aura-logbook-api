@@ -9,12 +9,18 @@ import {
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AuraColor, AuraColorInfo, AuraMoodMap } from "@/features/mood/models/aura";
 import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
 import { auraPalettes } from "@/theme/auraTheme";
 
+
+type MoodEntryFormValues = {
+  date: string;
+  moods: MoodType[];
+  comment?: string;
+};
 
 interface Props {
   entry?: MoodEntry;
@@ -32,8 +38,8 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
     watch,
     setValue,
     formState: { errors },
-  } = useForm({
-    resolver: yupResolver(moodEntrySchema),
+  } = useForm<MoodEntryFormValues>({
+    resolver: yupResolver(moodEntrySchema) as Resolver<MoodEntryFormValues>,
     defaultValues: {
       date: entry
         ? dayjs(entry.date).format("MM-DD-YYYY")
@@ -61,7 +67,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
     auraGroups[AuraMoodMap[m].auraColor].push(m);
   });
 
-  const onFormSubmit = (data: any) => {
+  const onFormSubmit = (data: MoodEntryFormValues) => {
     onSubmit({
       date: dayjs(data.date).format("YYYY-MM-DD"),
       moods: data.moods,

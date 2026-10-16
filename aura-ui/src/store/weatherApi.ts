@@ -23,12 +23,16 @@ export const weatherApi = createApi({
         try {
           const data = await WeatherApi.getCurrent(params);
           return { data };
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const error = err instanceof Error ? err : new Error("Weather request failed");
+          const response = typeof err === "object" && err !== null && "response" in err
+            ? (err as { response?: { status?: number; data?: unknown } }).response
+            : undefined;
           // RTKQ expects you to return `{ error: { status, data } }`
           return {
             error: {
-              status: err.response?.status,
-              data: err.response?.data ?? err.message,
+              status: response?.status ?? 500,
+              data: response?.data ?? error.message,
             },
           };
         }

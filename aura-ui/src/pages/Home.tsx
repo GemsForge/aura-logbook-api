@@ -11,7 +11,7 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    isAuthenticated ? navigate("/dashboard") : navigate("/login");
+    navigate(isAuthenticated ? "/dashboard" : "/login");
   };
 
   return (
@@ -30,7 +30,7 @@ export default function HomePage() {
       </Typography>
 
       <Box component="section" sx={{ mt: 4 }}>
-      <AuraFeatureCards/>
+        <AuraFeatureCards />
       </Box>
 
       <Box m={4}>

@@ -106,7 +106,7 @@ export default function Dashboard() {
                 <Divider />
                 {zodiac.insights.map((ins, i) => (
                   <Typography key={i} variant="body2" mt={1}>
-                    • {ins.message}
+                    • {String(ins.message ?? "")}
                   </Typography>
                 ))}
               </CardContent>
