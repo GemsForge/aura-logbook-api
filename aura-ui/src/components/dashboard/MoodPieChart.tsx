@@ -12,7 +12,8 @@ import type {
   MoodFrequencyResponse,
   MoodPercentResponse,
 } from "../../features/mood/models/schema/MoodAuth";
-import { Box, Typography } from "@mui/material";
+import Box from "@mui/joy/Box";
+import Typography from "@mui/joy/Typography";
 
 const COLORS = [
   "#FF6384",
@@ -71,7 +72,7 @@ export default function MoodPieChart({
 
   return (
     <Box mt={4}>
-      <Typography align="center" variant="h5">
+      <Typography level="title-lg" textAlign="center">
         Mood Breakdown
       </Typography>
 

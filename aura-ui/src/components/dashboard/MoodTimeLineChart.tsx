@@ -5,9 +5,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
-import { Box, Typography } from "@mui/material";
+import Box from "@mui/joy/Box";
+import Typography from "@mui/joy/Typography";
 
 export type MoodByDate = {
   date: string;
@@ -17,7 +18,7 @@ export type MoodByDate = {
 export default function MoodTimelineChart({ data }: { data: MoodByDate[] }) {
   return (
     <Box mt={4}>
-      <Typography variant="h5">Mood Entry Timeline</Typography>
+      <Typography level="title-lg">Mood Entry Timeline</Typography>
 
       <Box height={400} width={400}>
         <ResponsiveContainer width="100%" height="100%">
