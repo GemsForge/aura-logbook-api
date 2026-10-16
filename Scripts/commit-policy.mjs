@@ -32,7 +32,8 @@ export function prePush(input) {
   for (const line of input.split(/\\r?\\n/).filter(Boolean)) {
     const fields = line.trim().split(/\\s+/);
     if (fields.length !== 4) throw new Error("Invalid pre-push ref input.");
-    const [, local, , remote] = fields;
+    const [, local, remoteRef, remote] = fields;
+    if (remoteRef === "refs/heads/master") throw new Error("Direct pushes to master are blocked. Push to dev or an issue branch and open a pull request.");
     if (!oid.test(local) || !oid.test(remote)) throw new Error("Invalid pre-push SHA.");
     if (zero(local)) continue;
     const head = git(["rev-parse", "--verify", `${local}^{commit}`]);
