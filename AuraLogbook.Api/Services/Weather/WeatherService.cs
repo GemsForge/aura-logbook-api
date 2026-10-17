@@ -1,6 +1,7 @@
 ﻿// Services/WeatherService.cs
 using AuraLogbookApi.Dtos;
-using System.Text;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Globalization;
 
 namespace AuraLogbook.Api.Services
 {
@@ -26,31 +27,34 @@ namespace AuraLogbook.Api.Services
             string? state,
             string? country)
         {
-            // Build base URL
-            // After:
-            var sb = new StringBuilder($"{_baseUrl}/current?key={_apiKey}&units=I");
+            var query = new Dictionary<string, string?>
+            {
+                ["key"] = _apiKey,
+                ["units"] = "I"
+            };
 
             // Coordinates take precedence
             if (lat.HasValue && lon.HasValue)
             {
-                sb.Append($"&lat={lat.Value}&lon={lon.Value}");
+                query["lat"] = lat.Value.ToString(CultureInfo.InvariantCulture);
+                query["lon"] = lon.Value.ToString(CultureInfo.InvariantCulture);
             }
             else if (!string.IsNullOrWhiteSpace(city))
             {
-                sb.Append($"&city={Uri.EscapeDataString(city)}");
-                if (!string.IsNullOrWhiteSpace(state))
-                    sb.Append($"&state={Uri.EscapeDataString(state)}");
+                var cityLocation = string.IsNullOrWhiteSpace(state) ? city : $"{city},{state}";
+                query["city"] = cityLocation;
                 if (!string.IsNullOrWhiteSpace(country))
-                    sb.Append($"&country={Uri.EscapeDataString(country)}");
+                    query["country"] = country;
             }
             else
             {
                 throw new ArgumentException("Must provide either lat+lon or city (and optional state/country).");
             }
 
-            // Call Weatherbit
-            var url = sb.ToString();
-            var resp = await _http.GetFromJsonAsync<WeatherbitResponse>(url)
+            var url = QueryHelpers.AddQueryString($"{_baseUrl.TrimEnd('/')}/current", query);
+            using var response = await _http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var resp = await response.Content.ReadFromJsonAsync<WeatherbitResponse>()
                 ?? throw new InvalidOperationException("Weather provider returned an empty response.");
             var w = resp.Data.FirstOrDefault()
                 ?? throw new InvalidOperationException("Weather provider returned no observations.");
