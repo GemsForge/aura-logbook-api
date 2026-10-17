@@ -35,6 +35,6 @@ public class WeatherControllerTests
 
         var response = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status502BadGateway, response.StatusCode);
-        Assert.Equal("Error fetching data from Weatherbit.", response.Value);
+        Assert.Equal("Error fetching current weather.", response.Value);
     }
 }

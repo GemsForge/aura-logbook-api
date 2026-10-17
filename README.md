@@ -42,12 +42,7 @@ Swagger is enabled at: http://localhost:5081/swagger
 
 Uses file-based JSON storage for Users & MoodEntries (configurable in appsettings.json)
 
-Configure the Weatherbit API key in .NET user secrets for local development (do not put provider keys in tracked settings):
-
-```bash
-cd AuraLogbook.Api
-dotnet user-secrets set "Weatherbit:ApiKey" "<your-rotated-weatherbit-key>"
-```
+Weather data is provided by [Open-Meteo](https://open-meteo.com/), which requires no API key for non-commercial use. Please retain attribution to Open-Meteo. Its free endpoint is not intended for commercial apps; review the [terms](https://open-meteo.com/en/terms) before deployment or commercial use.
 ---
 
 ### Frontend – aura-ui (React + MUI)

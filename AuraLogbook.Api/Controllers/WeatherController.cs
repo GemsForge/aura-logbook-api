@@ -39,9 +39,9 @@ public class WeatherController : ControllerBase
         catch (HttpRequestException ex)
         {
             _logger.LogWarning(
-                "Weatherbit request failed with HTTP status {StatusCode}.",
+                "Weather provider request failed with HTTP status {StatusCode}.",
                 ex.StatusCode);
-            return StatusCode(502, "Error fetching data from Weatherbit.");
+            return StatusCode(502, "Error fetching current weather.");
         }
     }
 }
