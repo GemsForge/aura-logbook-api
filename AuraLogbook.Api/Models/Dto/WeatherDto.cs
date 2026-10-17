@@ -5,7 +5,7 @@ namespace AuraLogbookApi.Dtos
     public class WeatherDto
     {
         /// <summary>
-        /// Current temperature (°C).
+        /// Current temperature (°F).
         /// </summary>
         [JsonPropertyName("temperature")]
         public double Temperature { get; set; }
@@ -17,7 +17,7 @@ namespace AuraLogbookApi.Dtos
         public string? Description { get; set; }
 
         /// <summary>
-        /// Weatherbit icon code (e.g. "c02d") to build the icon URL.
+        /// Weather icon code compatible with the frontend's local icon set (e.g. "c02d").
         /// </summary>
         [JsonPropertyName("iconCode")]
         public string? IconCode { get; set; }
