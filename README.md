@@ -41,6 +41,8 @@ The API is available at: http://localhost:5081/api
 Swagger is enabled at: http://localhost:5081/swagger
 
 Uses file-based JSON storage for Users & MoodEntries (configurable in appsettings.json)
+
+See [DEPENDENCIES.md](DEPENDENCIES.md) for the weather provider, usage terms, limits, and attribution requirements.
 ---
 
 ### Frontend – aura-ui (React + MUI)
