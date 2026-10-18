@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { logout } from '../store/slices/authSlice';
 import { store } from '../store/store';
+import { shouldClearAuthenticationState } from './authErrorHandling';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -26,7 +27,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-    if (status === 401 || status === 403) {
+    if (shouldClearAuthenticationState(status, error?.config?.url)) {
       store.dispatch(logout());
       // Optionally redirect to login
       window.location.href = "/login";
