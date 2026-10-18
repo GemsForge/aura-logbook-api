@@ -75,18 +75,11 @@ npm run dev
 ```env
 VITE_API_BASE_URL=http://localhost:5081/api
 ```
-appsettings.json for API (AuraLogbook.Api/appsettings.json)
-```json
-"Jwt": {
-  "Key": "your_super_secret_key",
-  "Issuer": "AuraLogbook",
-  "Audience": "AuraLogbookUsers"
-},
-"Storage": {
-  "UserFilePath": "Data/users.json",
-  "MoodFilePath": "Data/moods.json"
-}
-```
+JWT signing key (never commit it):
+- Local development: run `dotnet user-secrets init` and `dotnet user-secrets set "Jwt:Key" "<random value of at least 32 UTF-8 bytes>"` from `AuraLogbook.Api/`.
+- Deployment: provide `Jwt__Key` through the hosting platform's secret manager/environment configuration.
+- The API validates the key at startup and refuses missing or undersized values. Issuer and audience remain non-secret settings in `appsettings.json`.
+- Rotate any previously exposed key; do not reuse it.
 ---
 # 💻 Development Tools
 * Swagger for API testing
