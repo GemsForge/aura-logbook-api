@@ -59,14 +59,29 @@ test("service plan preserves explicit API URL configuration", () => {
   assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:6000/api");
 });
 
-test("service plan leaves a configured .env.local API URL for Vite to load", () => {
+test("combined launcher selects its API port and warns when .env.local points elsewhere", () => {
   const root = mkdtempSync(join(tmpdir(), "aura-dev-plan-"));
   mkdirSync(join(root, "aura-ui"), { recursive: true });
   writeFileSync(join(root, "aura-ui", ".env.local"), "VITE_API_BASE_URL=http://localhost:6000/api\n");
 
   try {
     const plan = createServicePlan({ root, platform: "linux", env: {} });
-    assert.equal(plan[1].env.VITE_API_BASE_URL, undefined);
+    assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5082/api");
+    assert.match(plan[1].notice, /\.env\.local.*http:\/\/localhost:6000\/api.*http:\/\/localhost:5082\/api/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("exported API URL explicitly overrides the combined launch default and local file", () => {
+  const root = mkdtempSync(join(tmpdir(), "aura-dev-plan-"));
+  mkdirSync(join(root, "aura-ui"), { recursive: true });
+  writeFileSync(join(root, "aura-ui", ".env.local"), "VITE_API_BASE_URL=http://localhost:6000/api\n");
+
+  try {
+    const plan = createServicePlan({ root, platform: "linux", env: { VITE_API_BASE_URL: "http://localhost:6001/api" } });
+    assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:6001/api");
+    assert.equal(plan[1].notice, undefined);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

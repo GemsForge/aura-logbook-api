@@ -40,7 +40,7 @@ Expected local URLs:
 - API: http://localhost:5082/api
 - API Swagger: http://localhost:5082/swagger
 
-The launcher defaults the UI's `VITE_API_BASE_URL` to `http://localhost:5082/api`. An exported `VITE_API_BASE_URL` or a value in `aura-ui/.env.local` takes precedence. Keep `.env.local` local; it is ignored by Git.
+The combined launcher defaults the UI's `VITE_API_BASE_URL` to the selected API URL (normally `http://localhost:5082/api`). An exported `VITE_API_BASE_URL` takes precedence. A conflicting `aura-ui/.env.local` value is reported and ignored for this combined launch, so stale local settings cannot silently route the UI to a different project. Standalone Vite runs continue to use `.env.local` normally. Keep `.env.local` local; it is ignored by Git.
 
 For another local instance, set `AURA_API_PORT` and/or `AURA_UI_PORT` before running the launcher; the API URL defaults to the selected API port. An explicit `VITE_API_BASE_URL` still takes precedence.
 
@@ -50,7 +50,7 @@ Troubleshooting:
 
 - If startup reports that a port is already in use, stop the existing service yourself, then retry. The launcher uses Vite's strict-port option and does not kill unrelated processes.
 - If UI startup reports missing packages, run `npm ci` in `aura-ui/`.
-- If the UI cannot reach the API, confirm the API is listening on port 5082 and that `VITE_API_BASE_URL` points to `http://localhost:5082/api`; restart Vite after changing the value.
+- If the UI cannot reach the API, confirm the API is listening on port 5082 and that any exported `VITE_API_BASE_URL` points to `http://localhost:5082/api`; restart Vite after changing the value. The combined launcher prints a warning when a local `.env.local` setting conflicts with the selected backend URL.
 - If either child exits unexpectedly, the launcher stops its sibling and returns a nonzero exit status. Check the prefixed service output for the first failure.
 
 Manual smoke test: run the root command, open the UI and Swagger URLs above, confirm the UI can make an API request, press Ctrl+C in the launcher terminal, then verify neither port 5082 nor 58407 is still listening.
