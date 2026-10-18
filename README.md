@@ -57,6 +57,10 @@ Manual smoke test: run the root command, open the UI and Swagger URLs above, con
 
 The launcher tests can be run from the repository root with `node --test Scripts/dev.test.mjs`.
 
+### Clean up stale Git branches
+
+Review local and remote branches conservatively, preserving protected branches, active worktrees, and any unmerged work. Follow the [safe branch cleanup guide](BRANCH_CLEANUP.md) before deleting a branch.
+
 ### Run one service by itself
 
 #### Backend – AuraLogbook.Api
