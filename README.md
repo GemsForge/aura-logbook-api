@@ -1,144 +1,107 @@
-# AuraLogbook
+# Aura Logbook
 
-A personal mood tracking application built with a **.NET Core Web API** backend and a **React + MUI** frontend.  
-Users can log moods, track patterns, and visualize emotional trends over time.
----
+Aura Logbook is a mood-tracking application with a .NET 9 / ASP.NET Core API and a separate React, TypeScript, and Vite UI. The API currently stores user, mood, and zodiac insight records in JSON files for local development.
 
-## 📦 Project Structure
+## Prerequisites
 
-AuraLogbook/
-├── AuraLogbook.Api/ # .NET Core Web API (C#)
-├── aura-ui/ # React frontend (Vite + MUI)
-└── AuraLogbook.sln # Solution file
----
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [Node.js 20 or newer](https://nodejs.org/) and npm
+- Git
 
-## 🔧 Prerequisites
+## First-time setup
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
-- [Node.js + npm](https://nodejs.org/)
-- [Visual Studio 2022+](https://visualstudio.microsoft.com/) (or VS Code)
-- (Optional) SQLite browser like **DB Browser for SQLite**
----
+From the repository root:
 
-## 🚀 Getting Started
+```bash
+dotnet restore AuraLogbook.sln
+npm ci --prefix aura-ui
+```
 
-### Run the API and UI together
+The API project has a .NET user-secrets ID (`AuraLogbook.Api`). Configure a private JWT signing key for local development before registering/logging in:
 
-From the repository root, run:
+```bash
+dotnet user-secrets --project AuraLogbook.Api/AuraLogbook.Api.csproj set "Jwt:Key" "<your-random-secret>"
+```
+
+Use a private random value of at least 32 bytes. Do not commit secrets or paste them into frontend configuration. `Jwt:Issuer` and `Jwt:Audience` default to the values in `AuraLogbook.Api/appsettings.json`.
+
+## Run API and UI together
+
+From the repository root:
 
 ```bash
 npm run dev
 ```
 
-This root npm script is a cross-platform alias for `node Scripts/dev.mjs`.
+This starts the API and UI together, prefixes their output with `[API]` and `[UI]`, and stops the sibling service if one exits or fails to start. Press **Ctrl+C** once to stop both services.
 
-The launcher starts the API with its `http` Development profile and the Vite UI, prefixes their output with `[API]` and `[UI]`, and stops the sibling service if either process exits or fails to start. Press **Ctrl+C** to stop both. On Windows, it uses `taskkill` to stop each child-process tree.
+| Service | Local URL |
+| --- | --- |
+| UI | [http://localhost:58407](http://localhost:58407) |
+| API base | [http://localhost:5082/api](http://localhost:5082/api) |
+| Swagger (Development only) | [http://localhost:5082/swagger](http://localhost:5082/swagger) |
 
-Expected local URLs:
+The launcher sends the UI to the selected API base URL (`http://localhost:5082/api` by default). An exported `VITE_API_BASE_URL` takes precedence; a conflicting `aura-ui/.env.local` value is warned about and ignored for the combined run. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
 
-- UI: http://localhost:58407 (configured in `aura-ui/vite.config.ts`)
-- API: http://localhost:5082/api
-- API Swagger: http://localhost:5082/swagger
+To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. If using a non-default API port, the launcher builds the corresponding API base URL. An explicit exported `VITE_API_BASE_URL` still takes precedence.
 
-The combined launcher defaults the UI's `VITE_API_BASE_URL` to the selected API URL (normally `http://localhost:5082/api`). An exported `VITE_API_BASE_URL` takes precedence. A conflicting `aura-ui/.env.local` value is reported and ignored for this combined launch, so stale local settings cannot silently route the UI to a different project. Standalone Vite runs continue to use `.env.local` normally. Keep `.env.local` local; it is ignored by Git.
+## Run each service separately
 
-For another local instance, set `AURA_API_PORT` and/or `AURA_UI_PORT` before running the launcher; the API URL defaults to the selected API port. An explicit `VITE_API_BASE_URL` still takes precedence.
-
-Prerequisites: .NET 8 SDK, Node.js 20 or newer, and npm. Install UI dependencies once with `npm ci` from `aura-ui/`.
-
-Troubleshooting:
-
-- If startup reports that a port is already in use, stop the existing service yourself, then retry. The launcher uses Vite's strict-port option and does not kill unrelated processes.
-- If UI startup reports missing packages, run `npm ci` in `aura-ui/`.
-- If the UI cannot reach the API, confirm the API is listening on port 5082 and that any exported `VITE_API_BASE_URL` points to `http://localhost:5082/api`; restart Vite after changing the value. The combined launcher prints a warning when a local `.env.local` setting conflicts with the selected backend URL.
-- If either child exits unexpectedly, the launcher stops its sibling and returns a nonzero exit status. Check the prefixed service output for the first failure.
-
-Manual smoke test: run the root command, open the UI and Swagger URLs above, confirm the UI can make an API request, press Ctrl+C in the launcher terminal, then verify neither port 5082 nor 58407 is still listening.
-
-The launcher tests can be run from the repository root with `node --test Scripts/dev.test.mjs`.
-
-### Clean up stale Git branches
-
-Review local and remote branches conservatively, preserving protected branches, active worktrees, and any unmerged work. Follow the [safe branch cleanup guide](BRANCH_CLEANUP.md) before deleting a branch.
-
-### Run one service by itself
-
-#### Backend – AuraLogbook.Api
+API, from `AuraLogbook.Api/`:
 
 ```bash
-cd AuraLogbook.Api
-```
-
-# Restore packages
-```
-dotnet restore
-```
-
-# Run the API on the port used by the frontend
-```
 dotnet run --launch-profile http
 ```
-The API is available at: http://localhost:5082/api
-Swagger is enabled at: http://localhost:5082/swagger
 
-Uses file-based JSON storage for Users & MoodEntries (configurable in appsettings.json)
+UI, from `aura-ui/` (run `npm ci` there first):
 
-See [DEPENDENCIES.md](DEPENDENCIES.md) for the weather provider, usage terms, limits, and attribution requirements.
----
-
-#### Frontend – aura-ui (React + MUI)
 ```bash
-cd aura-ui
-```
-
-# Install dependencies
-```
-npm install
-```
-
-# Start the development server
-```
 npm run dev
 ```
-* Accessible at: http://localhost:5173 (Vite default)
-* Uses Material UI (MUI) for styled components
-* Axios is preconfigured with a base API URL for backend integration
----
-# ✨ Features
-* 🔐 User authentication with JWT
-* 📊 Mood tracking (log, edit, delete)
-* 📈 Mood summaries and breakdowns
-* 📆 Filter moods by date range
-* 📦 JSON-based data storage (simple local persistence for development)
----
-# 📁 Environment Configuration
-`.env.local` for React (`aura-ui/.env.local`)
-```env
-VITE_API_BASE_URL=http://localhost:5082/api
+
+For standalone UI development, set `VITE_API_BASE_URL=http://localhost:5082/api` in `aura-ui/.env.local`. Vite is configured for port 58407 with strict-port behavior.
+
+## Tests and build
+
+Run API tests from the repository root:
+
+```bash
+dotnet test AuraLogbook.sln
 ```
-appsettings.json for API (AuraLogbook.Api/appsettings.json)
-```json
-"Jwt": {
-  "Key": "your_super_secret_key",
-  "Issuer": "AuraLogbook",
-  "Audience": "AuraLogbookUsers"
-},
-"Storage": {
-  "UserFilePath": "Data/users.json",
-  "MoodFilePath": "Data/moods.json"
-}
+
+Run UI checks from `aura-ui/`:
+
+```bash
+npm run lint
+npm run test:run
+npm run test:startup
+npm run build
 ```
----
-# 💻 Development Tools
-* Swagger for API testing
-* Dummy mood seeder available for generating test data
-* Environment-aware JWT authentication
-* Role-based auth-ready foundation
----
-# 📌 Milestones
-* ✅ v0.1 - MVP API complete
-* 🧠 v0.2 - Mood dashboard analytics
-* 🎨 v0.3 - Frontend UI with login, mood entry, summaries
----
-# 📃 License
-MIT License – Feel free to fork, use, and contribute!
+
+The combined launcher orchestration tests run from the repository root:
+
+```bash
+node --test Scripts/dev.test.mjs
+```
+
+## Troubleshooting
+
+- **Port already in use:** The launcher uses strict port binding and does not kill unrelated processes. Identify and stop the existing listener, or choose another port with `AURA_API_PORT` / `AURA_UI_PORT`.
+- **UI reports an API/network error:** Check that the API is running, then verify the UI is targeting the matching `<API URL>/api`. The combined launcher prints a warning if `.env.local` conflicts; an exported `VITE_API_BASE_URL` overrides the default.
+- **UI dependencies missing:** Run `npm ci` in `aura-ui/` (or `npm ci --prefix aura-ui` at the root).
+- **JWT or authentication fails:** Ensure a private `Jwt:Key` is configured and that the token was issued by the current API configuration. `GET /api/Auth/me` and mood routes require a valid bearer token; register or log in again after changing the signing key.
+- **Weather unavailable:** `GET /api/Weather/current` uses Open-Meteo geocoding and forecast endpoints. No API key is needed for local development. Check API logs and provider connectivity; see [DEPENDENCIES.md](DEPENDENCIES.md) for service terms and attribution.
+
+Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify the UI reaches the local API, then press Ctrl+C and confirm both services stop.
+
+## Project documentation
+
+- [API setup, configuration, routes, and tests](AuraLogbook.Api/README.md)
+- [UI setup, API URL configuration, and checks](aura-ui/README.md)
+- [Major dependencies, tools, and external-service terms](DEPENDENCIES.md)
+- [Safe local and remote branch cleanup](BRANCH_CLEANUP.md)
+- [Repository issue and pull-request workflow](.github/ISSUE_WORKFLOW.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE).

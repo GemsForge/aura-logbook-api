@@ -1,6 +1,6 @@
 # Project Dependencies and Tools
 
-This is a maintained overview of the project's major runtime dependencies, external services, and development tools. The manifests are authoritative for exact package versions and transitive dependencies:
+This is a maintained overview of the project's major runtime dependencies, external services, and development tools. The manifests are authoritative for exact package versions and transitive dependencies. For setup and run instructions, see the [root README](README.md).
 
 - Backend: `AuraLogbook.Api/AuraLogbook.Api.csproj`
 - Backend tests: `AuraLogbook.Api.Tests/AuraLogbook.Api.Tests.csproj`
@@ -70,14 +70,16 @@ Useful frontend commands, run from `aura-ui/`:
 npm ci
 npm run lint
 npm run test:run
+npm run test:startup
 npm run build
 ```
 
-Backend validation uses the .NET CLI, for example:
+Backend validation uses the .NET CLI, from the repository root:
 
 ```bash
 dotnet test AuraLogbook.sln
 dotnet build AuraLogbook.sln
+node --test Scripts/dev.test.mjs
 ```
 
 ## External runtime services
@@ -98,8 +100,8 @@ The project currently uses this service for personal development. Before public 
 
 ## Configuration and data
 
-- Backend settings are loaded from `AuraLogbook.Api/appsettings.json`, environment-specific settings, environment variables, and .NET user secrets where configured.
-- Frontend API base URL is configured with `VITE_API_BASE_URL` (see the root README).
+- Backend settings are loaded from `AuraLogbook.Api/appsettings.json`, environment-specific settings, environment variables, and .NET user secrets. The API project uses the user-secrets ID `AuraLogbook.Api`; configure private signing keys outside source control. See the [API README](AuraLogbook.Api/README.md).
+- Frontend API base URL is configured with `VITE_API_BASE_URL`. Vite uses port 58407; the combined launcher defaults the API to port 5082 and aligns the UI URL. See the [root README](README.md) and [UI README](aura-ui/README.md).
 - The current repositories persist user, mood, and zodiac insight data in JSON files. Treat those files as application data, not package dependencies.
 
 ## Maintenance notes
