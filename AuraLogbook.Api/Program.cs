@@ -1,10 +1,10 @@
 using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Configuration;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,7 +44,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddCors();
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");
+var jwtSettings = JwtSettings.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,10 +60,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+            jwtSettings.SigningKeyBytes)
     };
 });
 
