@@ -1,68 +1,47 @@
-# Aura UI ✨
+# Aura Logbook UI
 
-This is the frontend UI for the **Aura Logbook** project — a mood tracking application that interfaces with the AuraLogbook API.
+React and TypeScript frontend for Aura Logbook, built with Vite. It provides account registration and login, profile setup, mood logging/history, dashboard summaries, and current weather.
 
-Built with:
-- [React](https://reactjs.org/)
-- [Vite](https://vitejs.dev/)
-- [MUI (Material UI)](https://mui.com/)
-- [Axios](https://axios-http.com/)
-- [TypeScript](https://www.typescriptlang.org/)
+## Run locally
 
-
----
-
-## 🚀 Getting Started
-
-### 1. Install Dependencies
+From the repository root, use the combined launcher (recommended):
 
 ```bash
-npm install
-```
-
-### 2. Start Development Server
-```bash
-Copy code
+npm ci --prefix aura-ui
 npm run dev
 ```
-The app will be served at http://localhost:5173 (or similar).
----
-## 🔧 Environment Variables
-Create a .env file in the root:
+
+The UI is served at `http://localhost:58407` and the API at `http://localhost:5082`. See the [root README](../README.md) for prerequisites, port overrides, troubleshooting, and smoke testing.
+
+To run the UI by itself:
+
+```bash
+cd aura-ui
+npm ci
+npm run dev
+```
+
+Vite uses the port in `vite.config.ts` (58407) and does not silently switch ports when that port is occupied.
+
+## API configuration
+
+The UI reads `VITE_API_BASE_URL` at build/start time. For a standalone Vite run, create an ignored `aura-ui/.env.local` file, for example:
+
 ```env
 VITE_API_BASE_URL=http://localhost:5082/api
 ```
-Use import.meta.env.VITE_API_BASE_URL inside your Axios config to dynamically read the backend URL.
----
-## 📁 Folder Structure
-```csharp
-aura-ui/
-├── public/             # Static assets
-├── src/                # Main frontend code
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Route-based views
-│   ├── services/       # API services (Axios)
-│   ├── hooks/          # Custom hooks
-│   └── App.tsx         # Root component
-├── .gitignore
-├── package.json
-└── vite.config.ts
+
+The combined launcher sets this value to the selected local API URL unless an exported `VITE_API_BASE_URL` overrides it; it warns and ignores a conflicting `.env.local` value for that combined run. Restart Vite after changing the URL. Do not put credentials in frontend environment variables; values prefixed with `VITE_` are exposed to the browser.
+
+## Checks
+
+Run from `aura-ui/`:
+
+```bash
+npm run lint
+npm run test:run
+npm run test:startup
+npm run build
 ```
----
-## 📌 To-Do
-[] Build Login & Register pages
 
-[] Add mood entry form
-
-[] Create Dashboard views for analytics (charts, stats)
-
-[] Protect routes with JWT authentication
----
-## 💡 Tips
-- Keep API token in localStorage or authContext
-- Use MUI’s ThemeProvider to manage dark/light mode
-- Style components with sx={{}} or styled() from Emotion
----
-## 🛠 Contributors
-Built by @GemsForge
----
+See [DEPENDENCIES.md](../DEPENDENCIES.md) for major UI dependencies and [the API README](../AuraLogbook.Api/README.md) for routes and backend configuration.
