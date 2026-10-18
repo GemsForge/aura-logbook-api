@@ -17,7 +17,7 @@ function configuredPort(value, fallback, name) {
 export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env } = {}) {
   const apiRoot = resolve(root, "AuraLogbook.Api");
   const uiRoot = resolve(root, "aura-ui");
-  const apiPort = configuredPort(env.AURA_API_PORT, 5081, "AURA_API_PORT");
+  const apiPort = configuredPort(env.AURA_API_PORT, 5082, "AURA_API_PORT");
   const uiPort = configuredPort(env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
   const uiEnv = { ...env };
   const localEnvPath = resolve(uiRoot, ".env.local");

@@ -34,7 +34,7 @@ test("service plan uses the HTTP launch profile and the configured development p
   assert.equal(plan[1].command, "npm");
   assert.deepEqual(plan[1].args, ["run", "dev", "--", "--host", "127.0.0.1", "--port", "58407", "--strictPort"]);
   assert.equal(plan[1].cwd, "/repo/aura-ui");
-  assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5081/api");
+  assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5082/api");
 });
 
 test("service plan supports alternate ports for parallel local instances", () => {

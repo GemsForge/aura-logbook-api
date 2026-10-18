@@ -30,7 +30,7 @@ The app will be served at http://localhost:5173 (or similar).
 ## 🔧 Environment Variables
 Create a .env file in the root:
 ```env
-VITE_API_BASE_URL=http://localhost:5081/api
+VITE_API_BASE_URL=http://localhost:5082/api
 ```
 Use import.meta.env.VITE_API_BASE_URL inside your Axios config to dynamically read the backend URL.
 ---

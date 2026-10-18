@@ -37,10 +37,10 @@ The launcher starts the API with its `http` Development profile and the Vite UI,
 Expected local URLs:
 
 - UI: http://localhost:58407 (configured in `aura-ui/vite.config.ts`)
-- API: http://localhost:5081/api
-- API Swagger: http://localhost:5081/swagger
+- API: http://localhost:5082/api
+- API Swagger: http://localhost:5082/swagger
 
-The launcher defaults the UI's `VITE_API_BASE_URL` to `http://localhost:5081/api`. An exported `VITE_API_BASE_URL` or a value in `aura-ui/.env.local` takes precedence. Keep `.env.local` local; it is ignored by Git.
+The launcher defaults the UI's `VITE_API_BASE_URL` to `http://localhost:5082/api`. An exported `VITE_API_BASE_URL` or a value in `aura-ui/.env.local` takes precedence. Keep `.env.local` local; it is ignored by Git.
 
 For another local instance, set `AURA_API_PORT` and/or `AURA_UI_PORT` before running the launcher; the API URL defaults to the selected API port. An explicit `VITE_API_BASE_URL` still takes precedence.
 
@@ -50,10 +50,10 @@ Troubleshooting:
 
 - If startup reports that a port is already in use, stop the existing service yourself, then retry. The launcher uses Vite's strict-port option and does not kill unrelated processes.
 - If UI startup reports missing packages, run `npm ci` in `aura-ui/`.
-- If the UI cannot reach the API, confirm the API is listening on port 5081 and that `VITE_API_BASE_URL` points to `http://localhost:5081/api`; restart Vite after changing the value.
+- If the UI cannot reach the API, confirm the API is listening on port 5082 and that `VITE_API_BASE_URL` points to `http://localhost:5082/api`; restart Vite after changing the value.
 - If either child exits unexpectedly, the launcher stops its sibling and returns a nonzero exit status. Check the prefixed service output for the first failure.
 
-Manual smoke test: run the root command, open the UI and Swagger URLs above, confirm the UI can make an API request, press Ctrl+C in the launcher terminal, then verify neither port 5081 nor 58407 is still listening.
+Manual smoke test: run the root command, open the UI and Swagger URLs above, confirm the UI can make an API request, press Ctrl+C in the launcher terminal, then verify neither port 5082 nor 58407 is still listening.
 
 The launcher tests can be run from the repository root with `node --test Scripts/dev.test.mjs`.
 
@@ -74,8 +74,8 @@ dotnet restore
 ```
 dotnet run --launch-profile http
 ```
-The API is available at: http://localhost:5081/api  
-Swagger is enabled at: http://localhost:5081/swagger
+The API is available at: http://localhost:5082/api
+Swagger is enabled at: http://localhost:5082/swagger
 
 Uses file-based JSON storage for Users & MoodEntries (configurable in appsettings.json)
 
@@ -110,7 +110,7 @@ npm run dev
 # 📁 Environment Configuration
 `.env.local` for React (`aura-ui/.env.local`)
 ```env
-VITE_API_BASE_URL=http://localhost:5081/api
+VITE_API_BASE_URL=http://localhost:5082/api
 ```
 appsettings.json for API (AuraLogbook.Api/appsettings.json)
 ```json
