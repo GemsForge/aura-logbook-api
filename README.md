@@ -27,8 +27,10 @@ AuraLogbook/
 From the repository root, run:
 
 ```bash
-node Scripts/dev.mjs
+npm run dev
 ```
+
+This root npm script is a cross-platform alias for `node Scripts/dev.mjs`.
 
 The launcher starts the API with its `http` Development profile and the Vite UI, prefixes their output with `[API]` and `[UI]`, and stops the sibling service if either process exits or fails to start. Press **Ctrl+C** to stop both. On Windows, it uses `taskkill` to stop each child-process tree.
 

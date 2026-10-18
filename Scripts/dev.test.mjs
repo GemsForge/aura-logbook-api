@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
 import { createServicePlan, runDevelopment, terminateProcessTree } from "./dev.mjs";
+
+test("root npm dev alias runs the combined development launcher", () => {
+  const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+
+  assert.equal(packageJson.scripts.dev, "node Scripts/dev.mjs");
+});
 
 class FakeChild extends EventEmitter {
   constructor(pid) {
