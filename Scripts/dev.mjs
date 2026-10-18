@@ -14,19 +14,22 @@ function configuredPort(value, fallback, name) {
   return port;
 }
 
+function localApiBaseUrl(path) {
+  if (!existsSync(path)) return undefined;
+  const match = readFileSync(path, "utf8").match(/^\s*VITE_API_BASE_URL\s*=\s*(.*?)\s*$/m);
+  if (!match) return undefined;
+  return match[1].replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
+}
+
 export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env } = {}) {
   const apiRoot = resolve(root, "AuraLogbook.Api");
   const uiRoot = resolve(root, "aura-ui");
   const apiPort = configuredPort(env.AURA_API_PORT, 5082, "AURA_API_PORT");
   const uiPort = configuredPort(env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
   const uiEnv = { ...env };
-  const localEnvPath = resolve(uiRoot, ".env.local");
-  const localApiUrlConfigured = existsSync(localEnvPath)
-    && /^\s*VITE_API_BASE_URL\s*=\s*\S+/m.test(readFileSync(localEnvPath, "utf8"));
-
-  if (!uiEnv.VITE_API_BASE_URL && !localApiUrlConfigured) {
-    uiEnv.VITE_API_BASE_URL = `http://localhost:${apiPort}/api`;
-  }
+  const localApiUrl = localApiBaseUrl(resolve(uiRoot, ".env.local"));
+  const defaultApiUrl = `http://localhost:${apiPort}/api`;
+  uiEnv.VITE_API_BASE_URL = env.VITE_API_BASE_URL || defaultApiUrl;
 
   const apiArgs = ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http"];
   if (env.AURA_API_PORT) apiArgs.push("--", "--urls", `http://localhost:${apiPort}`);
@@ -45,6 +48,9 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       args: ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(uiPort), "--strictPort"],
       cwd: uiRoot,
       env: uiEnv,
+      notice: !env.VITE_API_BASE_URL && localApiUrl && localApiUrl !== defaultApiUrl
+        ? `Ignoring aura-ui/.env.local VITE_API_BASE_URL=${localApiUrl} for the combined launch; targeting ${defaultApiUrl}. Export VITE_API_BASE_URL to override.`
+        : undefined,
     },
   ];
 }
@@ -168,6 +174,7 @@ export function runDevelopment({
 
   try {
     for (const service of plan) {
+      if (service.notice) log(`[${service.name}] ${service.notice}`);
       const child = spawnProcess(service.command, service.args, {
         cwd: service.cwd,
         env: service.env,

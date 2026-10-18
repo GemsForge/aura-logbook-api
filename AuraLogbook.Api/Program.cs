@@ -97,7 +97,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (HttpsRedirectionPolicy.ShouldApply(app.Environment.IsDevelopment(), app.Urls))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization(); // Required for JWT later
