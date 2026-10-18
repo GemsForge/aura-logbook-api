@@ -14,11 +14,11 @@ import { getAuraJoyTheme, getAuraTheme } from "./theme";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ToastProvider } from "./hooks/useToast";
-import { useGetCurrentUserQuery } from "./store/authApi";
+import { useCurrentUserQuery } from "./store/hooks/useCurrentUserQuery";
 
 function ThemedApp() {
  
-  const { data: user, isLoading } = useGetCurrentUserQuery();
+  const { data: user, isLoading } = useCurrentUserQuery();
   
   const auraColor     = user?.auraColor     ?? "blue";
  const auraIntensity = user?.auraIntensity ?? 500;

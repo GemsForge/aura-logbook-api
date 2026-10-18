@@ -110,6 +110,7 @@ public class AuthController : ControllerBase
         return Ok(dto);
     }
 
+    [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
