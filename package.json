@@ -1,0 +1,7 @@
+{
+  "name": "aura-logbook",
+  "private": true,
+  "scripts": {
+    "dev": "node Scripts/dev.mjs"
+  }
+}
