@@ -38,6 +38,34 @@ public sealed class RelationalRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task User_birthday_round_trips_for_insert_update_and_missing_value()
+    {
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new("fr-FR");
+            var repository = new SqliteUserRepository(_factory);
+            var user = new User { Email = "birthday@example.com", PasswordHash = "hash", Birthday = new DateOnly(2000, 2, 29), AuraIntensity = 50 };
+            user.Id = await repository.CreateAsync(user);
+            Assert.Equal(user.Birthday, (await repository.GetByIdAsync(user.Id))!.Birthday);
+            using var connection = _factory.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT Birthday FROM Users WHERE Id = $id";
+            command.Parameters.AddWithValue("$id", user.Id);
+            Assert.Equal("2000-02-29", command.ExecuteScalar());
+            user.Birthday = new DateOnly(1995, 12, 31);
+            Assert.True(await repository.UpdateAsync(user));
+            Assert.Equal(user.Birthday, (await repository.GetByIdAsync(user.Id))!.Birthday);
+            Assert.Equal("1995-12-31", command.ExecuteScalar());
+            user.Birthday = default;
+            Assert.True(await repository.UpdateAsync(user));
+            Assert.Equal(DBNull.Value, command.ExecuteScalar());
+            Assert.Equal(default, (await repository.GetByIdAsync(user.Id))!.Birthday);
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = previousCulture; }
+    }
+
+    [Fact]
     public async Task Mood_repository_persists_and_reads_mood_pairs()
     {
         var repository = new SqliteMoodRepository(_factory);

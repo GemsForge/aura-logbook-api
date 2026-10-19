@@ -172,9 +172,9 @@ public class UserService : IUserService
                 : request.DisplayName,
             CreatedAt = DateTime.UtcNow.ToString(),
             Birthday = request.Birthday,
-            ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday),
+            ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday).ToLowerInvariant(),
             AuraColor = request.AuraColor ?? "blue",
-            AuraIntensity = request.AuraIntensity ?? 500,
+            AuraIntensity = request.AuraIntensity ?? 50,
             SelectedPathway = request.SelectedPathway
             // ProfilePictureBlob = request.ProfilePictureBlob
         };
