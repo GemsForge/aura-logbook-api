@@ -42,6 +42,30 @@ public sealed class DatabaseMigrationTests
         Assert.Equal(1L, foreignKeys.ExecuteScalar());
     }
 
+    [Fact]
+    public void Reference_constraints_reject_duplicate_insight_types()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations"), "*.sql").OrderBy(x => x))
+            Execute(connection, File.ReadAllText(file));
+
+        Execute(connection, "INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','boldAction','First','One.');");
+        Assert.Throws<SqliteException>(() => Execute(connection, "INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','boldAction','Duplicate','Two.');"));
+    }
+
+    [Fact]
+    public void User_reference_foreign_keys_reject_unknown_reference_values()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        Execute(connection, "PRAGMA foreign_keys = ON;");
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations"), "*.sql").OrderBy(x => x))
+            Execute(connection, File.ReadAllText(file));
+
+        Assert.Throws<SqliteException>(() => Execute(connection, "INSERT INTO Users (Email, PasswordHash, AuraColor, SelectedPathway, CreatedAt, UpdatedAt) VALUES ('invalid@example.com','hash','not-a-color',0,'now','now');"));
+    }
+
     private static void Execute(SqliteConnection connection, string sql)
     {
         using var command = connection.CreateCommand();
