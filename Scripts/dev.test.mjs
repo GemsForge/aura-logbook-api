@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createServicePlan, runDevelopment, terminateProcessTree } from "./dev.mjs";
+import { createServicePlan, resolveApiEnvironment, runDevelopment, terminateProcessTree } from "./dev.mjs";
 
 test("root npm dev alias runs the combined development launcher", () => {
   const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -35,6 +35,19 @@ test("service plan uses the HTTP launch profile and the configured development p
   assert.deepEqual(plan[1].args, ["run", "dev", "--", "--host", "127.0.0.1", "--port", "58407", "--strictPort"]);
   assert.equal(plan[1].cwd, "/repo/aura-ui");
   assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5082/api");
+});
+
+test("environment aliases resolve to the API configuration names", () => {
+  assert.equal(resolveApiEnvironment("DEV"), "Development");
+  assert.equal(resolveApiEnvironment("fit"), "Staging");
+  assert.equal(resolveApiEnvironment("PRO"), "Production");
+  assert.equal(resolveApiEnvironment("Custom"), "Custom");
+});
+
+test("service plan passes the resolved environment to the API", () => {
+  const plan = createServicePlan({ root: "/repo", platform: "linux", env: { AURA_ENV: "FIT" } });
+
+  assert.equal(plan[0].env.ASPNETCORE_ENVIRONMENT, "Staging");
 });
 
 test("service plan supports alternate ports for parallel local instances", () => {
