@@ -50,7 +50,7 @@ public sealed class DatabaseMigrationTests
         foreach (var file in Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations"), "*.sql").OrderBy(x => x))
             Execute(connection, File.ReadAllText(file));
 
-        Execute(connection, "INSERT INTO ZodiacSigns (SignKey, Description, Element) VALUES ('aries','Bold','fire'); INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','boldAction','First','One.');");
+        Execute(connection, "INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','boldAction','First','One.');");
         Assert.Throws<SqliteException>(() => Execute(connection, "INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','boldAction','Duplicate','Two.');"));
     }
 
