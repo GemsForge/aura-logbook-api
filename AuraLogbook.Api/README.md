@@ -38,7 +38,13 @@ Controllers use the `/api` prefix. Key routes include:
 | Auth | `POST /api/Auth/register`, `POST /api/Auth/login`, `GET /api/Auth/me`, `PUT /api/Auth/update`, `GET /api/Auth/all` | Register and login are public; the other listed routes require a bearer token. |
 | Mood | `GET/POST /api/Mood`, `GET/PUT/DELETE /api/Mood/{id}`, `GET /api/Mood/dashboard/summary`, `GET /api/Mood/dashboard/moods-by-date`, `GET /api/Mood/dashboard/mood-breakdown` | Bearer token required. |
 | Insights | `GET /api/insights/zodiac` | Expects a token-derived user ID claim. |
+| Reflections | `GET /api/reflections/prompts`, `GET/POST /api/reflections/responses`, `GET /api/reflections/responses/{id}` | Bearer token required. Responses are restricted to the authenticated user's mood entries and data. |
 | Weather | `GET /api/Weather/current` | Public; accept `lat` + `lon`, or `city` with optional `state` and `country`. |
+
+Reflection prompts may be filtered by `pathwayKey`, `auraColorKey`, and
+`chakraKey`. When a context filter is supplied, matching prompts and prompts
+with no pathway/aura/chakra restriction are returned. A response must reference
+an active prompt and a mood entry owned by the authenticated user.
 
 Use Swagger for the complete current route list and request/response schemas. Authenticated routes accept `Authorization: Bearer <token>`; login returns the JWT.
 

@@ -84,6 +84,7 @@ else
     builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
     builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
 }
+builder.Services.AddScoped<IReflectionRepository, SqliteReflectionRepository>();
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
     builder.Services.AddScoped<IFileZodiacInsightsRepository, SqliteZodiacInsightsRepository>();
 else
