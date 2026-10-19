@@ -19,18 +19,38 @@ await using (var pragma = connection.CreateCommand())
     await pragma.ExecuteNonQueryAsync();
 }
 
-var migrationPath = Path.GetFullPath(options.GetValueOrDefault("migration", "AuraLogbook.Api/Data/Database/Migrations/001_initial_schema.sql"));
-if (!File.Exists(migrationPath)) throw new FileNotFoundException("Initial schema migration was not found.", migrationPath);
-await using (var schema = connection.CreateCommand())
+var migrationDirectory = Path.GetFullPath(options.GetValueOrDefault("migration", "AuraLogbook.Api/Data/Database/Migrations"));
+if (File.Exists(migrationDirectory)) migrationDirectory = Path.GetDirectoryName(migrationDirectory)!;
+if (!Directory.Exists(migrationDirectory)) throw new DirectoryNotFoundException($"Migration directory was not found: {migrationDirectory}");
+await using (var history = connection.CreateCommand())
 {
+    history.CommandText = "CREATE TABLE IF NOT EXISTS __SchemaMigrations (MigrationName TEXT NOT NULL PRIMARY KEY, AppliedAt TEXT NOT NULL);";
+    await history.ExecuteNonQueryAsync();
+}
+foreach (var migrationPath in Directory.EnumerateFiles(migrationDirectory, "*.sql").OrderBy(path => path))
+{
+    var migrationName = Path.GetFileName(migrationPath);
+    await using (var applied = connection.CreateCommand())
+    {
+        applied.CommandText = "SELECT EXISTS (SELECT 1 FROM __SchemaMigrations WHERE MigrationName = $name);";
+        applied.Parameters.AddWithValue("$name", migrationName);
+        if (Convert.ToInt32(await applied.ExecuteScalarAsync()) == 1) continue;
+    }
+    await using var schema = connection.CreateCommand();
     schema.CommandText = await File.ReadAllTextAsync(migrationPath);
     await schema.ExecuteNonQueryAsync();
+    await using var record = connection.CreateCommand();
+    record.CommandText = "INSERT INTO __SchemaMigrations (MigrationName, AppliedAt) VALUES ($name, $appliedAt);";
+    record.Parameters.AddWithValue("$name", migrationName);
+    record.Parameters.AddWithValue("$appliedAt", DateTime.UtcNow.ToString("O"));
+    await record.ExecuteNonQueryAsync();
 }
 
 var json = await File.ReadAllTextAsync(inputPath);
 var users = JsonSerializer.Deserialize<List<LegacyUser>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
 var failures = new List<string>();
 var imported = 0;
+var userIdMap = new Dictionary<int, int>();
 
 await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync();
 foreach (var user in users)
@@ -73,6 +93,10 @@ foreach (var user in users)
     command.Parameters.AddWithValue("$createdAt", createdAt.ToString("O"));
     command.Parameters.AddWithValue("$updatedAt", updatedAt.ToString("O"));
     await command.ExecuteNonQueryAsync();
+    await using var canonical = connection.CreateCommand();
+    canonical.CommandText = "SELECT Id FROM Users WHERE Email = $email;";
+    canonical.Parameters.AddWithValue("$email", user.Email.Trim());
+    userIdMap[user.Id] = Convert.ToInt32(await canonical.ExecuteScalarAsync());
     imported++;
 }
 
@@ -87,7 +111,8 @@ if (failures.Count > 0)
 await transaction.CommitAsync();
 var moodsPath = Path.GetFullPath(options.GetValueOrDefault("moods", "AuraLogbook.Api/Data/moods.json"));
 var zodiacPath = Path.GetFullPath(options.GetValueOrDefault("zodiac", "AuraLogbook.Api/Data/zodiacInsights.json"));
-var moodCount = await SeedMoodsAsync(connection, moodsPath);
+var moodCount = await SeedMoodsAsync(connection, moodsPath, userIdMap);
+await SeedReferenceDataAsync(connection);
 var zodiacCount = await SeedZodiacAsync(connection, zodiacPath);
 var reportPath = Path.GetFullPath(options.GetValueOrDefault("report", "AuraLogbook.Api/Data/seed-reconciliation.json"));
 var report = new
@@ -113,7 +138,7 @@ static async Task<int> CountAsync(SqliteConnection connection, string table)
     return Convert.ToInt32(await command.ExecuteScalarAsync());
 }
 
-static async Task<int> SeedMoodsAsync(SqliteConnection connection, string path)
+static async Task<int> SeedMoodsAsync(SqliteConnection connection, string path, IReadOnlyDictionary<int, int> userIdMap)
 {
     var entries = JsonSerializer.Deserialize<List<LegacyMood>>(await File.ReadAllTextAsync(path), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
     await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync();
@@ -136,7 +161,7 @@ static async Task<int> SeedMoodsAsync(SqliteConnection connection, string path)
             ON CONFLICT(Id) DO UPDATE SET UserId=excluded.UserId, EntryDate=excluded.EntryDate, Comment=excluded.Comment, CreatedAt=excluded.CreatedAt, UpdatedAt=excluded.UpdatedAt;
             """;
         command.Parameters.AddWithValue("$id", entry.Id);
-        command.Parameters.AddWithValue("$userId", entry.UserId);
+        command.Parameters.AddWithValue("$userId", userIdMap.GetValueOrDefault(entry.UserId, entry.UserId));
         command.Parameters.AddWithValue("$date", entry.Date);
         command.Parameters.AddWithValue("$comment", (object?)entry.Comment ?? DBNull.Value);
         command.Parameters.AddWithValue("$createdAt", entry.CreatedAt ?? DateTime.UtcNow.ToString("O"));
@@ -155,6 +180,48 @@ static async Task<int> SeedMoodsAsync(SqliteConnection connection, string path)
     }
     await transaction.CommitAsync();
     return entries.Count;
+}
+
+static async Task SeedReferenceDataAsync(SqliteConnection connection)
+{
+    var chakras = new[]
+    {
+        ("root", "Root", "Grounding, safety, and stability."),
+        ("sacral", "Sacral", "Creativity, vitality, and emotional flow."),
+        ("solar_plexus", "Solar Plexus", "Confidence, agency, and motivation."),
+        ("heart", "Heart", "Compassion, balance, and connection."),
+        ("throat", "Throat", "Communication, expression, and clarity."),
+        ("third_eye", "Third Eye", "Intuition, insight, and perception."),
+        ("crown", "Crown", "Meaning, spirituality, and higher reflection.")
+    };
+    foreach (var (key, name, description) in chakras)
+        await ExecuteReferenceAsync(connection, "INSERT INTO ChakraDefinitions (ChakraKey, DisplayName, Description) VALUES ($key,$name,$description) ON CONFLICT(ChakraKey) DO UPDATE SET DisplayName=excluded.DisplayName, Description=excluded.Description;", new() { ["$key"] = key, ["$name"] = name, ["$description"] = description });
+
+    var colors = new[]
+    {
+        ("red", "Red", "#f44336", "root", 0), ("orange", "Orange", "#ff9800", "sacral", 0),
+        ("yellow", "Yellow", "#ffeb3b", "solar_plexus", 0), ("green", "Green", "#4caf50", "heart", 0),
+        ("blue", "Blue", "#2196f3", "throat", 0), ("indigo", "Indigo", "#3f51b5", "third_eye", 0),
+        ("violet", "Violet", "#9c27b0", "crown", 0), ("gray", "Gray", "#9e9e9e", "root", 1),
+        ("pink", "Pink", "#e91e63", "heart", 0)
+    };
+    foreach (var (key, name, hex, chakra, neutral) in colors)
+        await ExecuteReferenceAsync(connection, "INSERT INTO AuraColorDefinitions (AuraColorKey, DisplayName, Description, ChakraKey, BaseHex, IsNeutral) VALUES ($key,$name,$description,$chakra,$hex,$neutral) ON CONFLICT(AuraColorKey) DO UPDATE SET DisplayName=excluded.DisplayName, Description=excluded.Description, ChakraKey=excluded.ChakraKey, BaseHex=excluded.BaseHex, IsNeutral=excluded.IsNeutral;", new() { ["$key"] = key, ["$name"] = name, ["$description"] = $"{name} reflective energy.", ["$chakra"] = chakra, ["$hex"] = hex, ["$neutral"] = neutral });
+
+    var pathways = new[] { (0, "Mindful Living", "Calm, clarity, and self-awareness."), (1, "Astrology & Energy", "Zodiac, chakras, and energy reflection."), (2, "Faith & Religion", "Faith-guided reflection and gratitude.") };
+    foreach (var (key, name, description) in pathways)
+        await ExecuteReferenceAsync(connection, "INSERT INTO SpiritualPathways (PathwayKey, DisplayName, Description) VALUES ($key,$name,$description) ON CONFLICT(PathwayKey) DO UPDATE SET DisplayName=excluded.DisplayName, Description=excluded.Description;", new() { ["$key"] = key, ["$name"] = name, ["$description"] = description });
+
+    var mappings = new[] { ("Empowered", "yellow"), ("Centered", "yellow"), ("Harmonious", "blue"), ("Flowing", "orange"), ("Weary", "gray"), ("Tense", "red"), ("Frustrated", "red"), ("Restless", "indigo"), ("Disconnected", "indigo"), ("Heavy", "blue"), ("Charged", "red"), ("Scattered", "violet"), ("Abundant", "green"), ("Visionary", "pink"), ("Neutral", "gray") };
+    foreach (var (mood, color) in mappings)
+        await ExecuteReferenceAsync(connection, "INSERT INTO MoodAuraMappings (MoodKey, AuraColorKey) VALUES ($mood,$color) ON CONFLICT DO NOTHING;", new() { ["$mood"] = mood, ["$color"] = color });
+}
+
+static async Task ExecuteReferenceAsync(SqliteConnection connection, string sql, Dictionary<string, object> parameters)
+{
+    await using var command = connection.CreateCommand(); command.CommandText = sql;
+    foreach (var parameter in parameters) command.Parameters.AddWithValue(parameter.Key, parameter.Value);
+    await command.ExecuteNonQueryAsync();
 }
 
 static async Task<int> SeedZodiacAsync(SqliteConnection connection, string path)

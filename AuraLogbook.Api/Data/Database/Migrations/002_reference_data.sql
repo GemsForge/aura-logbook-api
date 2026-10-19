@@ -1,0 +1,11 @@
+ALTER TABLE AuraColorDefinitions ADD COLUMN BaseHex TEXT NOT NULL DEFAULT '#9e9e9e';
+ALTER TABLE AuraColorDefinitions ADD COLUMN IsNeutral INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE AuraColorDefinitions ADD COLUMN IsActive INTEGER NOT NULL DEFAULT 1;
+
+CREATE TABLE IF NOT EXISTS MoodAuraMappings (
+    MoodKey TEXT NOT NULL,
+    AuraColorKey TEXT NOT NULL,
+    PRIMARY KEY (MoodKey, AuraColorKey),
+    FOREIGN KEY (MoodKey) REFERENCES MoodDefinitions(MoodKey) ON DELETE CASCADE,
+    FOREIGN KEY (AuraColorKey) REFERENCES AuraColorDefinitions(AuraColorKey) ON DELETE CASCADE
+);
