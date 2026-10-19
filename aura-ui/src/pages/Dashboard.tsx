@@ -61,8 +61,12 @@ export default function Dashboard() {
   const totalEntries = summary?.totalEntries ?? 0;
   const mostFrequent = summary?.mostFrequentMood ?? "";
   const currentStreak = summary?.currentStreak ?? 0;
-  const lastEntryDate =
-    dayjs(summary?.lastEntryDate).format("MMMM D, YYYY") ?? "-";
+  const parsedLastEntryDate = summary?.lastEntryDate
+    ? dayjs(summary.lastEntryDate)
+    : null;
+  const lastEntryDate = parsedLastEntryDate?.isValid()
+    ? parsedLastEntryDate.format("MMMM D, YYYY")
+    : "No entries yet";
 
   return (
     <Box maxWidth="md" mx="auto" mt={4}>
