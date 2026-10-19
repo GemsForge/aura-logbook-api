@@ -50,6 +50,29 @@ public sealed class RelationalRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Mood_repository_isolates_entries_by_user_and_supports_crud()
+    {
+        var repository = new SqliteMoodRepository(_factory);
+        var ownId = await repository.CreateAsync(new MoodEntry { UserId = 7, Date = new DateOnly(2026, 10, 18), Moods = [MoodType.Centered] });
+        await repository.CreateAsync(new MoodEntry { UserId = 8, Date = new DateOnly(2026, 10, 18), Moods = [MoodType.Weary] });
+
+        var ownEntries = await repository.GetAllByUserAsync(7);
+        Assert.Single(ownEntries);
+        Assert.Equal(ownId, ownEntries[0].Id);
+
+        var updated = ownEntries[0];
+        updated.Comment = "Updated";
+        updated.Moods = [MoodType.Harmonious];
+        Assert.True(await repository.UpdateAsync(updated));
+
+        var changed = await repository.GetByIdAsync(ownId);
+        Assert.Equal("Updated", changed?.Comment);
+        Assert.Equal([MoodType.Harmonious], changed?.Moods);
+        Assert.True(await repository.DeleteAsync(ownId));
+        Assert.Null(await repository.GetByIdAsync(ownId));
+    }
+
+    [Fact]
     public async Task Zodiac_repository_reads_seeded_insight()
     {
         using var command = _factory.CreateConnection().CreateCommand();
@@ -65,7 +88,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     private void SeedReferenceData()
     {
         using var connection = _factory.CreateConnection();
-        connection.ExecuteNonQuery("INSERT INTO Users (Id,Email,PasswordHash,DisplayName,AuraColor,AuraIntensity,SelectedPathway,CreatedAt,UpdatedAt) VALUES (7,'test@example.com','hash','Test User','blue',50,0,'2026-10-19T00:00:00Z','2026-10-19T00:00:00Z'); INSERT INTO MoodDefinitions (MoodKey,DisplayName) VALUES ('Centered','Centered'),('Harmonious','Harmonious');");
+        connection.ExecuteNonQuery("INSERT INTO Users (Id,Email,PasswordHash,DisplayName,AuraColor,AuraIntensity,SelectedPathway,CreatedAt,UpdatedAt) VALUES (7,'test@example.com','hash','Test User','blue',50,0,'2026-10-19T00:00:00Z','2026-10-19T00:00:00Z'),(8,'other@example.com','hash','Other User','red',50,0,'2026-10-19T00:00:00Z','2026-10-19T00:00:00Z'); INSERT INTO MoodDefinitions (MoodKey,DisplayName) VALUES ('Centered','Centered'),('Harmonious','Harmonious'),('Weary','Weary');");
     }
 
     public void Dispose()
