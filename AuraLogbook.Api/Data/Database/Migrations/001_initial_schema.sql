@@ -20,6 +20,26 @@ CREATE TABLE IF NOT EXISTS MoodDefinitions (
     IsActive INTEGER NOT NULL DEFAULT 1
 );
 
+CREATE TABLE IF NOT EXISTS AuraColorDefinitions (
+    AuraColorKey TEXT PRIMARY KEY,
+    DisplayName TEXT NOT NULL,
+    ChakraKey TEXT,
+    Description TEXT NOT NULL,
+    FOREIGN KEY (ChakraKey) REFERENCES ChakraDefinitions(ChakraKey)
+);
+
+CREATE TABLE IF NOT EXISTS ChakraDefinitions (
+    ChakraKey TEXT PRIMARY KEY,
+    DisplayName TEXT NOT NULL,
+    Description TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS SpiritualPathways (
+    PathwayKey INTEGER PRIMARY KEY,
+    DisplayName TEXT NOT NULL UNIQUE,
+    Description TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS MoodEntries (
     Id INTEGER PRIMARY KEY,
     UserId INTEGER NOT NULL,

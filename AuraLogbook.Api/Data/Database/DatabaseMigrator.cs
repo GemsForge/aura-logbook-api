@@ -8,6 +8,7 @@ public sealed class DatabaseMigrator
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<DatabaseMigrator> _logger;
 
+    /// <summary>Initializes a migrator that discovers SQL migrations in the application data directory.</summary>
     public DatabaseMigrator(
         IDbConnectionFactory connectionFactory,
         IWebHostEnvironment environment,
@@ -18,6 +19,7 @@ public sealed class DatabaseMigrator
         _logger = logger;
     }
 
+    /// <summary>Applies pending migrations in filename order and records each successful migration.</summary>
     public void ApplyMigrations()
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -75,5 +77,3 @@ public sealed class DatabaseMigrator
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
 }
-    /// <summary>Initializes a migrator that discovers SQL migrations in the application data directory.</summary>
-    /// <summary>Applies pending migrations in filename order and records each successful migration.</summary>
