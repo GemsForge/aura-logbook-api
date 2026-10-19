@@ -1,13 +1,13 @@
 # Prism Garden visual system
 
-Prism Garden is Aura Logbook's calm, jewel-toned visual language. It uses a quiet garden-like foundation with small facets of rainbow color: distinctive enough to feel personal, while the abstract gems remain visual metaphors rather than spiritual instructions. It welcomes people using Aura/color reflection, mindfulness, or their own faith and spiritual practice.
+Prism Garden is Aura Logbook's warm, tactile visual language. Its primary feeling is a peaceful spa: soft stone, linen, warm light, and generous breathing room. Jewel hues remain a small, personal accent—not the whole interface—and the abstract prism mark is a visual metaphor rather than a spiritual instruction. The system welcomes people using Aura/color reflection, mindfulness, or their own faith and spiritual practice.
 
 This is a design system proposal for the web UI and future SwiftUI shell. It does not claim that the current application already implements these rules.
 
 ## Design principles
 
-1. **Calm first, color as a facet.** Keep most surfaces neutral; reserve saturated hues for meaningful accents, charts, selected states, and small decorative details.
-2. **A garden, not a crystal shop.** Pair simple faceted shapes with soft botanical curves or light. Avoid ritual objects, crystal-effect claims, or tradition-specific symbols.
+1. **Spa-like warmth and texture.** Build the atmosphere from warm neutrals, soft material cues, natural light, and whitespace—not from extra UI decoration.
+2. **Jewel hues, used sparingly.** Keep berry, orchid, and turquoise to small markers, chart series, and a tiny prism emblem. Do not make large rainbow panels or oversized gemstones the visual foundation.
 3. **Reflection belongs to the user.** Aura and chakra language stays optional and interpretive. Use user-selected data and clearly label suggestions; do not imply diagnosis or unseen analysis.
 4. **Color is never the only signal.** Pair hue with text, shape, icon, position, or a visible label.
 5. **Simple to build and carry.** Prefer design tokens, platform-native typography, and standard layout primitives over custom animation or JavaScript-driven styling.
@@ -18,42 +18,44 @@ These values are starting tokens, not mood meanings. Aura colors recorded in a j
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `garden.canvas` | `#F8F7F5` | App background; warm, low-contrast neutral |
-| `garden.surface` | `#FFFFFF` | Cards, sheets, and input surfaces |
-| `garden.surfaceSoft` | `#F1EDF3` | Quiet grouping, chips, and secondary panels |
-| `garden.ink` | `#29262D` | Primary text and headings |
-| `garden.inkMuted` | `#625D67` | Supporting text; retain readable contrast |
-| `garden.line` | `#DED8E2` | Dividers, outlines, and card borders |
-| `garden.focus` | `#375F9B` | Keyboard focus ring and high-priority interaction cue |
-| `prism.berry` | `#B84E68` | Warm accent, selected markers |
-| `prism.citrus` | `#B96A32` | Warm accent, small highlights |
-| `prism.sun` | `#8A6900` | Golden accent; never use pale yellow for text |
-| `prism.leaf` | `#39734F` | Green accent and positive-neutral data series |
-| `prism.tide` | `#356E89` | Blue accent and informational data series |
-| `prism.indigo` | `#545E9D` | Indigo accent and data series |
-| `prism.orchid` | `#76558E` | Violet accent and data series |
-| `prism.rose` | `#A94F78` | Pink accent and data series |
+| `garden.canvas` | `#F7F2EA` | Warm parchment app background |
+| `garden.surface` | `#FFFCF7` | Soft ivory cards and input surfaces |
+| `garden.surfaceSoft` | `#EDE5D9` | Oat-toned grouping and quiet secondary panels |
+| `garden.stone` | `#DED3C3` | Limestone and material illustration cue |
+| `garden.ink` | `#352D2C` | Warm charcoal primary text and headings |
+| `garden.inkMuted` | `#665D56` | Supporting text; retain readable contrast |
+| `garden.line` | `#D9CEC0` | Warm neutral dividers and outlines |
+| `garden.focus` | `#654A5D` | Keyboard focus ring and high-priority interaction cue |
+| `garden.sage` | `#87917B` | Quiet botanical accent |
+| `garden.rose` | `#C79A98` | Soft dusty-rose accent |
+| `garden.terracotta` | `#C87961` | Warm action accent, used selectively |
+| `garden.amber` | `#D39A4A` | Sunlit highlight; not for small text |
+| `garden.blueGray` | `#91A3AC` | Cool counterpoint for weather and data |
+| `prism.orchid` | `#815F7E` | Small optional jewel accent |
+| `prism.berry` | `#7F263F` | Small optional jewel accent |
+| `prism.turquoise` | `#2D7180` | Small optional jewel accent |
 
 ### CSS custom-property example
 
 ```css
 :root {
-  --garden-canvas: #f8f7f5;
-  --garden-surface: #ffffff;
-  --garden-surface-soft: #f1edf3;
-  --garden-ink: #29262d;
-  --garden-ink-muted: #625d67;
-  --garden-line: #ded8e2;
-  --garden-focus: #375f9b;
+  --garden-canvas: #f7f2ea;
+  --garden-surface: #fffcf7;
+  --garden-surface-soft: #ede5d9;
+  --garden-stone: #ded3c3;
+  --garden-ink: #352d2c;
+  --garden-ink-muted: #665d56;
+  --garden-line: #d9cec0;
+  --garden-focus: #654a5d;
+  --garden-sage: #87917b;
+  --garden-rose: #c79a98;
+  --garden-terracotta: #c87961;
+  --garden-amber: #d39a4a;
+  --garden-blue-gray: #91a3ac;
 
-  --prism-berry: #b84e68;
-  --prism-citrus: #b96a32;
-  --prism-sun: #8a6900;
-  --prism-leaf: #39734f;
-  --prism-tide: #356e89;
-  --prism-indigo: #545e9d;
-  --prism-orchid: #76558e;
-  --prism-rose: #a94f78;
+  --prism-orchid: #815f7e;
+  --prism-berry: #7f263f;
+  --prism-turquoise: #2d7180;
 
   --garden-space-1: 0.25rem;
   --garden-space-2: 0.5rem;
@@ -69,53 +71,32 @@ These values are starting tokens, not mood meanings. Aura colors recorded in a j
 
 For SwiftUI, map the same semantic names to `Color` and `CGFloat` constants. Keep token names semantic (`canvas`, `surface`, `ink`, `focus`) rather than embedding a specific component or framework in the name.
 
-## Type, layout, and surfaces
+## Type, layout, and tactile surfaces
 
-- Use the platform system sans-serif by default. Establish a clear hierarchy with page title, section title, body, and supporting text; avoid decorative display fonts for journal content.
+- Pair an understated editorial serif for large page titles with the platform system sans-serif for controls, labels, and body copy. Keep journal text highly readable and respect user text scaling.
 - Keep body text at a comfortable reading size (web target: 16 CSS px or larger) and line-height around 1.5. Let user text scaling work without clipping.
 - Use a 4 px spacing base and the token scale above. Prefer consistent whitespace over extra borders and nested cards.
-- Cards use a white surface, a subtle neutral border, and a 16 px corner radius. Use shadows sparingly; do not rely on shadow to distinguish interactive states.
+- Cards use a warm ivory surface, subtle warm border, and 16 px corner radius. Use material texture only in decorative backgrounds or illustrations—not under long text or controls. On the web, a flat color, fine border, and soft shadow are sufficient; in SwiftUI, use native materials sparingly.
 - Buttons and fields use a 10 px corner radius, visible labels, and clear hover/focus/disabled states. Focus uses a 2–3 px ring with offset, not color-only fill changes.
-- Facet motifs should be small, abstract, and optional. Use still shapes by default; if motion is later added, honor reduced-motion settings.
+- Keep the interface quiet and grounded. Use a tiny prism emblem or occasional faceted marker, not gem-shaped panels throughout. Avoid decorative foliage around content. Use still shapes by default; if motion is later added, honor reduced-motion settings.
 
 ## Color, data, and accessibility
 
-- Saturated prism colors are accents, not large page backgrounds. Keep the neutral canvas and surface dominant.
-- Use the named `prism.*` hues consistently in charts, but pair each series with a legend label and, where practical, a marker shape or direct value label.
+- Warm stone, oat, linen, and ivory tones dominate. Use muted sage, dusty rose, terracotta, amber, and blue-gray as gentle secondary colors; jewel hues are rare accents.
+- Keep charts legible and restrained. Use labeled series and direct values where practical; avoid turning the dashboard into a bright rainbow analytics wall.
 - Never encode a mood, status, or action solely through hue. Include text labels and accessible names.
 - Use `garden.ink` on `garden.canvas`/`garden.surface` and `garden.inkMuted` for supporting copy. Do not assume white text is readable on every prism accent; verify each foreground/background pairing before shipping.
 - Preserve visible keyboard focus, semantic headings, descriptive control labels, and responsive reflow at narrow widths and enlarged text.
 
-## Representative dashboard concept
+## Approved visual direction and representative concept
 
-This composition applies the tokens without asserting new functionality. It uses only existing dashboard information: a greeting, optional selected pathway, mood summary, last-entry date, current weather, and mood history/chart. If an item has no data, use a calm empty state rather than inventing a personalized interpretation.
+The selected direction is spa-inspired: tactile warmth and breathing room first, with jewel color as a quiet signature. The proposal below is a visual reference for composition and atmosphere, not a specification of current behavior or content. Its sample labels, mood choices, weather details, reflections, and location are illustrative placeholders and must not be treated as real product data.
 
-```text
-┌────────────────────────────────────────────────────────────┐
-│ Aura Logbook                                      Profile  │
-├────────────────────────────────────────────────────────────┤
-│ Good morning, Alex                                          │
-│ A quiet, open welcome; optional pathway appears as a label │
-│                                                            │
-│ ┌────────────────────────────┐ ┌─────────────────────────┐ │
-│ │ Your mood at a glance      │ │ Today's weather         │ │
-│ │  [labeled aura marker]     │ │ [simple weather art]    │ │
-│ │  Most frequent mood        │ │ temperature + location  │ │
-│ └────────────────────────────┘ └─────────────────────────┘ │
-│                                                            │
-│ Mood over time                              Last entry date │
-│ ┌────────────────────────────────────────────────────────┐ │
-│ │ labeled, accessible chart using restrained prism hues │ │
-│ └────────────────────────────────────────────────────────┘ │
-│                                                            │
-│ Recent entries                                             │
-│ date · mood label · optional user reflection               │
-└────────────────────────────────────────────────────────────┘
-```
+![Spa-inspired Prism Garden proposal for web and SwiftUI](assets/prism-garden-spa-direction.png)
 
-On small screens, stack the two summary cards, keep the chart full-width, and move navigation into the established compact navigation pattern. Do not shrink chart labels below comfortable reading size to preserve a desktop layout.
+Composition cues: a spacious daily reflection area is primary; weather and trend information stay secondary; recent entries remain quiet and readable. The companion phone view stacks content with native spacing. Keep any interpretation optional and user-led; never introduce fabricated personalized insights.
 
-The concept deliberately excludes fabricated “personalized insights.” Add one only when its data source and generation rule are implemented, and label interpretive content as optional reflection.
+For responsive use, stack secondary panels after the reflection area and preserve touch targets and comfortable reading sizes. Do not squeeze a desktop layout onto the phone.
 
 ## Implementation boundary
 
