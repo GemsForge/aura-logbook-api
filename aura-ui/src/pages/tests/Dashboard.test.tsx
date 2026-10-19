@@ -6,6 +6,15 @@ import {
 } from "../../test/testUtilities";
 import Dashboard from "../Dashboard";
 
+const dashboardSummary = vi.hoisted(() => ({
+  data: {
+    totalEntries: 12,
+    mostFrequentMood: "Calm",
+    currentStreak: 4,
+    lastEntryDate: "2025-06-18" as string | null,
+  },
+}));
+
 // This mocks useAppSelector
 vi.mock("../../store/hooks", async () => {
   const actual = await vi.importActual<typeof import("../../store/hooks")>(
@@ -40,12 +49,7 @@ vi.mock("../../store/authApi", async () => {
 vi.mock("../../store/moodApi", () => ({
   useGetDashboardSummaryQuery: () => ({
     isLoading: false,
-    data: {
-      totalEntries: 12,
-      mostFrequentMood: "Calm",
-      currentStreak: 4,
-      lastEntryDate: "2025-06-18",
-    },
+    data: dashboardSummary.data,
   }),
   useGetMoodBreakdownQuery: () => ({
     isLoading: false,
@@ -132,8 +136,23 @@ describe("Dashboard", () => {
     expect(screen.getByText(/current streak/i)).toBeInTheDocument();
     expect(screen.getByText(/4 days/i)).toBeInTheDocument();
     expect(screen.getByText(/last entry/i)).toBeInTheDocument();
+    expect(screen.getByText("June 18, 2025")).toBeInTheDocument();
     expect(screen.getByTestId("weather-card")).toBeInTheDocument();
     expect(screen.getByTestId("mood-pie-chart")).toBeInTheDocument();
     expect(screen.getByTestId("mood-timeline-chart")).toBeInTheDocument();
   });
+
+  it.each([null, "", "not-a-date"])(
+    "shows an empty-state label for last entry date %s",
+    (lastEntryDate) => {
+      dashboardSummary.data.lastEntryDate = lastEntryDate;
+
+      renderWithProviders(<Dashboard />, {
+        preloadedState: createAuthenticatedState(),
+      });
+
+      expect(screen.getByText("No entries yet")).toBeInTheDocument();
+      expect(screen.queryByText("Invalid Date")).not.toBeInTheDocument();
+    }
+  );
 });
