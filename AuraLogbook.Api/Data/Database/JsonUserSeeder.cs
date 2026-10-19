@@ -106,3 +106,5 @@ public sealed class JsonUserSeeder
         public int SelectedPathway { get; set; }
     }
 }
+    /// <summary>Initializes the development user seeder with the database and hosting services it needs.</summary>
+    /// <summary>Upserts users from <c>Data/users.json</c> into the relational Users table.</summary>

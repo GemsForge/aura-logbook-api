@@ -40,3 +40,9 @@ public sealed class SqliteZodiacInsightsRepository : IFileZodiacInsightsReposito
     private sealed class ZodiacRow { public string SignKey { get; set; } = ""; public string Description { get; set; } = ""; public string Element { get; set; } = ""; }
     private sealed class InsightTemplateRow { public string InsightType { get; set; } = ""; public string Title { get; set; } = ""; public string Message { get; set; } = ""; }
 }
+    /// <summary>Initializes a zodiac insight repository backed by SQLite.</summary>
+    /// <summary>Returns the insight collection for a zodiac sign.</summary>
+    /// <summary>Returns all zodiac signs and their insight templates.</summary>
+    /// <summary>Returns insight templates associated with an element.</summary>
+    /// <summary>Returns a specific insight template for a sign and insight type.</summary>
+    /// <summary>Returns a randomly selected insight for a zodiac sign.</summary>

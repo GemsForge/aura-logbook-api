@@ -24,3 +24,5 @@ public sealed class SqliteConnectionFactory : IDbConnectionFactory
         return connection;
     }
 }
+    /// <summary>Initializes a connection factory from the application database options.</summary>
+    /// <summary>Creates an open SQLite connection with foreign-key enforcement enabled.</summary>

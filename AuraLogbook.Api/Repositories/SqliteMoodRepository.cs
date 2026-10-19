@@ -57,3 +57,9 @@ public sealed class SqliteMoodRepository : IFileMoodRepository
     }
     private sealed class MoodRow { public int Id { get; set; } public int UserId { get; set; } public string EntryDate { get; set; } = ""; public string? Comment { get; set; } public string CreatedAt { get; set; } = ""; }
 }
+    /// <summary>Initializes a mood repository backed by SQLite.</summary>
+    /// <summary>Returns the mood entries belonging to a user.</summary>
+    /// <summary>Returns a mood entry by identifier, including its mood pair records.</summary>
+    /// <summary>Creates a mood entry and its related mood pairs in one transaction.</summary>
+    /// <summary>Updates a mood entry and replaces its related mood pairs atomically.</summary>
+    /// <summary>Deletes a mood entry and reports whether a row was removed.</summary>

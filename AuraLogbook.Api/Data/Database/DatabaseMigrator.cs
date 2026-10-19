@@ -75,3 +75,5 @@ public sealed class DatabaseMigrator
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
 }
+    /// <summary>Initializes a migrator that discovers SQL migrations in the application data directory.</summary>
+    /// <summary>Applies pending migrations in filename order and records each successful migration.</summary>

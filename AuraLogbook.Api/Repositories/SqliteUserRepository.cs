@@ -35,3 +35,12 @@ public sealed class SqliteUserRepository : IFileUserRepository
         public string? Motto { get; set; } public int SelectedPathway { get; set; } public string CreatedAt { get; set; } = ""; public string UpdatedAt { get; set; } = "";
     }
 }
+    /// <summary>Initializes a user repository backed by SQLite.</summary>
+    /// <summary>Returns all users ordered by identifier.</summary>
+    /// <summary>Returns the user with the specified email, if it exists.</summary>
+    /// <summary>Returns the user with the specified identifier, if it exists.</summary>
+    /// <summary>Creates a user and returns its generated identifier.</summary>
+    /// <summary>Updates an existing user and reports whether a row was changed.</summary>
+    /// <summary>Deletes a user and reports whether a row was removed.</summary>
+    /// <summary>Returns users whose email or display name contains the query.</summary>
+    /// <summary>Removes all users from the repository.</summary>
