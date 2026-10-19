@@ -60,7 +60,8 @@ public sealed class JsonUserSeeder
             command.Parameters.AddWithValue("$passwordHash", user.PasswordHash);
             command.Parameters.AddWithValue("$displayName", (object?)user.DisplayName ?? DBNull.Value);
             command.Parameters.AddWithValue("$birthday", NormalizeBirthday(user.Birthday) ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("$zodiacSign", (object?)user.ZodiacSign ?? DBNull.Value);
+            command.Parameters.AddWithValue("$zodiacSign", string.IsNullOrWhiteSpace(user.ZodiacSign)
+                ? DBNull.Value : user.ZodiacSign.Trim().ToLowerInvariant());
             command.Parameters.AddWithValue("$auraColor", string.IsNullOrWhiteSpace(user.AuraColor) ? "blue" : user.AuraColor.ToLowerInvariant());
             command.Parameters.AddWithValue("$auraIntensity", NormalizeIntensity(user.AuraIntensity));
             command.Parameters.AddWithValue("$avatar", (object?)user.Avatar ?? DBNull.Value);
