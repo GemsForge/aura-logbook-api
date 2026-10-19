@@ -37,6 +37,9 @@ INSERT OR IGNORE INTO ZodiacSigns (SignKey, Description, Element) VALUES
     ('aquarius', 'Original and visionary.', 'air'),
     ('pisces', 'Imaginative and empathetic.', 'water');
 
+UPDATE Users SET ZodiacSign = lower(ZodiacSign)
+WHERE ZodiacSign IS NOT NULL;
+
 ALTER TABLE Users RENAME TO Users_legacy;
 
 CREATE TABLE Users (
