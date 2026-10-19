@@ -98,6 +98,10 @@ The seeder writes a reconciliation report containing source and stored counts.
 Keep the JSON files unchanged as the migration and audit source; the relational
 database is the runtime source for Development and FIT/Staging.
 
+For FIT/Staging diagnostics, use `GET /health/database`. To deliberately reset
+only the staging database, run `AURA_ENV=FIT node Scripts/reset-staging-db.mjs
+--confirm`; the script refuses ambiguous environment or confirmation settings.
+
 UI, from `aura-ui/` (run `npm ci` there first):
 
 ```bash

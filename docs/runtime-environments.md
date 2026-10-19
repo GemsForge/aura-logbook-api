@@ -59,6 +59,24 @@ than committed JSON files.
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.
 
+FIT/Staging deployments should provide their own `Database:ConnectionString`
+through deployment configuration. The database health diagnostic is available
+at `GET /health/database` and reports the resolved environment and applied
+migration count without exposing connection details.
+
+To reset only the staging database, use an explicit FIT environment and
+confirmation flag:
+
+```bash
+AURA_ENV=FIT node Scripts/reset-staging-db.mjs --confirm
+```
+
+The reset script defaults to `Data/auralogbook-staging.db` and can only target a
+path supplied through `AURA_STAGING_DATABASE`. It refuses to run without
+`AURA_ENV=FIT` and `--confirm`. Start the API with FIT afterward to recreate the
+schema through the migration runner. Staging credentials and storage ownership
+remain deployment responsibilities and are never committed to the repository.
+
 ## Database migration workflow
 
 The API applies every `*.sql` file in
