@@ -1,3 +1,4 @@
+using System.Globalization;
 using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Models;
 using Dapper;
@@ -12,8 +13,38 @@ public sealed class SqliteUserRepository : IFileUserRepository
     public async Task<List<User>> GetAllAsync() { using var c = _factory.CreateConnection(); return (await c.QueryAsync<UserRow>("SELECT * FROM Users ORDER BY Id")).Select(Map).ToList(); }
     public async Task<User?> GetByEmailAsync(string email) { using var c = _factory.CreateConnection(); var row = await c.QuerySingleOrDefaultAsync<UserRow>("SELECT * FROM Users WHERE Email = @email", new { email }); return row is null ? null : Map(row); }
     public async Task<User?> GetByIdAsync(int id) { using var c = _factory.CreateConnection(); var row = await c.QuerySingleOrDefaultAsync<UserRow>("SELECT * FROM Users WHERE Id = @id", new { id }); return row is null ? null : Map(row); }
-    public async Task<int> CreateAsync(User user) { using var c = _factory.CreateConnection(); return await c.ExecuteScalarAsync<int>("INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,@SelectedPathway,@CreatedAt,@UpdatedAt) RETURNING Id", user); }
-    public async Task<bool> UpdateAsync(User user) { using var c = _factory.CreateConnection(); return await c.ExecuteAsync("UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=@SelectedPathway, UpdatedAt=@UpdatedAt WHERE Id=@Id", user) == 1; }
+    public async Task<int> CreateAsync(User user)
+    {
+        using var c = _factory.CreateConnection();
+        return await c.ExecuteScalarAsync<int>(
+            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,@SelectedPathway,@CreatedAt,@UpdatedAt) RETURNING Id",
+            ToSqlParameters(user));
+    }
+
+    public async Task<bool> UpdateAsync(User user)
+    {
+        using var c = _factory.CreateConnection();
+        return await c.ExecuteAsync(
+            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=@SelectedPathway, UpdatedAt=@UpdatedAt WHERE Id=@Id",
+            ToSqlParameters(user)) == 1;
+    }
+
+    private static object ToSqlParameters(User user) => new
+    {
+        user.Id,
+        user.Email,
+        user.PasswordHash,
+        user.DisplayName,
+        Birthday = user.Birthday.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        ZodiacSign = user.ZodiacSign.ToLowerInvariant(),
+        user.AuraColor,
+        user.AuraIntensity,
+        user.Avatar,
+        user.Motto,
+        user.SelectedPathway,
+        user.CreatedAt,
+        user.UpdatedAt,
+    };
     public async Task<bool> DeleteAsync(int id) { using var c = _factory.CreateConnection(); return await c.ExecuteAsync("DELETE FROM Users WHERE Id=@id", new { id }) == 1; }
     public async Task<List<User>> SearchAsync(string query) { using var c = _factory.CreateConnection(); return (await c.QueryAsync<UserRow>("SELECT * FROM Users WHERE Email LIKE @query OR DisplayName LIKE @query ORDER BY Id", new { query = $"%{query}%" })).Select(Map).ToList(); }
     public async Task ClearAsync() { using var c = _factory.CreateConnection(); await c.ExecuteAsync("DELETE FROM Users"); }
@@ -22,7 +53,8 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         Id = row.Id, Email = row.Email, PasswordHash = row.PasswordHash, DisplayName = row.DisplayName,
         Birthday = DateOnly.TryParse(row.Birthday, out var birthday) ? birthday : default,
-        ZodiacSign = row.ZodiacSign ?? string.Empty, AuraColor = row.AuraColor, AuraIntensity = row.AuraIntensity,
+        ZodiacSign = row.ZodiacSign is null ? string.Empty : CultureInfo.InvariantCulture.TextInfo.ToTitleCase(row.ZodiacSign),
+        AuraColor = row.AuraColor, AuraIntensity = row.AuraIntensity,
         Avatar = row.Avatar, Motto = row.Motto, SelectedPathway = (SpiritualPathway)row.SelectedPathway,
         CreatedAt = row.CreatedAt, UpdatedAt = row.UpdatedAt
     };

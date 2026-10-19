@@ -1,7 +1,9 @@
 using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Hosting;
@@ -35,6 +37,94 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.NotNull(user);
         Assert.Equal(7, user.Id);
         Assert.Equal("Test User", user.DisplayName);
+    }
+
+    [Fact]
+    public async Task User_repository_persists_birthday_as_iso_date_for_create_and_update()
+    {
+        var repository = new SqliteUserRepository(_factory);
+        var birthday = new DateOnly(1994, 9, 12);
+        var user = new User
+        {
+            Email = "date-only@example.com",
+            PasswordHash = "hash",
+            DisplayName = "Date Only",
+            Birthday = birthday,
+            ZodiacSign = "Virgo",
+            AuraColor = "green",
+            AuraIntensity = 50,
+        };
+
+        user.Id = await repository.CreateAsync(user);
+
+        Assert.Equal(birthday, (await repository.GetByIdAsync(user.Id))?.Birthday);
+        Assert.Equal("1994-09-12", GetStoredBirthday(user.Id));
+
+        user.Birthday = new DateOnly(2001, 2, 3);
+        Assert.True(await repository.UpdateAsync(user));
+
+        Assert.Equal(user.Birthday, (await repository.GetByIdAsync(user.Id))?.Birthday);
+        Assert.Equal("2001-02-03", GetStoredBirthday(user.Id));
+    }
+
+    [Fact]
+    public async Task User_service_registers_authenticates_and_updates_birthday_with_sqlite_repository()
+    {
+        var repository = new SqliteUserRepository(_factory);
+        var service = new UserService(repository);
+        var registration = new RegisterUserRequest
+        {
+            Email = "registration-date@example.com",
+            Password = "StrongPassword123!",
+            DisplayName = "Date Test",
+            Birthday = new DateOnly(1994, 9, 12),
+            AuraColor = "green",
+            AuraIntensity = 50,
+        };
+
+        var registered = await service.RegisterAsync(registration);
+
+        Assert.True(registered.Success);
+        var user = await service.GetByEmailAsync(registration.Email);
+        Assert.NotNull(user);
+        Assert.Equal(registration.Birthday, user.Birthday);
+        Assert.Equal("Virgo", user.ZodiacSign);
+        Assert.Equal("virgo", GetStoredZodiacSign(user.Id));
+        Assert.True(await service.AuthenticateAsync(registration.Email, registration.Password));
+
+        var updatedBirthday = new DateOnly(2001, 2, 3);
+        var updated = await service.UpdateUserAsync(new UpdateUserRequest
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Birthday = updatedBirthday,
+            DisplayName = user.DisplayName,
+            AuraColor = user.AuraColor,
+            AuraIntensity = user.AuraIntensity,
+            SelectedPathway = user.SelectedPathway,
+        });
+
+        Assert.True(updated.Success);
+        Assert.Equal(updatedBirthday, (await service.GetByIdAsync(user.Id))?.Birthday);
+        Assert.Equal("2001-02-03", GetStoredBirthday(user.Id));
+    }
+
+    private string? GetStoredBirthday(int userId)
+    {
+        using var connection = _factory.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT Birthday FROM Users WHERE Id = @id";
+        command.Parameters.AddWithValue("@id", userId);
+        return command.ExecuteScalar() as string;
+    }
+
+    private string? GetStoredZodiacSign(int userId)
+    {
+        using var connection = _factory.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT ZodiacSign FROM Users WHERE Id = @id";
+        command.Parameters.AddWithValue("@id", userId);
+        return command.ExecuteScalar() as string;
     }
 
     [Fact]
