@@ -94,14 +94,14 @@
     "Email": "user@example.com",
     "PasswordHash": "$2a$11$PrE/3sgbkc5rkGZ3iUBcd.jle6LBUhDZ.5saLkzuFeFOY12k1NfPK",
     "CreatedAt": "6/15/2025 1:23:23 AM",
-    "UpdatedAt": "11/11/2025 4:00:48\u202fAM",
+    "UpdatedAt": "11/11/2025 4:00:48\u202FAM",
     "DisplayName": "user@example.com",
     "Birthday": "1901-01-01",
     "ZodiacSign": "Capricorn",
     "AuraColor": "blue",
     "AuraIntensity": 500,
     "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
-    "Motto": "\ud83c\udf0a Flowing with ease",
+    "Motto": "\uD83C\uDF0A Flowing with ease",
     "SelectedPathway": 0
   },
   {
@@ -137,7 +137,7 @@
   {
     "Id": 10,
     "Email": "gem.social2023@gmail.com",
-    "PasswordHash": "$2a$11$lyq6Y.I3Nd5z0oJaoCSZMej5g6FyZ2Of4SbeuP7/GgNgL2ccPbYIu",
+    "PasswordHash": "$2a$11$qgbj..OdvDzmFO1izW.GqOdlmOUokbsx4bTykftIoFBlRUHq349dm",
     "CreatedAt": "6/17/2025 6:07:42 PM",
     "UpdatedAt": "6/17/2025 6:07:42 PM",
     "DisplayName": "gem.social2023@gmail.com",
@@ -169,14 +169,14 @@
     "Email": "admin@email.com",
     "PasswordHash": "$2a$11$sKUPIFmiXPDKnUWjwVEodOKnm9Ri9huz7g289oyj.7u36AgcTG6PK",
     "CreatedAt": "6/21/2025 1:37:07 AM",
-    "UpdatedAt": "11/22/2025 2:05:25\u202fAM",
+    "UpdatedAt": "11/22/2025 2:05:25\u202FAM",
     "DisplayName": "Admin",
     "Birthday": "1997-09-25",
     "ZodiacSign": "Libra",
     "AuraColor": "indigo",
     "AuraIntensity": 700,
     "Avatar": "/avatars/hand-drawn-profile-avatar-1.jpg",
-    "Motto": "\ud83c\udf3b Growing toward the light",
+    "Motto": "\uD83C\uDF3B Growing toward the light",
     "SelectedPathway": 0
   },
   {

@@ -21,12 +21,23 @@ function localApiBaseUrl(path) {
   return match[1].replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
 }
 
+export function resolveApiEnvironment(value = "DEV") {
+  const aliases = {
+    DEV: "Development",
+    FIT: "Staging",
+    PRO: "Production",
+  };
+  const normalized = String(value).trim().toUpperCase();
+  return aliases[normalized] ?? value;
+}
+
 export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env } = {}) {
   const apiRoot = resolve(root, "AuraLogbook.Api");
   const uiRoot = resolve(root, "aura-ui");
   const apiPort = configuredPort(env.AURA_API_PORT, 5082, "AURA_API_PORT");
   const uiPort = configuredPort(env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
   const uiEnv = { ...env };
+  const apiEnvironment = resolveApiEnvironment(env.AURA_ENV || env.ASPNETCORE_ENVIRONMENT || "DEV");
   const localApiUrl = localApiBaseUrl(resolve(uiRoot, ".env.local"));
   const defaultApiUrl = `http://localhost:${apiPort}/api`;
   uiEnv.VITE_API_BASE_URL = env.VITE_API_BASE_URL || defaultApiUrl;
@@ -40,7 +51,7 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       command: "dotnet",
       args: apiArgs,
       cwd: apiRoot,
-      env: { ...env },
+      env: { ...env, ASPNETCORE_ENVIRONMENT: apiEnvironment },
     },
     {
       name: "UI",

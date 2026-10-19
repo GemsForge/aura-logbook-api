@@ -1,0 +1,90 @@
+using AuraLogbook.Api.Data.Database;
+using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Repositories;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
+
+namespace AuraLogbook.Api.Tests;
+
+public sealed class RelationalRepositoryTests : IDisposable
+{
+    private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"aura-test-{Guid.NewGuid():N}.db");
+    private readonly SqliteConnectionFactory _factory;
+
+    public RelationalRepositoryTests()
+    {
+        var connection = new SqliteConnection($"Data Source={_databasePath}");
+        connection.Open();
+        var migration = File.ReadAllText(Path.Combine("..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations", "001_initial_schema.sql"));
+        using var command = connection.CreateCommand();
+        command.CommandText = migration;
+        command.ExecuteNonQuery();
+        connection.Dispose();
+        _factory = new SqliteConnectionFactory(new TestOptions<DatabaseOptions>(new DatabaseOptions { ConnectionString = $"Data Source={_databasePath}" }));
+        SeedReferenceData();
+    }
+
+    [Fact]
+    public async Task User_repository_reads_seeded_user()
+    {
+        var repository = new SqliteUserRepository(_factory);
+        var user = await repository.GetByEmailAsync("test@example.com");
+        Assert.NotNull(user);
+        Assert.Equal(7, user.Id);
+        Assert.Equal("Test User", user.DisplayName);
+    }
+
+    [Fact]
+    public async Task Mood_repository_persists_and_reads_mood_pairs()
+    {
+        var repository = new SqliteMoodRepository(_factory);
+        var id = await repository.CreateAsync(new MoodEntry { UserId = 7, Date = new DateOnly(2026, 10, 19), Moods = [MoodType.Centered, MoodType.Harmonious], Comment = "Integration test" });
+        var entry = await repository.GetByIdAsync(id);
+        Assert.NotNull(entry);
+        Assert.Equal(2, entry.Moods.Count);
+        Assert.Contains(MoodType.Centered, entry.Moods);
+        Assert.Contains(MoodType.Harmonious, entry.Moods);
+    }
+
+    [Fact]
+    public async Task Zodiac_repository_reads_seeded_insight()
+    {
+        using var command = _factory.CreateConnection().CreateCommand();
+        command.CommandText = "INSERT INTO ZodiacSigns (SignKey, Description, Element) VALUES ('aries','Bold','fire'); INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','BoldAction','Act','Take a step.');";
+        command.ExecuteNonQuery();
+        var repository = new SqliteZodiacInsightsRepository(_factory);
+        var zodiac = await repository.GetBySignAsync("aries");
+        Assert.NotNull(zodiac);
+        Assert.Single(zodiac.Insights);
+        Assert.Equal("Take a step.", zodiac.Insights[0].Message);
+    }
+
+    private void SeedReferenceData()
+    {
+        using var connection = _factory.CreateConnection();
+        connection.ExecuteNonQuery("INSERT INTO Users (Id,Email,PasswordHash,DisplayName,AuraColor,AuraIntensity,SelectedPathway,CreatedAt,UpdatedAt) VALUES (7,'test@example.com','hash','Test User','blue',50,0,'2026-10-19T00:00:00Z','2026-10-19T00:00:00Z'); INSERT INTO MoodDefinitions (MoodKey,DisplayName) VALUES ('Centered','Centered'),('Harmonious','Harmonious');");
+    }
+
+    public void Dispose()
+    {
+        if (File.Exists(_databasePath)) File.Delete(_databasePath);
+    }
+
+    private sealed class TestOptions<T>(T value) : Microsoft.Extensions.Options.IOptions<T> where T : class
+    {
+        public T Value { get; } = value;
+    }
+}
+
+file static class SqliteTestExtensions
+{
+    public static void ExecuteNonQuery(this SqliteConnection connection, string sql)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.ExecuteNonQuery();
+    }
+}
