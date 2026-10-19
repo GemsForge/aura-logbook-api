@@ -87,6 +87,17 @@ override both.
 See [Runtime environments](docs/runtime-environments.md) for the complete
 configuration and database seeding guide.
 
+## Relational database workflow
+
+The Development and FIT/Staging environments use SQLite with versioned SQL
+migrations. The API applies pending migrations at startup and records them in
+`__SchemaMigrations`. To import the complete active JSON dataset into a clean
+development database, use the [database seeder](Scripts/DatabaseSeeder/README.md).
+
+The seeder writes a reconciliation report containing source and stored counts.
+Keep the JSON files unchanged as the migration and audit source; the relational
+database is the runtime source for Development and FIT/Staging.
+
 UI, from `aura-ui/` (run `npm ci` there first):
 
 ```bash
