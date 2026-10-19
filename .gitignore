@@ -490,3 +490,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+AuraLogbook.Api/Data/*.db
+AuraLogbook.Api/Data/*.db-shm
+AuraLogbook.Api/Data/*.db-wal
+AuraLogbook.Api/Data/seed-reconciliation.json

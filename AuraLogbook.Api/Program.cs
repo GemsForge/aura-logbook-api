@@ -1,4 +1,5 @@
 using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -67,11 +68,26 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("Storage"));
+builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection("Database"));
+builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
+builder.Services.AddSingleton<DatabaseMigrator>();
+builder.Services.AddSingleton<JsonUserSeeder>();
 
 // Repositories
-builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
-builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
-builder.Services.AddSingleton<IFileZodiacInsightsRepository, FileZodiacInsightsRepository>();
+if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
+{
+    builder.Services.AddScoped<IFileUserRepository, SqliteUserRepository>();
+    builder.Services.AddScoped<IFileMoodRepository, SqliteMoodRepository>();
+}
+else
+{
+    builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
+    builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
+}
+if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
+    builder.Services.AddScoped<IFileZodiacInsightsRepository, SqliteZodiacInsightsRepository>();
+else
+    builder.Services.AddSingleton<IFileZodiacInsightsRepository, FileZodiacInsightsRepository>();
 
 // Services
 builder.Services.AddScoped<JwtTokenService>();
@@ -85,6 +101,13 @@ builder.Services
     .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
 var app = builder.Build();
+app.Logger.LogInformation(
+    "Aura Logbook starting in {EnvironmentName}. User seeding on startup: {SeedUsersOnStartup}",
+    app.Environment.EnvironmentName,
+    app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"));
+app.Services.GetRequiredService<DatabaseMigrator>().ApplyMigrations();
+if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"))
+    await app.Services.GetRequiredService<JsonUserSeeder>().SeedUsersAsync();
 app.UseCors(policy =>
     policy.AllowAnyOrigin()
           .AllowAnyMethod()

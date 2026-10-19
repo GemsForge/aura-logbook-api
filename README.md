@@ -53,6 +53,40 @@ API, from `AuraLogbook.Api/`:
 dotnet run --launch-profile http
 ```
 
+## Runtime environments
+
+Aura Logbook uses these environment aliases:
+
+| Alias | ASP.NET Core environment | Purpose |
+|---|---|---|
+| `DEV` | `Development` | Local development database and JSON user seeding |
+| `FIT` | `Staging` | Feature/integration testing with isolated staging data |
+| `PRO` | `Production` | Production configuration; startup seeding disabled |
+
+Run the API with an alias by setting `ASPNETCORE_ENVIRONMENT`:
+
+```bash
+ASPNETCORE_ENVIRONMENT=Development dotnet run --project AuraLogbook.Api
+ASPNETCORE_ENVIRONMENT=Staging dotnet run --project AuraLogbook.Api
+ASPNETCORE_ENVIRONMENT=Production dotnet run --project AuraLogbook.Api
+```
+
+For the combined API and UI launcher, use `AURA_ENV`:
+
+```bash
+AURA_ENV=DEV npm run dev
+AURA_ENV=FIT npm run dev
+AURA_ENV=PRO npm run dev
+```
+
+The API logs the resolved ASP.NET Core environment and whether startup user
+seeding is enabled. `appsettings.json` loads first, followed by the matching
+environment file; later environment variables and command-line settings can
+override both.
+
+See [Runtime environments](docs/runtime-environments.md) for the complete
+configuration and database seeding guide.
+
 UI, from `aura-ui/` (run `npm ci` there first):
 
 ```bash
