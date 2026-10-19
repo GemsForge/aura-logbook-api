@@ -130,4 +130,26 @@ app.UseAuthorization(); // Required for JWT later
 
 app.MapControllers(); // Enable attribute routing for controllers
 
+app.MapGet("/health/database", (IDbConnectionFactory factory, IWebHostEnvironment environment) =>
+{
+    try
+    {
+        using var connection = factory.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM __SchemaMigrations;";
+        var migrationCount = Convert.ToInt32(command.ExecuteScalar());
+        return Results.Ok(new
+        {
+            status = "healthy",
+            environment = environment.EnvironmentName,
+            migrations = migrationCount
+        });
+    }
+    catch (Exception exception)
+    {
+        app.Logger.LogError(exception, "Database health check failed");
+        return Results.Problem("Database connection or migration status is unavailable.", statusCode: 503);
+    }
+});
+
 app.Run();
