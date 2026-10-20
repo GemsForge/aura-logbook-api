@@ -20,7 +20,7 @@ export default function MoodTimelineChart({ data }: { data: MoodByDate[] }) {
     <Box mt={4}>
       <Typography level="title-lg">Mood Entry Timeline</Typography>
 
-      <Box height={400} width={400}>
+      <Box sx={{ width: "100%", minWidth: 0, height: { xs: 320, sm: 400 } }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
