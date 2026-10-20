@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
 import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
-import { auraPalettes, type ShadeKey } from "@/theme/auraTheme";
+import { getAuraColorPreview, resolveAuraColor } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { LinearProgress } from "@mui/material";
 import dayjs from "dayjs";
@@ -73,7 +73,7 @@ export default function EditProfileModal({
         birthday: user.birthday
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
-        auraColor: user.auraColor || AuraColor.Blue,
+        auraColor: resolveAuraColor(user.auraColor),
         auraIntensity: user.auraIntensity ?? 500,
         avatar: user.avatar || "",
         password: "",
@@ -108,13 +108,8 @@ export default function EditProfileModal({
   };
 
   const colorKey = watch("auraColor");
-  const intensity = (watch("auraIntensity") ?? 500) as ShadeKey;
-
-  // now grab the shade at that intensity
-  const currentAuraBg =
-    auraPalettes[colorKey][intensity].main ??
-    // fallback to primary if something’s missing
-    auraPalettes[colorKey].primary.main;
+  const intensity = watch("auraIntensity");
+  const currentAuraBg = getAuraColorPreview(colorKey, intensity);
   // SHOULD I GET RID OF THIS DISPLAY NAME?
   const displayName = watch("displayName") || user?.displayName || "";
   const defaultInitials = displayName

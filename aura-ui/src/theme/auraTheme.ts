@@ -11,7 +11,10 @@ import {
   grey,
   pink,
 } from "@mui/material/colors";
-import type { AuraColor } from "../features/mood/models/aura";
+import {
+  AuraColor,
+  type AuraColor as AuraColorValue,
+} from "../features/mood/models/aura";
 
 export type ShadeKey = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 
@@ -135,3 +138,36 @@ export const auraPalettes: Record<AuraColor, AuraPaletteEntry> = {
     primary: { main: pink[500] },
   },
 };
+
+/** Resolve API/profile values to a supported aura color, defaulting safely. */
+export function resolveAuraColor(color: unknown): AuraColorValue {
+  if (typeof color !== "string") return AuraColor.Blue;
+
+  const normalizedColor = color.trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(auraPalettes, normalizedColor)
+    ? (normalizedColor as AuraColorValue)
+    : AuraColor.Blue;
+}
+
+/** Return a safe preview shade for potentially incomplete persisted values. */
+export function getAuraColorPreview(
+  color: unknown,
+  intensity: unknown
+): string {
+  const palette = auraPalettes[resolveAuraColor(color)];
+  const numericIntensity =
+    typeof intensity === "number"
+      ? intensity
+      : typeof intensity === "string" && intensity.trim() !== ""
+        ? Number(intensity)
+        : Number.NaN;
+  const shade = Number.isInteger(numericIntensity)
+    ? palette[numericIntensity as ShadeKey]
+    : undefined;
+
+  return (
+    shade?.main ??
+    palette.primary.main ??
+    auraPalettes[AuraColor.Blue][500].main!
+  );
+}

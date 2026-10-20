@@ -12,7 +12,7 @@ import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import { Controller, type Control, type Path, useWatch } from "react-hook-form";
 import { AuraColor } from "@/features/mood/models/aura";
-import { auraPalettes, type AuraPaletteEntry } from "@/theme/auraTheme";
+import { auraPalettes, getAuraColorPreview } from "@/theme/auraTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface AuraSelectorProps {
@@ -27,14 +27,10 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
   intensityField,
 }) => {
   // watch the two fields
-  const colorKey = useWatch({ control, name: colorField }) as AuraColor;
-  const intensity = (useWatch({ control, name: intensityField }) ??
-    500) as keyof AuraPaletteEntry;
-
-  // pick the exact shade
-  const shades = auraPalettes[colorKey];
-  const previewColor = shades[intensity]?.main ?? shades.primary.main;
- const theme = useTheme();
+  const colorKey = useWatch({ control, name: colorField });
+  const intensity = useWatch({ control, name: intensityField });
+  const previewColor = getAuraColorPreview(colorKey, intensity);
+  const theme = useTheme();
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Color picker + swatch */}
