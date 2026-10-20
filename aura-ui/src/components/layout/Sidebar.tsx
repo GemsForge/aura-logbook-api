@@ -13,6 +13,13 @@ const navItems = [
   { label: "Reflections", path: "/history", icon: AutoStoriesRounded },
 ];
 
+/**
+ * Authenticated journal navigation.
+ *
+ * The destinations flow horizontally and wrap on small screens, then become a
+ * vertical rail at the desktop breakpoint. Active-route state is conveyed by
+ * both styling and `aria-current`, never by color alone.
+ */
 const Sidebar = () => {
   const location = useLocation();
 

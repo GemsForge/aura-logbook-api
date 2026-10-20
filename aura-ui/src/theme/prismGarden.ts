@@ -1,3 +1,14 @@
+/**
+ * Framework-neutral design tokens for the Prism Garden visual system.
+ *
+ * These values define the stable application shell: warm neutral surfaces,
+ * readable text, accessible focus treatment, restrained jewel accents, and
+ * shared geometry. User-selected aura colors remain contextual data and must
+ * not replace these shell colors across large surfaces.
+ *
+ * Keep this object independent of MUI so the same vocabulary can be mapped to
+ * the future SwiftUI shell without importing web framework details.
+ */
 export const prismGarden = {
   color: {
     canvas: "#F7F2EA",
@@ -33,4 +44,5 @@ export const prismGarden = {
   },
 } as const;
 
+/** Type-safe shape for adapters that consume the shared visual tokens. */
 export type PrismGardenTokens = typeof prismGarden;

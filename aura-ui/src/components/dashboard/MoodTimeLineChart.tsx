@@ -15,6 +15,11 @@ export type MoodByDate = {
   count: number;
 };
 
+/**
+ * Plots mood-entry counts over time within the width of its parent grid cell.
+ * A responsive container is required here because a fixed chart width breaks
+ * mobile reflow and 200% zoom layouts.
+ */
 export default function MoodTimelineChart({ data }: { data: MoodByDate[] }) {
   return (
     <Box mt={4}>

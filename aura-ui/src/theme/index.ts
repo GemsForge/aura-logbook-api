@@ -9,10 +9,17 @@ import { prismGarden } from "./prismGarden";
 export { prismGarden } from "./prismGarden";
 
 /**
- * Returns a MUI theme tailored to the user’s selected aura color and intensity.
- * @param color     The aura hue (must match a key in auraShades).
- * @param intensity Aura intensity percentage (0-100). Legacy MUI shade values
- *                  are normalized for backward compatibility.
+ * Creates the Material UI adapter for Prism Garden.
+ *
+ * Neutral shell surfaces, typography, focus indicators, and control geometry
+ * come from `prismGarden`. The selected aura color is exposed only through the
+ * primary palette so existing mood and profile components can retain their
+ * contextual accent behavior without recoloring the entire application shell.
+ *
+ * @param color User-selected aura hue. Unknown persisted values fall back to blue.
+ * @param intensity Aura intensity from 0-100. Legacy MUI shade values are
+ * normalized by `getAuraShade` for backward compatibility.
+ * @returns A Material UI theme ready for `ThemeProvider`.
  */
 export function getAuraTheme(
     color: AuraColor,
@@ -108,6 +115,17 @@ export function getAuraTheme(
     });
   }
 
+/**
+ * Creates the Joy UI adapter for the same Prism Garden token vocabulary.
+ *
+ * Material UI and Joy UI coexist in the current application. Keeping both
+ * adapters here prevents subtle differences in surfaces, typography, focus
+ * rings, radii, and minimum touch-target sizes.
+ *
+ * @param color User-selected aura hue used for contextual primary accents.
+ * @param intensity Aura intensity from 0-100.
+ * @returns A Joy UI theme ready for `CssVarsProvider`.
+ */
 export function getAuraJoyTheme(color: AuraColor, intensity: number = 50) {
   const palettes: Record<AuraColor, Record<number, string>> = {
     red,

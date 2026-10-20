@@ -2,11 +2,19 @@ import Box from "@mui/joy/Box";
 import type { SxProps } from "@mui/joy/styles/types";
 
 type PrismMarkProps = {
+  /** Width in CSS pixels; height follows the mark's fixed facet ratio. */
   size?: number;
+  /** Optional Joy UI overrides for placement without changing the mark. */
   sx?: SxProps;
 };
 
-/** Decorative abstract prism mark. It carries no spiritual meaning. */
+/**
+ * Decorative, CSS-rendered brand mark used by the application shell.
+ *
+ * The mark is intentionally abstract and carries no required spiritual
+ * meaning, supporting the product's inclusive-pathway principle. It is hidden
+ * from assistive technology because the adjacent wordmark supplies the name.
+ */
 export default function PrismMark({ size = 28, sx }: PrismMarkProps) {
   return (
     <Box

@@ -34,6 +34,13 @@ const navLinkSx = {
   },
 } as const;
 
+/**
+ * Global header and primary navigation for public and authenticated routes.
+ *
+ * Public links wrap into a second row on narrow screens instead of creating
+ * horizontal overflow. `aria-current` exposes the active route, and all links
+ * and actions retain a minimum 44px target with a visible keyboard focus ring.
+ */
 const NavBar = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,

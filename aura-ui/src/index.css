@@ -25,6 +25,7 @@
   --prism-turquoise: #2d7180;
 }
 
+/* Predictable sizing is required for the 320px mobile/reflow anchor. */
 * {
   box-sizing: border-box;
 }
@@ -61,6 +62,7 @@ a {
   background: var(--garden-focus);
 }
 
+/* Hidden until keyboard focus; provides direct access to the main landmark. */
 .skip-link {
   position: fixed;
   z-index: 2000;
@@ -80,6 +82,7 @@ a {
   outline-offset: 2px;
 }
 
+/* Respect the user's motion preference across both MUI component systems. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

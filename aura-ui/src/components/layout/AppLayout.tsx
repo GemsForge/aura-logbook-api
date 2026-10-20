@@ -12,6 +12,14 @@ import {
   selectIsProfileModalOpen,
 } from "@/store/slices/uiSlice";
 
+/**
+ * Root page shell shared by public and authenticated routes.
+ *
+ * Authenticated pages use semantic grid areas so DOM reading order remains
+ * navigation → primary content → profile. CSS repositions the profile beside
+ * the content on larger screens while preserving that mobile and assistive-
+ * technology order. The skip link targets the focusable `main` landmark.
+ */
 const AppLayout = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useSelector(
