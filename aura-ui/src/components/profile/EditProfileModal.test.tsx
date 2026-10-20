@@ -16,6 +16,10 @@ vi.mock("@/store/authApi", async (importOriginal) => {
   };
 });
 
+vi.mock("@/store/referenceDataApi", () => ({
+  useGetAuraColorsQuery: () => ({ data: [] }),
+}));
+
 const baseUser = {
   id: 1,
   email: "gem@example.com",

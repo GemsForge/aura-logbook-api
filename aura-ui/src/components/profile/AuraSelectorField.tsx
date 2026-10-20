@@ -12,6 +12,7 @@ import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import { Controller, type Control, type Path, useWatch } from "react-hook-form";
 import { AuraColor } from "@/features/mood/models/aura";
+import { useGetAuraColorsQuery } from "@/store/referenceDataApi";
 import { auraPalettes, getAuraColorPreview } from "@/theme/auraTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
@@ -30,6 +31,18 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
   const colorKey = useWatch({ control, name: colorField });
   const intensity = useWatch({ control, name: intensityField });
   const previewColor = getAuraColorPreview(colorKey, intensity);
+  const { data: auraDefinitions = [] } = useGetAuraColorsQuery();
+  const supportedColors = new Set<string>(Object.values(AuraColor));
+  const databaseOptions = auraDefinitions.filter((definition) =>
+    supportedColors.has(definition.key)
+  );
+  const colorOptions = databaseOptions.length > 0
+    ? databaseOptions
+    : Object.values(AuraColor).map((key) => ({
+        key,
+        displayName: key.charAt(0).toUpperCase() + key.slice(1),
+        baseHex: auraPalettes[key].primary.main ?? "#2196f3",
+      }));
   const theme = useTheme();
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -60,23 +73,23 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
                 onBlur={field.onBlur}
                 slotProps={{
                   button: { "aria-labelledby": "aura-color-label" },
+                  listbox: { sx: { zIndex: 1500 } },
                 }}>
-                {Object.values(AuraColor).map((c) => (
-                  <Option key={c} value={c}>
+                {colorOptions.map((color) => (
+                  <Option key={color.key} value={color.key}>
                     <Box
                       component="span"
                       sx={{
                         display: "inline-block",
                         width: 12,
                         height: 12,
-                        backgroundColor:
-                          auraPalettes[c as AuraColor].primary.main,
+                        backgroundColor: color.baseHex,
                         borderRadius: "50%",
                         mr: 1,
                         verticalAlign: "middle",
                       }}
                     />
-                    {c.charAt(0).toUpperCase() + c.slice(1)}
+                    {color.displayName}
                   </Option>
                 ))}
               </Select>
