@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import net from "node:net";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -31,19 +32,20 @@ export function resolveApiEnvironment(value = "DEV") {
   return aliases[normalized] ?? value;
 }
 
-export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env } = {}) {
+export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env, apiPort } = {}) {
   const apiRoot = resolve(root, "AuraLogbook.Api");
   const uiRoot = resolve(root, "aura-ui");
-  const apiPort = configuredPort(env.AURA_API_PORT, 5082, "AURA_API_PORT");
+  const configuredApiPort = configuredPort(env.AURA_API_PORT, 5082, "AURA_API_PORT");
   const uiPort = configuredPort(env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
   const uiEnv = { ...env };
   const apiEnvironment = resolveApiEnvironment(env.AURA_ENV || env.ASPNETCORE_ENVIRONMENT || "DEV");
   const localApiUrl = localApiBaseUrl(resolve(uiRoot, ".env.local"));
-  const defaultApiUrl = `http://localhost:${apiPort}/api`;
+  const selectedApiPort = apiPort ?? configuredApiPort;
+  const defaultApiUrl = `http://localhost:${selectedApiPort}/api`;
   uiEnv.VITE_API_BASE_URL = env.VITE_API_BASE_URL || defaultApiUrl;
 
   const apiArgs = ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http"];
-  if (env.AURA_API_PORT) apiArgs.push("--", "--urls", `http://localhost:${apiPort}`);
+  if (env.AURA_API_PORT || apiPort !== undefined) apiArgs.push("--", "--urls", `http://localhost:${selectedApiPort}`);
 
   return [
     {
@@ -52,6 +54,9 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       args: apiArgs,
       cwd: apiRoot,
       env: { ...env, ASPNETCORE_ENVIRONMENT: apiEnvironment },
+      ...(apiPort !== undefined && apiPort !== configuredApiPort
+        ? { notice: `AURA_API_PORT is busy; using available API port ${apiPort}.` }
+        : {}),
     },
     {
       name: "UI",
@@ -64,6 +69,33 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
         : undefined,
     },
   ];
+}
+
+function canListen(port, host = "127.0.0.1") {
+  return new Promise(resolveResult => {
+    const server = net.createServer();
+    server.once("error", () => resolveResult(false));
+    server.once("listening", () => server.close(() => resolveResult(true)));
+    server.listen(port, host);
+  });
+}
+
+export async function findAvailablePort(startPort, { host = "127.0.0.1", attempts = 20 } = {}) {
+  for (let offset = 0; offset < attempts; offset += 1) {
+    const port = startPort + offset;
+    if (port > 65535) break;
+    if (await canListen(port, host)) return port;
+  }
+  throw new Error(`No available API port found between ${startPort} and ${startPort + attempts - 1}. Set AURA_API_PORT explicitly.`);
+}
+
+export async function createDevelopmentPlan({ root = repositoryRoot, platform = process.platform, env = process.env, defaultPort = 5082 } = {}) {
+  const requestedPort = configuredPort(env.AURA_API_PORT, defaultPort, "AURA_API_PORT");
+  const selectedPort = await findAvailablePort(requestedPort);
+  if (env.AURA_API_PORT && selectedPort !== requestedPort) {
+    throw new Error(`AURA_API_PORT ${requestedPort} is already in use. Choose another port or stop the process using it.`);
+  }
+  return createServicePlan({ root, platform, env, apiPort: selectedPort });
 }
 
 function writePrefixed(prefix, stream, chunk, pending) {
@@ -222,6 +254,12 @@ export function runDevelopment({
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
-  const exitCode = await runDevelopment();
+  let exitCode;
+  try {
+    exitCode = await runDevelopment({ plan: await createDevelopmentPlan() });
+  } catch (error) {
+    console.error(`[API] ${error.message}`);
+    exitCode = 1;
+  }
   process.exitCode = exitCode;
 }
