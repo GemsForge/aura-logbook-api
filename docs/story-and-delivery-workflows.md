@@ -31,3 +31,4 @@ The repository token handles issue, pull request, branch, and contents operation
 ## Verification
 
 Before opening a PR, run the repository's tests, build, lint, and the commit-policy checks. The issue remains the source of truth when automation and event arrival order disagree.
+undefined
