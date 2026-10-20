@@ -20,6 +20,7 @@ import {
 import Sheet from "@mui/joy/Sheet";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useEffect } from "react";
+import { prismGarden } from "@/theme";
 
 
 
@@ -72,6 +73,11 @@ export default function ProfileCard() {
         textAlign: "center",
         mx: "auto",
         maxWidth: 350,
+        width: "100%",
+        bgcolor: "rgba(255, 252, 247, 0.86)",
+        borderColor: prismGarden.color.line,
+        borderRadius: prismGarden.radius.card,
+        boxShadow: prismGarden.shadow.soft,
       }}>
       <Stack spacing={2} alignItems="center">
         {/* Zodiac badge around avatar */}

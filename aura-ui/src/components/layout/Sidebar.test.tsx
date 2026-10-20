@@ -7,7 +7,8 @@ describe("Sidebar", () => {
   it("marks only the link for the current page as current", () => {
     renderWithProviders(<Sidebar />, { route: "/history" });
 
-    expect(screen.getByRole("link", { name: "Mood History" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Log Mood" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("navigation", { name: "Journal navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reflections" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Log mood" })).not.toHaveAttribute("aria-current");
   });
 });

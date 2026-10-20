@@ -18,12 +18,12 @@ describe("NavBar", () => {
       </>
     );
 
-    expect(screen.getByRole("button", { name: "Home" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Login" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Register" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Dashboard" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create account" })).toBeInTheDocument();
+    expect(screen.getByTestId("prism-mark")).toHaveAttribute("aria-hidden", "true");
 
-    fireEvent.click(screen.getByRole("button", { name: "Register" }));
+    fireEvent.click(screen.getByRole("link", { name: "Create account" }));
     expect(screen.getByLabelText("Current path")).toHaveTextContent("/register");
   });
 
@@ -36,11 +36,14 @@ describe("NavBar", () => {
       { preloadedState: createAuthenticatedState() }
     );
 
-    expect(screen.getByRole("button", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Login" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Aura Logbook home" })).toHaveAttribute(
+      "href",
+      "/dashboard",
+    );
+    expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Login" })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Logout" }));
+    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
     expect(screen.getByLabelText("Current path")).toHaveTextContent("/home");
     expect(store.getState().auth.isAuthenticated).toBe(false);
   });

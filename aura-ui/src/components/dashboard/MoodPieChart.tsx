@@ -62,6 +62,13 @@ function groupSmallMoods(data: MoodPercentResponse[]): MoodPercentResponse[] {
   }, [] as MoodPercentResponse[]);
 }
 
+/**
+ * Displays the five most frequent moods as a percentage breakdown.
+ *
+ * The chart owns no fixed width: `ResponsiveContainer` follows its grid cell
+ * and the plot height steps down on narrow screens. This prevents dashboard
+ * content from forcing horizontal page scrolling at the 320px reflow anchor.
+ */
 export default function MoodPieChart({
   data,
 }: {
@@ -76,7 +83,7 @@ export default function MoodPieChart({
         Mood Breakdown
       </Typography>
 
-      <Box width={400} height={400}>
+      <Box sx={{ width: "100%", minWidth: 0, height: { xs: 320, sm: 400 } }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -85,7 +92,7 @@ export default function MoodPieChart({
               nameKey="mood"
               cx="50%"
               cy="50%"
-              outerRadius={150}
+              outerRadius="68%"
               label={({ mood }) => `${MoodIcons[mood as MoodType] ?? "❔"}`}>
               {grouped.map((_entry, index) => (
                 <Cell

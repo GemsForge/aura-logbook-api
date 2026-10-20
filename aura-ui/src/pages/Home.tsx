@@ -16,8 +16,12 @@ export default function HomePage() {
   };
 
   return (
-    <Box>
-      <Typography variant="h3" gutterBottom>
+    <Box sx={{ minWidth: 0 }}>
+      <Typography
+        component="h1"
+        variant="h3"
+        gutterBottom
+        sx={{ fontSize: { xs: "2.35rem", sm: "3rem" }, overflowWrap: "anywhere" }}>
         Welcome to Aura Logbook
       </Typography>
       <Typography variant="h6" gutterBottom>
@@ -34,7 +38,7 @@ export default function HomePage() {
         <AuraFeatureCards />
       </Box>
 
-      <Box m={4}>
+      <Box sx={{ my: 4 }}>
         <Button variant="contained" onClick={handleGetStarted}>
           Start Your Aura Journey
         </Button>
