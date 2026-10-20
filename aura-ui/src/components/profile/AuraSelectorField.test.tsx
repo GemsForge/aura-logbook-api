@@ -33,7 +33,7 @@ vi.mock("@/store/referenceDataApi", () => ({
 
 function AuraSelectorHarness() {
   const { control, watch } = useForm<EditProfileFormData>({
-    defaultValues: { auraColor: "blue", auraIntensity: 500 },
+    defaultValues: { auraColor: "blue", auraIntensity: 50 },
   });
 
   return (

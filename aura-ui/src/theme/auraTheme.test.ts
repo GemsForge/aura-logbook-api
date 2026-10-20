@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { AuraColor } from "../features/mood/models/aura";
-import { auraPalettes, getAuraColorPreview, resolveAuraColor } from "./auraTheme";
+import {
+  auraPalettes,
+  getAuraColorPreview,
+  getAuraShade,
+  normalizeAuraIntensity,
+  resolveAuraColor,
+} from "./auraTheme";
 
 describe("aura profile color fallbacks", () => {
   it.each([undefined, null, "unknown", ""])(
@@ -20,7 +26,7 @@ describe("aura profile color fallbacks", () => {
     );
   });
 
-  it.each([undefined, null, 0, 250, 1000])(
+  it.each([undefined, null, 250, 1000])(
     "uses the selected palette primary shade for unsupported intensity %s",
     (intensity) => {
       expect(getAuraColorPreview(AuraColor.Green, intensity)).toBe(
@@ -28,4 +34,18 @@ describe("aura profile color fallbacks", () => {
       );
     }
   );
+
+  it.each([
+    [0, 100],
+    [50, 500],
+    [100, 900],
+    [700, 700],
+  ])("maps intensity %s to palette shade %s", (intensity, shade) => {
+    expect(getAuraShade(intensity)).toBe(shade);
+  });
+
+  it("normalizes legacy palette intensity values", () => {
+    expect(normalizeAuraIntensity(500)).toBe(50);
+    expect(normalizeAuraIntensity(700)).toBe(70);
+  });
 });

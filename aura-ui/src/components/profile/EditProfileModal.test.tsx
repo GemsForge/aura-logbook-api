@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtilities";
 import EditProfileModal from "./EditProfileModal";
 
-const { mockGetCurrentUser } = vi.hoisted(() => ({
+const { mockGetCurrentUser, mockUpdateUser, mockUnwrap } = vi.hoisted(() => ({
   mockGetCurrentUser: vi.fn(),
+  mockUpdateUser: vi.fn(),
+  mockUnwrap: vi.fn(),
 }));
 
 vi.mock("@/store/authApi", async (importOriginal) => {
@@ -12,7 +15,7 @@ vi.mock("@/store/authApi", async (importOriginal) => {
   return {
     ...actual,
     useGetCurrentUserQuery: () => mockGetCurrentUser(),
-    useUpdateUserMutation: () => [vi.fn()],
+    useUpdateUserMutation: () => [mockUpdateUser],
   };
 });
 
@@ -32,6 +35,10 @@ const baseUser = {
 describe("EditProfileModal", () => {
   beforeEach(() => {
     mockGetCurrentUser.mockReset();
+    mockUpdateUser.mockReset();
+    mockUnwrap.mockReset();
+    mockUpdateUser.mockReturnValue({ unwrap: mockUnwrap });
+    mockUnwrap.mockResolvedValue({});
   });
 
   it.each([
@@ -68,5 +75,38 @@ describe("EditProfileModal", () => {
     expect(
       screen.getByRole("button", { name: "Save Changes" })
     ).toBeInTheDocument();
+  });
+
+  it("saves a persisted profile with no avatar and a percentage intensity", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    mockGetCurrentUser.mockReturnValue({
+      data: {
+        ...baseUser,
+        avatar: "",
+        auraColor: "blue",
+        auraIntensity: 50,
+      },
+      isFetching: false,
+    });
+
+    renderWithProviders(<EditProfileModal open onClose={onClose} />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Save Changes" })
+    );
+
+    await waitFor(() =>
+      expect(mockUpdateUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 1,
+          avatar: "",
+          auraColor: "blue",
+          auraIntensity: 50,
+        })
+      )
+    );
+    expect(mockUnwrap).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

@@ -40,7 +40,7 @@ import { AuraColor } from "@/features/mood/models/aura";
  *     },
  *   },
  *   auraColor: "blue",
- *   auraIntensity: 500,
+ *   auraIntensity: 50,
  * });
  *
  * expect(screen.getByText("Expected text")).toBeInTheDocument();
@@ -58,7 +58,7 @@ export function renderWithProviders(
     route = "/",
     preloadedState,
     auraColor = AuraColor.Blue,
-    auraIntensity = 500,
+    auraIntensity = 50,
   }: RenderWithProvidersOptions = {}
 ) {
   const store = configureStore({

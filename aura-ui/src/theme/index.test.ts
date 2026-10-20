@@ -5,6 +5,9 @@ import type { AuraColor } from "../features/mood/models/aura";
 
 describe("getAuraTheme", () => {
   it.each<[AuraColor, number, string]>([
+    ["red", 50, red[500]],
+    ["red", 10, red[200]],
+    ["blue", 100, blue[900]],
     ["red", 500, red[500]],
     ["red", 700, red[700]],
     ["blue", 300, blue[300]],
