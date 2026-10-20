@@ -127,3 +127,20 @@ For each core screen, test 320 px and 390 px phone widths, a tablet-width layout
 - Empty, loading, and service-error states remain distinguishable and have useful next actions.
 
 A successful component test suite alone does not verify these properties. Record browser/viewport and assistive-technology checks separately, and create bounded implementation stories for any failures found.
+
+
+## Manual review run — 2026-10-20
+
+This run supplements the source-level review above. It is a limited manual spot check, not a complete acceptance pass.
+
+| Screen / check | Result | Evidence and limits |
+| --- | --- | --- |
+| Registration at 320 × 800 CSS px | **Failed** | The supplied browser screenshot shows a horizontal scrollbar and clipped content: the navigation row extends beyond the viewport and the registration form/pathway panel are wider than the available page width. This violates the narrow-phone no-horizontal-scroll requirement. |
+| Registration at 390 × 844 CSS px | Partial pass | The isolated branch UI rendered and the visible registration content fit in the captured viewport. This does not override the 320px failure or establish full-page behavior. |
+| Login at 1280 × 900 CSS px | Partial pass | The login screen rendered at desktop width. Authenticated dashboard and history screens were not visually reviewed in this run. |
+| Keyboard focus | **Needs follow-up** | The browser accessibility snapshot exposed labels for email/password/display name and pathway controls. Keyboard focus moved from the brand control to Home, but no clearly visible focus indicator was apparent in the captured state. A full keyboard-only journey was not completed. |
+| Heading and landmarks | **Needs follow-up** | The registration title is exposed as an h3, rather than the page-level h1 specified above. A complete semantic landmark audit was not performed. |
+| Screen reader, 200% zoom, contrast | Not tested | No VoiceOver or equivalent screen-reader run, 200% zoom run, or measured contrast audit was completed. |
+| Automated UI checks | Passed | 91 UI tests passed with the local API base URL configured. The production build completed (with a chunk-size advisory); lint reported no errors and three warnings. These checks do not prove responsive/accessibility conformance. |
+
+The API was not running during this isolated UI review, so authenticated dashboard and history behavior could not be validated end to end. The 320px registration failure is a concrete implementation defect and should be tracked/fixed in a dedicated implementation story before this responsive experience is considered complete. Also follow up on the visible keyboard focus and page heading/landmark structure. Do not treat the untested checks in this table as passed.
