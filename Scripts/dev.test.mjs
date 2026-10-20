@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createDevelopmentPlan, createServicePlan, findAvailablePort, resolveApiEnvironment, runDevelopment, terminateProcessTree } from "./dev.mjs";
+import { createDevelopmentPlan, createServicePlan, findAvailablePort, resolveApiEnvironment, runDevelopment, stopChild, terminateProcessTree } from "./dev.mjs";
 
 test("root npm dev alias runs the combined development launcher", () => {
   const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -29,7 +29,7 @@ test("service plan uses the HTTP launch profile and the configured development p
   const plan = createServicePlan({ root: "/repo", platform: "linux", env: {} });
 
   assert.equal(plan[0].command, "dotnet");
-  assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http"]);
+  assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http", "--", "--urls", "http://localhost:5082"]);
   assert.equal(plan[0].cwd, "/repo/AuraLogbook.Api");
   assert.equal(plan[1].command, "npm");
   assert.deepEqual(plan[1].args, ["run", "dev", "--", "--host", "127.0.0.1", "--port", "58407", "--strictPort"]);
@@ -56,6 +56,27 @@ test("service plan supports alternate ports for parallel local instances", () =>
   assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http", "--", "--urls", "http://localhost:5082"]);
   assert.equal(plan[1].args.at(-2), "58408");
   assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5082/api");
+});
+
+test("local UI API URL configures the API listener and UI target together", () => {
+  const root = mkdtempSync(join(tmpdir(), "aura-dev-plan-"));
+  mkdirSync(join(root, "aura-ui"), { recursive: true });
+  writeFileSync(join(root, "aura-ui", ".env.local"), "VITE_API_BASE_URL=http://127.0.0.1:5124/api\n");
+
+  try {
+    const plan = createServicePlan({ root, platform: "linux", env: {} });
+    assert.equal(plan[0].args.at(-1), "http://localhost:5124");
+    assert.equal(plan[1].env.VITE_API_BASE_URL, "http://127.0.0.1:5124/api");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("AURA_API_PORT rejects a conflicting local UI API URL", () => {
+  assert.throws(
+    () => createServicePlan({ root: "/repo", platform: "linux", env: { AURA_API_PORT: "5124", VITE_API_BASE_URL: "http://localhost:5082/api" } }),
+    /AURA_API_PORT 5124 conflicts with local VITE_API_BASE_URL port 5082/,
+  );
 });
 
 test("service plan rejects invalid port configuration", () => {
@@ -89,29 +110,51 @@ test("explicitly configured occupied API ports fail with recovery guidance", asy
   try {
     await assert.rejects(
       () => createDevelopmentPlan({ root: "/repo", platform: "linux", env: { AURA_API_PORT: String(occupiedPort) } }),
-      new RegExp(`AURA_API_PORT ${occupiedPort} is already in use`),
+      new RegExp(`AURA_API_PORT ${occupiedPort} is already in use.*Stop the process using port ${occupiedPort} or choose another port`),
     );
   } finally {
     await new Promise(resolve => blocker.close(resolve));
   }
 });
 
-test("service plan preserves explicit API URL configuration", () => {
+test("occupied local .env.local API ports fail with recovery guidance", async () => {
+  const occupiedPort = await findAvailablePort(5260);
+  const blocker = await import("node:net").then(({ default: net }) => new Promise(resolve => {
+    const server = net.createServer().listen(occupiedPort, "127.0.0.1", () => resolve(server));
+  }));
+  const root = mkdtempSync(join(tmpdir(), "aura-dev-plan-"));
+  mkdirSync(join(root, "aura-ui"), { recursive: true });
+  writeFileSync(join(root, "aura-ui", ".env.local"), `VITE_API_BASE_URL=http://127.0.0.1:${occupiedPort}/api\n`);
+
+  try {
+    await assert.rejects(
+      () => createDevelopmentPlan({ root, platform: "linux", env: {} }),
+      new RegExp(`local VITE_API_BASE_URL port ${occupiedPort} is already in use.*choose another port by updating VITE_API_BASE_URL`),
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+    await new Promise(resolve => blocker.close(resolve));
+  }
+});
+
+test("service plan aligns an explicitly configured local API URL with the API listener", () => {
   const plan = createServicePlan({ root: "/repo", platform: "win32", env: { VITE_API_BASE_URL: "http://localhost:6000/api" } });
 
   assert.equal(plan[1].command, "npm.cmd");
   assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:6000/api");
+  assert.equal(plan[0].args.at(-1), "http://localhost:6000");
 });
 
-test("combined launcher selects its API port and warns when .env.local points elsewhere", () => {
+test("combined launcher uses a local .env.local API port for both services", () => {
   const root = mkdtempSync(join(tmpdir(), "aura-dev-plan-"));
   mkdirSync(join(root, "aura-ui"), { recursive: true });
   writeFileSync(join(root, "aura-ui", ".env.local"), "VITE_API_BASE_URL=http://localhost:6000/api\n");
 
   try {
     const plan = createServicePlan({ root, platform: "linux", env: {} });
-    assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5082/api");
-    assert.match(plan[1].notice, /\.env\.local.*http:\/\/localhost:6000\/api.*http:\/\/localhost:5082\/api/);
+    assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:6000/api");
+    assert.equal(plan[0].args.at(-1), "http://localhost:6000");
+    assert.equal(plan[1].notice, undefined);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -125,6 +168,7 @@ test("exported API URL explicitly overrides the combined launch default and loca
   try {
     const plan = createServicePlan({ root, platform: "linux", env: { VITE_API_BASE_URL: "http://localhost:6001/api" } });
     assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:6001/api");
+    assert.equal(plan[0].args.at(-1), "http://localhost:6001");
     assert.equal(plan[1].notice, undefined);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -206,6 +250,28 @@ test("POSIX shutdown signals the detached service process group", () => {
   });
 
   assert.deepEqual(signals, [[-42, "SIGTERM"]]);
+});
+
+test("POSIX shutdown waits for descendants and force-stops a process group after its parent exits", async () => {
+  const child = new FakeChild(42);
+  child.exitCode = 0;
+  let groupAlive = true;
+  const signals = [];
+  let finished = false;
+  const stopping = stopChild(child, "darwin", () => assert.fail("unexpected helper process"), (pid, signal) => {
+    signals.push([pid, signal]);
+    if (signal === "SIGKILL") groupAlive = false;
+  }, {
+    gracePeriodMs: 10,
+    pollIntervalMs: 1,
+    groupExists: () => groupAlive,
+  }).then(() => { finished = true; });
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(finished, false, "do not resolve while a descendant still owns the process group");
+  await stopping;
+  assert.equal(finished, true);
+  assert.deepEqual(signals, [[-42, "SIGTERM"], [-42, "SIGKILL"]]);
 });
 
 test("Windows shutdown uses taskkill recursively for the child process tree", () => {

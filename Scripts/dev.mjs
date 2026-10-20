@@ -22,6 +22,43 @@ function localApiBaseUrl(path) {
   return match[1].replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
 }
 
+function localApiPort(apiUrl, source) {
+  if (!apiUrl) return undefined;
+  let parsed;
+  try {
+    parsed = new URL(apiUrl);
+  } catch {
+    throw new Error(`${source} must be a valid API URL.`);
+  }
+
+  if (!["localhost", "127.0.0.1", "::1", "[::1]"].includes(parsed.hostname)) return undefined;
+  if (parsed.protocol !== "http:") {
+    throw new Error(`${source} points to a local API but must use http:// for the combined development launcher.`);
+  }
+  if (!parsed.port) {
+    throw new Error(`${source} points to a local API but has no port; set AURA_API_PORT and include the same port in VITE_API_BASE_URL.`);
+  }
+  return configuredPort(parsed.port, undefined, source);
+}
+
+function apiPortConfiguration(root, env, defaultPort) {
+  const fileApiUrl = localApiBaseUrl(resolve(root, "aura-ui", ".env.local"));
+  const configuredUiApiUrl = env.VITE_API_BASE_URL || fileApiUrl;
+  const configuredUiApiPort = localApiPort(configuredUiApiUrl, env.VITE_API_BASE_URL ? "VITE_API_BASE_URL" : "aura-ui/.env.local VITE_API_BASE_URL");
+  const explicitApiPort = env.AURA_API_PORT !== undefined && env.AURA_API_PORT !== "";
+  const apiPort = configuredPort(env.AURA_API_PORT, defaultPort, "AURA_API_PORT");
+  if (explicitApiPort && configuredUiApiPort !== undefined && configuredUiApiPort !== apiPort) {
+    throw new Error(`AURA_API_PORT ${apiPort} conflicts with local VITE_API_BASE_URL port ${configuredUiApiPort}. Set both to the same port, or remove the local VITE_API_BASE_URL override.`);
+  }
+
+  return {
+    apiPort: explicitApiPort ? apiPort : configuredUiApiPort ?? apiPort,
+    configuredUiApiUrl,
+    configuredUiApiPort,
+    explicitPort: explicitApiPort || configuredUiApiPort !== undefined,
+  };
+}
+
 export function resolveApiEnvironment(value = "DEV") {
   const aliases = {
     DEV: "Development",
@@ -35,17 +72,20 @@ export function resolveApiEnvironment(value = "DEV") {
 export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env, apiPort } = {}) {
   const apiRoot = resolve(root, "AuraLogbook.Api");
   const uiRoot = resolve(root, "aura-ui");
-  const configuredApiPort = configuredPort(env.AURA_API_PORT, 5082, "AURA_API_PORT");
+  const apiConfiguration = apiPortConfiguration(root, env, 5082);
   const uiPort = configuredPort(env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
   const uiEnv = { ...env };
   const apiEnvironment = resolveApiEnvironment(env.AURA_ENV || env.ASPNETCORE_ENVIRONMENT || "DEV");
-  const localApiUrl = localApiBaseUrl(resolve(uiRoot, ".env.local"));
-  const selectedApiPort = apiPort ?? configuredApiPort;
+  const selectedApiPort = apiPort ?? apiConfiguration.apiPort;
   const defaultApiUrl = `http://localhost:${selectedApiPort}/api`;
-  uiEnv.VITE_API_BASE_URL = env.VITE_API_BASE_URL || defaultApiUrl;
+  uiEnv.VITE_API_BASE_URL = apiConfiguration.configuredUiApiPort === undefined
+    ? (env.VITE_API_BASE_URL || defaultApiUrl)
+    : apiPort !== undefined && apiPort !== apiConfiguration.apiPort
+      ? defaultApiUrl
+      : (apiConfiguration.configuredUiApiUrl || defaultApiUrl);
 
   const apiArgs = ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http"];
-  if (env.AURA_API_PORT || apiPort !== undefined) apiArgs.push("--", "--urls", `http://localhost:${selectedApiPort}`);
+  apiArgs.push("--", "--urls", `http://localhost:${selectedApiPort}`);
 
   return [
     {
@@ -54,7 +94,7 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       args: apiArgs,
       cwd: apiRoot,
       env: { ...env, ASPNETCORE_ENVIRONMENT: apiEnvironment },
-      ...(apiPort !== undefined && apiPort !== configuredApiPort
+      ...(apiPort !== undefined && apiPort !== apiConfiguration.apiPort
         ? { notice: `AURA_API_PORT is busy; using available API port ${apiPort}.` }
         : {}),
     },
@@ -64,9 +104,7 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       args: ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(uiPort), "--strictPort"],
       cwd: uiRoot,
       env: uiEnv,
-      notice: !env.VITE_API_BASE_URL && localApiUrl && localApiUrl !== defaultApiUrl
-        ? `Ignoring aura-ui/.env.local VITE_API_BASE_URL=${localApiUrl} for the combined launch; targeting ${defaultApiUrl}. Export VITE_API_BASE_URL to override.`
-        : undefined,
+      notice: undefined,
     },
   ];
 }
@@ -90,10 +128,12 @@ export async function findAvailablePort(startPort, { host = "127.0.0.1", attempt
 }
 
 export async function createDevelopmentPlan({ root = repositoryRoot, platform = process.platform, env = process.env, defaultPort = 5082 } = {}) {
-  const requestedPort = configuredPort(env.AURA_API_PORT, defaultPort, "AURA_API_PORT");
+  const apiConfiguration = apiPortConfiguration(root, env, defaultPort);
+  const requestedPort = apiConfiguration.apiPort;
   const selectedPort = await findAvailablePort(requestedPort);
-  if (env.AURA_API_PORT && selectedPort !== requestedPort) {
-    throw new Error(`AURA_API_PORT ${requestedPort} is already in use. Choose another port or stop the process using it.`);
+  if (apiConfiguration.explicitPort && selectedPort !== requestedPort) {
+    const source = env.AURA_API_PORT ? `AURA_API_PORT ${requestedPort}` : `local VITE_API_BASE_URL port ${requestedPort}`;
+    throw new Error(`${source} is already in use. Stop the process using port ${requestedPort} or choose another port by updating ${env.AURA_API_PORT ? "AURA_API_PORT" : "VITE_API_BASE_URL"}. The launcher will not stop unrelated listeners.`);
   }
   return createServicePlan({ root, platform, env, apiPort: selectedPort });
 }
@@ -127,47 +167,84 @@ export function terminateProcessTree(child, platform, spawnProcess, killProcess 
   }
 }
 
-function stopChild(child, platform, spawnProcess, killProcess = process.kill) {
-  const alreadyExited = child.exitCode !== null || child.signalCode !== null;
-  if (alreadyExited) {
-    if (platform !== "win32" && child.pid !== undefined && child.pid !== null) {
-      try {
-        killProcess(-child.pid, "SIGTERM");
-      } catch (error) {
-        if (error?.code !== "ESRCH") throw error;
-      }
+function processGroupExists(pid, killProcess = process.kill) {
+  try {
+    killProcess(-pid, 0);
+    return true;
+  } catch (error) {
+    if (error?.code === "ESRCH") return false;
+    return true;
+  }
+}
+
+export function stopChild(child, platform, spawnProcess, killProcess = process.kill, {
+  gracePeriodMs = 5000,
+  pollIntervalMs = 50,
+  groupExists = processGroupExists,
+} = {}) {
+  if (child.pid === undefined || child.pid === null) return Promise.resolve();
+
+  if (platform === "win32") {
+    const terminate = () => {
+      const killer = spawnProcess("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+      killer.on("error", () => {});
+    };
+    const alreadyExited = child.exitCode !== null || child.signalCode !== null;
+    if (alreadyExited) {
+      terminate();
+      return Promise.resolve();
     }
-    return Promise.resolve();
+
+    return new Promise(resolveStop => {
+      let forceTimer;
+      const finish = () => {
+        clearTimeout(forceTimer);
+        resolveStop();
+      };
+      child.once("close", finish);
+      terminate();
+      forceTimer = setTimeout(terminate, gracePeriodMs);
+      forceTimer.unref();
+    });
+  }
+
+  try {
+    killProcess(-child.pid, "SIGTERM");
+  } catch (error) {
+    if (error?.code !== "ESRCH") child.kill("SIGTERM");
   }
 
   return new Promise(resolveStop => {
     let finished = false;
     let forceTimer;
+    let pollTimer;
     const finish = () => {
       if (finished) return;
       finished = true;
-      if (forceTimer) clearTimeout(forceTimer);
+      clearTimeout(forceTimer);
+      clearTimeout(pollTimer);
       resolveStop();
     };
-    child.once("close", finish);
-    terminateProcessTree(child, platform, spawnProcess, killProcess);
+    const checkGroup = () => {
+      if (!groupExists(child.pid, killProcess)) {
+        finish();
+        return;
+      }
+      pollTimer = setTimeout(checkGroup, pollIntervalMs);
+    };
 
     forceTimer = setTimeout(() => {
-      if (platform === "win32") {
-        const killer = spawnProcess("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
-          stdio: "ignore",
-          windowsHide: true,
-        });
-        killer.on("error", () => {});
-      } else {
-        try {
-          killProcess(-child.pid, "SIGKILL");
-        } catch (error) {
-          if (error?.code !== "ESRCH") child.kill("SIGKILL");
-        }
+      try {
+        killProcess(-child.pid, "SIGKILL");
+      } catch (error) {
+        if (error?.code !== "ESRCH") child.kill("SIGKILL");
       }
-    }, 5000);
-    forceTimer.unref();
+      checkGroup();
+    }, gracePeriodMs);
+    checkGroup();
   });
 }
 
