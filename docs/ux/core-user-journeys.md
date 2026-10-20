@@ -99,7 +99,7 @@ Recommended order for design exploration—not a claim about current implementat
 4. **Supporting context:** weather and zodiac/pathway content are secondary, skippable, and never presented as causes of a mood.
 5. **Return to the journal:** recent entries with a route to full history.
 
-The next design story (#217) can turn this hierarchy into the profile-ready dashboard concept. Responsive/accessibility decisions belong to #218, and platform adaptation to #219.
+The next design story (#217) can turn this hierarchy into the profile-ready dashboard concept. Responsive/accessibility decisions belong to #218, and the [SwiftUI shell adaptation plan](swiftui-shell-adaptation.md) documents #219.
 
 ## Open UX questions and assumptions
 

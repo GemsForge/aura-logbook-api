@@ -105,5 +105,6 @@ This story defines and documents the visual system. Applying it throughout produ
 ## Reference
 
 - [Inclusive experience principles](experience-principles.md)
+- [SwiftUI shell adaptation plan](swiftui-shell-adaptation.md)
 - [Current dashboard implementation](../../aura-ui/src/pages/Dashboard.tsx)
 - [Current Aura palette implementation](../../aura-ui/src/theme/auraTheme.ts)
