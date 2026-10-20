@@ -93,6 +93,10 @@ The migration source is also copied by the test project, allowing migration
 tests to run against an isolated temporary SQLite database without using a
 developer database file.
 
+See [Database migration recovery](database-recovery.md) for backup, failed
+migration, and restore guidance. The migrator is forward-only; it does not
+provide automatic rollback scripts.
+
 ## Existing-data import workflow
 
 For a complete import of the active JSON sources, run the dedicated seeder:
