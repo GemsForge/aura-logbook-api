@@ -1,19 +1,46 @@
 import Box from "@mui/joy/Box";
-import Link from "@mui/joy/Link";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
-import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { RootState } from "../../store/store";
 import { logout } from "../../store/slices/authSlice";
+import PrismMark from "./PrismMark";
+import { prismGarden } from "@/theme";
+
+const linkStyle = { color: "inherit", textDecoration: "none" } as const;
+const navLinkSx = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: 44,
+  px: { xs: 1.25, sm: 1.5 },
+  borderRadius: prismGarden.radius.control,
+  bgcolor: "transparent",
+  color: prismGarden.color.ink,
+  fontSize: "0.9rem",
+  fontWeight: 600,
+  textDecoration: "none",
+  "&:hover": { bgcolor: prismGarden.color.surfaceSoft },
+  "&[aria-current='page']": {
+    textDecoration: "underline",
+    textUnderlineOffset: "0.35rem",
+    textDecorationThickness: "2px",
+  },
+  "&:focus-visible": {
+    outline: `3px solid ${prismGarden.color.focus}`,
+    outlineOffset: 2,
+  },
+} as const;
 
 const NavBar = () => {
   const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated
+    (state: RootState) => state.auth.isAuthenticated,
   );
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     dispatch(logout());
@@ -21,65 +48,114 @@ const NavBar = () => {
   };
 
   return (
-    <Sheet component="header" variant="solid" color="primary">
+    <Sheet
+      component="header"
+      variant="plain"
+      sx={{
+        position: "relative",
+        zIndex: 10,
+        bgcolor: "rgba(255, 252, 247, 0.92)",
+        borderBottom: "1px solid",
+        borderColor: prismGarden.color.line,
+        backdropFilter: "blur(14px)",
+      }}>
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          alignItems: { xs: "stretch", sm: "center" },
-          minHeight: 64,
-          px: { xs: 1.5, sm: 2 },
-          py: { xs: 1, sm: 0 },
-          gap: { xs: 0.5, sm: 1 },
+          alignItems: "center",
+          flexWrap: { xs: "wrap", sm: "nowrap" },
+          minHeight: { xs: 68, sm: 76 },
+          width: "min(100%, 1440px)",
+          mx: "auto",
+          px: { xs: 2, sm: 3, lg: 5 },
+          py: 1,
+          rowGap: 0.5,
+          gap: 1.5,
           minWidth: 0,
-          boxSizing: "border-box",
-        }}
-      >
-        <Typography level="title-lg" sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Link
-            component="button"
-            type="button"
-            color="neutral"
-            underline="none"
-            onClick={() => navigate("/home")}
-            sx={{ font: "inherit", fontWeight: "inherit", color: "inherit" }}
-          >
-            Aura Logbook
-          </Link>
-        </Typography>
+        }}>
+        <Link
+          to={isAuthenticated ? "/dashboard" : "/home"}
+          aria-label="Aura Logbook home"
+          style={{ ...linkStyle, minWidth: 0 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <PrismMark size={25} />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                level="title-lg"
+                sx={{
+                  fontFamily: prismGarden.font.display,
+                  fontSize: { xs: "1.18rem", sm: "1.42rem" },
+                  fontWeight: 500,
+                  lineHeight: 1.1,
+                  whiteSpace: "nowrap",
+                }}>
+                Aura Logbook
+              </Typography>
+              <Typography
+                level="body-xs"
+                sx={{
+                  display: { xs: "none", sm: "block" },
+                  mt: 0.35,
+                  color: prismGarden.color.inkMuted,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                }}>
+                A moment for yourself
+              </Typography>
+            </Box>
+          </Box>
+        </Link>
+
         <Box
           component="nav"
           aria-label="Main navigation"
           sx={{
             display: "flex",
-            justifyContent: { xs: "space-between", sm: "flex-end" },
+            justifyContent: "flex-end",
+            alignItems: "center",
             flexWrap: "wrap",
-            gap: { xs: 0.5, sm: 1 },
+            gap: { xs: 0.25, sm: 0.75 },
+            ml: "auto",
+            width: { xs: isAuthenticated ? "auto" : "100%", sm: "auto" },
             minWidth: 0,
-          }}
-        >
-          <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/home")}>
-            Home
-          </Button>
-          {isAuthenticated && (
-            <>
-              <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/dashboard")}>
-                Dashboard
-              </Button>
-              <Button color="inherit" sx={{ color: "inherit" }} onClick={handleLogout}>
-                Logout
-              </Button>
-            </>
-          )}
+          }}>
           {!isAuthenticated && (
             <>
-              <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/login")}>
+              <Sheet
+                component={Link}
+                to="/home"
+                aria-current={
+                  location.pathname === "/home" || location.pathname === "/"
+                    ? "page"
+                    : undefined
+                }
+                sx={navLinkSx}>
+                Home
+              </Sheet>
+              <Sheet
+                component={Link}
+                to="/login"
+                aria-current={location.pathname === "/login" ? "page" : undefined}
+                sx={navLinkSx}>
                 Login
-              </Button>
-              <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/register")}>
-                Register
-              </Button>
+              </Sheet>
+              <Sheet
+                component={Link}
+                to="/register"
+                aria-current={location.pathname === "/register" ? "page" : undefined}
+                sx={{
+                  ...navLinkSx,
+                  bgcolor: prismGarden.color.surfaceSoft,
+                  "&:hover": { bgcolor: prismGarden.color.stone },
+                }}>
+                Create account
+              </Sheet>
             </>
+          )}
+          {isAuthenticated && (
+            <Button color="neutral" variant="plain" onClick={handleLogout}>
+              Log out
+            </Button>
           )}
         </Box>
       </Box>

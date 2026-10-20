@@ -21,8 +21,13 @@ describe("AppLayout", () => {
 
     expect(screen.getByRole("heading", { name: "Public content" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
+    expect(screen.getByRole("link", { name: "Skip to main content" })).toHaveAttribute(
+      "href",
+      "#main-content",
+    );
     expect(screen.getByRole("contentinfo")).toHaveTextContent("Aura Logbook");
-    expect(screen.queryByRole("link", { name: "Log Mood" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Journal navigation" })).not.toBeInTheDocument();
   });
 
   it("renders the profile/sidebar column for authenticated pages", () => {
@@ -36,7 +41,14 @@ describe("AppLayout", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Private content" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Log Mood" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Mood History" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Today" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Log mood" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reflections" })).toBeInTheDocument();
+
+    const privateContent = screen.getByRole("heading", { name: "Private content" });
+    const profile = screen.getByText("Profile card");
+    expect(
+      privateContent.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });
