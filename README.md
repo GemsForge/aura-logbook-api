@@ -147,6 +147,7 @@ Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify
 
 - [API setup, configuration, routes, and tests](AuraLogbook.Api/README.md)
 - [UI setup, API URL configuration, and checks](aura-ui/README.md)
+- [SwiftUI shell adaptation plan](docs/ux/swiftui-shell-adaptation.md)
 - [Major dependencies, tools, and external-service terms](DEPENDENCIES.md)
 - [Safe local and remote branch cleanup](BRANCH_CLEANUP.md)
 - [Repository issue and pull-request workflow](.github/ISSUE_WORKFLOW.md)
