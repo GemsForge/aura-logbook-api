@@ -68,7 +68,7 @@ Use the [root README](README.md) as the single source of truth for prerequisites
 
 ## Direction and boundaries
 
-The product direction is a modular, API-first personal journal that can support web and a future native SwiftUI client. Near-term work should strengthen the shared mood/reflection contracts, make pathway wording inclusive, apply Prism Garden consistently, and deliver honest visualizations based on data the user actually recorded.
+The product direction is a modular, API-first personal journal that can support web and a future native SwiftUI client. The [SwiftUI shell adaptation plan](docs/ux/swiftui-shell-adaptation.md) records the shared product contract and native boundaries. Near-term work should strengthen the shared mood/reflection contracts, make pathway wording inclusive, apply Prism Garden consistently, and deliver honest visualizations based on data the user actually recorded.
 
 Potential extensions include a reviewed reflection-prompt library, weekly aura summaries, per-entry aura context, accessible trend views, export, reminders, and user-selected tradition-specific modules. Each requires its own acceptance criteria, privacy review, and verified implementation; listing it here does not make it a current feature.
 

@@ -19,6 +19,7 @@ This index separates current project guidance from preserved historical material
 - [Prism Garden visual system](ux/prism-garden-visual-system.md) — approved visual direction and semantic design tokens.
 - [Core user journeys](ux/core-user-journeys.md) — current web behavior, gaps, and target dashboard hierarchy.
 - [Responsive and accessibility behavior](ux/responsive-accessibility.md) — cross-viewport and assistive-technology expectations plus recorded review evidence.
+- [SwiftUI shell adaptation plan](ux/swiftui-shell-adaptation.md) — web-to-iPhone product contract, native information architecture, and mobile-readiness dependencies.
 
 These files describe intended product behavior where they say so. They do not imply that every proposed experience is already implemented.
 
