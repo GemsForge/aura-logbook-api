@@ -2,16 +2,18 @@
 import { createTheme, type Theme } from "@mui/material/styles";
 import { extendTheme as extendJoyTheme } from "@mui/joy/styles";
 import { AuraColor } from "../features/mood/models/aura";
+import { getAuraShade } from "./auraTheme";
 import { blue, green, grey, indigo, orange, pink, purple, red, yellow } from "@mui/material/colors";
 
 /**
  * Returns a MUI theme tailored to the user’s selected aura color and intensity.
  * @param color     The aura hue (must match a key in auraShades).
- * @param intensity MUI shade level (e.g., 100, 200, ..., 900).
+ * @param intensity Aura intensity percentage (0-100). Legacy MUI shade values
+ *                  are normalized for backward compatibility.
  */
 export function getAuraTheme(
     color: AuraColor,
-    intensity: number = 500
+    intensity: number = 50
   ): Theme {
     // Map each aura to its full set of MUI color shades
     const auraShades: Record<AuraColor, Record<number, string>> = {
@@ -26,9 +28,10 @@ export function getAuraTheme(
       pink: pink,
     };
   
-    // Select the requested shade, defaulting to 500 if unavailable
+    // Select the shade represented by the persisted 0-100 intensity.
     const shades = auraShades[color] || auraShades.blue;
-    const mainColor = shades[intensity] || shades[500];
+    const shade = getAuraShade(intensity);
+    const mainColor = shades[shade] || shades[500];
   
     console.log(`[theming]`, color, intensity, "→", mainColor);
     return createTheme({
@@ -46,7 +49,7 @@ export function getAuraTheme(
     });
   }
 
-export function getAuraJoyTheme(color: AuraColor, intensity: number = 500) {
+export function getAuraJoyTheme(color: AuraColor, intensity: number = 50) {
   const palettes: Record<AuraColor, Record<number, string>> = {
     red,
     orange,
@@ -59,7 +62,8 @@ export function getAuraJoyTheme(color: AuraColor, intensity: number = 500) {
     pink,
   };
   const shades = palettes[color] ?? palettes.blue;
-  const selected = shades[intensity] ?? shades[500];
+  const shade = getAuraShade(intensity);
+  const selected = shades[shade] ?? shades[500];
 
   return extendJoyTheme({
     colorSchemes: {
@@ -77,8 +81,8 @@ export function getAuraJoyTheme(color: AuraColor, intensity: number = 500) {
             800: shades[800],
             900: shades[900],
             solidBg: selected,
-            solidHoverBg: shades[Math.min(intensity + 100, 900)] ?? shades[600],
-            solidActiveBg: shades[Math.min(intensity + 200, 900)] ?? shades[700],
+            solidHoverBg: shades[Math.min(shade + 100, 900)] ?? shades[600],
+            solidActiveBg: shades[Math.min(shade + 200, 900)] ?? shades[700],
           },
         },
       },

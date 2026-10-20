@@ -10,6 +10,7 @@ namespace AuraLogbook.Api.Models.Dto
         public DateOnly Birthday { get; set; } = DateOnly.MaxValue;
         // public byte[]? ProfilePictureBlob { get; set; }
         public string? AuraColor { get; set; }
+        [Range(0, 100)]
         public int? AuraIntensity { get; set; }
         [Required]
         public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;

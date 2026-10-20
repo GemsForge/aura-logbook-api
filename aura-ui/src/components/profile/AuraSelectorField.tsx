@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Slider,
-  useTheme,
 } from "@mui/material";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
@@ -43,7 +42,6 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
         displayName: key.charAt(0).toUpperCase() + key.slice(1),
         baseHex: auraPalettes[key].primary.main ?? "#2196f3",
       }));
-  const theme = useTheme();
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Color picker + swatch */}
@@ -106,16 +104,16 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Typography gutterBottom>Intensity ({field.value})</Typography>
             <Slider
-              min={100}
-              max={900}
-              step={100}
-              value={typeof field.value === "number" ? field.value : 500}
+              min={0}
+              max={100}
+              step={10}
+              value={typeof field.value === "number" ? field.value : 50}
               onChange={(_, v) => field.onChange(v as number)}
               onBlur={field.onBlur}
               valueLabelDisplay="auto"
               sx={{
-                "& .MuiSlider-thumb": { color: theme.palette.primary.main },
-                "& .MuiSlider-track": { color: theme.palette.primary.main },
+                "& .MuiSlider-thumb": { color: previewColor },
+                "& .MuiSlider-track": { color: previewColor },
               }}
             />
           </Box>

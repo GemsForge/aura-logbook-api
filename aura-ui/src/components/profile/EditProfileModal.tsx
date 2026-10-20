@@ -11,7 +11,11 @@ import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
 import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal } from "@/store/slices/uiSlice";
-import { getAuraColorPreview, resolveAuraColor } from "@/theme/auraTheme";
+import {
+  getAuraColorPreview,
+  normalizeAuraIntensity,
+  resolveAuraColor,
+} from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { LinearProgress } from "@mui/material";
 import dayjs from "dayjs";
@@ -45,7 +49,7 @@ export default function EditProfileModal({
       email: user?.email ?? "",
       birthday: "",
       auraColor: AuraColor.Blue,
-      auraIntensity: 500,
+      auraIntensity: 50,
       avatar: "",
       password: "",
       confirmPassword: "",
@@ -74,7 +78,7 @@ export default function EditProfileModal({
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
         auraColor: resolveAuraColor(user.auraColor),
-        auraIntensity: user.auraIntensity ?? 500,
+        auraIntensity: normalizeAuraIntensity(user.auraIntensity),
         avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
@@ -92,7 +96,9 @@ export default function EditProfileModal({
     const payload: UpdateUserRequest = {
       id: user!.id,
       ...rest,
-      auraIntensity: auraIntensity ?? user!.auraIntensity ?? 500,
+      auraIntensity: normalizeAuraIntensity(
+        auraIntensity ?? user!.auraIntensity
+      ),
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
       selectedPathway: spiritualPathway,

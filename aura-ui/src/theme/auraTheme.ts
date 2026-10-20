@@ -149,21 +149,46 @@ export function resolveAuraColor(color: unknown): AuraColorValue {
     : AuraColor.Blue;
 }
 
-/** Return a safe preview shade for potentially incomplete persisted values. */
-export function getAuraColorPreview(
-  color: unknown,
-  intensity: unknown
-): string {
-  const palette = auraPalettes[resolveAuraColor(color)];
+/**
+ * Normalize persisted percentage values and legacy MUI shade values to 0-100.
+ * Older development data used 100-900 while the database contract uses 0-100.
+ */
+export function normalizeAuraIntensity(intensity: unknown): number {
   const numericIntensity =
     typeof intensity === "number"
       ? intensity
       : typeof intensity === "string" && intensity.trim() !== ""
         ? Number(intensity)
         : Number.NaN;
-  const shade = Number.isInteger(numericIntensity)
-    ? palette[numericIntensity as ShadeKey]
-    : undefined;
+
+  if (!Number.isFinite(numericIntensity)) return 50;
+  if (numericIntensity >= 0 && numericIntensity <= 100) {
+    return Math.round(numericIntensity);
+  }
+  if (
+    numericIntensity >= 100 &&
+    numericIntensity <= 900 &&
+    numericIntensity % 100 === 0
+  ) {
+    return numericIntensity / 10;
+  }
+
+  return 50;
+}
+
+/** Convert a 0-100 aura intensity percentage to the nearest MUI shade. */
+export function getAuraShade(intensity: unknown): ShadeKey {
+  const normalizedIntensity = normalizeAuraIntensity(intensity);
+  return (100 + Math.round((normalizedIntensity / 100) * 8) * 100) as ShadeKey;
+}
+
+/** Return a safe preview shade for potentially incomplete persisted values. */
+export function getAuraColorPreview(
+  color: unknown,
+  intensity: unknown
+): string {
+  const palette = auraPalettes[resolveAuraColor(color)];
+  const shade = palette[getAuraShade(intensity)];
 
   return (
     shade?.main ??
