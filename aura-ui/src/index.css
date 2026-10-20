@@ -1,68 +1,92 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #352d2c;
+  background: #f7f2ea;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --garden-canvas: #f7f2ea;
+  --garden-surface: #fffcf7;
+  --garden-surface-soft: #ede5d9;
+  --garden-stone: #ded3c3;
+  --garden-ink: #352d2c;
+  --garden-ink-muted: #665d56;
+  --garden-line: #d9cec0;
+  --garden-focus: #654a5d;
+  --garden-sage: #87917b;
+  --garden-rose: #c79a98;
+  --garden-terracotta: #c87961;
+  --garden-amber: #d39a4a;
+  --garden-blue-gray: #91a3ac;
+  --prism-orchid: #815f7e;
+  --prism-berry: #7f263f;
+  --prism-turquoise: #2d7180;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+* {
+  box-sizing: border-box;
 }
-a:hover {
-  color: #535bf2;
+
+html {
+  min-width: 0;
+  min-height: 100%;
+  background: var(--garden-canvas);
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(211, 154, 74, 0.09), transparent 24rem),
+    radial-gradient(circle at 96% 12%, rgba(135, 145, 123, 0.1), transparent 28rem),
+    var(--garden-canvas);
+}
+
+#root {
+  width: 100%;
+  min-width: 0;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+a {
+  color: inherit;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+::selection {
+  color: var(--garden-surface);
+  background: var(--garden-focus);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+.skip-link {
+  position: fixed;
+  z-index: 2000;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--garden-surface);
+  background: var(--garden-focus);
+  border-radius: 0.625rem;
+  transform: translateY(-180%);
+  transition: transform 120ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid var(--garden-surface);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -15,6 +15,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ToastProvider } from "./hooks/useToast";
 import { useCurrentUserQuery } from "./store/hooks/useCurrentUserQuery";
+import "./index.css";
 
 function ThemedApp() {
  
