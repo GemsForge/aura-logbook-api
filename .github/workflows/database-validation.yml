@@ -1,0 +1,51 @@
+name: Database validation
+
+on:
+  pull_request:
+    paths:
+      - 'AuraLogbook.Api/**'
+      - 'AuraLogbook.Api.Tests/**'
+      - 'AuraLogbook.sln'
+      - '*.sln'
+      - '.github/workflows/database-validation.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'AuraLogbook.Api/**'
+      - 'AuraLogbook.Api.Tests/**'
+      - 'AuraLogbook.sln'
+      - '*.sln'
+      - '.github/workflows/database-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  database-validation:
+    name: ${{ matrix.environment }} database validation
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: dev
+            aspnet: Development
+          - environment: fit
+            aspnet: Staging
+          - environment: prod
+            aspnet: Production
+    timeout-minutes: 30
+    env:
+      ASPNETCORE_ENVIRONMENT: ${{ matrix.aspnet }}
+      AURA_ENV: ${{ matrix.environment }}
+      ConnectionStrings__DefaultConnection: Data Source=${{ github.workspace }}/.ci/AuraLogbook_${{ matrix.environment }}.sqlite
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Run API and migration tests
+        run: dotnet test AuraLogbook.sln --configuration Release
