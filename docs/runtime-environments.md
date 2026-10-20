@@ -54,7 +54,10 @@ into the development `Users` table.
 
 Staging and production have startup seeding disabled. Their database connection
 strings and secrets should be supplied through deployment configuration rather
-than committed JSON files.
+than committed JSON files. Staging uses the SQLite repositories. Production
+currently selects legacy file repositories for users, moods, and zodiac
+insights while startup migrations and reflection storage still use SQLite;
+choose and test a consistent production storage arrangement before deployment.
 
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.

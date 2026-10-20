@@ -1,6 +1,8 @@
 # Aura Logbook wiki snapshots
 
-These files are local Markdown copies of selected GitHub Wiki pages, retrieved on October 18, 2026. They are kept here so the project documentation can be reviewed and updated alongside the repository.
+These files are local Markdown copies of selected GitHub Wiki pages, retrieved on October 18, 2026. They preserve dated source material so earlier architecture and product decisions remain traceable.
+
+> **Historical source material:** do not use these snapshots as current setup, integration, route, persistence, or product-language guidance. Start with the current [documentation index](../README.md).
 
 ## Imported pages
 
@@ -12,10 +14,22 @@ These files are local Markdown copies of selected GitHub Wiki pages, retrieved o
 | [Setup Guide](setup-guide.md) | [Setup Guide](https://github.com/GemsForge/aura-logbook-api/wiki/Setup-Guide) | June 10, 2025 |
 | [Spiritual Pathways](spiritual-pathways.md) | [🧘🏿 Experience ‐ Spiritual Pathways](https://github.com/GemsForge/aura-logbook-api/wiki/%F0%9F%A7%98%F0%9F%8F%BF-Experience-%E2%80%90-Spiritual-Pathways) | July 5, 2025 |
 
-## Keeping them in sync
+## Current counterparts
 
-The GitHub Wiki is a separate Git repository from this project repository. Editing a local copy here does not update the hosted Wiki automatically. Make the desired edits in `docs/wiki/` first, then copy or publish the corresponding Markdown to the GitHub Wiki and update the source URL/date here.
+| Historical subject | Current guidance |
+| --- | --- |
+| Project purpose and feature direction | [Project overview](../../AURA_PROJECT_OVERVIEW.md) |
+| Setup and local commands | [Repository README](../../README.md) |
+| API architecture, routes, and persistence | [API README](../../AuraLogbook.Api/README.md), [runtime environments](../runtime-environments.md), and [database ERD](../database-erd.md) |
+| Pathway and spiritual language | [Inclusive experience principles](../ux/experience-principles.md) |
+| Visual and aura presentation | [Prism Garden visual system](../ux/prism-garden-visual-system.md) |
+| Implemented journeys and known gaps | [Core user journeys](../ux/core-user-journeys.md) |
+| Weather provider and other dependencies | [Dependencies and tools](../../DEPENDENCIES.md) |
 
-These are preserved historical copies, not verified statements of the current implementation. In particular, the architecture page describes SQLite/Dapper, and the pathway page lists older pathway concepts. Treat those sections as historical until they are reconciled in a separate documentation update.
+## Refreshing a snapshot
+
+The GitHub Wiki is a separate Git repository from this project repository. Editing a local copy here does not update the hosted Wiki automatically. When intentionally refreshing a snapshot, copy the source page, retain its original URL, and update the retrieval/last-edited dates in both the page banner and the table above.
+
+Do not rewrite a preserved snapshot to make it look current. Add or update present-day guidance elsewhere in the repository and link it in the table above.
 
 The Setup Guide is also a historical snapshot; use the current [repository README](../../README.md) for setup instructions. The Home page contains older product language and references Weatherbit, so it should not be treated as current product or integration guidance.

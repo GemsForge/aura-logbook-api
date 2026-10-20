@@ -1,6 +1,6 @@
 # 🔮 AuraLog — Chakra‐Synonym Mood Types
 
-> Local copy of the [GitHub Wiki page](https://github.com/GemsForge/aura-logbook-api/wiki/%F0%9F%94%AE-AuraLog-%E2%80%94-Chakra%E2%80%90Synonym-Mood-Types). Last edited on GitHub: June 23, 2025. Retrieved October 18, 2026. Preserved as a dated snapshot; mood labels and spiritual framing have not been reconciled with current product direction.
+> Local copy of the [GitHub Wiki page](https://github.com/GemsForge/aura-logbook-api/wiki/%F0%9F%94%AE-AuraLog-%E2%80%94-Chakra%E2%80%90Synonym-Mood-Types). Last edited on GitHub: June 23, 2025. Retrieved October 18, 2026. Preserved as a dated snapshot; mood labels and spiritual framing below are not current guidance. See the current [inclusive experience principles](../ux/experience-principles.md) and [core user journeys](../ux/core-user-journeys.md).
 
 This wiki page documents the chakra-inspired mood types then used across the AuraLogbook frontend and backend. By replacing generic emotion names with chakra-synonym labels, each mood becomes more intuitive—hinting at energetic imbalances and guiding reflection.
 

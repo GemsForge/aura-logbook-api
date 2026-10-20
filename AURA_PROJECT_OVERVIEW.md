@@ -1,133 +1,77 @@
-# Aura Logbook Project Overview
+# Aura Logbook project overview
 
-## Purpose of the project
+## Product purpose
 
-Aura Logbook is a full-stack mood-tracking and journaling application. Its purpose is to help people record how they feel, represent their current mood or energy through aura colors, recognize emotional patterns, and deepen self-awareness through guided reflection.
+Aura Logbook is a personal journal for recording moods, reflecting on experience, and noticing patterns that matter to the person recording them. It combines practical mood tracking with optional aura, chakra, mindfulness, and faith/spirituality frameworks.
 
-The project is more than a mood analytics tool: it is an energetic journal that combines practical mood tracking with optional holistic and spiritual frameworks. Aura and chakra interpretations are offered as reflective tools, not medical or scientific assessments.
+The app offers reflection, not diagnosis. Aura colors and chakra associations are optional meaning-making tools, not medical or scientific assessments. Users decide what their entries mean and how much interpretive language they want to see.
 
-## Project soul and guiding principles
+The current source of truth for product language is the [inclusive experience guidance](docs/ux/experience-principles.md). Preserved Wiki pages under `docs/wiki/` are dated source material, not current requirements.
 
-Aura Logbook is intended to help people understand themselves more deeply without forcing a worldview onto them. Its foundation is emotional awareness; its pathways provide optional ways to interpret and explore personal experience.
+## Experience model
 
-The project’s depth comes from bringing together:
+Every user receives the same core journal capabilities. A pathway can shape optional language, examples, and prompts; it must not gate mood logging, history, profile access, or basic recorded-data summaries.
 
-- Personal emotional language
-- Guided but non-prescriptive reflection
-- Aura and chakra symbolism
-- Culturally specific spiritual pathways
-- Privacy, accessibility, and user agency
-- Clear boundaries between reflection, tradition, and established fact
+1. **Aura — color reflection:** color can help a user describe mood, energy, or a personal association. Meanings are invitations, never universal conclusions.
+2. **Mindfulness — everyday journaling:** grounded, nonjudgmental reflection centered on feelings, context, needs, and the user's own words.
+3. **Faith & spirituality — user-defined belief:** an optional path that welcomes a higher power or spiritual practice without assuming a religion, scripture, or name for that power.
 
-Every feature should support more honest, respectful, and meaningful self-reflection while preserving the user’s freedom to define their own experience. This principle should guide the product architecture, content, user experience, data model, and future pathway expansion.
+Neutral language and a way to skip interpretation must remain available throughout the product. Faith- or tradition-specific material should be an explicit future opt-in module, not the default faith experience.
 
-The long-term product model is:
+## Current implementation
 
-1. Shared emotional-awareness tools
-2. A user-selected interpretive pathway
-3. Optional cultural or spiritual modules
-4. Transparent explanations and source context
-5. Personalized reflection based on the user’s own language and history
+Aura Logbook currently includes:
 
-The project should remain empowering rather than prescriptive. It must not use spiritual language to diagnose illness, predict danger, or assign moral value. It should support users who are spiritual, questioning, nonreligious, interfaith, or undecided, while treating aura, chakra, astrology, and faith-based content with appropriate cultural care.
+- registration, login, profile editing, and JWT-protected routes;
+- mood entry creation, history, editing, deletion, and dashboard summaries;
+- profile-level aura color and intensity preferences;
+- reference data for aura colors, chakras, pathways, and mood/aura mappings;
+- zodiac insight, weather, reflection-prompt, and reflection-response API surfaces;
+- a responsive React dashboard with mood summaries and charts.
 
-## Technical stack
+Implementation and target direction are not identical. The current UI still contains older pathway labels and belief-specific wording documented in the [experience principles' implementation note](docs/ux/experience-principles.md#current-implementation-note). Direct per-entry aura context, prompt-library content, weekly summaries, and aura-evolution experiences are only partially implemented or remain future work; do not present them as complete user features without verifying the current route, UI, and data flow.
 
-- Backend: .NET 9 and ASP.NET Core REST API
-- Frontend: React 19, TypeScript, and Vite
-- State and data access: Redux Toolkit, RTK Query, Axios, and React Router
-- UI: Material UI, Joy UI, Emotion, and Tailwind CSS tooling
-- Charts: Recharts
-- Authentication: JWT bearer tokens with BCrypt password hashing
-- Testing: .NET tests, Vitest, React Testing Library, ESLint, TypeScript builds, and startup tests
+For a route-by-route view of the present web experience and known gaps, use [Core user journeys](docs/ux/core-user-journeys.md).
 
-## Repository structure
+## Visual direction
 
-- `AuraLogbook.Api/` — ASP.NET Core API, controllers, services, repositories, models, DTOs, and local data
-- `aura-ui/` — React/Vite client application
-- `AuraLogbook.Api.Tests/` — backend tests
-- `docs/wiki/` — preserved documentation snapshots and product concepts
-- `Scripts/` — development launcher and workflow utilities
+The approved visual direction is [Prism Garden](docs/ux/prism-garden-visual-system.md): warm spa-like neutrals, tactile but readable surfaces, generous breathing room, and restrained jewel accents. The prism is an abstract identity mark, not a ritual object or spiritual instruction.
 
-## Core capabilities
+Color, emoji, hover, and motion must never be the only way to understand a state or action. Responsive and assistive-technology expectations are documented in [Responsive and accessibility behavior](docs/ux/responsive-accessibility.md).
 
-- User registration, login, profile management, and JWT-protected routes
-- Mood entry management and dashboard summaries
-- Aura-color selection for representing current mood or energy
-- Chakra-associated mood and aura reflection
-- Zodiac-based insights
-- Current-weather lookup through Open-Meteo
-- Dashboard views for recent entries, trends, and summaries
+## Technical shape
 
-## Experience implementation checklist
+- **Backend:** .NET 9 and ASP.NET Core REST API
+- **Frontend:** React 19, TypeScript, Vite, Redux Toolkit/RTK Query, Axios, and React Router
+- **UI:** Material UI, Joy UI, Emotion, and Recharts
+- **Authentication:** JWT bearer tokens with BCrypt password hashing
+- **Development/FIT persistence:** SQLite through Dapper with forward-only SQL migrations
+- **Development import/seeding:** committed JSON source data imported into the relational store
+- **Weather:** Open-Meteo forecast and geocoding endpoints
+- **Testing:** xUnit, Vitest, React Testing Library, ESLint, TypeScript builds, and launcher tests
 
-| Feature | Description | Implementation |
-|---|---|:---:|
-| Mood logging | Select moods, add comments, and manage mood entries through the UI | [x] |
-| Aura selection | Choose an aura color associated with the current mood or energy | [x] |
-| Chakra context | Show chakra associations and meanings for aura colors | [x] |
-| Aura intensity | Store and use aura intensity in profile data and theming | [x] |
-| Aura-based styling | Adapt the UI theme to the selected aura color and intensity | [x] |
-| Mindfulness pathway | Select Mindfulness as the user’s reflection pathway | [x] |
-| Astrology & Energy pathway | Select the energy pathway and view zodiac-related insights | [x] |
-| Faith & Religion pathway | Select the faith pathway as a profile preference | [x] |
-| Dashboard summaries | Show mood totals, streaks, breakdowns, date-based trends, weather, and zodiac insights | [x] |
-| Chakra journaling prompts | Provide reflection prompts tailored to chakra or aura selection | [ ] |
-| Weekly aura summaries | Summarize dominant aura colors and energy patterns by week | [ ] |
-| Aura evolution charts | Visualize aura-color or aura-intensity changes over time | [ ] |
-| Birth-chart widget | Display a user-specific birth-chart experience | [ ] |
-| Bible verses, prayer, and gratitude tools | Provide faith-specific scripture, prayer, and gratitude features | [ ] |
+Development and FIT/Staging use SQLite for users, moods, zodiac insights, and reflections. Production currently retains a mixed fallback—file repositories for users, moods, and zodiac insights while migration startup and reflections still use SQLite—so production storage and hosting require an explicit deployment decision.
 
-The checklist reflects the current UI evidence. A checked item may be implemented at the model, API, or UI level; it does not necessarily mean the experience is complete in every pathway or presentation.
+## Repository map
 
-## Spiritual pathways
-
-Spiritual pathways let users choose the primary perspective that guides their reflections. The selected pathway is stored on the user profile and can shape the language, prompts, and insights presented by the application.
-
-### Mindfulness
-
-Mindfulness emphasizes calm, clarity, presence, and self-awareness. It supports journaling, meditation, mindful observation, and practical reflection without requiring spiritual beliefs.
-
-### Astrology & Energy
-
-Astrology & Energy is for users drawn to zodiac signs, aura colors, chakras, intuition, energetic patterns, and spiritual affirmations. It provides the most direct connection to the project’s aura-centered and chakra-aligned features.
-
-### Faith & Religion
-
-Faith & Religion supports reflection guided by Christian faith, including scripture, prayer, gratitude, and faith-based encouragement.
-
-All pathways share the core mood-tracking, aura selection, journaling, dashboard, profile, and summary features. The pathway is an interpretive layer and an extension point for pathway-specific prompts and content.
-
-## Aura selection
-
-Aura selection allows a user to choose a color that represents their current mood, energy, or inner state. Each color is associated with a common holistic interpretation and a chakra theme, giving the user a simple vocabulary for reflection.
-
-- **Red** — Root chakra; grounding, safety, and stability
-- **Orange** — Sacral chakra; creativity, vitality, and emotional flow
-- **Yellow** — Solar plexus chakra; optimism, confidence, and personal power
-- **Green** — Heart chakra; compassion, balance, and connection
-- **Blue** — Throat chakra; communication and authentic expression
-- **Indigo** — Third-eye chakra; intuition, insight, and perception
-- **Violet or purple** — Crown chakra; spirituality and higher reflection
-
-Aura selection can support chakra-aligned journaling prompts, aura-based mood insights, weekly summaries, and visualizations of emotional or energetic patterns over time. The system should empower personal awareness without presenting aura meanings as objective diagnoses or universal facts.
-
-## Current persistence and architecture
-
-The current API uses file-backed JSON repositories for users, moods, and zodiac insights during local development. The codebase is organized into controllers, services, repositories, models, and DTOs so storage and business logic can evolve independently. Earlier architecture documentation describes a SQLite/Dapper direction; that documentation is historical and should not be treated as the current persistence implementation without reconciliation.
+- `AuraLogbook.Api/` — API controllers, services, repositories, models, configuration, and data sources
+- `AuraLogbook.Api/Data/Database/Migrations/` — ordered relational schema migrations
+- `AuraLogbook.Api.Tests/` — backend and database tests
+- `aura-ui/` — React/Vite client and UI tests
+- `docs/` — current technical and experience guidance
+- `docs/wiki/` — preserved historical Wiki snapshots with original-source links
+- `Scripts/` — development launcher, database utilities, and repository workflow checks
 
 ## Local development
 
-Prerequisites are the .NET 9 SDK, Node.js 20 or newer, and npm. From the repository root:
+Use the [root README](README.md) as the single source of truth for prerequisites, secrets, commands, ports, environment aliases, and troubleshooting. Do not copy setup commands or provider details from the historical Wiki snapshots.
 
-```bash
-dotnet restore AuraLogbook.sln
-npm ci --prefix aura-ui
-npm run dev
-```
+## Direction and boundaries
 
-By default, the combined launcher starts the UI at `http://localhost:58407`, the API at `http://localhost:5082/api`, and Swagger at `http://localhost:5082/swagger` in development. A private JWT signing key must be configured with .NET user secrets before local registration or login.
+The product direction is a modular, API-first personal journal that can support web and a future native SwiftUI client. The [SwiftUI shell adaptation plan](docs/ux/swiftui-shell-adaptation.md) records the shared product contract and native boundaries. Near-term work should strengthen the shared mood/reflection contracts, make pathway wording inclusive, apply Prism Garden consistently, and deliver honest visualizations based on data the user actually recorded.
 
-## Project direction
+Potential extensions include a reviewed reflection-prompt library, weekly aura summaries, per-entry aura context, accessible trend views, export, reminders, and user-selected tradition-specific modules. Each requires its own acceptance criteria, privacy review, and verified implementation; listing it here does not make it a current feature.
 
-The intended direction is a modular, API-first energetic journal that balances spiritual reflection with clear, empowering self-awareness. Likely extension areas include aura intensity, chakra-aligned prompts, weekly aura summaries, aura evolution charts, CSV export, reminders, streaks, and a personalized aura-insights engine.
+## Documentation map
+
+Use the [documentation index](docs/README.md) to distinguish current guidance, operational references, resolved investigations, and historical Wiki source material.
