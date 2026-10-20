@@ -41,9 +41,9 @@ This starts the API and UI together, prefixes their output with `[API]` and `[UI
 | API base | [http://localhost:5082/api](http://localhost:5082/api) |
 | Swagger (Development only) | [http://localhost:5082/swagger](http://localhost:5082/swagger) |
 
-The launcher sends the UI to the selected API base URL (`http://localhost:5082/api` by default). An exported `VITE_API_BASE_URL` takes precedence; a conflicting `aura-ui/.env.local` value is warned about and ignored for the combined run. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
+The launcher keeps the local API listener and UI target aligned. By default both use port `5082`; when `aura-ui/.env.local` or an exported `VITE_API_BASE_URL` points to a local HTTP API, the launcher uses that URL's port for the API listener too. An explicit `AURA_API_PORT` must match a local `VITE_API_BASE_URL`; conflicting values stop startup with instructions to align them. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
 
-To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. If the default API port is occupied, the launcher automatically selects the next available local API port and updates the UI base URL to match. An explicitly configured, occupied `AURA_API_PORT` fails with a recovery message so an intentional port choice is never silently changed. An explicit exported `VITE_API_BASE_URL` still takes precedence.
+To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. For example, set `AURA_API_PORT=5124` and `VITE_API_BASE_URL=http://localhost:5124/api` together. If the default API port is occupied, the launcher automatically selects the next available local API port and updates the UI base URL to match. An explicitly configured, occupied port (through `AURA_API_PORT` or a local `VITE_API_BASE_URL`) fails with the exact port and recovery options; the launcher never kills unrelated listeners. A `VITE_API_BASE_URL` that points to a remote host continues to be a UI-only override.
 
 ## Run each service separately
 
@@ -135,8 +135,8 @@ node --test Scripts/dev.test.mjs
 
 ## Troubleshooting
 
-- **Port already in use:** The launcher moves off an occupied default API port and reports the selected port. If an explicitly configured `AURA_API_PORT` is occupied, stop the process using it or choose another port; the launcher never kills unrelated processes.
-- **UI reports an API/network error:** Check that the API is running, then verify the UI is targeting the matching `<API URL>/api`. The combined launcher prints a warning if `.env.local` conflicts; an exported `VITE_API_BASE_URL` overrides the default.
+- **Port already in use:** The launcher reports the exact port. For an automatically selected default, it moves to the next available API port and updates the UI target. For an explicit local API URL or `AURA_API_PORT`, stop the process using that port or choose another port and keep the settings aligned; the launcher never kills unrelated processes.
+- **UI reports an API/network error:** Check that the API is running and that local `VITE_API_BASE_URL` and `AURA_API_PORT` use the same port. The combined launcher derives the API listener port from a local `VITE_API_BASE_URL`; if both settings are provided but conflict, correct one before restarting.
 - **UI dependencies missing:** Run `npm ci` in `aura-ui/` (or `npm ci --prefix aura-ui` at the root).
 - **JWT or authentication fails:** Ensure a private `Jwt:Key` is configured and that the token was issued by the current API configuration. `GET /api/Auth/me` and mood routes require a valid bearer token; register or log in again after changing the signing key.
 - **Weather unavailable:** `GET /api/Weather/current` uses Open-Meteo geocoding and forecast endpoints. No API key is needed for local development. Check API logs and provider connectivity; see [DEPENDENCIES.md](DEPENDENCIES.md) for service terms and attribution.
