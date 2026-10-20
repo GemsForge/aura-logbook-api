@@ -39,6 +39,8 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.NotNull(user);
         Assert.Equal(7, user.Id);
         Assert.Equal("Test User", user.DisplayName);
+        Assert.Equal("blue", user.AuraColor);
+        Assert.Equal(50, user.AuraIntensity);
     }
 
     [Fact]
@@ -91,6 +93,8 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.NotNull(user);
         Assert.Equal(registration.Birthday, user.Birthday);
         Assert.Equal("Virgo", user.ZodiacSign);
+        Assert.Equal("green", user.AuraColor);
+        Assert.Equal(50, user.AuraIntensity);
         Assert.Equal("virgo", GetStoredZodiacSign(user.Id));
         Assert.True(await service.AuthenticateAsync(registration.Email, registration.Password));
 

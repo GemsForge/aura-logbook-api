@@ -88,26 +88,12 @@ public class AuthController : ControllerBase
         if (!result.Success)
             return BadRequest(result.Message);
 
-        // Fetch the updated user and map to your DTO
+        // Fetch the updated user and return the same profile contract as /me.
         var fresh = await _userService.GetByIdAsync(userId);
         if (fresh is null)
             return NotFound("User not found after update.");
 
-        // 2) Map to your DTO
-        var dto = new UserProfileDto
-        {
-            Id = fresh.Id,
-            Email = fresh.Email,
-            DisplayName = fresh.DisplayName ?? string.Empty,
-            ZodiacSign = fresh.ZodiacSign,                
-            Birthday = fresh.Birthday,                  
-            AuraColor = fresh.AuraColor,                 
-            AuraIntensity = fresh.AuraIntensity,  
-            Avatar = fresh.Avatar ?? string.Empty,
-            Motto = fresh.Motto ?? string.Empty,
-            SelectedPathway = fresh.SelectedPathway
-        };
-        return Ok(dto);
+        return Ok(ToProfileDto(fresh));
     }
 
     [Authorize]
@@ -124,18 +110,23 @@ public class AuthController : ControllerBase
         if (user == null)
             return NotFound("User not found.");
 
-        return Ok(new
+        return Ok(ToProfileDto(user));
+    }
+
+    private static UserProfileDto ToProfileDto(AuraLogbook.Api.Models.User user)
+    {
+        return new UserProfileDto
         {
-            user.Id,
-            user.Email,
-            user.DisplayName,
-            user.Birthday,
-            user.ZodiacSign,
-            user.AuraColor,
-            user.AuraIntensity,
-            user.Avatar,
-            user.Motto,
-            user.SelectedPathway
-        });
+            Id = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName ?? string.Empty,
+            Birthday = user.Birthday,
+            ZodiacSign = user.ZodiacSign,
+            AuraColor = user.AuraColor,
+            AuraIntensity = user.AuraIntensity,
+            Avatar = user.Avatar ?? string.Empty,
+            Motto = user.Motto ?? string.Empty,
+            SelectedPathway = user.SelectedPathway
+        };
     }
 }

@@ -19,6 +19,7 @@ namespace AuraLogbook.Api.Models.Dto
         public DateOnly Birthday { get; set; }
 
         public string? AuraColor { get; set; }
+        [Range(0, 100)]
         public int? AuraIntensity { get; set; }
 
         public string? Avatar { get; set; }

@@ -39,7 +39,7 @@ export const editProfileSchema = yup
       )
       .required("Spiritual pathway is required"),
 
-    avatar: yup.string().required("Pick an avatar or enter initials"),
+    avatar: yup.string().notRequired(),
 
     isChangingPassword: yup.boolean().notRequired(),
 
@@ -73,10 +73,10 @@ export const editProfileSchema = yup
 
     auraIntensity: yup
       .number()
-      .min(100, "Intensity must be at least 100")
-      .max(900, "Intensity cannot exceed 900")
+      .min(0, "Intensity cannot be negative")
+      .max(100, "Intensity cannot exceed 100")
       .nonNullable()
-      .default(500)
+      .default(50)
       .notRequired(),
 
     motto: yup

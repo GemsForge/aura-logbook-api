@@ -21,7 +21,7 @@ function ThemedApp() {
   const { data: user, isLoading } = useCurrentUserQuery();
   
   const auraColor     = user?.auraColor     ?? "blue";
- const auraIntensity = user?.auraIntensity ?? 500;
+ const auraIntensity = user?.auraIntensity ?? 50;
 
   const theme = useMemo(
     () => getAuraTheme(auraColor, auraIntensity),

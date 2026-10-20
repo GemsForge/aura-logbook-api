@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Slider,
-  useTheme,
 } from "@mui/material";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
@@ -12,7 +11,8 @@ import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import { Controller, type Control, type Path, useWatch } from "react-hook-form";
 import { AuraColor } from "@/features/mood/models/aura";
-import { auraPalettes, type AuraPaletteEntry } from "@/theme/auraTheme";
+import { useGetAuraColorsQuery } from "@/store/referenceDataApi";
+import { auraPalettes, getAuraColorPreview } from "@/theme/auraTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface AuraSelectorProps {
@@ -27,14 +27,21 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
   intensityField,
 }) => {
   // watch the two fields
-  const colorKey = useWatch({ control, name: colorField }) as AuraColor;
-  const intensity = (useWatch({ control, name: intensityField }) ??
-    500) as keyof AuraPaletteEntry;
-
-  // pick the exact shade
-  const shades = auraPalettes[colorKey];
-  const previewColor = shades[intensity]?.main ?? shades.primary.main;
- const theme = useTheme();
+  const colorKey = useWatch({ control, name: colorField });
+  const intensity = useWatch({ control, name: intensityField });
+  const previewColor = getAuraColorPreview(colorKey, intensity);
+  const { data: auraDefinitions = [] } = useGetAuraColorsQuery();
+  const supportedColors = new Set<string>(Object.values(AuraColor));
+  const databaseOptions = auraDefinitions.filter((definition) =>
+    supportedColors.has(definition.key)
+  );
+  const colorOptions = databaseOptions.length > 0
+    ? databaseOptions
+    : Object.values(AuraColor).map((key) => ({
+        key,
+        displayName: key.charAt(0).toUpperCase() + key.slice(1),
+        baseHex: auraPalettes[key].primary.main ?? "#2196f3",
+      }));
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Color picker + swatch */}
@@ -64,23 +71,23 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
                 onBlur={field.onBlur}
                 slotProps={{
                   button: { "aria-labelledby": "aura-color-label" },
+                  listbox: { sx: { zIndex: 1500 } },
                 }}>
-                {Object.values(AuraColor).map((c) => (
-                  <Option key={c} value={c}>
+                {colorOptions.map((color) => (
+                  <Option key={color.key} value={color.key}>
                     <Box
                       component="span"
                       sx={{
                         display: "inline-block",
                         width: 12,
                         height: 12,
-                        backgroundColor:
-                          auraPalettes[c as AuraColor].primary.main,
+                        backgroundColor: color.baseHex,
                         borderRadius: "50%",
                         mr: 1,
                         verticalAlign: "middle",
                       }}
                     />
-                    {c.charAt(0).toUpperCase() + c.slice(1)}
+                    {color.displayName}
                   </Option>
                 ))}
               </Select>
@@ -97,16 +104,16 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Typography gutterBottom>Intensity ({field.value})</Typography>
             <Slider
-              min={100}
-              max={900}
-              step={100}
-              value={typeof field.value === "number" ? field.value : 500}
+              min={0}
+              max={100}
+              step={10}
+              value={typeof field.value === "number" ? field.value : 50}
               onChange={(_, v) => field.onChange(v as number)}
               onBlur={field.onBlur}
               valueLabelDisplay="auto"
               sx={{
-                "& .MuiSlider-thumb": { color: theme.palette.primary.main },
-                "& .MuiSlider-track": { color: theme.palette.primary.main },
+                "& .MuiSlider-thumb": { color: previewColor },
+                "& .MuiSlider-track": { color: previewColor },
               }}
             />
           </Box>

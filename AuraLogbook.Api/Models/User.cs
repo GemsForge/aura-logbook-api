@@ -37,7 +37,7 @@ public class User
     public string ZodiacSign { get; set; } = string.Empty;
 
     public string AuraColor { get; set; } = "blue";
-    public int AuraIntensity { get; set; } = 500;
+    public int AuraIntensity { get; set; } = 50;
     public string? Avatar { get; set; }
 
     public string? Motto { get; set; }

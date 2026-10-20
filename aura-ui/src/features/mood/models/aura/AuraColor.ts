@@ -15,6 +15,16 @@ export const AuraColor = {
 
 export type AuraColor = (typeof AuraColor)[keyof typeof AuraColor];
 
+export interface AuraColorDefinition {
+  key: AuraColor;
+  displayName: string;
+  baseHex: string;
+  chakraKey: string | null;
+  description: string;
+  isNeutral: boolean;
+  isActive: boolean;
+}
+
 export interface AuraColorInfoItem {
   color: AuraColor;
   name: string;
