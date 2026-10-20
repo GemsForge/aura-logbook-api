@@ -167,47 +167,84 @@ export function terminateProcessTree(child, platform, spawnProcess, killProcess 
   }
 }
 
-function stopChild(child, platform, spawnProcess, killProcess = process.kill) {
-  const alreadyExited = child.exitCode !== null || child.signalCode !== null;
-  if (alreadyExited) {
-    if (platform !== "win32" && child.pid !== undefined && child.pid !== null) {
-      try {
-        killProcess(-child.pid, "SIGTERM");
-      } catch (error) {
-        if (error?.code !== "ESRCH") throw error;
-      }
+function processGroupExists(pid, killProcess = process.kill) {
+  try {
+    killProcess(-pid, 0);
+    return true;
+  } catch (error) {
+    if (error?.code === "ESRCH") return false;
+    return true;
+  }
+}
+
+export function stopChild(child, platform, spawnProcess, killProcess = process.kill, {
+  gracePeriodMs = 5000,
+  pollIntervalMs = 50,
+  groupExists = processGroupExists,
+} = {}) {
+  if (child.pid === undefined || child.pid === null) return Promise.resolve();
+
+  if (platform === "win32") {
+    const terminate = () => {
+      const killer = spawnProcess("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+      killer.on("error", () => {});
+    };
+    const alreadyExited = child.exitCode !== null || child.signalCode !== null;
+    if (alreadyExited) {
+      terminate();
+      return Promise.resolve();
     }
-    return Promise.resolve();
+
+    return new Promise(resolveStop => {
+      let forceTimer;
+      const finish = () => {
+        clearTimeout(forceTimer);
+        resolveStop();
+      };
+      child.once("close", finish);
+      terminate();
+      forceTimer = setTimeout(terminate, gracePeriodMs);
+      forceTimer.unref();
+    });
+  }
+
+  try {
+    killProcess(-child.pid, "SIGTERM");
+  } catch (error) {
+    if (error?.code !== "ESRCH") child.kill("SIGTERM");
   }
 
   return new Promise(resolveStop => {
     let finished = false;
     let forceTimer;
+    let pollTimer;
     const finish = () => {
       if (finished) return;
       finished = true;
-      if (forceTimer) clearTimeout(forceTimer);
+      clearTimeout(forceTimer);
+      clearTimeout(pollTimer);
       resolveStop();
     };
-    child.once("close", finish);
-    terminateProcessTree(child, platform, spawnProcess, killProcess);
+    const checkGroup = () => {
+      if (!groupExists(child.pid, killProcess)) {
+        finish();
+        return;
+      }
+      pollTimer = setTimeout(checkGroup, pollIntervalMs);
+    };
 
     forceTimer = setTimeout(() => {
-      if (platform === "win32") {
-        const killer = spawnProcess("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
-          stdio: "ignore",
-          windowsHide: true,
-        });
-        killer.on("error", () => {});
-      } else {
-        try {
-          killProcess(-child.pid, "SIGKILL");
-        } catch (error) {
-          if (error?.code !== "ESRCH") child.kill("SIGKILL");
-        }
+      try {
+        killProcess(-child.pid, "SIGKILL");
+      } catch (error) {
+        if (error?.code !== "ESRCH") child.kill("SIGKILL");
       }
-    }, 5000);
-    forceTimer.unref();
+      checkGroup();
+    }, gracePeriodMs);
+    checkGroup();
   });
 }
 

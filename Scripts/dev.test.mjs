@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createDevelopmentPlan, createServicePlan, findAvailablePort, resolveApiEnvironment, runDevelopment, terminateProcessTree } from "./dev.mjs";
+import { createDevelopmentPlan, createServicePlan, findAvailablePort, resolveApiEnvironment, runDevelopment, stopChild, terminateProcessTree } from "./dev.mjs";
 
 test("root npm dev alias runs the combined development launcher", () => {
   const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -250,6 +250,28 @@ test("POSIX shutdown signals the detached service process group", () => {
   });
 
   assert.deepEqual(signals, [[-42, "SIGTERM"]]);
+});
+
+test("POSIX shutdown waits for descendants and force-stops a process group after its parent exits", async () => {
+  const child = new FakeChild(42);
+  child.exitCode = 0;
+  let groupAlive = true;
+  const signals = [];
+  let finished = false;
+  const stopping = stopChild(child, "darwin", () => assert.fail("unexpected helper process"), (pid, signal) => {
+    signals.push([pid, signal]);
+    if (signal === "SIGKILL") groupAlive = false;
+  }, {
+    gracePeriodMs: 10,
+    pollIntervalMs: 1,
+    groupExists: () => groupAlive,
+  }).then(() => { finished = true; });
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(finished, false, "do not resolve while a descendant still owns the process group");
+  await stopping;
+  assert.equal(finished, true);
+  assert.deepEqual(signals, [[-42, "SIGTERM"], [-42, "SIGKILL"]]);
 });
 
 test("Windows shutdown uses taskkill recursively for the child process tree", () => {
