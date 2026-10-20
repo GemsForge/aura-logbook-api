@@ -24,3 +24,10 @@ This repository participates in the GemsForge shared Actions standard. The stand
 ## Change process
 
 Actions changes follow the normal issue → branch → commit → pull request → checks → review flow. Each Actions PR must state which shared contract item it implements, which local checks it touches, and how security was verified.
+
+
+## Project synchronization
+
+Aura’s existing Project synchronization uses the repository’s AURALOGBOOK_PROJECTS_TOKEN secret and Aura-specific Project/status identifiers. Do not copy GemsForgeAPI Project numbers, fields, or tokens.
+
+Project changes remain repository-specific and require the existing approval and secret boundaries.
