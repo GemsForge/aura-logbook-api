@@ -1,6 +1,6 @@
 # 🧘🏿 Experience ‐ Spiritual Pathways
 
-> Local copy of the [GitHub Wiki page](https://github.com/GemsForge/aura-logbook-api/wiki/%F0%9F%A7%98%F0%9F%8F%BF-Experience-%E2%80%90-Spiritual-Pathways). Last edited on GitHub: July 5, 2025. Retrieved October 18, 2026. Preserved as a dated snapshot; pathway language has not been reconciled with the current product direction.
+> Local copy of the [GitHub Wiki page](https://github.com/GemsForge/aura-logbook-api/wiki/%F0%9F%A7%98%F0%9F%8F%BF-Experience-%E2%80%90-Spiritual-Pathways). Last edited on GitHub: July 5, 2025. Retrieved October 18, 2026. Preserved as a dated snapshot; pathway language below is not current guidance. See the current [inclusive experience principles](../ux/experience-principles.md).
 
 ## Pathways
 
