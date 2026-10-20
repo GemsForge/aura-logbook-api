@@ -95,7 +95,7 @@ Reviewed the current `master` sources for AppLayout, NavBar, Sidebar, Dashboard,
 
 | Area | Existing behavior observed | Responsive/accessibility follow-up |
 | --- | --- | --- |
-| Shared shell | AppLayout switches from one column to a 3/9-column layout at the framework's medium breakpoint. On small screens, profile/sidebar appear before page content. NavBar keeps all navigation buttons in a horizontal row. | Check the real narrow-width order and header fit; consider compact profile context and a keyboard-accessible collapsed navigation. |
+| Shared shell | AppLayout switches from one column to a 3/9-column layout at the framework's medium breakpoint; on small authenticated screens, profile/sidebar precede page content. Since #269, the NavBar stacks the brand and navigation vertically below the small breakpoint and wraps navigation controls; at larger widths it returns to a row. | Verify full authenticated dashboard order and profile/sidebar density at phone widths and enlarged text; the header reflow does not replace these checks or provide a collapsed menu. |
 | Dashboard cards | Summary cards use one column at the smallest breakpoint and two columns from small screens. | Check long names, dates, and 200% text; preserve the page action and logical reading order. |
 | Dashboard charts | MoodPieChart and MoodTimelineChart each declare a 400 by 400 pixel wrapper. The pie legend and chart labels exist, but an equivalent non-visual data summary is not evident in these components. | Make charts fluid; add/verify a screen-reader and non-color alternative; inspect labels and touch behavior at narrow widths. |
 | Mood form | Mood groups use one column at the smallest breakpoint and three columns from the small breakpoint. Mood checkboxes have text labels; color meanings are presented through a tooltip. | Verify tooltip access without hover; ensure groups, errors, focus, and expanded text remain usable at phone width and with assistive technology. |
@@ -107,7 +107,7 @@ The current code's responsive properties are useful foundations, but they do not
 
 These are candidate implementation slices surfaced by this review; they are not delivered by this guidance document:
 
-1. Make shared navigation/profile context usable on narrow screens and at enlarged text.
+1. Audit shared navigation/profile context at narrow widths and enlarged text. PR #269 makes the header reflow, but does not validate authenticated page order or profile/sidebar density.
 2. Replace fixed chart dimensions with fluid sizing and add accessible data summaries.
 3. Reflow mood-history filters and verify mood form/history behavior at narrow widths.
 4. Audit labels, validation announcements, keyboard focus, dialogs, contrast, and reduced-motion behavior across core journeys.
@@ -135,12 +135,11 @@ This run supplements the source-level review above. It is a limited manual spot 
 
 | Screen / check | Result | Evidence and limits |
 | --- | --- | --- |
-| Registration at 320 × 800 CSS px | **Failed** | The supplied browser screenshot shows a horizontal scrollbar and clipped content: the navigation row extends beyond the viewport and the registration form/pathway panel are wider than the available page width. This violates the narrow-phone no-horizontal-scroll requirement. |
-| Registration at 390 × 844 CSS px | Partial pass | The isolated branch UI rendered and the visible registration content fit in the captured viewport. This does not override the 320px failure or establish full-page behavior. |
+| Registration at 320 × 800, 390 × 844, and 1280 × 900 CSS px | **Initial failure fixed; targeted recheck passed** | The initial 320px screenshot showed horizontal overflow in the header and registration content. PR #269 (story #268) made the layout fluid and reflowed the navigation. Its post-fix manual checks recorded no page-level horizontal overflow at all three viewports, with mobile content vertically scrollable. This recheck covered registration/navigation only—not the authenticated dashboard, mood history, 200% zoom, or every content state. |
 | Login at 1280 × 900 CSS px | Partial pass | The login screen rendered at desktop width. Authenticated dashboard and history screens were not visually reviewed in this run. |
 | Keyboard focus | **Needs follow-up** | The browser accessibility snapshot exposed labels for email/password/display name and pathway controls. Keyboard focus moved from the brand control to Home, but no clearly visible focus indicator was apparent in the captured state. A full keyboard-only journey was not completed. |
 | Heading and landmarks | **Needs follow-up** | The registration title is exposed as an h3, rather than the page-level h1 specified above. A complete semantic landmark audit was not performed. |
 | Screen reader, 200% zoom, contrast | Not tested | No VoiceOver or equivalent screen-reader run, 200% zoom run, or measured contrast audit was completed. |
 | Automated UI checks | Passed | 91 UI tests passed with the local API base URL configured. The production build completed (with a chunk-size advisory); lint reported no errors and three warnings. These checks do not prove responsive/accessibility conformance. |
 
-The API was not running during this isolated UI review, so authenticated dashboard and history behavior could not be validated end to end. The 320px registration failure is a concrete implementation defect and should be tracked/fixed in a dedicated implementation story before this responsive experience is considered complete. Also follow up on the visible keyboard focus and page heading/landmark structure. Do not treat the untested checks in this table as passed.
+The API was not running during this isolated UI review, so authenticated dashboard and history behavior could not be validated end to end. The initial 320px registration overflow is now fixed by PR #269 (#268), but that targeted retest does not establish responsive/accessibility conformance across authenticated screens. Follow up on visible keyboard focus, page heading/landmark structure, dashboard/history behavior, enlarged text, zoom, contrast, and screen-reader operation. Do not treat untested checks in this table as passed.
