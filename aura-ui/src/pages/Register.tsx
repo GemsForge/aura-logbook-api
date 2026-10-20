@@ -119,8 +119,13 @@ export default function RegisterForm() {
             render={({ field }) => (
               <DatePicker
                 label="Birthday"
-                value={dayjs(field.value)}
-                onChange={(newDate) => newDate && field.onChange(newDate)}
+                value={field.value ? dayjs(field.value) : null}
+                onChange={(newDate) => field.onChange(newDate?.isValid() ? newDate.format("YYYY-MM-DD") : "")}
+                slotProps={{ textField: {
+                  onBlur: field.onBlur,
+                  error: !!errors.birthday,
+                  helperText: errors.birthday?.message,
+                } }}
                 format="MM-DD-YYYY"
               />
             )}

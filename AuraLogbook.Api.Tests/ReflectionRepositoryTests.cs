@@ -106,8 +106,6 @@ public sealed class ReflectionRepositoryTests : IDisposable
         using (var connection = _factory.CreateConnection())
         {
             Execute(connection, """
-                INSERT INTO SpiritualPathways (PathwayKey, DisplayName, Description)
-                VALUES (1, 'Energy', 'Color and energy reflection'), (2, 'Faith', 'User-defined spiritual reflection');
                 INSERT INTO Users (Id, Email, PasswordHash, AuraColor, SelectedPathway, CreatedAt, UpdatedAt)
                 VALUES
                     (7, 'one@example.com', 'hash', 'blue', 0, 'now', 'now'),
