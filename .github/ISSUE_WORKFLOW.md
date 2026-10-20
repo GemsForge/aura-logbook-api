@@ -1,33 +1,57 @@
-# Aura Logbook issue and pull request workflow
+# Issue and delivery workflow
 
-The working issue is the source of truth for scope, labels, milestone, assignee, and native issue relationships. The delivery path is issue branch → reviewed pull request → `master`.
+The working issue is the source of truth for scope, ownership, labels, milestone, Project metadata, and native relationships. A pull request adopts the issue metadata through repository automation.
 
 ## Story format
 
-Use titles in this form:
+## Story
 
-`type(scope): short imperative description`
+As a [user], I want [capability] so that [benefit].
 
-Approved types are `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, and `ci`.
+## Outcome
 
-Use explicit GitHub labels for work type and area. Recommended area labels include `api`, `aura`, `ui`, `testing`, `security`, `docs`, and `ci`.
+Describe the expected user or product result.
 
-Stories should include a goal, scope, definition of done, and explicit relationships. Parent, blocked-by, and blocking relationships must be supplied intentionally; they are never inferred from prose.
+## Acceptance criteria
 
-## Branches and pull requests
-
-Branches include the issue number, for example `refactor/168-ui-lint-type-safety`.\n\nPull requests from issue-numbered branches target `master` and require review before merge. PR bodies should include `Closes #issue` when merging the PR should close the working issue. PR creation and merging remain separate authorized steps.
-
-## Commit policy
-
-The local pre-push hook and GitHub Actions validation enforce the same commit format. Merge commits created by GitHub are allowed. Descriptions must begin with a lowercase imperative word and contain no control characters or surrounding whitespace.
-
-## Project synchronization
-
-Aura Logbook uses its own GitHub Project. Project synchronization must use the `AURALOGBOOK_PROJECTS_TOKEN` Actions secret and Aura's own Project/status field identifiers. Do not copy GemLife project numbers or status IDs.
-
-The repository token handles issue, pull request, branch, and contents operations. Project mutations require the separate Projects-authorized secret.
+- [ ] Observable requirement
+- [ ] Accessibility, responsive, or behavior requirement when relevant
+- [ ] Feature outcome that can be verified
 
 ## Verification
 
-Before opening a PR, run the repository's tests, build, lint, and the commit-policy checks. The issue remains the source of truth when automation and event arrival order disagree.
+- Automated: exact commands and required PR checks.
+- Manual: browser, accessibility, responsive, or other review.
+
+## Delivery checks
+
+- [ ] Branch follows `<type>/<issue-number>-<short-description>`.
+- [ ] Commit and PR title follow `type(scope): #issue-number short imperative description`.
+- [ ] Approved commit types: `feat`, `fix`, `refactor`, `test`, `chore`.
+- [ ] Approved `chore` scopes: `docs`, `ci`, `deps`, `build`.
+- [ ] PR body includes `Closes #issue-number`.
+- [ ] PR adopts the issue’s assignee, labels, milestone, and relationships.
+- [ ] Existing label policy passes; no labels are created by automation.
+- [ ] CI, commit policy, branch policy, label policy, and metadata checks pass.
+
+## Repository metadata
+
+- Assignee: Gem Code unless another authorized owner is documented.
+- Labels: existing repository labels only; infer the applicable label from the story/commit type where the repository policy defines that mapping.
+- Project fields: use existing Priority, Size, and Estimate options; do not create competing fields or values.
+
+Suggested metrics: Priority P0/P1/P2/P3; Size XS/S/M/L/XL; Estimate as numeric effort points using the existing project scale.
+
+## Project synchronization
+
+Aura’s existing Project synchronization, AURALOGBOOK_PROJECTS_TOKEN secret, and Aura-specific Project/status identifiers remain authoritative. Do not copy GemsForgeAPI identifiers or secrets.
+
+## Relationships
+
+Parent, blocked-by, blocking, and related relationships must be explicit native GitHub relationships. Do not infer them from prose, labels, or milestones.
+
+## Delivery lifecycle
+
+Issue → numbered branch → implementation → checks → reviewed PR → merge → Project/status reconciliation.
+
+PR creation and merging are separate authorized actions. Completion requires passing checks, review, and linked issue/Project reconciliation.
