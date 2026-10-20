@@ -18,10 +18,12 @@ public sealed class RelationalRepositoryTests : IDisposable
     {
         var connection = new SqliteConnection($"Data Source={_databasePath}");
         connection.Open();
-        var migration = File.ReadAllText(Path.Combine("..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations", "001_initial_schema.sql"));
         using var command = connection.CreateCommand();
-        command.CommandText = migration;
-        command.ExecuteNonQuery();
+        foreach (var migration in Directory.EnumerateFiles(Path.Combine("..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations"), "*.sql").OrderBy(x => x))
+        {
+            command.CommandText = File.ReadAllText(migration);
+            command.ExecuteNonQuery();
+        }
         connection.Dispose();
         _factory = new SqliteConnectionFactory(new TestOptions<DatabaseOptions>(new DatabaseOptions { ConnectionString = $"Data Source={_databasePath}" }));
         SeedReferenceData();
@@ -104,7 +106,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     public async Task Zodiac_repository_reads_seeded_insight()
     {
         using var command = _factory.CreateConnection().CreateCommand();
-        command.CommandText = "INSERT INTO ZodiacSigns (SignKey, Description, Element) VALUES ('aries','Bold','fire'); INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','BoldAction','Act','Take a step.');";
+        command.CommandText = "INSERT INTO InsightTemplates (ZodiacSignKey, InsightType, Title, Message) VALUES ('aries','BoldAction','Act','Take a step.');";
         command.ExecuteNonQuery();
         var repository = new SqliteZodiacInsightsRepository(_factory);
         var zodiac = await repository.GetBySignAsync("aries");
