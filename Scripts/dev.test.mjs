@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createServicePlan, resolveApiEnvironment, runDevelopment, terminateProcessTree } from "./dev.mjs";
+import { createDevelopmentPlan, createServicePlan, findAvailablePort, resolveApiEnvironment, runDevelopment, terminateProcessTree } from "./dev.mjs";
 
 test("root npm dev alias runs the combined development launcher", () => {
   const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -63,6 +63,37 @@ test("service plan rejects invalid port configuration", () => {
     () => createServicePlan({ root: "/repo", platform: "linux", env: { AURA_API_PORT: "70000" } }),
     /AURA_API_PORT must be a port number/,
   );
+});
+
+test("development plan moves off an occupied default API port and keeps the UI aligned", async () => {
+  const occupiedPort = await findAvailablePort(5200);
+  const blocker = await import("node:net").then(({ default: net }) => new Promise(resolve => {
+    const server = net.createServer().listen(occupiedPort, "127.0.0.1", () => resolve(server));
+  }));
+  try {
+    const plan = await createDevelopmentPlan({ root: "/repo", platform: "linux", env: {}, defaultPort: occupiedPort });
+    const apiUrl = plan[1].env.VITE_API_BASE_URL.replace(/\/api$/, "");
+    assert.equal(plan[0].args.at(-1), apiUrl);
+    assert.notEqual(plan[1].env.VITE_API_BASE_URL, `http://localhost:${occupiedPort}/api`);
+    assert.match(plan[0].notice, /AURA_API_PORT is busy/);
+  } finally {
+    await new Promise(resolve => blocker.close(resolve));
+  }
+});
+
+test("explicitly configured occupied API ports fail with recovery guidance", async () => {
+  const occupiedPort = await findAvailablePort(5220);
+  const blocker = await import("node:net").then(({ default: net }) => new Promise(resolve => {
+    const server = net.createServer().listen(occupiedPort, "127.0.0.1", () => resolve(server));
+  }));
+  try {
+    await assert.rejects(
+      () => createDevelopmentPlan({ root: "/repo", platform: "linux", env: { AURA_API_PORT: String(occupiedPort) } }),
+      new RegExp(`AURA_API_PORT ${occupiedPort} is already in use`),
+    );
+  } finally {
+    await new Promise(resolve => blocker.close(resolve));
+  }
 });
 
 test("service plan preserves explicit API URL configuration", () => {

@@ -43,7 +43,7 @@ This starts the API and UI together, prefixes their output with `[API]` and `[UI
 
 The launcher sends the UI to the selected API base URL (`http://localhost:5082/api` by default). An exported `VITE_API_BASE_URL` takes precedence; a conflicting `aura-ui/.env.local` value is warned about and ignored for the combined run. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
 
-To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. If using a non-default API port, the launcher builds the corresponding API base URL. An explicit exported `VITE_API_BASE_URL` still takes precedence.
+To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. If the default API port is occupied, the launcher automatically selects the next available local API port and updates the UI base URL to match. An explicitly configured, occupied `AURA_API_PORT` fails with a recovery message so an intentional port choice is never silently changed. An explicit exported `VITE_API_BASE_URL` still takes precedence.
 
 ## Run each service separately
 
@@ -135,7 +135,7 @@ node --test Scripts/dev.test.mjs
 
 ## Troubleshooting
 
-- **Port already in use:** The launcher uses strict port binding and does not kill unrelated processes. Identify and stop the existing listener, or choose another port with `AURA_API_PORT` / `AURA_UI_PORT`.
+- **Port already in use:** The launcher moves off an occupied default API port and reports the selected port. If an explicitly configured `AURA_API_PORT` is occupied, stop the process using it or choose another port; the launcher never kills unrelated processes.
 - **UI reports an API/network error:** Check that the API is running, then verify the UI is targeting the matching `<API URL>/api`. The combined launcher prints a warning if `.env.local` conflicts; an exported `VITE_API_BASE_URL` overrides the default.
 - **UI dependencies missing:** Run `npm ci` in `aura-ui/` (or `npm ci --prefix aura-ui` at the root).
 - **JWT or authentication fails:** Ensure a private `Jwt:Key` is configured and that the token was issued by the current API configuration. `GET /api/Auth/me` and mood routes require a valid bearer token; register or log in again after changing the signing key.
