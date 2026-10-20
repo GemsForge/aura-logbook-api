@@ -1,6 +1,6 @@
 # Aura Logbook
 
-Aura Logbook is a mood-tracking application with a .NET 9 / ASP.NET Core API and a separate React, TypeScript, and Vite UI. The API currently stores user, mood, and zodiac insight records in JSON files for local development.
+Aura Logbook is a mood-tracking and reflective-journaling application with a .NET 9 / ASP.NET Core API and a separate React, TypeScript, and Vite UI. Development and FIT/Staging use SQLite through Dapper with versioned startup migrations. The committed JSON files are retained as import and local-development seed sources rather than the active Development data store.
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ This starts the API and UI together, prefixes their output with `[API]` and `[UI
 | API base | [http://localhost:5082/api](http://localhost:5082/api) |
 | Swagger (Development only) | [http://localhost:5082/swagger](http://localhost:5082/swagger) |
 
-The launcher keeps the local API listener and UI target aligned. By default both use port `5082`; when `aura-ui/.env.local` or an exported `VITE_API_BASE_URL` points to a local HTTP API, the launcher uses that URL's port for the API listener too. An explicit `AURA_API_PORT` must match a local `VITE_API_BASE_URL`; conflicting values stop startup with instructions to align them. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
+The launcher keeps the local API listener and the UI's API target aligned. By default, both the listener and that target use API port `5082`; the UI itself uses port `58407`. When `aura-ui/.env.local` or an exported `VITE_API_BASE_URL` points to a local HTTP API, the launcher uses that URL's port for the API listener too. An explicit `AURA_API_PORT` must match a local `VITE_API_BASE_URL`; conflicting values stop startup with instructions to align them. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
 
 To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. For example, set `AURA_API_PORT=5124` and `VITE_API_BASE_URL=http://localhost:5124/api` together. If the default API port is occupied, the launcher automatically selects the next available local API port and updates the UI base URL to match. An explicitly configured, occupied port (through `AURA_API_PORT` or a local `VITE_API_BASE_URL`) fails with the exact port and recovery options; the launcher never kills unrelated listeners. A `VITE_API_BASE_URL` that points to a remote host continues to be a UI-only override.
 
@@ -127,6 +127,8 @@ npm run test:startup
 npm run build
 ```
 
+Before `test:run`, provide a valid `VITE_API_BASE_URL` through `aura-ui/.env.local` or the process environment; the API does not need to be running because the tests mock requests, but the client still constructs absolute request URLs.
+
 The combined launcher orchestration tests run from the repository root:
 
 ```bash
@@ -145,6 +147,8 @@ Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify
 
 ## Project documentation
 
+- [Documentation index: current guidance and historical sources](docs/README.md)
+- [Product purpose and current direction](AURA_PROJECT_OVERVIEW.md)
 - [API setup, configuration, routes, and tests](AuraLogbook.Api/README.md)
 - [UI setup, API URL configuration, and checks](aura-ui/README.md)
 - [SwiftUI shell adaptation plan](docs/ux/swiftui-shell-adaptation.md)

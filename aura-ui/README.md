@@ -31,9 +31,11 @@ The UI reads `VITE_API_BASE_URL` at build/start time. For a standalone Vite run,
 VITE_API_BASE_URL=http://localhost:5082/api
 ```
 
-The combined launcher sets this value to the selected local API URL unless an exported `VITE_API_BASE_URL` overrides it; it warns and ignores a conflicting `.env.local` value for that combined run. Restart Vite after changing the URL. Do not put credentials in frontend environment variables; values prefixed with `VITE_` are exposed to the browser.
+The combined launcher uses an exported `VITE_API_BASE_URL` first and otherwise reads `.env.local`. When either value names a local HTTP API, its port also becomes the requested API listener port. If that local port conflicts with `AURA_API_PORT` or is already occupied, startup stops with a correction message; the launcher does not silently ignore the setting or kill the listener. Restart Vite after changing the URL. Do not put credentials in frontend environment variables; values prefixed with `VITE_` are exposed to the browser.
 
 ## Checks
+
+Ensure `VITE_API_BASE_URL` is set through `.env.local` or the process environment before running the test suite. Requests are mocked, so the API does not need to be running, but RTK Query still constructs absolute request URLs.
 
 Run from `aura-ui/`:
 

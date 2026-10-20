@@ -27,11 +27,11 @@ Direct package references declared by `AuraLogbook.Api.csproj`:
 | `Microsoft.AspNetCore.Authentication.JwtBearer` | `8.0.17` | Bearer-token authentication for the API's JWT-protected routes. |
 | `Swashbuckle.AspNetCore` | `6.6.2` | Swagger/OpenAPI document and development UI. |
 | `BCrypt.Net-Next` | `4.0.3` | Password hashing and verification. |
-| `Dapper` | `2.1.66` | SQL mapping package; no active Dapper usage was found in the current API source during this inventory. |
-| `Microsoft.Data.Sqlite.Core` | `9.0.6` | SQLite provider; current registered repositories use JSON files, not a configured SQLite database. |
-| `SQLitePCLRaw.bundle_e_sqlite3` | `2.1.11` | Native SQLite bundle, initialized by the API host; database use should be confirmed before removing. |
+| `Dapper` | `2.1.66` | SQL mapping used by the active SQLite repositories and migration/data-access path. |
+| `Microsoft.Data.Sqlite.Core` | `9.0.6` | SQLite provider used by Development and FIT/Staging repositories and migration tests. |
+| `SQLitePCLRaw.bundle_e_sqlite3` | `2.1.11` | Native SQLite bundle initialized by the API host. |
 
-The API currently registers file-backed repositories for users, moods, and zodiac insights. Their configured data files are under `AuraLogbook.Api/Data/`. Dapper/SQLite packages appear to be retained or legacy infrastructure; this document records them but does not remove them.
+Development and FIT/Staging register the Dapper/SQLite repositories for users, moods, zodiac insights, and reflections. Versioned SQL migrations under `AuraLogbook.Api/Data/Database/Migrations/` create and evolve the database. Development can seed users from JSON, and the dedicated database seeder imports the broader JSON sources. Production still selects legacy file repositories for users, moods, and zodiac insights while reflection storage remains SQLite-backed; production storage must be configured and verified deliberately.
 
 ## Frontend runtime packages
 
@@ -93,7 +93,7 @@ node --test Scripts/dev.test.mjs
 - **Credentials:** No key is needed for the free/open-access endpoint.
 - **Data requested:** Current temperature, WMO weather code, and day/night status; temperature is requested in Fahrenheit. City input is resolved to coordinates using geocoding.
 - **License and attribution:** Weather data is provided under CC BY 4.0. Attribute Open-Meteo and identify modifications when redistributing data. See [Open-Meteo's terms](https://open-meteo.com/en/terms).
-- **Free-use terms:** Non-commercial use only, with limits of fewer than 10,000 calls/day, 5,000/hour, and 600/minute; no uptime guarantee. Check current [terms](https://open-meteo.com/en/terms) and [pricing](https://open-meteo.com/en/pricing) before deployment.
+- **Free-use terms:** Non-commercial use only, with limits of fewer than 300,000 calls/month, 10,000/day, 5,000/hour, and 600/minute; no uptime guarantee. Check current [terms](https://open-meteo.com/en/terms) and [pricing](https://open-meteo.com/en/pricing) before deployment.
 - **Commercial use:** Ads, subscriptions, or other commercial use require an appropriate paid plan or a provider whose license permits that use.
 
 The project currently uses this service for personal development. Before public deployment, ensure user-facing attribution is displayed and recheck that the app's use remains within the provider's current terms.
@@ -102,10 +102,11 @@ The project currently uses this service for personal development. Before public 
 
 - Backend settings are loaded from `AuraLogbook.Api/appsettings.json`, environment-specific settings, environment variables, and .NET user secrets. The API project uses the user-secrets ID `AuraLogbook.Api`; configure private signing keys outside source control. See the [API README](AuraLogbook.Api/README.md).
 - Frontend API base URL is configured with `VITE_API_BASE_URL`. Vite uses port 58407; the combined launcher defaults the API to port 5082 and aligns the UI URL. See the [root README](README.md) and [UI README](aura-ui/README.md).
-- The current repositories persist user, mood, and zodiac insight data in JSON files. Treat those files as application data, not package dependencies.
+- Development and FIT/Staging persist runtime data in SQLite. The committed JSON files are seed/import and reconciliation inputs; treat them as project data, not package dependencies or the active relational store.
+- The current weather implementation calls Open-Meteo directly. Legacy `AztroApi` configuration and Weatherbit-named DTOs are not active external runtime dependencies.
 
 ## Maintenance notes
 
 - Keep package version changes in the relevant project manifest and lockfile; update this document when a major dependency or service changes.
-- Confirm whether Dapper/SQLite and Jest-related frontend packages are still needed before removing them; this inventory is not authorization to remove dependencies.
+- Confirm whether Jest-related frontend packages are still needed before removing them; this inventory is not authorization to remove dependencies.
 - This file summarizes direct and operational dependencies. It is not a software bill of materials and does not enumerate transitive packages or license texts.
