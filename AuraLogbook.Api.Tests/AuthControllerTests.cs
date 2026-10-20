@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using AuraLogbook.Api.Controllers;
 using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -79,7 +80,10 @@ public class AuthControllerTests
 
         var result = await controller.GetCurrentUser();
 
-        Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var profile = Assert.IsType<UserProfileDto>(ok.Value);
+        Assert.Equal("green", profile.AuraColor);
+        Assert.Equal(200, profile.AuraIntensity);
         users.Verify(service => service.GetByIdAsync(42), Times.Once);
     }
 }

@@ -1,4 +1,5 @@
 using AuraLogbook.Api.Data.Database;
+using AuraLogbook.Api.Models.Dto;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +13,8 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
     public async Task<IActionResult> GetAuras()
     {
         using var connection = factory.CreateConnection();
-        return Ok(await connection.QueryAsync("SELECT AuraColorKey AS Key, DisplayName, BaseHex, ChakraKey, Description, IsNeutral, IsActive FROM AuraColorDefinitions WHERE IsActive = 1 ORDER BY AuraColorKey"));
+        return Ok(await connection.QueryAsync<AuraColorDefinitionDto>(
+            "SELECT AuraColorKey AS Key, DisplayName, BaseHex, ChakraKey, Description, IsNeutral, IsActive FROM AuraColorDefinitions WHERE IsActive = 1 ORDER BY AuraColorKey"));
     }
 
     [HttpGet("chakras")]
