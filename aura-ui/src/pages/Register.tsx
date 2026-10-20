@@ -64,10 +64,26 @@ export default function RegisterForm() {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
+        width: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
+        px: { xs: 2, sm: 0 },
+        py: 2,
         backgroundColor: "#f9f9f9",
       }}
     >
-      <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
+      <Sheet
+        variant="outlined"
+        sx={{
+          p: { xs: 2, sm: 4 },
+          width: "100%",
+          maxWidth: 400,
+          minWidth: 0,
+          boxSizing: "border-box",
+          borderRadius: "md",
+          boxShadow: "md",
+        }}
+      >
         <Typography level="h3" sx={{ mb: 2 }}>
           Create an Account
         </Typography>

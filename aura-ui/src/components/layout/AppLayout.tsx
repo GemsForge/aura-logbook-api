@@ -17,8 +17,8 @@ const AppLayout = () => {
   const isProfileModalOpen = useAppSelector(selectIsProfileModalOpen);
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", minWidth: 0 }}>
+      <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <NavBar />
 
         <Container sx={{ mt: 4, flexGrow: 1 }}>

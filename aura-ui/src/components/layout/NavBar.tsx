@@ -22,8 +22,20 @@ const NavBar = () => {
 
   return (
     <Sheet component="header" variant="solid" color="primary">
-      <Box sx={{ display: "flex", alignItems: "center", minHeight: 64, px: 2 }}>
-        <Typography level="title-lg" sx={{ flexGrow: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          minHeight: 64,
+          px: { xs: 1.5, sm: 2 },
+          py: { xs: 1, sm: 0 },
+          gap: { xs: 0.5, sm: 1 },
+          minWidth: 0,
+          boxSizing: "border-box",
+        }}
+      >
+        <Typography level="title-lg" sx={{ flexGrow: 1, minWidth: 0 }}>
           <Link
             component="button"
             type="button"
@@ -35,7 +47,17 @@ const NavBar = () => {
             Aura Logbook
           </Link>
         </Typography>
-        <Box component="nav" aria-label="Main navigation" sx={{ display: "flex", gap: 1 }}>
+        <Box
+          component="nav"
+          aria-label="Main navigation"
+          sx={{
+            display: "flex",
+            justifyContent: { xs: "space-between", sm: "flex-end" },
+            flexWrap: "wrap",
+            gap: { xs: 0.5, sm: 1 },
+            minWidth: 0,
+          }}
+        >
           <Button color="inherit" sx={{ color: "inherit" }} onClick={() => navigate("/home")}>
             Home
           </Button>
