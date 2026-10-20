@@ -123,7 +123,10 @@ describe("Dashboard", () => {
       preloadedState: createAuthenticatedState(),
     });
 
-    expect(screen.getByText(/good morning, gem!/i)).toBeInTheDocument();
+    expect(screen.getByText(/good morning, gem\./i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /log your mood/i })).toHaveAttribute("href", "/log-mood");
+    expect(screen.getByRole("link", { name: /review history/i })).toHaveAttribute("href", "/history");
+    expect(screen.getByText(/your recent pattern/i)).toBeInTheDocument();
     expect(screen.getByText(/my pathway/i)).toBeInTheDocument();
     expect(screen.getByText(/mindfulness/i)).toBeInTheDocument();
     expect(screen.getByText(/virgo • earth/i)).toBeInTheDocument();
