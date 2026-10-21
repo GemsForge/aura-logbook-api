@@ -24,7 +24,7 @@ The local pre-push hook and GitHub Actions validation enforce the same commit fo
 
 ## Project synchronization
 
-Aura Logbook uses its own GitHub Project. Project synchronization must use the `AURALOGBOOK_PROJECTS_TOKEN` Actions secret and Aura's own Project/status field identifiers. Do not copy GemLife project numbers or status IDs.
+Aura Logbook uses its own GitHub Project. Project synchronization must use the shared `PROJECTS_TOKEN` Actions secret and Aura's own Project/status field identifiers. Do not copy GemLife project numbers or status IDs.
 
 The repository token handles issue, pull request, branch, and contents operations. Project mutations require the separate Projects-authorized secret.
 
