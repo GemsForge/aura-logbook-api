@@ -14,6 +14,7 @@ The reusable GemsForge AI Scrum Team is documented in docs/governance/gemsforge-
 - Prefer the smallest complete change and preserve established React/.NET boundaries.
 - Stop after implementation and verification for a delivery report; do not merge, deploy, close issues, mutate Projects, or change secrets without explicit approval.
 - Never claim a feature, check, or deployment is complete without evidence.
+- Before final verification or handoff, inspect the pull request target branch, fetch its latest remote state, and rebase the issue branch onto that target. Do not assume the target is named `main` or `master`; use the repository and PR configuration. Resolve conflicts, rerun relevant checks, force-push with lease, and verify that the PR head matches the pushed commit.
 
 This repository is the source of truth for Aura Logbook. Use the shared GemsForge Scrum/PO operating model: GitHub is the system of record; issues must state the user outcome, scope, non-goals, acceptance criteria, risks, dependencies, and verification expectations. PO agents may create and prioritize issues, assign work when authorized, maintain project metadata, and comment on PRs. Human approval remains required for merges, releases, privacy-sensitive decisions, destructive migrations, and changes to shared policy.
 
