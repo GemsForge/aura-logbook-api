@@ -21,6 +21,8 @@ Preserve this repository's existing stack, workflows, scripts, labels, and docum
 
 QA gate: PR checks validate the proposed change before merge. After merge to `master`, QA validates the merged development branch against the story's acceptance criteria, regression, accessibility, responsive behavior, security/privacy expectations, and required evidence. QA may set Project status to `QA` and recommend release or corrective work; QA does not merge, release, or close the story.
 
+Exact developer references: `AURA_PROJECT_OVERVIEW.md`; `AuraLogbook.Api/README.md`; `docs/wiki/aura-log-architecture.md`; `docs/ux/responsive-accessibility.md`; `AuraLogbook.Api/`; `aura-ui/`; `AuraLogbook.Api.Tests/`; `Scripts/`; `.github/workflows/`; and `.github/agents/`.
+
 ## Technology guidance
 
 Use `AURA_PROJECT_OVERVIEW.md` and `docs/wiki/aura-log-architecture.md` for the full-stack boundaries: React 19/TypeScript/Vite with Redux Toolkit and RTK Query on the UI; .NET 9/ASP.NET Core REST services on the backend; and SQLite/Dapper with ordered SQL migrations for persistence. Keep controllers, services, repositories, UI state, API state, and database concerns in their documented layers. Use the UI README, UX accessibility guides, API README, database ERD, and migration docs before changing those areas.
