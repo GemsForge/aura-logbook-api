@@ -40,4 +40,6 @@ Exact developer references: `AURA_PROJECT_OVERVIEW.md`; `AuraLogbook.Api/README.
 
 ## Technology guidance
 
+Read `docs/governance/technology-and-coding-standards.md` as the shared cross-stack coding reference.
+
 Use `AURA_PROJECT_OVERVIEW.md` and `docs/wiki/aura-log-architecture.md` for the full-stack boundaries: React 19/TypeScript/Vite with Redux Toolkit and RTK Query on the UI; .NET 9/ASP.NET Core REST services on the backend; and SQLite/Dapper with ordered SQL migrations for persistence. Keep controllers, services, repositories, UI state, API state, and database concerns in their documented layers. Use the UI README, UX accessibility guides, API README, database ERD, and migration docs before changing those areas.
