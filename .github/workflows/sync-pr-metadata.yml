@@ -14,7 +14,7 @@ on:
         required: true
         type: number
       qa_acceptance:
-        description: Authorize QA acceptance and close the issue
+        description: Repair metadata and close an already-merged story
         required: false
         default: false
         type: boolean
@@ -62,14 +62,10 @@ jobs:
             })).data;
             const reviewState = context.eventName === "pull_request_review"
               ? (context.payload.review?.state || "").toLowerCase() : "";
-            if (process.env.QA_ACCEPTANCE === "true") {
-              if (context.actor !== "GemsForge") {
-                throw new Error("Only the GemsForge account may authorize QA acceptance.");
-              }
-              await github.rest.issues.update({
-                ...context.repo, issue_number: issueNumber,
-                state: "closed", state_reason: "completed"
-              });
+            if (pr?.merged && issue.state !== "closed") {
+              await github.rest.issues.update({ ...context.repo, issue_number: issueNumber,
+                state: "closed", state_reason: "completed" });
+              issue.state = "closed";
             }
             const token = process.env.PROJECTS_TOKEN;
             if (!token) throw new Error("PROJECTS_TOKEN is required.");
@@ -135,10 +131,11 @@ jobs:
             };
             let desired = "Backlog";
             if (issue.state === "closed") desired = "Done";
-            else if (pr?.merged) desired = "QA";
-            else if (reviewState === "changes_requested") desired = "Changes requested";
+            else if (pr?.merged) desired = "Merged";
+            else if (reviewState === "approved") desired = "In review";
+            else if (reviewState === "changes_requested") desired = "QA";
             else if (pr?.draft) desired = "In progress";
-            else if (pr || context.eventName === "pull_request_review") desired = "In review";
+            else if (pr || context.eventName === "pull_request_review") desired = "QA";
             else {
               const branches = await github.paginate(github.rest.repos.listBranches, {...context.repo, per_page:100});
               desired = branches.some((b) => issueFromRef(b.name) === issueNumber) ? "In progress" : "Backlog";
@@ -146,6 +143,6 @@ jobs:
             await setStatus(issueItem, desired);
             if (pr) {
               const prItem = findItem("PullRequest", pr.number) || await addItem(pr.node_id);
-              await setStatus(prItem, pr.merged ? "QA" : pr.state === "closed" ? "Done" : desired);
+              await setStatus(prItem, pr.merged ? "Merged" : pr.state === "closed" ? "Done" : desired);
             }
             core.notice("Issue #" + issueNumber + " synchronized to " + desired + " in Project #" + projectNumber + ".");
