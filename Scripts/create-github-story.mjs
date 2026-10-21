@@ -19,10 +19,10 @@ const valueAfter = (args, index, option) => {
   return value;
 };
 const parseList = (value) => value ? [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))] : [];
-const typeLabels = new Map([["feat","feature"],["fix","fix"],["refactor","refactor"],["test","testing"],["docs","documentation"],["chore","chore"],["ci","ci"]]);
+const typeLabels = new Map([["feat","feature"],["fix","fix"],["refactor","refactor"],["test","testing"],["docs","documentation"],["chore","chore"]]);
 const scopeLabels = new Set(["api","ci","database","infrastructure","model","schema","security","service","swift","testing","ui","vapor"]);
 export function inferLabels(title, explicitLabels = []) {
-  const match = /^(feat|fix|refactor|test|docs|chore|ci)\(([a-z0-9-]+)\):\s+/.exec(title);
+  const match = /^(feat|fix|refactor|test|docs|chore)\(([a-z0-9-]+)\):\s+/.exec(title);
   if (!match) throw new Error("Title must use type(scope): short imperative description.");
   if (!scopeLabels.has(match[2])) throw new Error(`Unknown story scope '${match[2]}'. Use an existing scope label.`);
   return [...new Set([typeLabels.get(match[1]), match[2], ...explicitLabels])];
