@@ -28,6 +28,6 @@ Actions changes follow the normal issue → branch → commit → pull request �
 
 ## Project synchronization
 
-Aura’s existing Project synchronization uses the repository’s AURALOGBOOK_PROJECTS_TOKEN secret and Aura-specific Project/status identifiers. Do not copy GemsForgeAPI Project numbers, fields, or tokens.
+Aura’s existing Project synchronization uses the repository’s PROJECTS_TOKEN secret and Aura-specific Project/status identifiers. Do not copy GemsForgeAPI Project numbers, fields, or tokens.
 
 Project changes remain repository-specific and require the existing approval and secret boundaries.

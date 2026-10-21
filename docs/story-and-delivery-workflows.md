@@ -8,7 +8,7 @@ Use titles in this form:
 
 `type(scope): short imperative description`
 
-Approved types are `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, and `ci`.
+Approved types are `feat`, `fix`, `refactor`, `test`, `docs`, and `chore`. `ci` is a chore scope, not a type.
 
 Use explicit GitHub labels for work type and area. Recommended area labels include `api`, `aura`, `ui`, `testing`, `security`, `docs`, and `ci`.
 
@@ -24,7 +24,7 @@ The local pre-push hook and GitHub Actions validation enforce the same commit fo
 
 ## Project synchronization
 
-Aura Logbook uses its own GitHub Project. Project synchronization must use the `AURALOGBOOK_PROJECTS_TOKEN` Actions secret and Aura's own Project/status field identifiers. Do not copy GemLife project numbers or status IDs.
+Aura Logbook uses its own GitHub Project. Project synchronization must use the `PROJECTS_TOKEN` Actions secret and Aura's own Project/status field identifiers. Do not copy GemLife project numbers or status IDs.
 
 The repository token handles issue, pull request, branch, and contents operations. Project mutations require the separate Projects-authorized secret.
 
