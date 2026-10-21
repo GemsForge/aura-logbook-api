@@ -26,7 +26,7 @@ jobs:
           fi
           issue_number=$(printf '%s\n' "$title" | sed -E 's/^[^:]+\([^)]*\): #([1-9][0-9]*).*/\1/')
           issue_title=$(gh issue view "$issue_number" --repo "$REPO" --json title --jq .title)
-          expected_title=$(printf '%s\n' "$issue_title" | sed "s/^\([^:]*\):[[:space:]]*/\1: #${issue_number} /")
+          expected_title=$(printf '%s\n' "$issue_title" | sed -E "s/^([^:]*):[[:space:]]*(#[1-9][0-9]*[[:space:]]*)?/\1: #${issue_number} /")
           if [ "$title" != "$expected_title" ]; then
             echo "PR title must match issue title: $expected_title"
             exit 1
