@@ -20,11 +20,13 @@ const valueAfter = (args, index, option) => {
 };
 const parseList = (value) => value ? [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))] : [];
 const typeLabels = new Map([["feat","feature"],["fix","fix"],["refactor","refactor"],["test","testing"],["docs","documentation"],["chore","chore"]]);
-const scopeLabels = new Set(["api","ci","database","infrastructure","model","schema","security","service","swift","testing","ui","vapor"]);
+const engineeringScopes = new Set(["api","ui","database","infrastructure","model","schema","security","service"]);
+const choreScopes = new Set(["ci","infrastructure","testing"]);
 export function inferLabels(title, explicitLabels = []) {
   const match = /^(feat|fix|refactor|test|docs|chore)\(([a-z0-9-]+)\):\s+/.exec(title);
   if (!match) throw new Error("Title must use type(scope): short imperative description.");
-  if (!scopeLabels.has(match[2])) throw new Error(`Unknown story scope '${match[2]}'. Use an existing scope label.`);
+  const [type, scope] = [match[1], match[2]];
+  if (!(type === "docs" ? /^[a-z0-9-]+$/.test(scope) : type === "chore" ? choreScopes.has(scope) : engineeringScopes.has(scope))) throw new Error(`Unknown story scope '${scope}'. Use an existing scope label.`);
   return [...new Set([typeLabels.get(match[1]), match[2], ...explicitLabels])];
 }
 const parseArgs = (args) => {
@@ -32,7 +34,7 @@ const parseArgs = (args) => {
   for (let index = 0; index < args.length; index += 1) {
     const option = args[index];
     if (option === "--help") return { help: true };
-    const valueOptions = new Set(["--title","--body","--labels","--assignees","--milestone","--parent-issue","--blocked-by","--blocking","--repo"]);
+    const valueOptions = new Set(["--title","--body","--labels","--assignees","--milestone","--project","--parent-issue","--blocked-by","--blocking","--repo"]);
     if (!valueOptions.has(option)) throw new Error(`Unknown option: ${option}`);
     const value = valueAfter(args, index, option); index += 1;
     if (option === "--title") options.title = value;
@@ -42,6 +44,7 @@ const parseArgs = (args) => {
     else if (option === "--milestone" || option === "--parent-issue") options[option === "--milestone" ? "milestone" : "parentIssue"] = value;
     else if (option === "--blocked-by") options.blockedBy = parseList(value);
     else if (option === "--blocking") options.blocking = parseList(value);
+    else if (option === "--project") options.project = value;
     else options.repo = value;
   }
   if (!options.title) throw new Error("--title is required.");
