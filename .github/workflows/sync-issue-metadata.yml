@@ -17,9 +17,9 @@ name: Sync issue and pull request metadata
 #
 # Lifecycle policy (uses the existing Status options in the @GemsForge's Aura Log (#6) project)
 # - Development branch created: In progress; branch name identifies the issue.
-# - Open PR (including draft): In review; issue and PR receive that status.
-# - Closes #170 in a PR body closes #170 only on merge into the default branch.
-# - Closed issue / merged closing PR: Done. A mere #170 mention never closes it.
+# - Open PR (including draft): QA; issue and PR receive that status.
+# - Approved Codex Review: In review; human approval is still required to merge.
+# - A merged PR moves issue and PR to Merged; the closed story becomes Done.
 # - PR closed without merge: In progress unless another related PR is open.
 # - Reconciliation checks live PRs/branches so late events do not regress review.
 # - Tags and branches without an issue number are ignored.
@@ -141,6 +141,8 @@ jobs:
                 pull_number: manualNumber,
               })
             ).data : null);
+            const reviewState = context.eventName === "pull_request_review"
+              ? (context.payload.review?.state ?? "").toLowerCase() : "";
             const branchIssue = branchIssueNumber(pullRequest?.head.ref);
             // Optional colon and word boundaries match GitHub's documented syntax.
             // Only repository-local closing references are interpreted here.
@@ -168,21 +170,15 @@ jobs:
             })).data;
             if (issue.pull_request) throw new Error("The working item must be an issue, not a PR.");
 
-            const defaultBranch = context.payload.repository?.default_branch;
-            const mergedClosingReference = Boolean(
-              pullRequest?.merged && defaultBranch &&
-              pullRequest.base?.ref === defaultBranch &&
-              bodyIssues.includes(issueNumber),
-            );
-            // GitHub normally closes these natively. Ensure repair/merge runs
+            // A merged PR completes its linked story. Ensure repair/merge runs
             // also reconcile closure if the issue event has not arrived yet.
-            if (mergedClosingReference && issue.state !== "closed") {
+            if (pullRequest?.merged && issue.state !== "closed") {
               await github.rest.issues.update({
                 ...context.repo, issue_number: issueNumber,
                 state: "closed", state_reason: "completed",
               });
               issue.state = "closed";
-              core.notice("Closed issue #" + issueNumber + " after its closing PR merged.");
+              core.notice("Closed issue #" + issueNumber + " after its PR merged.");
             }
 
             // Validate all targets before writing any relationship.
@@ -446,7 +442,7 @@ jobs:
               const inReview = openPulls.some(matchesWorkingIssue) ||
                 (pullRequest?.state === "open" && matchesWorkingIssue(pullRequest));
               if (inReview) {
-                desiredStatus = "In review";
+                desiredStatus = reviewState === "approved" ? "In review" : "QA";
               } else {
                 const branches = await github.paginate(github.rest.repos.listBranches, {
                   ...context.repo, per_page: 100,
@@ -526,7 +522,7 @@ jobs:
               }
 
               await setStatus(pullRequestItem,
-                pullRequest.state === "closed" ? "Done" : desiredStatus);
+                pullRequest.merged ? "Merged" : pullRequest.state === "closed" ? "Done" : desiredStatus);
 
             core.notice(
               `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and project @GemsForge's Aura Log (#6).`,
