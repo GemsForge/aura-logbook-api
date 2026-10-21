@@ -20,8 +20,15 @@ jobs:
         run: |
           set -eu
           title=$(gh pr view "$PR" --repo "$REPO" --json title --jq .title)
-          if ! printf '%s\n' "$title" | grep -Eq '^(feat|fix|refactor|test|docs|chore|ci)\([a-z0-9-]+\): #[1-9][0-9]* [a-z][a-z0-9-]*( |$)'; then
+          if ! printf '%s\n' "$title" | grep -Eq '^(feat|fix|refactor|test|docs|chore)\([a-z0-9-]+\): #[1-9][0-9]* [a-z][a-z0-9-]*( |$)'; then
             echo "PR title must match: type(scope): #issue short imperative description"
+            exit 1
+          fi
+          issue_number=$(printf '%s\n' "$title" | sed -E 's/^[^:]+\([^)]*\): #([1-9][0-9]*).*/\1/')
+          issue_title=$(gh issue view "$issue_number" --repo "$REPO" --json title --jq .title)
+          expected_title="$issue_title"
+          if [ "$title" != "$expected_title" ]; then
+            echo "PR title must match issue title: $expected_title"
             exit 1
           fi
           labels=$(gh pr view "$PR" --repo "$REPO" --json labels --jq '.labels[].name')
@@ -33,7 +40,6 @@ jobs:
             test) required="testing" ;;
             docs) required="documentation" ;;
             chore) required="chore" ;;
-            ci) required="ci" ;;
           esac
           if ! printf '%s\n' "$labels" | grep -Fxq "$required"; then
             echo "Missing required label: $required"
