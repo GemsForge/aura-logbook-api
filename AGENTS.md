@@ -6,6 +6,7 @@ This repository is governed first by the repository-local documentation, especia
 
 The reusable GemsForge AI Scrum Team is documented in docs/governance/gemsforge-ai-scrum-team.md. Use it as additive guidance only. Existing repository policies, labels, branch names, commit rules, Projects identifiers, Actions, architecture, security boundaries, and product language remain authoritative.
 
+<<<<<<< HEAD
 ## Working boundaries
 
 - Treat sources/ project mirrors as read-only when present.
