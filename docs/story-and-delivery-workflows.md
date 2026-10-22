@@ -10,6 +10,10 @@ Use titles in this form:
 
 Approved types are `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, and `ci`.
 
+Create the issue with a number-free title. After GitHub assigns the issue number,
+`Scripts/create-github-story.mjs` updates it to `type(scope): #issue-number
+short imperative description`; the pull request must use that final title.
+
 Use explicit GitHub labels for work type and area. Recommended area labels include `api`, `aura`, `ui`, `testing`, `security`, `docs`, and `ci`.
 
 Stories should include a goal, scope, definition of done, and explicit relationships. Parent, blocked-by, and blocking relationships must be supplied intentionally; they are never inferred from prose.
@@ -24,7 +28,7 @@ The local pre-push hook and GitHub Actions validation enforce the same commit fo
 
 ## Project synchronization
 
-Aura Logbook uses its own GitHub Project. Project synchronization must use the `AURALOGBOOK_PROJECTS_TOKEN` Actions secret and Aura's own Project/status field identifiers. Do not copy GemLife project numbers or status IDs.
+Aura Logbook uses its own GitHub Project. Project synchronization must use the shared `PROJECTS_TOKEN` Actions secret and Aura Logbook v1 Project #9/status field identifiers. Do not copy GemLife project numbers or status IDs.
 
 The repository token handles issue, pull request, branch, and contents operations. Project mutations require the separate Projects-authorized secret.
 

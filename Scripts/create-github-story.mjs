@@ -45,6 +45,7 @@ const parseArgs = (args) => {
     else options.repo = value;
   }
   if (!options.title) throw new Error("--title is required.");
+  if (!options.milestone) throw new Error("--milestone is required; select a milestone from the target repository.");
   options.repo ||= process.env.GITHUB_REPOSITORY;
   if (!options.repo || !/^[^/]+\/[^/]+$/.test(options.repo)) throw new Error("Set GITHUB_REPOSITORY or supply --repo OWNER/REPOSITORY.");
   return options;
@@ -58,8 +59,11 @@ export function createStory(options, run = runGh) {
   for (const assignee of options.assignees) issueArgs.push("-f", `assignees[]=${assignee}`);
   if (options.milestone) issueArgs.push("-f", `milestone=${options.milestone}`);
   const issue = run(issueArgs);
+  const numberedTitle = options.title.replace(/^([^:]+):\s+/, `$1: #${issue.number} `);
+  run(["api", `repos/${options.repo}/issues/${issue.number}`, "--method", "PATCH", "-f", `title=${numberedTitle}`]);
   const metadataWorkflow = options.metadataWorkflow || process.env.GITHUB_METADATA_WORKFLOW || "sync-issue-metadata.yml";
-  const workflowArgs = ["workflow", "run", metadataWorkflow, "--repo", options.repo, "--ref", "master", "-f", `issue_number=${issue.number}`];
+  const defaultBranch = process.env.GITHUB_DEFAULT_BRANCH || run(["repo", "view", options.repo, "--json", "defaultBranchRef"]).defaultBranchRef?.name || "master";
+  const workflowArgs = ["workflow", "run", metadataWorkflow, "--repo", options.repo, "--ref", defaultBranch, "-f", `issue_number=${issue.number}`];
   if (options.parentIssue) workflowArgs.push("-f", `parent_issue=${options.parentIssue}`);
   if (options.blockedBy.length) workflowArgs.push("-f", `blocked_by=${options.blockedBy.join(",")}`);
   if (options.blocking.length) workflowArgs.push("-f", `blocking=${options.blocking.join(",")}`);
