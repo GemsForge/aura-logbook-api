@@ -58,3 +58,24 @@ Prefer modular fields and contracts such as auraColor, auraIntensity, mood, chak
 - Approval: user decision — approve changes, request revision, approve merge, approve deploy, or defer.
 
 Use the reusable formats in docs/governance/templates/.
+
+## Autonomous DEV and QA loop
+
+| Stage | Owner | Required action | Handoff condition |
+| --- | --- | --- | --- |
+| Ready for development | SM-AL | Confirm scope, metadata, branch, and dependencies | DEV-AL may begin |
+| Implementation | DEV-AL | Implement, verify, commit, push, and update the issue/PR | QA-AL receives the work |
+| QA review | QA-AL | Test acceptance criteria, runtime behavior, accessibility, and regression risk; record evidence and remarks | Approval or findings recorded |
+| Bug writing | PO-AL or SM-AL | Write and link a bug story with reproduction, expected/actual behavior, severity, owner, and evidence | DEV-AL receives a linked fix |
+| Fix cycle | DEV-AL | Address QA remarks, record the fix commit and verification, and return the work to QA-AL | QA-AL rechecks |
+| Merge eligibility | QA-AL | Record explicit approval after all criteria pass | Work is eligible for merge; no additional human merge approval is required for now |
+
+### Example
+
+QA-AL finds that a journal entry form announces validation errors visually but
+not to a screen reader. QA-AL records the field, expected announcement, browser,
+and evidence. SM-AL writes and links a bug story, assigns DEV-AL, and keeps the
+original work in the fix cycle. DEV-AL implements the accessible error state,
+records the commit and verification, and returns the work to QA-AL. QA-AL
+rechecks the keyboard and screen-reader behavior and records approval when it
+passes.
