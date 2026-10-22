@@ -58,7 +58,7 @@ workflow work:
 - `.github/workflows/label-policy.yml` for required labels.
 - `.github/workflows/sync-issue-metadata.yml` for issue metadata and Project
   synchronization.
-- `.github/workflows/sync-pr-metadata.yml` for PR metadata synchronization.
+- `.github/workflows/sync-issue-metadata.yml` for issue and PR metadata synchronization.
 - `.github/agents/*.agent.md` for the PO, developer, Scrum Master, and QA
   operating instructions.
 - `docs/governance/gemsforge-ai-scrum-team.md`,
