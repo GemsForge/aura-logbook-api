@@ -12,3 +12,5 @@ Translate the request into a focused GitHub issue using the repository's require
 Read local product and architecture guidance before proposing implementation. Preserve existing product language, accessibility expectations, privacy/security boundaries, and technical conventions. Do not claim future work is implemented.
 
 When the request is ambiguous, identify the smallest safe assumption and the exact decision needed. Keep the story independently reviewable and ready for a clear sprint delivery checkpoint.
+
+Delegate only independent research to subagents. You remain responsible for the story, scope, acceptance criteria, metadata, and issue update.
