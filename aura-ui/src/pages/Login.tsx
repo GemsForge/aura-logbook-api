@@ -66,15 +66,16 @@ export function LoginForm({ showTitle }: LoginFormProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f9f9f9",
+        minHeight: "min(680px, calc(100vh - 150px))",
+        px: { xs: 0, sm: 2 },
       }}
     >
-      <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
+      <Sheet variant="outlined" sx={{ p: { xs: 2.5, sm: 4 }, width: "100%", maxWidth: 440, borderRadius: "lg", boxShadow: "lg", backgroundColor: "background.surface" }}>
         {showTitle && (
-          <Typography level="h3" sx={{ mb: 2, textAlign: "center" }}>
-            Sign In
-          </Typography>
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Typography level="h1" sx={{ fontSize: "2.2rem", letterSpacing: "-0.04em" }}>Welcome back · Sign in</Typography>
+            <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>A small pause can change the shape of a day.</Typography>
+          </Box>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -103,7 +104,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
             variant="contained"
             color="primary"
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, minHeight: 48 }}
             disabled={loading}>
             {loading ? <CircularProgress size="md" /> : "Login"}
           </Button>
@@ -113,7 +114,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           variant="text"
           size="small"
           onClick={() => setForgotPasswordOpen(true)}
-          sx={{ mt: 1, textTransform: "none" }}>
+          sx={{ mt: 1, textTransform: "none", color: "neutral.600" }}>
           Forgot password?
         </Button>
 

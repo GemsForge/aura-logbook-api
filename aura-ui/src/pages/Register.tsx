@@ -63,13 +63,12 @@ export default function RegisterForm() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
+        minHeight: "min(760px, calc(100vh - 150px))",
         width: "100%",
         minWidth: 0,
         boxSizing: "border-box",
-        px: { xs: 2, sm: 0 },
+        px: { xs: 0, sm: 2 },
         py: 2,
-        backgroundColor: "#f9f9f9",
       }}
     >
       <Sheet
@@ -80,13 +79,15 @@ export default function RegisterForm() {
           maxWidth: 400,
           minWidth: 0,
           boxSizing: "border-box",
-          borderRadius: "md",
-          boxShadow: "md",
+          borderRadius: "lg",
+          boxShadow: "lg",
+          backgroundColor: "background.surface",
         }}
       >
-        <Typography level="h3" sx={{ mb: 2 }}>
-          Create an Account
-        </Typography>
+        <Box sx={{ mb: 3 }}>
+          <Typography level="h1" sx={{ fontSize: "2.2rem", letterSpacing: "-0.04em" }}>Begin your logbook</Typography>
+          <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>Make space for the moments that matter.</Typography>
+        </Box>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             fullWidth
@@ -151,7 +152,7 @@ export default function RegisterForm() {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, minHeight: 48 }}
             disabled={loading}>
             {loading ? <CircularProgress size="md" /> : "Register"}
           </Button>
