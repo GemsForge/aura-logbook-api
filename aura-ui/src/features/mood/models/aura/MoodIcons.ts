@@ -7,7 +7,7 @@ export const MoodIcons: Record<MoodType, string> = {
   Flowing: "🚀", // Motivated
   Weary: "😴", // Tired → Weary
   Tense: "😣", // Stressed
-  Blocked: "😤", // Frustrated
+  Frustrated: "😤", // Frustrated
   Restless: "😰", // Anxious
   Disconnected: "😔", // Lonely
   Heavy: "😢", // Sad

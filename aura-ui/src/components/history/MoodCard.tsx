@@ -8,6 +8,7 @@ import Sheet from "@mui/joy/Sheet";
 import IconButton from "@mui/joy/IconButton";
 import dayjs from "dayjs";
 import { MoodTag } from "./MoodTag";
+import MarkdownReflection from "../MarkdownReflection";
 
 export function MoodCard({
   entry,
@@ -42,9 +43,7 @@ export function MoodCard({
       </Stack>
 
       {entry.comment && (
-        <Typography level="body-md" mt={1}>
-          {entry.comment}
-        </Typography>
+        <Box mt={1} sx={{ fontSize: "var(--joy-fontSize-md)" }}><MarkdownReflection value={entry.comment} /></Box>
       )}
     </Sheet>
   );

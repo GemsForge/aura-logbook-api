@@ -52,7 +52,13 @@ export function getAuraTheme(
         text: { primary: prismGarden.color.ink, secondary: prismGarden.color.inkMuted },
       },
       typography: {
-        // Optional: add per-aura typography tweaks here
+        fontFamily: prismGarden.font.body,
+        h1: { fontFamily: prismGarden.font.display },
+        h2: { fontFamily: prismGarden.font.display },
+        h3: { fontFamily: prismGarden.font.display },
+        h4: { fontFamily: prismGarden.font.display },
+        h5: { fontFamily: prismGarden.font.display },
+        h6: { fontFamily: prismGarden.font.display },
       },
       // Component overrides or shape settings can be added here
     });

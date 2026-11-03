@@ -61,7 +61,7 @@ const NavBar = () => {
         <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
-        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "Georgia, serif", fontWeight: 400 }}>
+        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "display", fontWeight: 400 }}>
           <Link
             href={isAuthenticated ? "/dashboard" : "/home"}
             aria-label="Aura Logbook home"

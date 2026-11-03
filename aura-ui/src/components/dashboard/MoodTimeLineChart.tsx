@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
+import { prismGarden } from "@/theme";
 
 export type MoodByDate = {
   date: string;
@@ -33,7 +34,7 @@ export default function MoodTimelineChart({ data }: { data: MoodByDate[] }) {
             <YAxis allowDecimals={false} />
             <Tooltip
               contentStyle={{
-                fontFamily: "Nunito, sans-serif",
+                fontFamily: prismGarden.font.body,
                 fontSize: 13,
               }}
             />

@@ -22,7 +22,20 @@ export default function MoodEntryForm() {
       navigate("/history");
     } catch (err) {
       console.error("Failed to log mood", err);
-      showToast("Error logging modd", "error");
+      const response = typeof err === "object" && err !== null && "response" in err
+        ? (err as { response?: { status?: number; data?: unknown } }).response
+        : undefined;
+      const responseData = response?.data;
+      const dataMessage = typeof responseData === "object" && responseData !== null && "message" in responseData
+        ? String((responseData as { message?: unknown }).message ?? "")
+        : typeof responseData === "object" && responseData !== null && "title" in responseData
+          ? String((responseData as { title?: unknown }).title ?? "")
+          : typeof responseData === "string" ? responseData : "";
+      const errorMessage = err instanceof Error ? err.message : "";
+      const message = dataMessage.trim()
+        || (response?.status ? `Mood logging failed (${response.status}).` : "Unable to reach the mood service.")
+        || errorMessage;
+      showToast(message, "error");
     }
   };
 

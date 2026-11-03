@@ -32,8 +32,8 @@ export const AuraMoodMap: Record<MoodType, AuraMoodMeta> = {
     icon: MoodIcons.Tense,
     auraColor: AuraColor.Red
   },
-  Blocked: {
-    icon: MoodIcons.Blocked,
+  Frustrated: {
+    icon: MoodIcons.Frustrated,
     auraColor: AuraColor.Red
   },
   Restless: {

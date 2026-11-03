@@ -3,17 +3,21 @@ import Checkbox from "@mui/joy/Checkbox";
 import Tooltip from "@mui/joy/Tooltip";
 import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
-import Textarea from "@mui/joy/Textarea";
 import Divider from "@mui/joy/Divider";
 import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import { useEffect } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AuraColor, AuraColorInfo, AuraMoodMap } from "@/features/mood/models/aura";
 import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
 import { auraPalettes } from "@/theme/auraTheme";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
+import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
+import MDEditor from "@uiw/react-md-editor";
 
 
 type MoodEntryFormValues = {
@@ -28,8 +32,20 @@ const auraOrbitPositions = [
   [28, 92], [6, 73], [6, 39], [22, 13],
 ] as const;
 
+type JournalingPrompt = { id: string; question: string };
+type JournalingPromptPathway = { id: string; prompts: JournalingPrompt[] };
+
+/** Maps the persisted user pathway to the prompt-library pathway identifier. */
+const promptPathwayByUserPathway: Record<string, string> = {
+  Mindfulness: "mindful",
+  Energy: "astrology-energy",
+  Faith: "faith-religion",
+};
+
+
 interface Props {
   entry?: MoodEntry;
+  showSubmitButton?: boolean;
   onSubmit: (data: {
     date: string;
     moods: MoodType[];
@@ -37,25 +53,41 @@ interface Props {
   }) => void;
 }
 
-export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
+export default function MoodEntryFormFields({ entry, showSubmitButton = true, onSubmit }: Props) {
+  const currentUser = useAppSelector(selectCurrentUser);
   const {
     control,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<MoodEntryFormValues>({
     resolver: yupResolver(moodEntrySchema) as Resolver<MoodEntryFormValues>,
     defaultValues: {
       date: entry
-        ? dayjs(entry.date).format("MM-DD-YYYY")
-        : dayjs().format("MM-DD-YYYY"),
+        ? dayjs(entry.date).format("YYYY-MM-DD")
+        : dayjs().format("YYYY-MM-DD"),
       moods: entry?.moods ?? [],
       comment: entry?.comment ?? "",
     },
   });
 
+  // Rehydrate the editor whenever a different history entry is opened in the modal.
+  useEffect(() => {
+    if (!entry) return;
+    reset({
+      date: dayjs(entry.date).format("YYYY-MM-DD"),
+      moods: entry.moods ?? [],
+      comment: entry.comment ?? "",
+    });
+  }, [entry, reset]);
+
   const selectedMoods = watch("moods");
+  const promptPathwayId = promptPathwayByUserPathway[currentUser?.selectedPathway ?? "Mindfulness"] ?? "mindful";
+  const promptPathway = (journalingPrompts.pathways as JournalingPromptPathway[]).find(({ id }) => id === promptPathwayId);
+  const promptIndex = (dayjs().month() + dayjs().date()) % (promptPathway?.prompts.length || 1);
+  const reflectionPrompt = promptPathway?.prompts[promptIndex]?.question ?? "What would you like to remember about this moment?";
 
   const toggleMood = (mood: MoodType) => {
     const updated = selectedMoods.includes(mood)
@@ -82,7 +114,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+    <Box id="mood-form" component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
         <Box>
           <Typography level="title-lg">Your check-in</Typography>
@@ -95,7 +127,7 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
             <DatePicker
               label="Date"
               value={dayjs(field.value)}
-              onChange={(newDate) => newDate && field.onChange(newDate)}
+              onChange={(newDate) => newDate && field.onChange(newDate.format("YYYY-MM-DD"))}
               format="MM-DD-YYYY"
             />
           )}
@@ -219,13 +251,18 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         render={({ field }) => (
           <Box>
             <Typography level="title-md">A little more space</Typography>
-            <Typography level="body-sm" color="neutral" sx={{ mb: 1 }}>What would you like to remember about this moment? <span>(optional)</span></Typography>
-            <Textarea
-              {...field}
-              minRows={3}
-              error={!!errors.comment}
-              sx={{ width: "100%", fontFamily: "inherit" }}
-            />
+            <Typography level="body-sm" color="neutral" sx={{ mb: 1 }}>{reflectionPrompt} <span>(optional)</span></Typography>
+            {/* Markdown remains the persisted comment value, so the editor does not introduce an HTML-only format. */}
+            <Box data-color-mode="light" sx={{ "& .w-md-editor": { borderRadius: "14px", borderColor: errors.comment ? "var(--joy-palette-danger-500)" : "rgba(128, 107, 87, .25)", backgroundColor: "rgba(255, 252, 247, .72)", boxShadow: "none", overflow: "hidden" }, "& .w-md-editor-toolbar": { backgroundColor: "rgba(242, 232, 219, .68)", borderBottomColor: "rgba(128, 107, 87, .16)" }, "& .w-md-editor-content": { backgroundColor: "transparent" }, "& .w-md-editor-text-pre, & .w-md-editor-text-input, & .w-md-editor-text": { fontFamily: "inherit", fontSize: "0.98rem", lineHeight: 1.6 }, "& .w-md-editor-text-input": { padding: "16px" }, "& .w-md-editor-preview": { padding: "16px", fontFamily: "inherit" } }}>
+              <MDEditor
+                value={field.value ?? ""}
+                onChange={(value) => field.onChange(value ?? "")}
+                preview="edit"
+                hideToolbar={false}
+                textareaProps={{ "aria-label": "Reflection", placeholder: "Write what you noticed, felt, or want to remember…" }}
+                height={180}
+              />
+            </Box>
             {errors.comment && (
               <Typography color="danger" level="body-sm">
                 {errors.comment.message}
@@ -235,9 +272,11 @@ export default function MoodEntryFormFields({ entry, onSubmit }: Props) {
         )}
       />
 
-      <Button type="submit" variant="contained" sx={{ alignSelf: { xs: "stretch", sm: "flex-end" }, minWidth: 170, minHeight: 46 }}>
-        {entry ? "Update Entry" : "Submit Entry"}
-      </Button>
+      {showSubmitButton && (
+        <Button type="submit" variant="contained" sx={{ alignSelf: { xs: "stretch", sm: "flex-end" }, minWidth: 170, minHeight: 46 }}>
+          {entry ? "Update Entry" : "Submit Entry"}
+        </Button>
+      )}
     </Box>
   );
 }

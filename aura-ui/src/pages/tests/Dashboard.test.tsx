@@ -47,6 +47,10 @@ vi.mock("../../store/authApi", async () => {
 
 // This mocks all the moodApi hooks used in the Dashboard
 vi.mock("../../store/moodApi", () => ({
+  useGetAllMoodsQuery: () => ({
+    isLoading: false,
+    data: [],
+  }),
   useGetDashboardSummaryQuery: () => ({
     isLoading: false,
     data: dashboardSummary.data,
@@ -127,6 +131,8 @@ describe("Dashboard", () => {
     expect(screen.getByRole("link", { name: /log your mood/i })).toHaveAttribute("href", "/log-mood");
     expect(screen.getByRole("link", { name: /review history/i })).toHaveAttribute("href", "/history");
     expect(screen.getByText(/your recent pattern/i)).toBeInTheDocument();
+    expect(screen.getByText(/daily prompt/i)).toBeInTheDocument();
+    expect(screen.getByText(/aura logbook · mindful pathway/i)).toBeInTheDocument();
     expect(screen.getByText(/my pathway/i)).toBeInTheDocument();
     expect(screen.getByText(/mindfulness/i)).toBeInTheDocument();
     expect(screen.getByText(/virgo • earth/i)).toBeInTheDocument();
