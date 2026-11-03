@@ -48,7 +48,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors();
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
 builder.Services.AddDataProtection();
-builder.Services.AddHttpClient();
+// Bound Spotify calls so a slow provider returns a recoverable error to the card.
+builder.Services.AddHttpClient("Spotify", client => client.Timeout = TimeSpan.FromSeconds(10));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(options =>

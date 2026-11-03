@@ -35,7 +35,7 @@ For local development, configure the API with ASP.NET user secrets from the `Aur
 ```bash
 dotnet user-secrets set "Spotify:ClientId" "your-client-id"
 dotnet user-secrets set "Spotify:ClientSecret" "your-client-secret"
-dotnet user-secrets set "Spotify:RedirectUri" "http://localhost:5082/api/spotify/callback"
+dotnet user-secrets set "Spotify:RedirectUri" "http://127.0.0.1:5082/api/spotify/callback"
 ```
 
 User secrets are stored outside the repository and are not included in commits.
@@ -49,6 +49,13 @@ Spotify__RedirectUri=https://your-domain.example/api/spotify/callback
 ```
 
 The redirect URI configured in Spotify's Developer Dashboard must exactly match the URI used by the running API.
+
+The Spotify authorization request asks for these read permissions:
+
+- `user-read-currently-playing` for playback metadata
+- `playlist-read-private` and `playlist-read-collaborative` for playlists
+
+When requested permissions change, reconnect Spotify in Aura Logbook to review and grant the updated access. The integration uses the currently-playing endpoint matching `user-read-currently-playing`. See [Spotify integration](spotify-integration.md) for setup, storage, routes and recovery.
 
 ## What not to commit
 

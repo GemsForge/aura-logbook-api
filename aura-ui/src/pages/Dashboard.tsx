@@ -101,7 +101,6 @@ export default function Dashboard() {
       </Stack>
 
       <Grid container spacing={2}>
-        <Grid xs={12}><SpotifyConnectionCard /></Grid>
         {user?.selectedPathway && <Grid xs={12}><Sheet variant="soft" color="neutral" sx={{ p: 2, borderRadius: "md" }}><Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em" }}>My pathway</Typography><Typography level="title-md">{user.selectedPathway}</Typography><Typography level="body-sm" color="neutral">{SpiritualPathwayDescriptions[user.selectedPathway]}</Typography></Sheet></Grid>}
         <Grid xs={12} md={8}>
           <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 4 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm" }}>
@@ -132,7 +131,10 @@ export default function Dashboard() {
           </Sheet>
         </Grid>
         <Grid xs={12} md={4}>
-          <WeatherCard city="Atlanta" state="GA" country="US" />
+          <Stack spacing={2}>
+            <WeatherCard city="Atlanta" state="GA" country="US" />
+            <SpotifyConnectionCard />
+          </Stack>
         </Grid>
         <Grid xs={12} md={7}>
           <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm", height: "100%" }}>

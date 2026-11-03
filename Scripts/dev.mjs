@@ -131,8 +131,9 @@ export async function createDevelopmentPlan({ root = repositoryRoot, platform = 
   const apiConfiguration = apiPortConfiguration(root, env, defaultPort);
   const requestedPort = apiConfiguration.apiPort;
   const selectedPort = await findAvailablePort(requestedPort);
-  if (apiConfiguration.explicitPort && selectedPort !== requestedPort) {
-    const source = env.AURA_API_PORT ? `AURA_API_PORT ${requestedPort}` : `local VITE_API_BASE_URL port ${requestedPort}`;
+  // OAuth callbacks use a registered port; silently moving the API splits one login across processes.
+  if (selectedPort !== requestedPort) {
+    const source = env.AURA_API_PORT ? `AURA_API_PORT ${requestedPort}` : apiConfiguration.configuredUiApiPort !== undefined ? `local VITE_API_BASE_URL port ${requestedPort}` : `default API port ${requestedPort}`;
     throw new Error(`${source} is already in use. Stop the process using port ${requestedPort} or choose another port by updating ${env.AURA_API_PORT ? "AURA_API_PORT" : "VITE_API_BASE_URL"}. The launcher will not stop unrelated listeners.`);
   }
   return createServicePlan({ root, platform, env, apiPort: selectedPort });

@@ -1,33 +1,44 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { RootState } from "./store";
 
-const baseQuery = fetchBaseQuery({
-  baseUrl: `${import.meta.env.VITE_API_BASE_URL}/Spotify`,
-  prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-    return headers;
-  },
-});
+export interface SpotifyConnection { configured: boolean; connected: boolean }
+export interface SpotifyPlaylist { id: string; name: string; imageUrl: string | null; spotifyUrl: string | null }
+export interface SpotifyPlaylists { items: SpotifyPlaylist[]; hasMore: boolean }
+export interface SpotifyPlayback { name: string; artists: string; imageUrl: string | null; spotifyUrl: string | null; isPlaying: boolean }
 
-/** Provides authenticated Spotify connection and metadata queries for the UI. */
+/** User IDs partition cached metadata; authorization always comes from the bearer token. */
 export const spotifyApi = createApi({
   reducerPath: "spotifyApi",
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL}/spotify`,
+    timeout: 15000,
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      return headers;
+    },
+  }),
   tagTypes: ["SpotifyConnection"],
   endpoints: (build) => ({
-    getSpotifyConnectUrl: build.query<{ authorizationUrl: string }, void>({ query: () => "/connect" }),
-    getSpotifyConnection: build.query<{ connected: boolean }, void>({ query: () => "/connection", providesTags: ["SpotifyConnection"] }),
-    disconnectSpotify: build.mutation<void, void>({ query: () => ({ url: "/connection", method: "DELETE" }), invalidatesTags: ["SpotifyConnection"] }),
-    getCurrentlyPlaying: build.query<Record<string, unknown> | null, void>({ query: () => "/currently-playing" }),
-    getSpotifyPlaylists: build.query<{ items?: Array<Record<string, unknown>> }, void>({ query: () => "/playlists" }),
+    connectSpotify: build.mutation<{ authorizationUrl: string }, void>({
+      query: () => ({ url: "/connect", method: "POST" }),
+    }),
+    getSpotifyConnection: build.query<SpotifyConnection, number>({
+      query: () => "/connection", providesTags: ["SpotifyConnection"],
+    }),
+    disconnectSpotify: build.mutation<void, void>({
+      query: () => ({ url: "/connection", method: "DELETE" }),
+    }),
+    getCurrentlyPlaying: build.query<SpotifyPlayback | null, number>({
+      query: () => "/currently-playing", providesTags: ["SpotifyConnection"],
+    }),
+    getSpotifyPlaylists: build.query<SpotifyPlaylists, number>({
+      query: () => "/playlists", providesTags: ["SpotifyConnection"],
+    }),
   }),
 });
 
 export const {
-  useLazyGetSpotifyConnectUrlQuery,
-  useGetSpotifyConnectionQuery,
-  useDisconnectSpotifyMutation,
-  useGetCurrentlyPlayingQuery,
-  useGetSpotifyPlaylistsQuery,
+  useConnectSpotifyMutation, useGetSpotifyConnectionQuery, useDisconnectSpotifyMutation,
+  useGetCurrentlyPlayingQuery, useGetSpotifyPlaylistsQuery,
 } = spotifyApi;

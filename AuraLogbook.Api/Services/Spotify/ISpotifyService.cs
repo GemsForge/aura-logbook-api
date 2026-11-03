@@ -1,12 +1,14 @@
+using AuraLogbook.Api.Models;
+
 namespace AuraLogbook.Api.Services.Spotify;
 
 /// <summary>Coordinates Spotify authorization and metadata access for Aura users.</summary>
 public interface ISpotifyService
 {
-    string CreateAuthorizationUrl(int userId);
+    Task<string> CreateAuthorizationUrlAsync(int userId);
     Task CompleteAuthorizationAsync(string state, string code, CancellationToken cancellationToken);
-    Task<bool> IsConnectedAsync(int userId);
+    Task<SpotifyConnectionStatus> GetConnectionAsync(int userId);
     Task DisconnectAsync(int userId);
-    Task<string?> GetCurrentlyPlayingAsync(int userId, CancellationToken cancellationToken);
-    Task<string> GetPlaylistsAsync(int userId, CancellationToken cancellationToken);
+    Task<SpotifyPlayback?> GetCurrentlyPlayingAsync(int userId, CancellationToken cancellationToken);
+    Task<SpotifyPlaylistPage> GetPlaylistsAsync(int userId, CancellationToken cancellationToken);
 }

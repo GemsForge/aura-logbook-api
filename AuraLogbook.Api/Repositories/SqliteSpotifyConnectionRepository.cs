@@ -31,4 +31,21 @@ public sealed class SqliteSpotifyConnectionRepository : ISpotifyConnectionReposi
         using var db = _factory.CreateConnection();
         await db.ExecuteAsync("DELETE FROM SpotifyConnections WHERE UserId=@userId", new { userId });
     }
+
+    /// <summary>Stores an authorization attempt without retaining the raw state or verifier.</summary>
+    public async Task SaveAttemptAsync(SpotifyAuthorizationAttempt attempt)
+    {
+        using var db = _factory.CreateConnection();
+        using var tx = db.BeginTransaction();
+        await db.ExecuteAsync("DELETE FROM SpotifyAuthorizationAttempts WHERE ExpiresAt < @now OR UserId = @UserId", new { now = DateTime.UtcNow, attempt.UserId }, tx);
+        await db.ExecuteAsync("INSERT INTO SpotifyAuthorizationAttempts (StateHash,UserId,EncryptedVerifier,RedirectUri,ExpiresAt) VALUES (@StateHash,@UserId,@EncryptedVerifier,@RedirectUri,@ExpiresAt)", attempt, tx);
+        tx.Commit();
+    }
+
+    /// <summary>SQLite DELETE RETURNING ensures an authorization attempt is used only once.</summary>
+    public async Task<SpotifyAuthorizationAttempt?> ConsumeAttemptAsync(string stateHash)
+    {
+        using var db = _factory.CreateConnection();
+        return await db.QuerySingleOrDefaultAsync<SpotifyAuthorizationAttempt>("DELETE FROM SpotifyAuthorizationAttempts WHERE StateHash=@stateHash RETURNING StateHash,UserId,EncryptedVerifier,RedirectUri,ExpiresAt", new { stateHash });
+    }
 }

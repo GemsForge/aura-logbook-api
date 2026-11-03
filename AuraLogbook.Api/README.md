@@ -52,6 +52,8 @@ an active prompt and a mood entry owned by the authenticated user.
 
 Use Swagger for the complete current route list and request/response schemas. Authenticated routes accept `Authorization: Bearer <token>`; login returns the JWT.
 
+Spotify account linking, current listening metadata and playlist cards are documented in [Spotify integration](../docs/spotify-integration.md), including local setup, OAuth recovery, typed API responses and token storage.
+
 ## Tests
 
 From the repository root:
