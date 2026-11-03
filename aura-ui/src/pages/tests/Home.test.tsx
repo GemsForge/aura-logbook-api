@@ -22,7 +22,7 @@ describe("HomePage", () => {
     renderWithProviders(<HomePage />);
 
     expect(
-      screen.getByRole("heading", { name: /welcome to aura logbook/i })
+      screen.getByRole("heading", { name: /a quieter way to notice what matters/i })
     ).toBeInTheDocument();
     expect(screen.getByText(/your energy tells a story/i)).toBeInTheDocument();
     expect(
