@@ -32,7 +32,7 @@ export default function MoodEntryForm() {
         Daily check-in
       </Typography>
       <Typography level="h1" sx={{ mt: 1, fontSize: { xs: "2.5rem", md: "3.5rem" }, letterSpacing: "-0.05em" }}>
-        How are you feeling today? · Log Your Mood
+        How are you feeling today?
       </Typography>
       <Typography level="body-lg" color="neutral" sx={{ maxWidth: 560, mt: 1 }}>
         Take a moment to notice what is present. There is no right answer.
