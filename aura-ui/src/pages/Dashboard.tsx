@@ -1,205 +1,135 @@
+import { useNavigate } from "react-router-dom";
+import Box from "@mui/joy/Box";
+import Button from "@mui/joy/Button";
+import Link from "@mui/joy/Link";
+import Divider from "@mui/joy/Divider";
+import Grid from "@mui/joy/Grid";
+import Sheet from "@mui/joy/Sheet";
+import Stack from "@mui/joy/Stack";
+import Typography from "@mui/joy/Typography";
 import WeatherCard from "@/components/weather/WeatherCard";
 import { SpiritualPathwayDescriptions } from "@/features/auth/models/SpiritualPathway";
 import { MoodIcons } from "@/features/mood/models/aura";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
-import { useGetCurrentUserQuery } from "@/store/authApi"; // ①
-import { useAppSelector } from "@/store/hooks";
+import { useGetCurrentUserQuery } from "@/store/authApi";
 import { useGetDashboardSummaryQuery, useGetMoodBreakdownQuery, useGetMoodsByDateRangeQuery } from "@/store/moodApi";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { auraPalettes } from "@/theme/auraTheme";
+import { useAppSelector } from "@/store/hooks";
 import { getTimeGreeting } from "@/util/timeGreeting";
-import {
-  Button,
-  Box,
-  CircularProgress,
-  Divider,
-  Grid,
-  Typography,
-} from "@mui/material";
-import Sheet from "@mui/joy/Sheet";
-import { Link } from "react-router-dom";
 import dayjs from "dayjs";
-import MoodPieChart from "../components/dashboard/MoodPieChart";
-import MoodStatCard from "../components/dashboard/MoodStatCard";
-import MoodTimelineChart from "../components/dashboard/MoodTimeLineChart";
+import MoodPieChart from "@/components/dashboard/MoodPieChart";
+import MoodStatCard from "@/components/dashboard/MoodStatCard";
+import MoodTimelineChart from "@/components/dashboard/MoodTimeLineChart";
 
+const moodOptions = [
+  { label: "Calm", color: "#b8c2b0", icon: "☼" },
+  { label: "Content", color: "#e9c99d", icon: "◡" },
+  { label: "Energetic", color: "#e5ad85", icon: "✦" },
+  { label: "Overwhelmed", color: "#d29d91", icon: "~" },
+  { label: "Quiet", color: "#aeb0c2", icon: "·" },
+];
+
+/** Presents the persisted mood data in the Prism Garden dashboard composition. */
 export default function Dashboard() {
+  const navigate = useNavigate();
   const greeting = getTimeGreeting();
   const user = useAppSelector(selectCurrentUser);
-
-  // —— 1. RTK-Query hooks everywhere ——
   const { isLoading: loadingUser } = useGetCurrentUserQuery();
-  const { data: summary, isLoading: loadingSummary } =
-    useGetDashboardSummaryQuery();
-  const { data: breakdown, isLoading: loadingBreakdown } =
-    useGetMoodBreakdownQuery(false);
-  const { data: timeline, isLoading: loadingTimeline } =
-    useGetMoodsByDateRangeQuery("7d");
+  const { data: summary, isLoading: loadingSummary } = useGetDashboardSummaryQuery();
+  const { data: breakdown, isLoading: loadingBreakdown } = useGetMoodBreakdownQuery(false);
+  const { data: timeline, isLoading: loadingTimeline } = useGetMoodsByDateRangeQuery("7d");
   const { data: zodiac, isLoading: loadingZodiac } = useGetZodiacInsightQuery();
 
-  // —— 2. Aggregate loading state ——
-  const loading =
-    loadingUser ||
-    loadingSummary ||
-    loadingBreakdown ||
-    loadingTimeline ||
-    loadingZodiac;
+  const loading = loadingUser || loadingSummary || loadingBreakdown || loadingTimeline || loadingZodiac;
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="300px">
-        <CircularProgress size={48} />
-      </Box>
-    );
+    return <Box sx={{ py: 12, textAlign: "center" }}><Typography level="body-lg">Gathering your reflections…</Typography></Box>;
   }
 
-  // —— 3. Derive values with safe fallbacks ——
-  const auraColor = user?.auraColor ?? "blue";
   const displayName = user?.displayName ?? "Friend";
-  const selectedPathway = user?.selectedPathway;
   const totalEntries = summary?.totalEntries ?? 0;
   const mostFrequent = summary?.mostFrequentMood ?? "";
   const currentStreak = summary?.currentStreak ?? 0;
-  const parsedLastEntryDate = summary?.lastEntryDate
-    ? dayjs(summary.lastEntryDate)
-    : null;
-  const lastEntryDate = parsedLastEntryDate?.isValid()
-    ? parsedLastEntryDate.format("MMMM D, YYYY")
+  const lastEntryDate = summary?.lastEntryDate && dayjs(summary.lastEntryDate).isValid()
+    ? dayjs(summary.lastEntryDate).format("MMMM D, YYYY")
     : "No entries yet";
 
   return (
-    <Box maxWidth="xl" mx="auto" mt={{ xs: 1, md: 3 }} mb={6}>
-      <Sheet
-        variant="soft"
-        sx={{
-          p: { xs: 2.5, md: 4 },
-          mb: 3,
-          borderRadius: "24px",
-          background: `linear-gradient(135deg, ${auraPalettes[auraColor][100].main} 0%, rgba(255,255,255,.92) 72%)`,
-          border: "1px solid",
-          borderColor: auraPalettes[auraColor][300].main,
-        }}>
-        <Typography variant="overline" color="text.secondary">
-          Your daily reflection space
-        </Typography>
-        <Typography variant="h3" sx={{ fontWeight: 700, letterSpacing: "-.03em" }}>
-          {greeting}, {displayName}.
-        </Typography>
-        <Typography color="text.secondary" sx={{ maxWidth: 620, mt: 1 }}>
-          Notice what is present, then choose one small step that supports your
-          day. Your dashboard keeps the signal close and the noise low.
-        </Typography>
-        <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", mt: 3 }}>
-          <Button component={Link} to="/log-mood" variant="contained">
-            Log your mood
-          </Button>
-          <Button component={Link} to="/history" variant="outlined">
-            Review history
-          </Button>
-        </Box>
-      </Sheet>
-
-      {selectedPathway && (
-        <Sheet variant="outlined" sx={{ mb: 3, p: 2.5, borderRadius: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              My Pathway
-            </Typography>
-            <Typography variant="h6">{selectedPathway}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {SpiritualPathwayDescriptions[selectedPathway]}
-            </Typography>
-        </Sheet>
-      )}
-
-      <Grid container spacing={2.5}>
-        <Grid size={{ xs: 12, md: zodiac ? 7 : 12 }}>
-          <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 650 }}>
-            Your recent pattern
+    <Box sx={{ maxWidth: 1180, mx: "auto" }}>
+      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "flex-end" }} gap={2} sx={{ mb: 3 }}>
+        <Box>
+          <Typography level="h1" sx={{ fontSize: { xs: "2.3rem", md: "3.2rem" }, letterSpacing: "-0.04em" }}>
+            {greeting}, {displayName}.
           </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <MoodStatCard title="Total entries" value={`${totalEntries}`} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <MoodStatCard
-                title="Most frequent mood"
-                value={mostFrequent || "No mood yet"}
-                emoji={mostFrequent ? MoodIcons[mostFrequent] : "❔"}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <MoodStatCard title="Current streak" value={`${currentStreak} days`} emoji="🔥" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <MoodStatCard title="Last entry" value={lastEntryDate} emoji="📅" />
-            </Grid>
-          </Grid>
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 2 }}>
-            <MoodPieChart data={breakdown || []} />
-            <MoodTimelineChart data={timeline || []} />
-          </Box>
-        </Grid>
+          <Typography level="body-sm" sx={{ mt: 0.75, letterSpacing: "0.24em", textTransform: "uppercase", color: "neutral.500" }}>
+            A brighter day begins with a small pause.
+          </Typography>
+        </Box>
+        <Typography level="body-sm" color="neutral">A moment for yourself</Typography>
+      </Stack>
 
-        {zodiac && (
-          <Grid size={{ xs: 12, md: 5 }}>
-            <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 650 }}>
-              A moment to reflect
-            </Typography>
-            <Sheet
-              variant="outlined"
-              sx={{
-                height: "calc(100% - 44px)",
-                border: 2,
-                borderColor: auraPalettes[auraColor].primary.main,
-                borderRadius: 3,
-                background: "rgba(255,255,255,.72)",
-              }}>
-              <Box sx={{ p: { xs: 2, md: 3 } }}>
-                <Typography variant="h6" gutterBottom>
-                  {zodiac.sign.toUpperCase()} • {zodiac.element}
-                </Typography>
-                <Typography variant="body2" mb={2}>
-                  {zodiac.description}
-                </Typography>
-                <Divider />
-                {zodiac.insights.map((ins, i) => (
-                  <Typography key={i} variant="body2" mt={1}>
-                    • {String(ins.message ?? "")}
-                  </Typography>
-                ))}
+      <Grid container spacing={2}>
+        {user?.selectedPathway && <Grid xs={12}><Sheet variant="soft" color="neutral" sx={{ p: 2, borderRadius: "md" }}><Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em" }}>My pathway</Typography><Typography level="title-md">{user.selectedPathway}</Typography><Typography level="body-sm" color="neutral">{SpiritualPathwayDescriptions[user.selectedPathway]}</Typography></Sheet></Grid>}
+        <Grid xs={12} md={8}>
+          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 4 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
+              <Box>
+                <Typography level="h2" sx={{ fontSize: "2rem" }}>Today</Typography>
+                <Typography level="body-md" color="neutral">How are you feeling?</Typography>
               </Box>
-            </Sheet>
-          </Grid>
-        )}
-      </Grid>
-
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 650 }}>
-          Around you
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <WeatherCard city="Atlanta" state="GA" country="US" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Sheet variant="outlined" sx={{ p: 2.5, height: "100%", borderRadius: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                A gentle prompt
-              </Typography>
-              <Typography variant="h6" sx={{ mt: 1 }}>
-                What would make today feel a little more supported?
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Your answer can be simple. The logbook is here to help you notice,
-                not to judge.
-              </Typography>
-            </Sheet>
-          </Grid>
+              <Typography level="body-sm" color="neutral">Take a breath.</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between" gap={1} sx={{ mt: 3, overflowX: "auto", pb: 1 }}>
+              {moodOptions.map((mood) => (
+                <Stack key={mood.label} alignItems="center" gap={0.75} sx={{ minWidth: 70 }}>
+                  <Box aria-hidden="true" sx={{ width: 48, height: 48, display: "grid", placeItems: "center", borderRadius: "50%", backgroundColor: mood.color, color: "#51463d", fontSize: "1.4rem" }}>{mood.icon}</Box>
+                  <Typography level="body-xs" color="neutral">{mood.label}</Typography>
+                </Stack>
+              ))}
+            </Stack>
+            <Box sx={{ mt: 2.5, p: 2, minHeight: 92, border: "1px solid", borderColor: "neutral.200", borderRadius: "md", backgroundColor: "rgba(255,255,255,.42)" }}>
+              <Typography level="body-sm" color="neutral">What’s on your mind today?</Typography>
+            </Box>
+            <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
+              <Stack direction="row" gap={1} alignItems="center">
+                <Button component={Link} href="/history" variant="plain" color="neutral">Review history</Button>
+                <Button component={Link} href="/log-mood" variant="solid" color="primary">Log your mood</Button>
+              </Stack>
+            </Stack>
+          </Sheet>
         </Grid>
-      </Box>
+        <Grid xs={12} md={4}>
+          <WeatherCard city="Atlanta" state="GA" country="US" />
+        </Grid>
+        <Grid xs={12} md={7}>
+          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm", height: "100%" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="baseline"><Box><Typography level="h3">Your recent pattern</Typography><Typography level="body-sm" color="neutral">Mood over the last 7 days</Typography></Box><Typography level="body-xs" color="neutral">Last 7 days</Typography></Stack>
+            <Box sx={{ mt: 2, overflowX: "auto" }}><MoodTimelineChart data={timeline || []} /></Box>
+          </Sheet>
+        </Grid>
+        <Grid xs={12} md={5}>
+          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "#e4d8c9", height: "100%", display: "flex", alignItems: "center" }}>
+            <Box><Typography level="h3">Progress often lives in the quiet moments.</Typography><Divider sx={{ my: 2, width: 50 }} /><Typography level="body-sm" color="neutral">Your logbook is a place to notice patterns, not to judge them.</Typography></Box>
+          </Sheet>
+        </Grid>
+        <Grid xs={12}>
+          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="baseline"><Typography level="h3">Recent reflections</Typography><Button variant="plain" onClick={() => navigate("/history")}>View all →</Button></Stack>
+            <Stack divider={<Divider />} sx={{ mt: 1.5 }}>
+              <Stack direction="row" gap={2} alignItems="center" sx={{ py: 1.5 }}><Box sx={{ width: 14, height: 14, borderRadius: "50%", backgroundColor: "#b8c2b0" }} /><Box><Typography level="title-md">Your reflections will appear here</Typography><Typography level="body-sm" color="neutral">Begin with a small note about what you noticed today.</Typography></Box></Stack>
+              {zodiac && <Stack direction="row" gap={2} alignItems="center" sx={{ py: 1.5 }}><Box sx={{ width: 14, height: 14, borderRadius: "50%", backgroundColor: "#a886a4" }} /><Box><Typography level="title-md">{zodiac.sign} • {zodiac.element}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.description ?? "A possibility to explore, if it resonates.")}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.insights?.[0]?.message ?? "Take your time and trust your rhythm.")}</Typography></Box></Stack>}
+            </Stack>
+          </Sheet>
+        </Grid>
+        <Grid xs={12}>
+          <Stack direction="row" flexWrap="wrap" gap={1.5}>
+            <MoodStatCard title="Total entries" value={`${totalEntries}`} />
+            <MoodStatCard title="Most frequent mood" value={mostFrequent || "N/A"} emoji={mostFrequent ? MoodIcons[mostFrequent] : "·"} />
+            <MoodStatCard title="Current streak" value={`${currentStreak} days`} emoji="✦" />
+            <MoodStatCard title="Last entry" value={lastEntryDate} emoji="·" />
+          </Stack>
+        </Grid>
+        {breakdown && breakdown.length > 0 && <Grid xs={12}><MoodPieChart data={breakdown} /></Grid>}
+      </Grid>
     </Box>
   );
 }

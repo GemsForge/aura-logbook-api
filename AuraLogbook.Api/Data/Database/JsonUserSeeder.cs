@@ -60,8 +60,7 @@ public sealed class JsonUserSeeder
             command.Parameters.AddWithValue("$passwordHash", user.PasswordHash);
             command.Parameters.AddWithValue("$displayName", (object?)user.DisplayName ?? DBNull.Value);
             command.Parameters.AddWithValue("$birthday", NormalizeBirthday(user.Birthday) ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("$zodiacSign", string.IsNullOrWhiteSpace(user.ZodiacSign)
-                ? DBNull.Value : user.ZodiacSign.Trim().ToLowerInvariant());
+            command.Parameters.AddWithValue("$zodiacSign", NormalizeReferenceKey(user.ZodiacSign) ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("$auraColor", string.IsNullOrWhiteSpace(user.AuraColor) ? "blue" : user.AuraColor.ToLowerInvariant());
             command.Parameters.AddWithValue("$auraIntensity", NormalizeIntensity(user.AuraIntensity));
             command.Parameters.AddWithValue("$avatar", (object?)user.Avatar ?? DBNull.Value);
@@ -85,6 +84,10 @@ public sealed class JsonUserSeeder
     private static string? NormalizeBirthday(string? value) =>
         DateOnly.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) && date != DateOnly.MinValue
             ? date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : null;
+
+    /// <summary>Normalizes optional JSON reference values to the lowercase keys used by SQLite lookup tables.</summary>
+    private static string? NormalizeReferenceKey(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
 
     private static int NormalizeIntensity(int value) => value > 100
         ? Math.Clamp((int)Math.Round(value / 10d), 0, 100)

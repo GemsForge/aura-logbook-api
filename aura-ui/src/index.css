@@ -1,95 +1,17 @@
 :root {
-  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #352d2c;
-  background: #f7f2ea;
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+  color: #2e2722;
+  background: #f4eee5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  --garden-canvas: #f7f2ea;
-  --garden-surface: #fffcf7;
-  --garden-surface-soft: #ede5d9;
-  --garden-stone: #ded3c3;
-  --garden-ink: #352d2c;
-  --garden-ink-muted: #665d56;
-  --garden-line: #d9cec0;
-  --garden-focus: #654a5d;
-  --garden-sage: #87917b;
-  --garden-rose: #c79a98;
-  --garden-terracotta: #c87961;
-  --garden-amber: #d39a4a;
-  --garden-blue-gray: #91a3ac;
-  --prism-orchid: #815f7e;
-  --prism-berry: #7f263f;
-  --prism-turquoise: #2d7180;
 }
 
-/* Predictable sizing is required for the 320px mobile/reflow anchor. */
-* {
-  box-sizing: border-box;
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, a, input, textarea, select { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid #7d5069;
+  outline-offset: 3px;
 }
-
-html {
-  min-width: 0;
-  min-height: 100%;
-  background: var(--garden-canvas);
-}
-
-body {
-  margin: 0;
-  min-width: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background:
-    radial-gradient(circle at 8% 2%, rgba(211, 154, 74, 0.09), transparent 24rem),
-    radial-gradient(circle at 96% 12%, rgba(135, 145, 123, 0.1), transparent 28rem),
-    var(--garden-canvas);
-}
-
-#root {
-  width: 100%;
-  min-width: 0;
-  min-height: 100vh;
-}
-
-a {
-  color: inherit;
-}
-
-::selection {
-  color: var(--garden-surface);
-  background: var(--garden-focus);
-}
-
-/* Hidden until keyboard focus; provides direct access to the main landmark. */
-.skip-link {
-  position: fixed;
-  z-index: 2000;
-  top: 0.75rem;
-  left: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: var(--garden-surface);
-  background: var(--garden-focus);
-  border-radius: 0.625rem;
-  transform: translateY(-180%);
-  transition: transform 120ms ease;
-}
-
-.skip-link:focus {
-  transform: translateY(0);
-  outline: 3px solid var(--garden-surface);
-  outline-offset: 2px;
-}
-
-/* Respect the user's motion preference across both MUI component systems. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+#root { min-height: 100vh; }
