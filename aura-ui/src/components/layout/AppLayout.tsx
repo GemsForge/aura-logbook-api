@@ -30,8 +30,8 @@ const AppLayout = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "220px minmax(0, 1fr)" },
-                gap: { xs: 2, md: 5 },
+                gridTemplateColumns: { xs: "1fr", md: "236px minmax(0, 1fr)" },
+                gap: { xs: 2, md: 6 },
               }}
             >
               <Box sx={{ gridColumn: { xs: "1", md: "2" }, gridRow: "1", minWidth: 0 }}>

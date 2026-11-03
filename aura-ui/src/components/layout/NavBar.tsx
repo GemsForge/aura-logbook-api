@@ -30,7 +30,7 @@ const NavBar = () => {
 
   return (
     <Sheet component="header" variant="plain" sx={{ borderBottom: "1px solid", borderColor: "divider", backgroundColor: "rgba(251,248,242,.82)", backdropFilter: "blur(14px)" }}>
-      <Box sx={{ display: "flex", alignItems: "center", minHeight: 76, px: { xs: 2, md: 4 }, gap: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 68, md: 82 }, px: { xs: 2, md: 4 }, gap: 2 }}>
         <IconButton aria-label="Open navigation" sx={{ display: { xs: "inline-flex", md: "none" } }}>
           <MenuIcon />
         </IconButton>
@@ -47,7 +47,10 @@ const NavBar = () => {
             <span>Aura Logbook</span>
           </Link>
         </Typography>
-        <Box component="nav" aria-label="Main navigation" sx={{ display: "flex", gap: 1 }}>
+        <Typography level="body-sm" sx={{ display: { xs: "none", sm: "block" }, mr: 1, color: "neutral.500", letterSpacing: "0.08em" }}>
+          A brighter day begins with a small pause.
+        </Typography>
+        <Box component="nav" aria-label="Main navigation" sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral">Home</Link>
           {isAuthenticated && (
             <>
