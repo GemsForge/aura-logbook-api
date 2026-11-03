@@ -2,6 +2,7 @@ import Box from "@mui/joy/Box";
 import Link from "@mui/joy/Link";
 import IconButton from "@mui/joy/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import Stack from "@mui/joy/Stack";
@@ -31,6 +32,7 @@ const NavBar = () => {
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
   const [avatarAnchor, setAvatarAnchor] = useState<HTMLButtonElement | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     setAvatarAnchor(null);
@@ -49,14 +51,15 @@ const NavBar = () => {
 
   const goTo = (path: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
+    setMobileMenuOpen(false);
     navigate(path);
   };
 
   return (
     <Sheet component="header" variant="plain" sx={{ borderBottom: "1px solid", borderColor: "divider", backgroundColor: "rgba(251,248,242,.82)", backdropFilter: "blur(14px)" }}>
       <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 68, md: 82 }, px: { xs: 2, md: 4 }, gap: 2 }}>
-        <IconButton aria-label="Open navigation" sx={{ display: { xs: "inline-flex", md: "none" } }}>
-          <MenuIcon />
+        <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
+          {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
         <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "Georgia, serif", fontWeight: 400 }}>
           <Link
@@ -74,7 +77,7 @@ const NavBar = () => {
         <Typography level="body-sm" sx={{ display: { xs: "none", sm: "block" }, mr: 1, color: "neutral.500", letterSpacing: "0.08em" }}>
           A brighter day begins with a small pause.
         </Typography>
-        <Box component="nav" aria-label="Main navigation" sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+        <Box component="nav" aria-label="Main navigation" sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
           <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral">Home</Link>
           {isAuthenticated && (
             <>
@@ -159,6 +162,29 @@ const NavBar = () => {
           )}
         </Box>
       </Box>
+      {mobileMenuOpen && (
+        <Box
+          component="nav"
+          aria-label="Mobile navigation"
+          sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, px: 2, pb: 2, pt: 1, borderTop: "1px solid", borderColor: "rgba(217,206,192,.72)" }}
+        >
+          <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>
+            Home
+          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Dashboard</Link>
+              <Link href="/log-mood" onClick={goTo("/log-mood")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Log mood</Link>
+              <Link href="/history" onClick={goTo("/history")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Reflections</Link>
+            </>
+          ) : (
+            <>
+              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Login</Link>
+              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Create account</Link>
+            </>
+          )}
+        </Box>
+      )}
     </Sheet>
   );
 };
