@@ -52,8 +52,8 @@ export function EditProfileForm({
     <Box
       component="form"
       onSubmit={handleSubmit(onSubmit)}
-      sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      {/* Current Avatar & Change Button */}
+      sx={{ display: "flex", flexDirection: "column", gap: 2.5, p: { xs: 2, sm: 3 }, backgroundColor: "#F7F2EA" }}>
+      {/* The modal opens with identity and avatar controls so the form feels like profile editing, not a settings dump. */}
       <Controller
         name="avatar"
         control={control}
@@ -65,24 +65,27 @@ export function EditProfileForm({
             <Box
               sx={{
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                gap: 1,
+                gap: 2,
+                p: 2,
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, #F4E7DF 0%, #FFFCF7 100%)",
+                border: "1px solid #D9CEC0",
               }}>
               <MuiAvatar
                 src={isImage ? val : undefined}
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 72,
+                  height: 72,
                   bgcolor: !isImage ? currentAuraBg : undefined,
                 }}>
                 {!isImage ? val : null}
               </MuiAvatar>
-              <Button
-                variant="text"
-                onClick={() => onAvatarPickerOpenChange(true)}>
-                Change Avatar
-              </Button>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#352D2C" }}>Your profile image</Typography>
+                <Typography variant="body2" sx={{ color: "#665D56", mb: 0.75 }}>Choose the image that represents your space.</Typography>
+                <Button variant="outlined" size="small" onClick={() => onAvatarPickerOpenChange(true)}>Change avatar</Button>
+              </Box>
               {errors.avatar && (
                 <Typography color="error">{errors.avatar.message}</Typography>
               )}
@@ -101,6 +104,11 @@ export function EditProfileForm({
           );
         }}
       />
+
+      <Box>
+        <Typography variant="overline" sx={{ letterSpacing: "0.16em", color: "#665D56" }}>About you</Typography>
+        <Typography variant="body2" sx={{ color: "#665D56", mb: 1 }}>A few details help make your logbook feel personal.</Typography>
+      </Box>
 
       {/* Display Name */}
       <TextField
@@ -142,6 +150,11 @@ export function EditProfileForm({
       />
 
       <MottoField control={control} name="motto" />
+
+      <Box sx={{ pt: 1 }}>
+        <Typography variant="overline" sx={{ letterSpacing: "0.16em", color: "#665D56" }}>Your aura</Typography>
+        <Typography variant="body2" sx={{ color: "#665D56", mb: 1 }}>Choose the colors and intensity that feel like you today.</Typography>
+      </Box>
 
       {/* Aura Color Selector */}
       <AuraSelector
@@ -185,11 +198,11 @@ export function EditProfileForm({
         </>
       )}
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-        <Button variant="outlined" onClick={onCancel}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1.5, mt: 1, pt: 2, borderTop: "1px solid #D9CEC0" }}>
+        <Button variant="plain" color="neutral" onClick={onCancel}>
           Cancel
         </Button>
-        <Button variant="contained" type="submit">
+        <Button variant="contained" type="submit" sx={{ minWidth: 150 }}>
           Save Changes
         </Button>
       </Box>

@@ -126,7 +126,13 @@ export default function EditProfileModal({
     .toUpperCase();
 
   return (
-    <AuraModal open={open} onClose={onClose} title="Edit Profile" size="lg">
+    <AuraModal
+      open={open}
+      onClose={onClose}
+      title={<span>Edit Profile</span>}
+      size="lg"
+      contentSx={{ p: 0, backgroundColor: "#F7F2EA" }}
+    >
         <EditProfileForm
           form={form}
           isChangingPassword={isChangingPassword}
