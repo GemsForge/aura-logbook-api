@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using AuraLogbook.Api.Configuration;
+using AuraLogbook.Api.Services.Spotify;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -44,6 +46,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 builder.Services.AddCors();
+builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
+builder.Services.AddDataProtection();
+builder.Services.AddHttpClient();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(options =>
@@ -96,6 +101,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
 builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
+builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();
+builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 
 builder.Services
     .AddHttpClient<IWeatherService, WeatherService>()

@@ -117,6 +117,10 @@ vi.mock("../../components/dashboard/MoodTimeLineChart", () => ({
   default: () => <div data-testid="mood-timeline-chart">Mood Timeline Chart</div>,
 }));
 
+vi.mock("../../components/profile/SpotifyConnectionCard", () => ({
+  default: () => <div data-testid="spotify-connection-card">Spotify Connection</div>,
+}));
+
 vi.mock("../../util/timeGreeting", () => ({
   getTimeGreeting: () => "Good morning",
 }));

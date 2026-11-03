@@ -7,6 +7,7 @@ import { auraApi } from "./auraApi";
 import { authApi } from "./authApi";
 import { moodApi } from "./moodApi";
 import { referenceDataApi } from "./referenceDataApi";
+import { spotifyApi } from "./spotifyApi";
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [moodApi.reducerPath]: moodApi.reducer,
     [referenceDataApi.reducerPath]: referenceDataApi.reducer,
+    [spotifyApi.reducerPath]: spotifyApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -25,7 +27,8 @@ export const store = configureStore({
       auraApi.middleware,
       authApi.middleware,
       moodApi.middleware,
-      referenceDataApi.middleware
+      referenceDataApi.middleware,
+      spotifyApi.middleware
     ),
 });
 
