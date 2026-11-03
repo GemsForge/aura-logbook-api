@@ -5,7 +5,6 @@ import { Footer, NavBar, Sidebar } from ".";
 import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
-import ProfileCard from "../profile/ProfileCard";
 import EditProfileModal from "../profile/EditProfileModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
@@ -42,7 +41,6 @@ const AppLayout = () => {
                 />
               </Box>
               <Box sx={{ gridColumn: { xs: "1", md: "1" }, gridRow: { xs: "2", md: "1" } }}>
-                <ProfileCard />
                 <Sidebar />
               </Box>
             </Box>

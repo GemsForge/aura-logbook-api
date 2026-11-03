@@ -4,24 +4,45 @@ import IconButton from "@mui/joy/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
+import Stack from "@mui/joy/Stack";
+import Avatar from "@mui/material/Avatar";
+import LinearProgress from "@mui/material/LinearProgress";
+import Popover from "@mui/material/Popover";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../store/store";
-import { logout } from "../../store/slices/authSlice";
+import { logout, selectCurrentUser } from "../../store/slices/authSlice";
 import type { MouseEvent } from "react";
+import { useState } from "react";
+import { useAppDispatch } from "@/store/hooks";
+import { openProfileModal } from "@/store/slices/uiSlice";
+import { getProfileCompletion } from "@/util/profile";
 
 const NavBar = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
   const dispatch = useDispatch();
+  const appDispatch = useAppDispatch();
   const navigate = useNavigate();
+  const user = useSelector(selectCurrentUser);
+  const [avatarAnchor, setAvatarAnchor] = useState<HTMLButtonElement | null>(null);
 
   const handleLogout = () => {
+    setAvatarAnchor(null);
     dispatch(logout());
     navigate("/home");
   };
+
+  /** Opens the compact account summary used in place of the old sidebar card. */
+  const handleAvatarClick = (event: MouseEvent<HTMLButtonElement>) => {
+    setAvatarAnchor((current) => (current ? null : event.currentTarget));
+  };
+
+  const profileCompletion = user ? getProfileCompletion(user) : 0;
+  const avatarValue = user?.avatar ?? "";
+  const avatarIsImage = avatarValue.startsWith("/") || avatarValue.startsWith("http");
 
   const goTo = (path: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -62,6 +83,48 @@ const NavBar = () => {
             <>
               <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral">Login</Link>
               <Link href="/register" onClick={goTo("/register")} underline="none" color="primary">Create account</Link>
+            </>
+          )}
+          {isAuthenticated && (
+            <>
+              <IconButton aria-label="Open profile menu" onClick={handleAvatarClick} sx={{ ml: 1, p: 0.5 }}>
+                <Avatar
+                  alt={user?.displayName ?? "Your profile"}
+                  src={avatarIsImage ? avatarValue : undefined}
+                  sx={{ width: 36, height: 36, bgcolor: "primary.400", color: "common.white", fontSize: "0.9rem" }}
+                >
+                  {!avatarIsImage && (avatarValue || user?.displayName?.slice(0, 1) || "A")}
+                </Avatar>
+              </IconButton>
+              <Popover
+                open={Boolean(avatarAnchor)}
+                anchorEl={avatarAnchor}
+                onClose={() => setAvatarAnchor(null)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
+                sx={{ p: 2, width: 280, borderRadius: "lg", boxShadow: "lg" }}
+              >
+                <Stack gap={1.5}>
+                  <Box>
+                    <Typography level="title-md">{user?.displayName ?? "Your profile"}</Typography>
+                    <Typography level="body-sm" color="neutral">{user?.email ?? ""}</Typography>
+                  </Box>
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                      <Typography level="body-xs" color="neutral">Profile progress</Typography>
+                      <Typography level="body-xs" color="neutral">{`${profileCompletion}%`}</Typography>
+                    </Stack>
+                    <LinearProgress variant="determinate" value={profileCompletion} sx={{ height: 7, borderRadius: 4 }} />
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    color="neutral"
+                    onClick={() => { setAvatarAnchor(null); appDispatch(openProfileModal()); }}
+                  >
+                    Edit profile
+                  </Button>
+                </Stack>
+              </Popover>
             </>
           )}
         </Box>

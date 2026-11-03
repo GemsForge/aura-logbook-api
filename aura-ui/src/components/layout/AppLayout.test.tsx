@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 import AppLayout from "./AppLayout";
 import { renderWithProviders, createAuthenticatedState } from "@/test/testUtilities";
 
-vi.mock("../profile/ProfileCard", () => ({ default: () => <div>Profile card</div> }));
 vi.mock("../profile/EditProfileModal", () => ({
   default: () => <div>Edit profile modal</div>,
 }));
@@ -46,9 +45,9 @@ describe("AppLayout", () => {
     expect(screen.getByRole("link", { name: "Reflections" })).toBeInTheDocument();
 
     const privateContent = screen.getByRole("heading", { name: "Private content" });
-    const profile = screen.getByText("Profile card");
+    const profile = screen.getByRole("button", { name: "Open profile menu" });
     expect(
-      privateContent.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING,
+      profile.compareDocumentPosition(privateContent) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 });
