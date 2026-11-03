@@ -5,9 +5,12 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import Stack from "@mui/joy/Stack";
+import Divider from "@mui/joy/Divider";
 import Avatar from "@mui/material/Avatar";
 import LinearProgress from "@mui/material/LinearProgress";
 import Popover from "@mui/material/Popover";
+import EditOutlined from "@mui/icons-material/EditOutlined";
+import LogoutOutlined from "@mui/icons-material/LogoutOutlined";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -76,7 +79,6 @@ const NavBar = () => {
           {isAuthenticated && (
             <>
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral">Dashboard</Link>
-              <Button variant="plain" color="neutral" onClick={handleLogout}>Log out</Button>
             </>
           )}
           {!isAuthenticated && (
@@ -102,27 +104,55 @@ const NavBar = () => {
                 onClose={() => setAvatarAnchor(null)}
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
-                sx={{ p: 2, width: 280, borderRadius: "lg", boxShadow: "lg" }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      mt: 1.5,
+                      p: 0,
+                      width: { xs: "calc(100vw - 32px)", sm: 320 },
+                      border: "1px solid",
+                      borderColor: "#D9CEC0",
+                      borderRadius: "20px",
+                      overflow: "hidden",
+                      boxShadow: "0 18px 48px rgba(78, 62, 51, 0.18)",
+                    },
+                  },
+                }}
               >
-                <Stack gap={1.5}>
-                  <Box>
-                    <Typography level="title-md">{user?.displayName ?? "Your profile"}</Typography>
-                    <Typography level="body-sm" color="neutral">{user?.email ?? ""}</Typography>
-                  </Box>
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
-                      <Typography level="body-xs" color="neutral">Profile progress</Typography>
-                      <Typography level="body-xs" color="neutral">{`${profileCompletion}%`}</Typography>
+                <Stack>
+                  <Box sx={{ p: 2.5, background: "linear-gradient(135deg, #F4E7DF 0%, #F7F2EA 100%)" }}>
+                    <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.18em", color: "neutral.600" }}>Your account</Typography>
+                    <Stack direction="row" alignItems="center" gap={1.5} sx={{ mt: 1.5 }}>
+                      <Avatar
+                        alt={user?.displayName ?? "Your profile"}
+                        src={avatarIsImage ? avatarValue : undefined}
+                        sx={{ width: 48, height: 48, bgcolor: "primary.400", color: "common.white", fontSize: "1.1rem" }}
+                      >
+                        {!avatarIsImage && (avatarValue || user?.displayName?.slice(0, 1) || "A")}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography level="title-md" noWrap>{user?.displayName ?? "Your profile"}</Typography>
+                        <Typography level="body-sm" color="neutral" noWrap>{user?.email ?? ""}</Typography>
+                      </Box>
                     </Stack>
-                    <LinearProgress variant="determinate" value={profileCompletion} sx={{ height: 7, borderRadius: 4 }} />
                   </Box>
-                  <Button
-                    variant="outlined"
-                    color="neutral"
-                    onClick={() => { setAvatarAnchor(null); appDispatch(openProfileModal()); }}
-                  >
-                    Edit profile
-                  </Button>
+                  <Box sx={{ p: 2.5 }}>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                      <Typography level="body-sm" sx={{ fontWeight: 600 }}>Profile progress</Typography>
+                      <Typography level="body-sm" color="neutral">{`${profileCompletion}%`}</Typography>
+                    </Stack>
+                    <LinearProgress variant="determinate" value={profileCompletion} sx={{ height: 8, borderRadius: 4, backgroundColor: "#EDE5D9", "& .MuiLinearProgress-bar": { backgroundColor: "#C87961", borderRadius: 4 } }} />
+                    <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>Complete your profile to make this space feel more like yours.</Typography>
+                    <Stack gap={0.5} sx={{ mt: 2 }}>
+                      <Button variant="soft" color="neutral" startIcon={<EditOutlined />} onClick={() => { setAvatarAnchor(null); appDispatch(openProfileModal()); }} sx={{ justifyContent: "flex-start" }}>
+                        Edit profile
+                      </Button>
+                      <Divider sx={{ my: 0.5 }} />
+                      <Button variant="plain" color="neutral" startIcon={<LogoutOutlined />} onClick={handleLogout} sx={{ justifyContent: "flex-start" }}>
+                        Log out
+                      </Button>
+                    </Stack>
+                  </Box>
                 </Stack>
               </Popover>
             </>
