@@ -73,10 +73,11 @@ export default function RegisterForm() {
     >
       <Sheet
         variant="outlined"
+        className="aura-panel"
         sx={{
           p: { xs: 2, sm: 4 },
           width: "100%",
-          maxWidth: 400,
+          maxWidth: 720,
           minWidth: 0,
           boxSizing: "border-box",
           borderRadius: "lg",
@@ -85,7 +86,8 @@ export default function RegisterForm() {
         }}
       >
         <Box sx={{ mb: 3 }}>
-          <Typography level="h1" sx={{ fontSize: "2.2rem", letterSpacing: "-0.04em" }}>Begin your logbook</Typography>
+          <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 2 }}>A little space that’s all yours</Typography>
+          <Typography level="h1" className="aura-page-heading">Begin your logbook</Typography>
           <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>Make space for the moments that matter.</Typography>
         </Box>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>

@@ -14,12 +14,13 @@ const navItems = [
   { label: "Insights", path: "/dashboard", icon: InsightsOutlined },
 ];
 
+/** Keeps journal destinations in a translucent rail that reflows below mobile content. */
 const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <Stack component="nav" aria-label="Journal navigation" spacing={0.5} sx={{ mt: { xs: 1, md: 2 }, position: { md: "sticky" }, top: { md: 24 } }}>
-      <Typography level="body-xs" sx={{ px: 1.5, mb: 1, textTransform: "uppercase", letterSpacing: "0.16em", color: "neutral.500" }}>
+    <Stack component="nav" aria-label="Journal navigation" spacing={1} sx={{ p: 1, mt: { xs: 1, md: 2 }, position: { md: "sticky" }, top: { md: 112 }, borderRadius: "lg", backgroundColor: "rgba(255,254,250,.45)" }}>
+      <Typography className="aura-eyebrow" level="body-xs" sx={{ px: 1.5, py: 1, color: "neutral.500" }}>
         Your logbook
       </Typography>
       {navItems.map(({ label, path, icon: Icon }) => (
@@ -30,16 +31,16 @@ const Sidebar = () => {
           aria-current={location.pathname === path ? "page" : undefined}
           key={label}
           sx={{
-            bgcolor: location.pathname === path ? "rgba(199,154,152,.24)" : "transparent",
+            bgcolor: location.pathname === path ? "var(--aura-wash)" : "transparent",
             border: "1px solid",
-            borderColor: location.pathname === path ? "rgba(199,154,152,.24)" : "transparent",
+            borderColor: location.pathname === path ? "var(--aura-line)" : "transparent",
             borderRadius: "md",
             transition: "background-color 0.2s, border-color 0.2s",
             display: "flex",
             alignItems: "center",
             gap: 1.25,
             textDecoration: "none",
-            "&:hover": { bgcolor: "rgba(199,154,152,.16)", borderColor: "rgba(199,154,152,.2)" },
+            "&:hover": { bgcolor: "var(--aura-wash)", borderColor: "var(--aura-line)" },
           }}
         >
           <Icon sx={{ ml: 1.25, color: location.pathname === path ? "primary.700" : "neutral.500", fontSize: 20 }} />

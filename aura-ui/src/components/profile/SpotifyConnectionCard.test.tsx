@@ -48,7 +48,12 @@ describe("SpotifyConnectionCard", () => {
     state.playlists.isError = true;
     state.playlists.data.items = [{ id: "one", name: "Quiet evening", imageUrl: null, spotifyUrl: "https://open.spotify.com/playlist/one" }];
     renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
-    expect(screen.getByRole("link", { name: "Open Quiet evening in Spotify" })).toHaveAttribute("href", "https://open.spotify.com/playlist/one");
+    // The title belongs to the card link, rather than a separate action nested inside it.
+    const playlistCard = screen.getByRole("link", { name: "Open Quiet evening in Spotify" });
+    expect(playlistCard).toHaveAttribute("href", "https://open.spotify.com/playlist/one");
+    expect(playlistCard).toHaveTextContent("Quiet evening");
+    expect(playlistCard).toHaveAttribute("rel", "noopener noreferrer");
+    expect(screen.queryByText("Open in Spotify")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Retry playlists" }));
     expect(state.playlists.refetch).toHaveBeenCalledOnce();
   });
@@ -60,6 +65,25 @@ describe("SpotifyConnectionCard", () => {
     expect(screen.getByRole("button", { name: "Connect Spotify" })).toBeEnabled();
     await userEvent.click(screen.getByRole("button", { name: "Retry connection" }));
     expect(state.connection.refetch).toHaveBeenCalledOnce();
+  });
+
+  it("makes every loaded playlist reachable and pages the carousel in both directions", async () => {
+    state.playlists.isFetching = false;
+    state.playlists.data.items = Array.from({ length: 8 }, (_, index) => ({
+      id: String(index), name: `Playlist ${index + 1}`, imageUrl: null,
+      spotifyUrl: `https://open.spotify.com/playlist/${index}`,
+    }));
+    renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
+    const carousel = screen.getByRole("region", { name: "Spotify playlists" });
+    // JSDOM has no layout or native scrolling; supply a viewport to verify paging behavior.
+    Object.defineProperty(carousel, "clientWidth", { value: 300 });
+    const scrollBy = vi.fn();
+    carousel.scrollBy = scrollBy;
+    expect(screen.getByRole("link", { name: "Open Playlist 8 in Spotify" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Next playlists" }));
+    expect(scrollBy).toHaveBeenLastCalledWith({ left: 300 });
+    await userEvent.click(screen.getByRole("button", { name: "Previous playlists" }));
+    expect(scrollBy).toHaveBeenLastCalledWith({ left: -300 });
   });
 
   it("shows a failed sign-in request without an unhandled rejection", async () => {

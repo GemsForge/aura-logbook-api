@@ -13,11 +13,11 @@ export default function MoodStatCard({
   emoji,
 }: MoodStatCardProps) {
   return (
-    <Sheet variant="outlined" sx={{ minWidth: 150, textAlign: "center", p: 2 }}>
-        <Typography level="body-sm" textColor="text.secondary">
+    <Sheet variant="outlined" sx={{ minWidth: 0, textAlign: "left", p: { xs: 2, sm: 2.5 }, borderRadius: "lg", bgcolor: "rgba(255,254,250,.5)", overflowWrap: "anywhere" }}>
+        <Typography level="body-xs" textColor="text.secondary" sx={{ mb: 1 }}>
           {title}
         </Typography>
-        <Typography level="title-lg">
+        <Typography level="title-lg" sx={{ fontFamily: "display", fontWeight: 400, fontSize: { xs: "1.25rem", sm: "1.6rem" } }}>
           {emoji && <span style={{ marginRight: 4 }}>{emoji}</span>}
           {value}
         </Typography>

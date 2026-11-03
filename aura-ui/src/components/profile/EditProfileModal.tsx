@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import EditProfileForm from "./EditProfile/EditProfileForm";
 import { AuraModal } from "../ui/AuraModal";
+import { getAuraBackground } from "@/theme";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -131,7 +132,7 @@ export default function EditProfileModal({
       onClose={onClose}
       title={<span>Edit Profile</span>}
       size="lg"
-      contentSx={{ p: 0, backgroundColor: "#F7F2EA" }}
+      contentSx={{ p: 0, backgroundColor: "background.default", backgroundImage: getAuraBackground(colorKey, intensity) }}
     >
         <EditProfileForm
           form={form}

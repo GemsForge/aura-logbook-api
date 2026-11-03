@@ -38,7 +38,7 @@ describe("RegisterForm", () => {
     renderWithProviders(<RegisterForm />);
 
     expect(
-      screen.getByRole("heading", { name: /create an account/i })
+      screen.getByRole("heading", { name: /begin your logbook/i })
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();

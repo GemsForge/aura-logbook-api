@@ -138,7 +138,7 @@ describe("Dashboard", () => {
     expect(screen.getByText(/daily prompt/i)).toBeInTheDocument();
     expect(screen.getByText(/aura logbook · mindful pathway/i)).toBeInTheDocument();
     expect(screen.getByText(/my pathway/i)).toBeInTheDocument();
-    expect(screen.getByText(/mindfulness/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Mindfulness" })).toBeInTheDocument();
     expect(screen.getByText(/virgo • earth/i)).toBeInTheDocument();
     expect(screen.getByText(/grounded, reflective energy/i)).toBeInTheDocument();
     expect(screen.getByText(/take your time and trust your rhythm/i)).toBeInTheDocument();

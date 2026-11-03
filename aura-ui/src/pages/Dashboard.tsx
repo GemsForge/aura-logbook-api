@@ -24,14 +24,6 @@ import dailyQuotes from "../../data/aura_logbook_daily_quotes.json";
 import MarkdownReflection from "@/components/MarkdownReflection";
 import SpotifyConnectionCard from "@/components/profile/SpotifyConnectionCard";
 
-const moodOptions = [
-  { label: "Calm", color: "#b8c2b0", icon: "☼" },
-  { label: "Content", color: "#e9c99d", icon: "◡" },
-  { label: "Energetic", color: "#e5ad85", icon: "✦" },
-  { label: "Overwhelmed", color: "#d29d91", icon: "~" },
-  { label: "Quiet", color: "#aeb0c2", icon: "·" },
-];
-
 type DailyQuote = { id: string; text: string; theme: string; author: string };
 type DailyQuotePathway = { id: string; title: string; quotes: DailyQuote[] };
 
@@ -55,14 +47,14 @@ const resolveDailyQuotePathwayId = (pathway?: string) => {
 // A module-load seed rotates the prompt on reload while keeping ordinary rerenders stable.
 const dailyQuoteReloadSeed = Math.random();
 
-/** Presents the persisted mood data in the Prism Garden dashboard composition. */
+/** Composes the Luminous Journal dashboard from saved entries, daily guidance and live integrations. */
 export default function Dashboard() {
   const navigate = useNavigate();
   const greeting = getTimeGreeting();
   const user = useAppSelector(selectCurrentUser);
   const today = dayjs().format("YYYY-MM-DD");
   const { isLoading: loadingUser } = useGetCurrentUserQuery();
-  const { data: todayEntries, isLoading: loadingToday } = useGetAllMoodsQuery({ startDate: today, endDate: today });
+  const { data: entries = [], isLoading: loadingToday, isError: entriesError, refetch: refetchEntries } = useGetAllMoodsQuery();
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummaryQuery();
   const { data: breakdown, isLoading: loadingBreakdown } = useGetMoodBreakdownQuery(false);
   const { data: timeline, isLoading: loadingTimeline } = useGetMoodsByDateRangeQuery("7d");
@@ -72,7 +64,9 @@ export default function Dashboard() {
   const dailyQuotePathway = (dailyQuotes.pathways as DailyQuotePathway[]).find(({ id }) => id === dailyQuotePathwayId);
   const dailyQuoteIndex = Math.floor(dailyQuoteReloadSeed * (dailyQuotePathway?.quotes.length || 1));
   const dailyQuote = dailyQuotePathway?.quotes[dailyQuoteIndex];
-  const todayEntry = todayEntries?.[todayEntries.length - 1];
+  // One persisted source drives today's entry and recent reflections.
+  const recentEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  const todayEntry = recentEntries.find(entry => dayjs(entry.date).format("YYYY-MM-DD") === today);
   const loading = loadingUser || loadingToday || loadingSummary || loadingBreakdown || loadingTimeline || loadingZodiac;
   if (loading) {
     return <Box sx={{ py: 12, textAlign: "center" }}><Typography level="body-lg">Gathering your reflections…</Typography></Box>;
@@ -87,92 +81,64 @@ export default function Dashboard() {
     : "No entries yet";
 
   return (
-    <Box sx={{ maxWidth: 1180, mx: "auto" }}>
-      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "flex-end" }} gap={2} sx={{ mb: 3 }}>
-        <Box>
-          <Typography level="h1" sx={{ fontSize: { xs: "2.3rem", md: "3.2rem" }, letterSpacing: "-0.04em" }}>
-            {greeting}, {displayName}.
-          </Typography>
-          <Typography level="body-sm" sx={{ mt: 0.75, letterSpacing: "0.24em", textTransform: "uppercase", color: "neutral.500" }}>
-            A brighter day begins with a small pause.
-          </Typography>
-        </Box>
-        <Typography level="body-sm" color="neutral">A moment for yourself</Typography>
+    <Box sx={{ maxWidth: 1240, mx: "auto" }}>
+      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "flex-end" }} gap={2} sx={{ mb: 4 }}>
+        <Box><Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Your space to come back to yourself</Typography><Typography level="h1" className="aura-page-heading">{greeting}, {displayName}.</Typography></Box>
+        <Typography level="body-sm" color="neutral" sx={{ whiteSpace: "nowrap" }}>{dayjs().format("dddd, MMMM D")}</Typography>
       </Stack>
-
-      <Grid container spacing={2}>
-        {user?.selectedPathway && <Grid xs={12}><Sheet variant="soft" color="neutral" sx={{ p: 2, borderRadius: "md" }}><Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em" }}>My pathway</Typography><Typography level="title-md">{user.selectedPathway}</Typography><Typography level="body-sm" color="neutral">{SpiritualPathwayDescriptions[user.selectedPathway]}</Typography></Sheet></Grid>}
-        <Grid xs={12} md={8}>
-          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 4 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
-              <Box>
-                <Typography level="h2" sx={{ fontSize: "2rem" }}>Today</Typography>
-                <Typography level="body-md" color="neutral">{todayEntry ? "Your logged mood today" : "How are you feeling?"}</Typography>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }, gap: 1.5, mb: 3 }}>
+        <MoodStatCard title="Total entries" value={`${totalEntries}`} />
+        <MoodStatCard title="Most frequent mood" value={mostFrequent || "N/A"} emoji={mostFrequent ? MoodIcons[mostFrequent] : "·"} />
+        <MoodStatCard title="Current streak" value={`${currentStreak} days`} emoji="✦" />
+        <MoodStatCard title="Last entry" value={lastEntryDate} emoji="·" />
+      </Box>
+      <Grid container spacing={3}>
+        <Grid xs={12} lg={8}>
+          <Stack spacing={3}>
+            <Sheet className="aura-panel" sx={{ p: { xs: 3, sm: 4 }, overflow: "hidden" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Typography className="aura-eyebrow" color="neutral">01 / Daily check-in</Typography><Typography level="body-xs" sx={{ px: 1.5, py: .75, borderRadius: 40, bgcolor: "var(--aura-wash)" }}>{todayEntry ? "A moment captured" : "A fresh page"}</Typography></Stack>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 160px" }, alignItems: "center", gap: 3, my: 3 }}>
+                <Box>
+                  <Typography level="h2" sx={{ fontSize: { xs: "2.8rem", sm: "3.8rem" }, fontWeight: 400, letterSpacing: "-.05em", lineHeight: 1 }}>Today</Typography>
+                  <Typography level="body-lg" color="neutral" sx={{ mt: 1 }}>{todayEntry ? "This is where you are." : "What does your inner world feel like?"}</Typography>
+                  <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>{todayEntry?.moods.map(mood => <Box key={mood} sx={{ px: 1.5, py: .75, border: "1px solid var(--aura-line)", borderRadius: 40, bgcolor: "var(--aura-wash)" }}><Typography level="body-sm">{MoodIcons[mood]} {mood}</Typography></Box>)}</Stack>
+                </Box>
+                <Box aria-hidden="true" sx={{ display: { xs: "none", sm: "grid" }, placeItems: "center", p: 2 }}><Box className="aura-orb" sx={{ width: 120 }} /></Box>
               </Box>
-              <Typography level="body-sm" color="neutral">Take a breath.</Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between" gap={1} sx={{ mt: 3, overflowX: "auto", pb: 1 }}>
-              {(todayEntry?.moods.length ? todayEntry.moods.map((mood) => ({ label: mood, color: "#b8c2b0", icon: MoodIcons[mood] ?? "·" })) : moodOptions).map((mood) => (
-                <Stack key={mood.label} alignItems="center" gap={0.75} sx={{ minWidth: 70 }}>
-                  <Box aria-hidden="true" sx={{ width: 48, height: 48, display: "grid", placeItems: "center", borderRadius: "50%", backgroundColor: mood.color, color: "#51463d", fontSize: "1.4rem" }}>{mood.icon}</Box>
-                  <Typography level="body-xs" color="neutral">{mood.label}</Typography>
-                </Stack>
-              ))}
-            </Stack>
-            <Box sx={{ mt: 2.5, p: 2, minHeight: 92, border: "1px solid", borderColor: "neutral.200", borderRadius: "md", backgroundColor: "rgba(255,255,255,.42)" }}>
-              {todayEntry?.comment ? <MarkdownReflection value={todayEntry.comment} /> : <Typography level="body-sm" color="neutral">What’s on your mind today?</Typography>}
-            </Box>
-            <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-              <Stack direction="row" gap={1} alignItems="center">
-                <Button component={Link} href="/history" variant="plain" color="neutral">Review history</Button>
-                <Button component={Link} href="/log-mood" variant="solid" color="primary">Log your mood</Button>
-              </Stack>
-            </Stack>
-          </Sheet>
+              {todayEntry?.comment && <Box sx={{ p: 2.5, mb: 3, borderRadius: "md", bgcolor: "rgba(255,255,255,.45)", maxHeight: 180, overflowY: "auto" }}><MarkdownReflection value={todayEntry.comment} /></Box>}
+              {!todayEntry && <Typography level="body-sm" color="neutral" sx={{ maxWidth: 390, mb: 3 }}>You don’t need the perfect words. Start with a color, a feeling, a little honesty.</Typography>}
+              {entriesError && <Typography role="alert" level="body-sm" color="danger">Your entries couldn’t be loaded. <Button variant="plain" onClick={() => refetchEntries()}>Retry entries</Button></Typography>}
+              <Stack direction="row" gap={1.5} flexWrap="wrap"><Button component={Link} href="/log-mood" variant="solid">Log your mood ↗</Button><Button component={Link} href="/history" variant="plain" color="neutral">Review history</Button></Stack>
+            </Sheet>
+            <Sheet className="aura-dark-panel" sx={{ p: { xs: 3, sm: 4 } }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography className="aura-eyebrow" sx={{ color: "inherit", opacity: .65 }}>Daily prompt</Typography><Typography sx={{ color: "inherit", fontSize: "1.6rem" }}>✧</Typography></Stack>
+              <Typography level="h3" sx={{ color: "inherit", fontWeight: 400, fontSize: { xs: "1.8rem", sm: "2.4rem" }, lineHeight: 1.25, my: 2 }}>“{dailyQuote?.text ?? "What would you like to notice about today?"}”</Typography>
+              <Typography level="body-xs" sx={{ color: "inherit", opacity: .65 }}>{dailyQuote?.theme} / {dailyQuote?.author ?? "Aura Logbook"} · {dailyQuotePathway?.title ?? "Mindful Pathway"}</Typography>
+            </Sheet>
+            <Sheet className="aura-panel" sx={{ p: { xs: 3, sm: 4 } }}>
+              <Typography className="aura-eyebrow" color="neutral">02 / A little perspective</Typography><Typography level="h3" sx={{ mt: 1 }}>Your recent pattern</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Mood over the last 7 days</Typography>
+              <Box sx={{ mt: 3, overflowX: "auto" }}><MoodTimelineChart data={timeline || []} /></Box>
+            </Sheet>
+          </Stack>
         </Grid>
-        <Grid xs={12} md={4}>
-          <Stack spacing={2}>
+        <Grid xs={12} lg={4}>
+          <Stack spacing={3}>
             <WeatherCard city="Atlanta" state="GA" country="US" />
             <SpotifyConnectionCard />
+            {user?.selectedPathway && <Sheet className="aura-panel" sx={{ p: 3 }}><Typography className="aura-eyebrow" color="neutral">My pathway</Typography><Typography level="h3" sx={{ mt: 1 }}>{user.selectedPathway}</Typography><Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>{SpiritualPathwayDescriptions[user.selectedPathway]}</Typography></Sheet>}
           </Stack>
         </Grid>
-        <Grid xs={12} md={7}>
-          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm", height: "100%" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="baseline"><Box><Typography level="h3">Your recent pattern</Typography><Typography level="body-sm" color="neutral">Mood over the last 7 days</Typography></Box><Typography level="body-xs" color="neutral">Last 7 days</Typography></Stack>
-            <Box sx={{ mt: 2, overflowX: "auto" }}><MoodTimelineChart data={timeline || []} /></Box>
-          </Sheet>
-        </Grid>
-        <Grid xs={12} md={5}>
-          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "#e4d8c9", height: "100%", display: "flex", alignItems: "center" }}>
-            <Box>
-              <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em" }}>Daily prompt</Typography>
-              <Typography level="h3" sx={{ mt: 1 }}>{dailyQuote?.theme ?? "A quiet moment"}</Typography>
-              <Divider sx={{ my: 2, width: 50 }} />
-              <Typography level="body-md" sx={{ fontFamily: "display", fontStyle: "italic" }}>
-                “{dailyQuote?.text ?? "What would you like to notice about today?"}”
-              </Typography>
-              <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>{dailyQuote?.author ?? "Aura Logbook"} · {dailyQuotePathway?.title ?? "Mindful Pathway"}</Typography>
-            </Box>
-          </Sheet>
-        </Grid>
         <Grid xs={12}>
-          <Sheet variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="baseline"><Typography level="h3">Recent reflections</Typography><Button variant="plain" onClick={() => navigate("/history")}>View all →</Button></Stack>
-            <Stack divider={<Divider />} sx={{ mt: 1.5 }}>
-              <Stack direction="row" gap={2} alignItems="center" sx={{ py: 1.5 }}><Box sx={{ width: 14, height: 14, borderRadius: "50%", backgroundColor: "#b8c2b0" }} /><Box><Typography level="title-md">Your reflections will appear here</Typography><Typography level="body-sm" color="neutral">Begin with a small note about what you noticed today.</Typography></Box></Stack>
-              {zodiac && <Stack direction="row" gap={2} alignItems="center" sx={{ py: 1.5 }}><Box sx={{ width: 14, height: 14, borderRadius: "50%", backgroundColor: "#a886a4" }} /><Box><Typography level="title-md">{zodiac.sign} • {zodiac.element}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.description ?? "A possibility to explore, if it resonates.")}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.insights?.[0]?.message ?? "Take your time and trust your rhythm.")}</Typography></Box></Stack>}
+          <Sheet className="aura-panel" sx={{ p: { xs: 3, sm: 4 } }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Box><Typography className="aura-eyebrow" color="neutral">03 / The story so far</Typography><Typography level="h3" sx={{ mt: 1 }}>Recent reflections</Typography></Box><Button variant="plain" onClick={() => navigate("/history")}>View all →</Button></Stack>
+            <Stack divider={<Divider />} sx={{ mt: 2 }}>
+              {!recentEntries.length && <Typography level="body-sm" color="neutral" sx={{ py: 2 }}>Your reflections will appear here. Begin with a small note about what you noticed today.</Typography>}
+              {recentEntries.slice(0, 3).map(entry => <Box key={entry.id} sx={{ py: 2 }}><Stack direction="row" justifyContent="space-between" flexWrap="wrap" gap={1}><Typography level="title-sm">{entry.moods.map(mood => `${MoodIcons[mood]} ${mood}`).join(" · ")}</Typography><Typography level="body-xs" color="neutral">{dayjs(entry.date).format("MMM D, YYYY")}</Typography></Stack>{entry.comment && <Box sx={{ mt: 1, maxHeight: 100, overflowY: "auto" }}><MarkdownReflection value={entry.comment} /></Box>}</Box>)}
+              {zodiac && <Box sx={{ pt: 2 }}><Typography className="aura-eyebrow" color="neutral">A lens for reflection</Typography><Typography level="title-md" sx={{ mt: 1 }}>{zodiac.sign} • {zodiac.element}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.description ?? "")}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.insights?.[0]?.message ?? "")}</Typography></Box>}
             </Stack>
           </Sheet>
         </Grid>
-        <Grid xs={12}>
-          <Stack direction="row" flexWrap="wrap" gap={1.5}>
-            <MoodStatCard title="Total entries" value={`${totalEntries}`} />
-            <MoodStatCard title="Most frequent mood" value={mostFrequent || "N/A"} emoji={mostFrequent ? MoodIcons[mostFrequent] : "·"} />
-            <MoodStatCard title="Current streak" value={`${currentStreak} days`} emoji="✦" />
-            <MoodStatCard title="Last entry" value={lastEntryDate} emoji="·" />
-          </Stack>
-        </Grid>
-        {breakdown && breakdown.length > 0 && <Grid xs={12}><MoodPieChart data={breakdown} /></Grid>}
+        {breakdown && breakdown.length > 0 && <Grid xs={12}><Box className="aura-panel" sx={{ p: { xs: 2, sm: 3 } }}><MoodPieChart data={breakdown} /></Box></Grid>}
       </Grid>
     </Box>
   );

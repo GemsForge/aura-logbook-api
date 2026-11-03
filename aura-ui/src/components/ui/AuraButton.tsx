@@ -11,6 +11,8 @@ export type AuraButtonProps = Omit<JoyButtonProps, "variant" | "color" | "size" 
   size?: AuraButtonSize;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
+  /** Destination when this button is rendered as a navigation link. */
+  href?: string;
 };
 
 const variants: Record<AuraButtonVariant, NonNullable<JoyButtonProps["variant"]>> = {

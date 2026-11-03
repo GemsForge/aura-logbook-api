@@ -1,6 +1,6 @@
 // src/theme/index.test.ts
 import { red, blue } from "@mui/material/colors";
-import { getAuraJoyTheme, getAuraTheme, prismGarden } from "./index";
+import { getAuraBackground, getAuraJoyTheme, getAuraTheme, prismGarden } from "./index";
 import type { AuraColor } from "../features/mood/models/aura";
 
 describe("getAuraTheme", () => {
@@ -19,6 +19,13 @@ describe("getAuraTheme", () => {
 });
 
 describe("Prism Garden foundation", () => {
+  it("changes the ambient glow with the aura hue and intensity while keeping readable text", () => {
+    expect(getAuraBackground("red", 50)).not.toBe(getAuraBackground("blue", 50));
+    expect(getAuraBackground("blue", 10)).not.toBe(getAuraBackground("blue", 100));
+    expect(getAuraBackground("unknown", 50)).toBe(getAuraBackground("blue", 50));
+    expect(getAuraTheme("yellow", 10).palette.text.primary).toBe(prismGarden.color.ink);
+    expect(getAuraJoyTheme("yellow", 10).colorSchemes.light.palette.primary.solidColor).toBeDefined();
+  });
   it("keeps the warm shell palette independent from the selected aura color", () => {
     const redTheme = getAuraTheme("red", 50);
     const blueTheme = getAuraTheme("blue", 50);

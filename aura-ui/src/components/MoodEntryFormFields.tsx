@@ -28,8 +28,8 @@ type MoodEntryFormValues = {
 
 /** Stable positions keep the aura selector readable while preserving a circular interaction model. */
 const auraOrbitPositions = [
-  [50, 4], [78, 13], [94, 39], [86, 73], [58, 92],
-  [28, 92], [6, 73], [6, 39], [22, 13],
+  [50, 9], [77, 18], [88, 42], [81, 71], [57, 88],
+  [29, 85], [12, 65], [12, 37], [27, 15],
 ] as const;
 
 type JournalingPrompt = { id: string; question: string };
@@ -147,8 +147,8 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
         </Typography>
       </Stack>
 
-      <Box sx={{ position: "relative", width: "100%", maxWidth: 720, minHeight: { xs: 620, sm: 540 }, mx: "auto", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,252,247,.98) 0 20%, rgba(237,229,217,.58) 20.5% 45%, rgba(255,252,247,0) 45.5%), conic-gradient(from 20deg, rgba(199,154,152,.16), rgba(135,145,123,.18), rgba(211,154,74,.16), rgba(129,95,126,.16), rgba(199,154,152,.16))", border: "1px solid rgba(217,206,192,.9)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed rgba(102,93,86,.25)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid rgba(102,93,86,.12)", borderRadius: "50%" } }}>
-        <Box sx={{ position: "absolute", inset: "32% 22%", display: "grid", placeItems: "center", textAlign: "center", pointerEvents: "none", zIndex: 2 }}>
+      <Box sx={{ position: "relative", width: "100%", maxWidth: 720, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 660 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, rgba(255,252,247,.98) 0 20%, rgba(237,229,217,.58) 20.5% 45%, rgba(255,252,247,0) 45.5%), conic-gradient(from 20deg, rgba(199,154,152,.16), rgba(135,145,123,.18), rgba(211,154,74,.16), rgba(129,95,126,.16), rgba(199,154,152,.16))", border: "1px solid rgba(217,206,192,.9)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed rgba(102,93,86,.25)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid rgba(102,93,86,.12)", borderRadius: "50%" } }}>
+        <Box sx={{ position: "absolute", inset: "32% 22%", display: { xs: "none", sm: "grid" }, placeItems: "center", textAlign: "center", pointerEvents: "none", zIndex: 2 }}>
           <Box sx={{ width: "100%", minHeight: 132, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 2.5, borderRadius: "50%", backgroundColor: "rgba(255,252,247,.86)", boxShadow: "0 10px 30px rgba(78,62,51,.10)" }}>
             <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em", color: "neutral.500" }}>{selectedMoods.length ? "Your current mix" : "Your inner weather"}</Typography>
             <Typography level="title-lg" sx={{ mt: 0.5, fontFamily: "display", fontWeight: 400, lineHeight: 1.1 }}>{selectedMoods.length ? selectedMoods.slice(0, 2).join(" · ") : "Choose what feels close"}</Typography>
@@ -166,7 +166,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           const selectedInGroup = moods.filter((mood) => selectedMoods.includes(mood)).length;
 
           return (
-            <Sheet key={color} variant="soft" sx={{ position: "absolute", left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)", width: { xs: 126, sm: 148 }, p: 1.25, borderRadius: "20px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: "translate(-50%, -50%) scale(1.05)", boxShadow: `0 12px 30px ${swatch}5c` } }}>
+            <Sheet key={color} variant="soft" sx={{ position: { xs: "relative", sm: "absolute" }, left: { xs: "auto", sm: `${left}%` }, top: { xs: "auto", sm: `${top}%` }, transform: { xs: "none", sm: "translate(-50%, -50%)" }, width: { xs: "auto", sm: 140 }, p: 1.25, borderRadius: "20px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: { xs: "translateY(-2px)", sm: "translate(-50%, -50%) scale(1.03)" }, boxShadow: `0 12px 30px ${swatch}5c` } }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                 <Box
                   sx={{
@@ -189,7 +189,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                   <Typography
                     level="title-sm"
                     sx={{
-                      color: auraPalettes[color].primary!.main,
+                      color: "neutral.800",
                       textTransform: "capitalize",
                       mb: 0.5,
                       fontWeight: 700,
@@ -215,7 +215,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                         borderRadius: "md",
                         borderColor: checked ? hue : "neutral.200",
                         backgroundColor: checked ? `${hue}55` : "rgba(255,252,247,.88)",
-                        color: checked ? "#FFFCF7" : "neutral.800",
+                        color: "neutral.900",
                         transition: "transform .18s ease, box-shadow .18s ease, background-color .18s ease",
                         "&:hover": { transform: "translateY(-1px)", boxShadow: "sm" },
                       }}
@@ -228,7 +228,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                         size="lg"
                         uncheckedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
                         checkedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
-                        sx={{ width: "100%", px: 0.5, color: checked ? "inherit" : hue, "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: "0.78rem" }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
+                        sx={{ width: "100%", px: 0.5, color: "neutral.900", "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: "0.78rem", lineHeight: 1.3, py: 0.5 }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
                       />
                     </Sheet>
                   );
@@ -250,7 +250,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
         control={control}
         render={({ field }) => (
           <Box>
-            <Typography level="title-md">A little more space</Typography>
+            <Typography level="h3" sx={{ fontSize: "1.8rem", fontWeight: 400 }}>A little more space</Typography>
             <Typography level="body-sm" color="neutral" sx={{ mb: 1 }}>{reflectionPrompt} <span>(optional)</span></Typography>
             {/* Markdown remains the persisted comment value, so the editor does not introduce an HTML-only format. */}
             <Box data-color-mode="light" sx={{ "& .w-md-editor": { borderRadius: "14px", borderColor: errors.comment ? "var(--joy-palette-danger-500)" : "rgba(128, 107, 87, .25)", backgroundColor: "rgba(255, 252, 247, .72)", boxShadow: "none", overflow: "hidden" }, "& .w-md-editor-toolbar": { backgroundColor: "rgba(242, 232, 219, .68)", borderBottomColor: "rgba(128, 107, 87, .16)" }, "& .w-md-editor-content": { backgroundColor: "transparent" }, "& .w-md-editor-text-pre, & .w-md-editor-text-input, & .w-md-editor-text": { fontFamily: "inherit", fontSize: "0.98rem", lineHeight: 1.6 }, "& .w-md-editor-text-input": { padding: "16px" }, "& .w-md-editor-preview": { padding: "16px", fontFamily: "inherit" } }}>

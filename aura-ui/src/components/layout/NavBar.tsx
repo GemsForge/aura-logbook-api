@@ -56,12 +56,12 @@ const NavBar = () => {
   };
 
   return (
-    <Sheet component="header" variant="plain" sx={{ borderBottom: "1px solid", borderColor: "divider", backgroundColor: "rgba(251,248,242,.82)", backdropFilter: "blur(14px)" }}>
+    <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--aura-line)", backgroundColor: "rgba(245,244,239,.8)", backdropFilter: "blur(24px)" }}>
       <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 68, md: 82 }, px: { xs: 2, md: 4 }, gap: 2 }}>
         <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
-        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "display", fontWeight: 400 }}>
+        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "display", fontWeight: 400, fontSize: "1.5rem", letterSpacing: "-.04em" }}>
           <Link
             href={isAuthenticated ? "/dashboard" : "/home"}
             aria-label="Aura Logbook home"
@@ -70,7 +70,7 @@ const NavBar = () => {
             className="prism-brand-mark"
             sx={{ font: "inherit", fontWeight: "inherit", color: "text.primary" }}
           >
-            <span data-testid="prism-mark" aria-hidden="true" />
+            <span data-testid="prism-mark" className="aura-brand-dot" aria-hidden="true" />
             <span>Aura Logbook</span>
           </Link>
         </Typography>
@@ -90,6 +90,8 @@ const NavBar = () => {
               <Link href="/register" onClick={goTo("/register")} underline="none" color="primary">Create account</Link>
             </>
           )}
+        </Box>
+          {/* Profile preferences remain reachable when desktop navigation is hidden. */}
           {isAuthenticated && (
             <>
               <IconButton aria-label="Open profile menu" onClick={handleAvatarClick} sx={{ ml: 1, p: 0.5 }}>
@@ -114,7 +116,7 @@ const NavBar = () => {
                       p: 0,
                       width: { xs: "calc(100vw - 32px)", sm: 320 },
                       border: "1px solid",
-                      borderColor: "#D9CEC0",
+                      borderColor: "var(--aura-line)",
                       borderRadius: "20px",
                       overflow: "hidden",
                       boxShadow: "0 18px 48px rgba(78, 62, 51, 0.18)",
@@ -123,7 +125,7 @@ const NavBar = () => {
                 }}
               >
                 <Stack>
-                  <Box sx={{ p: 2.5, background: "linear-gradient(135deg, #F4E7DF 0%, #F7F2EA 100%)" }}>
+                  <Box sx={{ p: 2.5, background: "var(--aura-wash)" }}>
                     <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.18em", color: "neutral.600" }}>Your account</Typography>
                     <Stack direction="row" alignItems="center" gap={1.5} sx={{ mt: 1.5 }}>
                       <Avatar
@@ -144,7 +146,7 @@ const NavBar = () => {
                       <Typography level="body-sm" sx={{ fontWeight: 600 }}>Profile progress</Typography>
                       <Typography level="body-sm" color="neutral">{`${profileCompletion}%`}</Typography>
                     </Stack>
-                    <LinearProgress variant="determinate" value={profileCompletion} sx={{ height: 8, borderRadius: 4, backgroundColor: "#EDE5D9", "& .MuiLinearProgress-bar": { backgroundColor: "#C87961", borderRadius: 4 } }} />
+                    <LinearProgress variant="determinate" value={profileCompletion} sx={{ height: 8, borderRadius: 4, backgroundColor: "var(--aura-wash)", "& .MuiLinearProgress-bar": { backgroundColor: "var(--aura-accent)", borderRadius: 4 } }} />
                     <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>Complete your profile to make this space feel more like yours.</Typography>
                     <Stack gap={0.5} sx={{ mt: 2 }}>
                       <Button variant="soft" color="neutral" startIcon={<EditOutlined />} onClick={() => { setAvatarAnchor(null); appDispatch(openProfileModal()); }} sx={{ justifyContent: "flex-start" }}>
@@ -160,7 +162,6 @@ const NavBar = () => {
               </Popover>
             </>
           )}
-        </Box>
       </Box>
       {mobileMenuOpen && (
         <Box
@@ -168,19 +169,19 @@ const NavBar = () => {
           aria-label="Mobile navigation"
           sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, px: 2, pb: 2, pt: 1, borderTop: "1px solid", borderColor: "rgba(217,206,192,.72)" }}
         >
-          <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>
+          <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>
             Home
           </Link>
           {isAuthenticated ? (
             <>
-              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Dashboard</Link>
-              <Link href="/log-mood" onClick={goTo("/log-mood")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Log mood</Link>
-              <Link href="/history" onClick={goTo("/history")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Reflections</Link>
+              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Dashboard</Link>
+              <Link href="/log-mood" onClick={goTo("/log-mood")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Log mood</Link>
+              <Link href="/history" onClick={goTo("/history")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Reflections</Link>
             </>
           ) : (
             <>
-              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Login</Link>
-              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "rgba(199,154,152,.16)" } }}>Create account</Link>
+              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Login</Link>
+              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Create account</Link>
             </>
           )}
         </Box>

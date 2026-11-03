@@ -13,8 +13,9 @@ export default function AuraFeatureCards() {
         width: "100%",
         minWidth: 0,
       }}>
-      {auraFeatures.map(({ title, description }) => (
+      {auraFeatures.map(({ title, description }, index) => (
         <Box
+          className="aura-panel"
           key={title}
           sx={{
             width: "100%",
@@ -25,13 +26,14 @@ export default function AuraFeatureCards() {
             borderRadius: prismGarden.radius.card,
             boxShadow: prismGarden.shadow.soft,
             bgcolor: prismGarden.color.surface,
-            textAlign: "center",
+            textAlign: "left",
             minHeight: 160,
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-start",
           }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="overline" sx={{ mb: 2, color: "text.secondary" }}>0{index + 1} / Your practice</Typography>
+          <Typography variant="h6" gutterBottom sx={{ fontSize: "1.6rem", fontWeight: 400 }}>
             {title}
           </Typography>
           <Typography variant="body2">{description}</Typography>

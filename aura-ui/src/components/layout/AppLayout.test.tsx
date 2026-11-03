@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import AppLayout from "./AppLayout";
@@ -40,9 +40,11 @@ describe("AppLayout", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Private content" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Today" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Log mood" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Reflections" })).toBeInTheDocument();
+    // Responsive navigation has separate desktop and mobile landmarks.
+    const mobileNavigation = within(screen.getByRole("navigation", { name: "Mobile journal navigation" }));
+    expect(mobileNavigation.getByRole("link", { name: "Today" })).toHaveAttribute("href", "/dashboard");
+    expect(mobileNavigation.getByRole("link", { name: "Log mood" })).toHaveAttribute("href", "/log-mood");
+    expect(mobileNavigation.getByRole("link", { name: "Reflections" })).toHaveAttribute("href", "/history");
 
     const privateContent = screen.getByRole("heading", { name: "Private content" });
     const profile = screen.getByRole("button", { name: "Open profile menu" });

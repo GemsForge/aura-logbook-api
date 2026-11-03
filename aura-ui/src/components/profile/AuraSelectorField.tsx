@@ -71,7 +71,8 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
                 onBlur={field.onBlur}
                 slotProps={{
                   button: { "aria-labelledby": "aura-color-label" },
-                  listbox: { sx: { zIndex: 1500 } },
+                  // Keep the options inside the Material dialog's focus trap.
+                  listbox: { disablePortal: true, sx: { zIndex: 1500 } },
                 }}>
                 {colorOptions.map((color) => (
                   <Option key={color.key} value={color.key}>
@@ -104,6 +105,7 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Typography gutterBottom>Intensity ({field.value})</Typography>
             <Slider
+              aria-label="Aura intensity"
               min={0}
               max={100}
               step={10}

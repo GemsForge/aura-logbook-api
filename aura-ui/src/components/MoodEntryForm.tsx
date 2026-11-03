@@ -40,17 +40,17 @@ export default function MoodEntryForm() {
   };
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", py: { xs: 2, md: 5 } }}>
-      <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.18em", color: "neutral.500" }}>
+    <Box sx={{ maxWidth: 1000, mx: "auto", py: { xs: 1, md: 2 } }}>
+      <Typography className="aura-eyebrow" level="body-xs" sx={{ color: "neutral.500" }}>
         Daily check-in
       </Typography>
-      <Typography level="h1" sx={{ mt: 1, fontSize: { xs: "2.5rem", md: "3.5rem" }, letterSpacing: "-0.05em" }}>
+      <Typography level="h1" className="aura-page-heading" sx={{ mt: 1.5, maxWidth: 700 }}>
         How are you feeling today?
       </Typography>
       <Typography level="body-lg" color="neutral" sx={{ maxWidth: 560, mt: 1 }}>
         Take a moment to notice what is present. There is no right answer.
       </Typography>
-      <Sheet variant="outlined" sx={{ mt: 4, p: { xs: 2, md: 4 }, borderRadius: "lg", backgroundColor: "background.surface", boxShadow: "sm" }}>
+      <Sheet variant="outlined" className="aura-panel" sx={{ mt: 4, p: { xs: 2.5, md: 4 } }}>
         <MoodEntryFormFields onSubmit={handleSubmit} />
       </Sheet>
     </Box>
