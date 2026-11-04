@@ -4,15 +4,17 @@ import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { useCallback, useEffect, useState } from "react";
 import { MoodApi } from "../../api/MoodApi";
 import { useToast } from "../../hooks/useToast";
 import DeleteConfirmDialog from "../DeleteConfirmDialog";
 import MoodUpdateModal from "../MoodUpdateModal";
 import { MoodCard } from "./MoodCard";
+import { downloadJournalExport } from "@/features/mood/utils/journalExport";
+import MoodCalendar from "./MoodCalendar";
 
-/** Presents real journal entries with responsive date filters and explicit request states. */
+/** Presents API-backed journal entries, date filters, calendar browsing, and explicit request states. */
 export default function MoodHistoryPage() {
   const [logs, setLogs] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,14 +22,15 @@ export default function MoodHistoryPage() {
   // filter state
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
 
   const [entryToEdit, setEntryToEdit] = useState<MoodEntry | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<MoodEntry | null>(null);
-
   const { showToast } = useToast();
 
   const fetchLogs = useCallback(
     async (start?: Dayjs | null, end?: Dayjs | null) => {
+      setSelectedCalendarDate(null);
       setLoading(true);
       setFailed(false);
       try {
@@ -62,6 +65,10 @@ export default function MoodHistoryPage() {
     fetchLogs(null, null);
   }, [fetchLogs]);
 
+  const visibleLogs = selectedCalendarDate
+    ? logs.filter((entry) => entry.date === selectedCalendarDate)
+    : logs;
+
   return (
     <Box maxWidth={1000} mx="auto" mt={1}>
       <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Your story, in small moments</Typography>
@@ -93,6 +100,14 @@ export default function MoodHistoryPage() {
             onClick={() => fetchLogs(startDate, endDate)}>
             Filter
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => downloadJournalExport(logs)}
+            disabled={loading || failed || logs.length === 0}
+            aria-label={`Export ${logs.length} journal entries as JSON`}
+          >
+            Export journal JSON
+          </Button>
         </Box>
       </LocalizationProvider>
 
@@ -100,9 +115,29 @@ export default function MoodHistoryPage() {
       {failed && <Box role="alert" className="aura-panel" sx={{ p: 3, mb: 3 }}><Typography color="danger">We couldn’t load your reflections.</Typography><Button onClick={() => fetchLogs(startDate, endDate)}>Try again</Button></Box>}
       {!loading && !failed && !logs.length && <Box className="aura-panel" sx={{ p: 5, textAlign: "center", mb: 3 }}><Typography level="h2">Every story starts somewhere.</Typography><Typography level="body-md" color="neutral" sx={{ my: 2 }}>Your saved reflections will find their home here.</Typography><Button component="a" href="/log-mood" variant="solid">Write your first reflection ↗</Button></Box>}
 
-      {logs.map((entry, index) => (
+      {!loading && !failed && logs.length > 0 && (
+        <MoodCalendar
+          entries={logs}
+          selectedDate={selectedCalendarDate}
+          onSelectDate={setSelectedCalendarDate}
+        />
+      )}
+
+      {selectedCalendarDate && visibleLogs.length === 0 && (
+        <Box role="status" className="aura-panel" sx={{ p: 3, mb: 3 }}>
+          <Typography>No reflections are saved for {dayjs(selectedCalendarDate).format("MMMM D, YYYY")}.</Typography>
+        </Box>
+      )}
+
+      {selectedCalendarDate && visibleLogs.length > 0 && (
+        <Typography component="h2" level="h3" sx={{ mb: 2 }}>
+          Reflections for {dayjs(selectedCalendarDate).format("MMMM D, YYYY")}
+        </Typography>
+      )}
+
+      {visibleLogs.map((entry) => (
         <MoodCard
-          key={index}
+          key={entry.id}
           entry={entry}
           onEdit={setEntryToEdit}
           onDelete={setEntryToDelete}
