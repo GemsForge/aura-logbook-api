@@ -96,7 +96,8 @@ export default function Dashboard() {
         <Box><Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Your space to come back to yourself</Typography><Typography level="h1" className="aura-page-heading">{greeting}, {displayName}.</Typography></Box>
         <Typography level="body-sm" color="neutral" sx={{ whiteSpace: "nowrap" }}>{dayjs().format("dddd, MMMM D")}</Typography>
       </Stack>
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }, gap: 1.5, mb: 3 }}>
+      {/* Two readable metric columns fit narrow phones; wider screens show all four measures in one row. */}
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }, gap: { xs: 1.25, md: 1.5 }, mb: 3 }}>
         <MoodStatCard title="Total entries" value={`${totalEntries}`} />
         <MoodStatCard title="Most frequent mood" value={mostFrequent || "N/A"} emoji={mostFrequent ? MoodIcons[mostFrequent] : "·"} />
         <MoodStatCard title="Current streak" value={`${currentStreak} days`} emoji="✦" />
