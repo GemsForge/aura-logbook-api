@@ -11,6 +11,8 @@ const state = vi.hoisted(() => ({
   connection: { data: { configured: true, connected: true }, isFetching: false, isError: false, refetch: vi.fn() },
   current: { data: null, isFetching: true, isError: false, refetch: vi.fn() },
   playlists: { data: { items: [] as SpotifyPlaylist[] }, isFetching: true, isError: false, refetch: vi.fn() },
+  morePlaylists: { data: null as { items: SpotifyPlaylist[]; hasMore: boolean; nextOffset: number | null } | null, isFetching: false, isError: false, error: undefined as unknown },
+  fetchMorePlaylists: vi.fn(),
 }));
 
 vi.mock("@/store/spotifyApi", () => ({
@@ -18,6 +20,8 @@ vi.mock("@/store/spotifyApi", () => ({
   useGetSpotifyConnectionQuery: () => state.connection,
   useGetCurrentlyPlayingQuery: () => state.current,
   useGetSpotifyPlaylistsQuery: () => state.playlists,
+  // Match RTK Query's lazy-query tuple so rendering never requires a Spotify request.
+  useLazyGetSpotifyPlaylistsQuery: () => [state.fetchMorePlaylists, state.morePlaylists],
   useConnectSpotifyMutation: () => [state.connect, { isLoading: false }],
   useDisconnectSpotifyMutation: () => [state.disconnect, { isLoading: false }],
 }));
@@ -33,6 +37,10 @@ describe("SpotifyConnectionCard", () => {
     state.playlists.isFetching = true;
     state.playlists.isError = false;
     state.playlists.data.items = [];
+    state.morePlaylists.data = null;
+    state.morePlaylists.isFetching = false;
+    state.morePlaylists.isError = false;
+    state.morePlaylists.error = undefined;
   });
 
   it("distinguishes pending requests from empty playback and playlists", () => {
