@@ -14,10 +14,14 @@ public class MoodController : ControllerBase
     // Inject services/repositories here
     private readonly IMoodService _moodService;
     private readonly IMoodStatsService _moodStatsService;
-    public MoodController(IMoodService moodService, IMoodStatsService moodStatsService)
+    private readonly IMoodMediaService _moodMediaService;
+    private readonly ILogger<MoodController> _logger;
+    public MoodController(IMoodService moodService, IMoodStatsService moodStatsService, IMoodMediaService moodMediaService, ILogger<MoodController> logger)
     {
         _moodService = moodService;
         _moodStatsService = moodStatsService;
+        _moodMediaService = moodMediaService;
+        _logger = logger;
     }
 
     private int GetUserIdFromToken()
@@ -59,6 +63,18 @@ public class MoodController : ControllerBase
     {
         var userId = GetUserIdFromToken();
         var result = await _moodService.DeleteMoodAsync(userId, id);
+        if (result.Success)
+        {
+            // Media metadata has no SQL mood FK because Production still uses file-based mood storage.
+            try
+            {
+                await _moodMediaService.DeleteForMoodAsync(userId, id, CancellationToken.None);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Could not finish private media cleanup for deleted mood {MoodEntryId}", id);
+            }
+        }
         return result.Success ? Ok(result.Message) : NotFound(result.Message);
     }
 

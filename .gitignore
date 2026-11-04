@@ -280,6 +280,9 @@ ServiceFabricBackup/
 # SQLite DB
 **/auralog.db
 
+# Private mood images are local runtime data, never repository assets.
+AuraLogbook.Api/Data/private-media/
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout

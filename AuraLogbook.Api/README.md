@@ -39,6 +39,7 @@ Controllers use the `/api` prefix. Key routes include:
 | --- | --- | --- |
 | Auth | `POST /api/Auth/register`, `POST /api/Auth/login`, `GET /api/Auth/me`, `PUT /api/Auth/update`, `GET /api/Auth/all` | Register and login are public; the other listed routes require a bearer token. |
 | Mood | `GET/POST /api/Mood`, `GET/PUT/DELETE /api/Mood/{id}`, `GET /api/Mood/dashboard/summary`, `GET /api/Mood/dashboard/moods-by-date`, `GET /api/Mood/dashboard/mood-breakdown` | Bearer token required. |
+| Mood media | `GET/POST /api/Mood/{id}/attachments`, `GET/DELETE /api/Mood/{id}/attachments/{attachmentId}`, `GET /api/Mood/{id}/attachments/{attachmentId}/content` | Bearer token required; uploads are owner-checked JPEG, PNG, or WebP images. |
 | Insights | `GET /api/insights/zodiac` | Expects a token-derived user ID claim. |
 | Reflections | `GET /api/reflections/prompts`, `GET/POST /api/reflections/responses`, `GET /api/reflections/responses/{id}` | Bearer token required. Responses are restricted to the authenticated user's mood entries and data. |
 | Reference data | `GET /api/reference-data/auras`, `GET /api/reference-data/chakras`, `GET /api/reference-data/pathways`, `GET /api/reference-data/mood-aura-mappings` | Public read-only reference data used to keep clients aligned. |
@@ -53,6 +54,12 @@ an active prompt and a mood entry owned by the authenticated user.
 Use Swagger for the complete current route list and request/response schemas. Authenticated routes accept `Authorization: Bearer <token>`; login returns the JWT.
 
 Spotify account linking, current listening metadata and playlist cards are documented in [Spotify integration](../docs/spotify-integration.md), including local setup, OAuth recovery, typed API responses and token storage.
+
+Private mood images are stored outside `wwwroot`; the SQLite migration stores
+owner-scoped metadata while image bytes remain in the configured
+`Storage:PrivateMediaPath` directory. Set that path to persistent private storage
+for hosted environments. See [Private media attachments](../docs/private-media-attachments.md)
+for supported formats, limits, routes, and storage behavior.
 
 ## Tests
 

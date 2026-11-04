@@ -53,6 +53,9 @@ export default function MoodEntryForm() {
       <Sheet variant="outlined" className="aura-panel" sx={{ mt: 4, p: { xs: 2.5, md: 4 } }}>
         <MoodEntryFormFields onSubmit={handleSubmit} />
       </Sheet>
+      <Typography level="body-sm" color="neutral" sx={{ mt: 2 }}>
+        To add a photo, save your mood first, then choose Add photo on its History card.
+      </Typography>
     </Box>
   );
 }

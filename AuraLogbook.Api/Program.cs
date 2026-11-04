@@ -90,6 +90,9 @@ else
     builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
     builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
 }
+// Keep media metadata relational while image bytes stay in private, non-static storage.
+builder.Services.AddScoped<IMoodMediaRepository, SqliteMoodMediaRepository>();
+builder.Services.AddSingleton<IMoodMediaFileStore, PrivateMoodMediaFileStore>();
 builder.Services.AddScoped<IReflectionRepository, SqliteReflectionRepository>();
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
     builder.Services.AddScoped<IFileZodiacInsightsRepository, SqliteZodiacInsightsRepository>();
@@ -100,6 +103,7 @@ else
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMoodService, MoodService>();
+builder.Services.AddScoped<IMoodMediaService, MoodMediaService>();
 builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
 builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
 builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();

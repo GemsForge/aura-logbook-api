@@ -38,6 +38,14 @@ public class MoodService : IMoodService
 
         return allMoods;
     }
+
+    /// <inheritdoc />
+    public async Task<MoodEntry?> GetEntryForUserAsync(int userId, int moodId)
+    {
+        var entry = await _moodRepo.GetByIdAsync(moodId);
+        return entry?.UserId == userId ? entry : null;
+    }
+
     /// <summary>
     /// Creates a new mood entry from client request.
     /// </summary>
