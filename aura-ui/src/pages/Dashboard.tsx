@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import Link from "@mui/joy/Link";
@@ -50,6 +51,7 @@ const dailyQuoteReloadSeed = Math.random();
 /** Composes the Luminous Journal dashboard from saved entries, daily guidance and live integrations. */
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const greeting = getTimeGreeting();
   const user = useAppSelector(selectCurrentUser);
   const today = dayjs().format("YYYY-MM-DD");
@@ -68,6 +70,14 @@ export default function Dashboard() {
   const recentEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
   const todayEntry = recentEntries.find(entry => dayjs(entry.date).format("YYYY-MM-DD") === today);
   const loading = loadingUser || loadingToday || loadingSummary || loadingBreakdown || loadingTimeline || loadingZodiac;
+  // Scroll to the Insights destination after asynchronous dashboard data has rendered it.
+  useEffect(() => {
+    if (location.hash !== "#insights" || loading) return;
+    const section = document.getElementById("insights");
+    section?.scrollIntoView({ block: "start" });
+    section?.focus({ preventScroll: true });
+  }, [location.hash, loading]);
+
   if (loading) {
     return <Box sx={{ py: 12, textAlign: "center" }}><Typography level="body-lg">Gathering your reflections…</Typography></Box>;
   }
@@ -115,7 +125,7 @@ export default function Dashboard() {
               <Typography level="h3" sx={{ color: "inherit", fontWeight: 400, fontSize: { xs: "1.8rem", sm: "2.4rem" }, lineHeight: 1.25, my: 2 }}>“{dailyQuote?.text ?? "What would you like to notice about today?"}”</Typography>
               <Typography level="body-xs" sx={{ color: "inherit", opacity: .65 }}>{dailyQuote?.theme} / {dailyQuote?.author ?? "Aura Logbook"} · {dailyQuotePathway?.title ?? "Mindful Pathway"}</Typography>
             </Sheet>
-            <Sheet className="aura-panel" sx={{ p: { xs: 3, sm: 4 } }}>
+            <Sheet id="insights" tabIndex={-1} className="aura-panel" sx={{ p: { xs: 3, sm: 4 }, scrollMarginTop: 24 }}>
               <Typography className="aura-eyebrow" color="neutral">02 / A little perspective</Typography><Typography level="h3" sx={{ mt: 1 }}>Your recent pattern</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Mood over the last 7 days</Typography>
               <Box sx={{ mt: 3, overflowX: "auto" }}><MoodTimelineChart data={timeline || []} /></Box>
             </Sheet>

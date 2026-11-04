@@ -3,7 +3,7 @@ import type { RootState } from "./store";
 
 export interface SpotifyConnection { configured: boolean; connected: boolean }
 export interface SpotifyPlaylist { id: string; name: string; imageUrl: string | null; spotifyUrl: string | null }
-export interface SpotifyPlaylists { items: SpotifyPlaylist[]; hasMore: boolean }
+export interface SpotifyPlaylists { items: SpotifyPlaylist[]; hasMore: boolean; nextOffset: number | null }
 export interface SpotifyPlayback { name: string; artists: string; imageUrl: string | null; spotifyUrl: string | null; isPlaying: boolean }
 
 /** User IDs partition cached metadata; authorization always comes from the bearer token. */
@@ -32,13 +32,13 @@ export const spotifyApi = createApi({
     getCurrentlyPlaying: build.query<SpotifyPlayback | null, number>({
       query: () => "/currently-playing", providesTags: ["SpotifyConnection"],
     }),
-    getSpotifyPlaylists: build.query<SpotifyPlaylists, number>({
-      query: () => "/playlists", providesTags: ["SpotifyConnection"],
+    getSpotifyPlaylists: build.query<SpotifyPlaylists, { userId: number; offset?: number }>({
+      query: ({ offset = 0 }) => `/playlists?offset=${offset}`, providesTags: ["SpotifyConnection"],
     }),
   }),
 });
 
 export const {
   useConnectSpotifyMutation, useGetSpotifyConnectionQuery, useDisconnectSpotifyMutation,
-  useGetCurrentlyPlayingQuery, useGetSpotifyPlaylistsQuery,
+  useGetCurrentlyPlayingQuery, useGetSpotifyPlaylistsQuery, useLazyGetSpotifyPlaylistsQuery,
 } = spotifyApi;

@@ -4,6 +4,7 @@ import Typography from "@mui/joy/Typography";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import EditNoteOutlined from "@mui/icons-material/EditNoteOutlined";
 import MenuBookOutlined from "@mui/icons-material/MenuBookOutlined";
+import InsightsOutlined from "@mui/icons-material/InsightsOutlined";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -11,13 +12,14 @@ import { openProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSli
 
 const destinations = [
   { label: "Today", path: "/dashboard", icon: HomeOutlined },
+  { label: "Insights", path: "/dashboard#insights", icon: InsightsOutlined },
   { label: "Log mood", path: "/log-mood", icon: EditNoteOutlined },
   { label: "Reflections", path: "/history", icon: MenuBookOutlined },
 ];
 
-/** Keeps core journal actions within thumb reach, above the device's safe-area inset. */
+/** Keeps journal destinations and profile access within thumb reach above the device safe area. */
 export default function MobileNavigation() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const dispatch = useAppDispatch();
   const profileOpen = useAppSelector(selectIsProfileModalOpen);
   const itemStyles = {
@@ -30,14 +32,17 @@ export default function MobileNavigation() {
 
   return (
     <Sheet component="nav" aria-label="Mobile journal navigation" sx={{
-      display: { xs: "grid", md: "none" }, gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+      display: { xs: "grid", md: "none" }, gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
       position: "fixed", left: 12, right: 12, bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
       zIndex: 1050, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)",
       backgroundColor: "rgba(255,254,250,.92)", backdropFilter: "blur(24px)",
       boxShadow: "0 8px 32px rgba(36,43,39,.12)",
     }}>
       {destinations.map(({ label, path, icon: Icon }) => {
-        const active = pathname === path && !profileOpen;
+        const isInsights = label === "Insights";
+        const active = isInsights
+          ? pathname === "/dashboard" && hash === "#insights" && !profileOpen
+          : pathname === path && hash !== "#insights" && !profileOpen;
         return <Box key={path} component={Link} to={path} aria-current={active ? "page" : undefined}
           sx={{ ...itemStyles, backgroundColor: active ? "var(--aura-wash)" : "transparent" }}>
           <Icon aria-hidden="true" sx={{ fontSize: 23 }} />

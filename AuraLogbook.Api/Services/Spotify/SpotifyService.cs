@@ -113,15 +113,37 @@ public sealed class SpotifyService : ISpotifyService
             root.TryGetProperty("is_playing", out var playing) && playing.ValueKind == JsonValueKind.True);
     }
 
-    /// <summary>Returns the first fifty playlists and indicates whether Spotify has more results.</summary>
-    public async Task<SpotifyPlaylistPage> GetPlaylistsAsync(int userId, CancellationToken cancellationToken)
+    /// <summary>Returns up to fifty playlists from the requested offset and indicates whether more remain.</summary>
+    public async Task<SpotifyPlaylistPage> GetPlaylistsAsync(int userId, int offset, CancellationToken cancellationToken)
     {
-        var root = await MetadataAsync(userId, "me/playlists?limit=50", cancellationToken);
+        var safeOffset = Math.Max(0, offset);
+        var root = await MetadataAsync(userId, $"me/playlists?limit=50&offset={safeOffset}", cancellationToken);
         if (!root.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
             throw new SpotifyIntegrationException("provider-error", "Spotify returned an incomplete playlist list.");
         var result = items.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Object && Text(x, "id") is not null)
             .Select(x => new SpotifyPlaylist(Required(x, "id"), Text(x, "name") ?? "Untitled playlist", Image(x), SpotifyUrl(x))).ToArray();
-        return new(result, Text(root, "next") is not null);
+        var next = Text(root, "next");
+        var hasMore = next is not null;
+        int? nextOffset = hasMore
+            ? ReadNextOffset(next) ?? safeOffset + Math.Max(items.GetArrayLength(), 1)
+            : null;
+        return new(result, hasMore, nextOffset);
+    }
+
+    /// <summary>Returns the first page for callers that do not request a specific playlist offset.</summary>
+    public Task<SpotifyPlaylistPage> GetPlaylistsAsync(int userId, CancellationToken cancellationToken) =>
+        GetPlaylistsAsync(userId, 0, cancellationToken);
+
+    /// <summary>Reads Spotify's next-page offset, falling back to the consumed provider row count.</summary>
+    private static int? ReadNextOffset(string? next)
+    {
+        if (!Uri.TryCreate(next, UriKind.Absolute, out var nextUri)) return null;
+        var offset = nextUri.Query.TrimStart('?').Split('&')
+            .Select(parameter => parameter.Split('=', 2))
+            .FirstOrDefault(parts => parts.Length == 2 && parts[0] == "offset");
+        return offset is not null && int.TryParse(Uri.UnescapeDataString(offset[1]), out var value) && value >= 0
+            ? value
+            : null;
     }
 
     // Serialize refreshes per user so simultaneous playlist/playback requests cannot overwrite rotated tokens.

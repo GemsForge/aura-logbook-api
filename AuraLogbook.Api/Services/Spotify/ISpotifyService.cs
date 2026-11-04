@@ -10,5 +10,6 @@ public interface ISpotifyService
     Task<SpotifyConnectionStatus> GetConnectionAsync(int userId);
     Task DisconnectAsync(int userId);
     Task<SpotifyPlayback?> GetCurrentlyPlayingAsync(int userId, CancellationToken cancellationToken);
-    Task<SpotifyPlaylistPage> GetPlaylistsAsync(int userId, CancellationToken cancellationToken);
+    /// <summary>Returns one page of the authenticated user's playlists, starting at the supplied offset.</summary>
+    Task<SpotifyPlaylistPage> GetPlaylistsAsync(int userId, int offset, CancellationToken cancellationToken);
 }

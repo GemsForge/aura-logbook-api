@@ -63,9 +63,10 @@ public sealed class SpotifyController(ISpotifyService service, IOptions<SpotifyO
     public Task<IActionResult> CurrentlyPlaying(CancellationToken cancellationToken) =>
         ExecuteAsync(async () => await service.GetCurrentlyPlayingAsync(UserId(), cancellationToken));
 
+    /// <summary>Returns a Spotify playlist page beginning at the requested nonnegative offset.</summary>
     [HttpGet("playlists")]
-    public Task<IActionResult> Playlists(CancellationToken cancellationToken) =>
-        ExecuteAsync(async () => await service.GetPlaylistsAsync(UserId(), cancellationToken));
+    public Task<IActionResult> Playlists([FromQuery] int offset = 0, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () => await service.GetPlaylistsAsync(UserId(), Math.Max(0, offset), cancellationToken));
 
     // Convert provider failures into safe, stable JSON so the UI can offer useful recovery.
     private async Task<IActionResult> ExecuteAsync<T>(Func<Task<T>> action)

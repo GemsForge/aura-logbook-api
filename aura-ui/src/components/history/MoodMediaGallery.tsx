@@ -9,10 +9,11 @@ import { AuraButton } from "@/components/ui/AuraButton";
 import { MoodMediaApi, type MoodMediaAttachment } from "@/api/MoodMediaApi";
 import { prepareMoodPhoto } from "@/features/mood/utils/prepareMoodPhoto";
 
-/** Loads and manages private image attachments for one saved mood entry. */
+/** Loads private images on demand and manages attachments for one saved mood entry. */
 export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number }) {
   const [attachments, setAttachments] = useState<MoodMediaAttachment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -30,8 +31,8 @@ export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number 
   }, [moodEntryId]);
 
   useEffect(() => {
-    void loadAttachments();
-  }, [loadAttachments, refreshToken]);
+    if (expanded) void loadAttachments();
+  }, [expanded, loadAttachments, refreshToken]);
 
   /** Sends a selected photo to the owner-checked API and refreshes the private gallery. */
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +72,15 @@ export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number 
     <Box component="section" aria-label="Private mood photos" sx={{ mt: 2 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, flexWrap: "wrap" }}>
         <Typography level="title-sm">Photos</Typography>
-        {attachments.length < 10 && (
+        <AuraButton
+          variant="outlined"
+          size="small"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? "Hide photos" : "View private photos"}
+        </AuraButton>
+        {expanded && attachments.length < 10 && (
           <AuraButton
             component="label"
             variant="outlined"
@@ -94,21 +103,23 @@ export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number 
       <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>
         Private to your account · Large photos are resized and converted to JPEG before upload · 10 per entry
       </Typography>
-      {loading && <Typography role="status" level="body-xs" sx={{ mt: 1 }}>Loading private photos…</Typography>}
-      {error && <Typography role="alert" level="body-xs" color="danger" sx={{ mt: 1 }}>{error}</Typography>}
-      {!loading && attachments.length > 0 && (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
-          {attachments.map((attachment) => (
-            <PrivateMoodImage
-              key={attachment.id}
-              moodEntryId={moodEntryId}
-              attachment={attachment}
-              disabled={busy}
-              onDelete={() => handleDelete(attachment)}
-            />
-          ))}
-        </Box>
-      )}
+      {expanded && <>
+        {loading && <Typography role="status" level="body-xs" sx={{ mt: 1 }}>Loading private photos…</Typography>}
+        {error && <Typography role="alert" level="body-xs" color="danger" sx={{ mt: 1 }}>{error}</Typography>}
+        {!loading && attachments.length > 0 && (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
+            {attachments.map((attachment) => (
+              <PrivateMoodImage
+                key={attachment.id}
+                moodEntryId={moodEntryId}
+                attachment={attachment}
+                disabled={busy}
+                onDelete={() => handleDelete(attachment)}
+              />
+            ))}
+          </Box>
+        )}
+      </>}
     </Box>
   );
 }

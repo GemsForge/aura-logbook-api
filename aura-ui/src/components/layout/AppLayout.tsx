@@ -26,7 +26,8 @@ const AppLayout = () => {
         </Link>
         <NavBar />
 
-        <Container component="main" id="main-content" maxWidth="xl" sx={{ mt: { xs: 3, md: 5 }, mb: 4, flexGrow: 1, px: { xs: 2, md: 4 } }}>
+        {/* Programmatic focus lets the skip link move keyboard users into the page content. */}
+        <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" sx={{ mt: { xs: 3, md: 5 }, mb: 4, flexGrow: 1, px: { xs: 2, md: 4 } }}>
           {isAuthenticated ? (
             <Box
               sx={{

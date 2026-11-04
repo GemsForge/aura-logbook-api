@@ -3,7 +3,7 @@ namespace AuraLogbook.Api.Models;
 /// <summary>Public Spotify metadata; provider credentials never appear in these contracts.</summary>
 public sealed record SpotifyConnectionStatus(bool Configured, bool Connected);
 public sealed record SpotifyPlaylist(string Id, string Name, string? ImageUrl, string? SpotifyUrl);
-public sealed record SpotifyPlaylistPage(IReadOnlyList<SpotifyPlaylist> Items, bool HasMore);
+public sealed record SpotifyPlaylistPage(IReadOnlyList<SpotifyPlaylist> Items, bool HasMore, int? NextOffset);
 public sealed record SpotifyPlayback(string Name, string Artists, string? ImageUrl, string? SpotifyUrl, bool IsPlaying);
 
 /// <summary>Pending single-use OAuth attempt with encrypted PKCE material.</summary>
