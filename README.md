@@ -53,6 +53,18 @@ API, from `AuraLogbook.Api/`:
 dotnet run --launch-profile http
 ```
 
+## Start the Expo mobile shell
+
+The Expo and React Native mobile shell is in `aura-mobile/`. Install its dependencies once and start Expo:
+
+```bash
+cd aura-mobile
+npm install
+npm run start
+```
+
+Open the project in Expo Go or a simulator. The shell currently provides native Today, Log, Journal, and Profile destinations with the Aura visual foundation. Authenticated API data and mood entry are intentionally pending mobile API hosting and auth-contract readiness; the mobile shell does not use the Mac's localhost API from a physical device. See the [mobile shell guide](docs/ux/mobile-shell.md).
+
 ## Runtime environments
 
 Aura Logbook uses these environment aliases:
@@ -151,7 +163,7 @@ Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify
 - [Product purpose and current direction](AURA_PROJECT_OVERVIEW.md)
 - [API setup, configuration, routes, and tests](AuraLogbook.Api/README.md)
 - [UI setup, API URL configuration, and checks](aura-ui/README.md)
-- [SwiftUI shell adaptation plan](docs/ux/swiftui-shell-adaptation.md)
+- [React Native / Expo mobile shell](docs/ux/mobile-shell.md)
 - [Major dependencies, tools, and external-service terms](DEPENDENCIES.md)
 - [Safe local and remote branch cleanup](BRANCH_CLEANUP.md)
 - [Repository issue and pull-request workflow](.github/ISSUE_WORKFLOW.md)
