@@ -21,7 +21,13 @@ CREATE TABLE MoodEntryMoods (
     FOREIGN KEY (MoodEntryId) REFERENCES MoodEntries(Id) ON DELETE CASCADE,
     FOREIGN KEY (MoodKey) REFERENCES MoodDefinitions(MoodKey)
 );
-INSERT INTO MoodEntries SELECT * FROM SavedMoodEntries;
-INSERT INTO MoodEntryMoods SELECT * FROM SavedMoodEntryMoods;
+-- Copy only the columns owned by this migration. Later migrations add
+-- WeatherSnapshotId and mood context columns to MoodEntries explicitly.
+INSERT INTO MoodEntries (Id, UserId, EntryDate, Comment, CreatedAt, UpdatedAt)
+SELECT Id, UserId, EntryDate, Comment, CreatedAt, UpdatedAt
+FROM SavedMoodEntries;
+INSERT INTO MoodEntryMoods (MoodEntryId, MoodKey)
+SELECT MoodEntryId, MoodKey
+FROM SavedMoodEntryMoods;
 DROP TABLE SavedMoodEntryMoods;
 DROP TABLE SavedMoodEntries;

@@ -14,7 +14,7 @@ describe("NotFound", () => {
     renderWithProviders(<NotFound />);
 
     expect(
-      screen.getByRole("heading", { name: /not found/i })
+      screen.getByRole("heading", { name: /room to begin again/i })
     ).toBeInTheDocument();
   });
 });

@@ -1,29 +1,32 @@
 // src/theme/index.ts
-import { createTheme, type Theme } from "@mui/material/styles";
+import { alpha, createTheme, type Theme } from "@mui/material/styles";
 import { extendTheme as extendJoyTheme } from "@mui/joy/styles";
 import { AuraColor } from "../features/mood/models/aura";
-import { getAuraShade } from "./auraTheme";
-import { blue, green, grey, indigo, orange, pink, purple, red, yellow } from "@mui/material/colors";
-import { prismGarden } from "./prismGarden";
-
 export { prismGarden } from "./prismGarden";
+import { prismGarden } from "./prismGarden";
+import { getAuraShade, normalizeAuraIntensity, resolveAuraColor, auraPalettes } from "./auraTheme";
+
+/** Layers shades of the selected aura over a stable canvas without introducing a competing hue. */
+export function getAuraBackground(color: unknown, intensity: unknown = 50): string {
+  const hue = resolveAuraColor(color);
+  const strength = 0.12 + normalizeAuraIntensity(intensity) / 500;
+  return `radial-gradient(ellipse at 8% 12%, ${alpha(auraPalettes[hue][400].main!, strength)} 0%, transparent 55%), radial-gradient(ellipse at 92% 40%, ${alpha(auraPalettes[hue][200].main!, strength * 0.7)} 0%, transparent 58%), radial-gradient(ellipse at 45% 95%, ${alpha(auraPalettes[hue][300].main!, strength * 0.6)} 0%, transparent 60%)`;
+}
+
+/** Converts the product's 0-100 aura intensity scale to a stable MUI shade. */
+function resolveAuraShade(intensity: number): number {
+  return getAuraShade(intensity);
+}
+import { blue, green, grey, indigo, orange, pink, purple, red, yellow } from "@mui/material/colors";
 
 /**
- * Creates the Material UI adapter for Prism Garden.
- *
- * Neutral shell surfaces, typography, focus indicators, and control geometry
- * come from `prismGarden`. The selected aura color is exposed only through the
- * primary palette so existing mood and profile components can retain their
- * contextual accent behavior without recoloring the entire application shell.
- *
- * @param color User-selected aura hue. Unknown persisted values fall back to blue.
- * @param intensity Aura intensity from 0-100. Legacy MUI shade values are
- * normalized by `getAuraShade` for backward compatibility.
- * @returns A Material UI theme ready for `ThemeProvider`.
+ * Returns a MUI theme tailored to the user’s selected aura color and intensity.
+ * @param color     The aura hue (must match a key in auraShades).
+ * @param intensity User-selected intensity from 0 to 100; legacy shade values are normalized.
  */
 export function getAuraTheme(
     color: AuraColor,
-    intensity: number = 50
+    intensity: number = 500
   ): Theme {
     // Map each aura to its full set of MUI color shades
     const auraShades: Record<AuraColor, Record<number, string>> = {
@@ -38,95 +41,48 @@ export function getAuraTheme(
       pink: pink,
     };
   
-    // Select the shade represented by the persisted 0-100 intensity.
-    const shades = auraShades[color] || auraShades.blue;
-    const shade = getAuraShade(intensity);
-    const mainColor = shades[shade] || shades[500];
+    // Select the requested shade, defaulting to 500 if unavailable
+    const shades = auraShades[resolveAuraColor(color)];
+    const mainColor = shades[resolveAuraShade(intensity)] || shades[500];
   
     return createTheme({
       palette: {
         primary: { main: mainColor },
-        secondary: { main: prismGarden.color.terracotta },
         background: {
           default: prismGarden.color.canvas,
-          paper: prismGarden.color.surface,
+          paper: alpha(prismGarden.color.surface, 0.94),
         },
-        text: {
-          primary: prismGarden.color.ink,
-          secondary: prismGarden.color.inkMuted,
-        },
-        divider: prismGarden.color.line,
+        text: { primary: prismGarden.color.ink, secondary: prismGarden.color.inkMuted },
       },
       typography: {
         fontFamily: prismGarden.font.body,
-        h1: { fontFamily: prismGarden.font.display, fontWeight: 500 },
-        h2: { fontFamily: prismGarden.font.display, fontWeight: 500 },
-        h3: { fontFamily: prismGarden.font.display, fontWeight: 500 },
-        h4: { fontFamily: prismGarden.font.display, fontWeight: 500 },
-        h5: { fontFamily: prismGarden.font.display, fontWeight: 500 },
-        h6: { fontFamily: prismGarden.font.display, fontWeight: 500 },
-        button: { textTransform: "none", fontWeight: 600 },
+        h1: { fontFamily: prismGarden.font.display },
+        h2: { fontFamily: prismGarden.font.display },
+        h3: { fontFamily: prismGarden.font.display },
+        h4: { fontFamily: prismGarden.font.display },
+        h5: { fontFamily: prismGarden.font.display },
+        h6: { fontFamily: prismGarden.font.display },
       },
-      shape: { borderRadius: 10 },
       components: {
-        MuiCssBaseline: {
-          styleOverrides: {
-            body: {
-              backgroundColor: prismGarden.color.canvas,
-              color: prismGarden.color.ink,
-            },
+        MuiCssBaseline: { styleOverrides: {
+          body: {
+            backgroundImage: getAuraBackground(color, intensity), backgroundAttachment: "fixed",
+            "--aura-accent": mainColor,
+            "--aura-glow": alpha(shades[400], 0.25),
+            "--aura-wash": alpha(shades[300], 0.16),
+            "--aura-line": alpha(shades[600], 0.24),
+            "--aura-panel": alpha(prismGarden.color.surface, 0.76),
+            "--aura-dark": `linear-gradient(135deg, ${alpha(shades[500], 0.28)}, transparent 85%), #222C27`,
           },
-        },
-        MuiPaper: {
-          styleOverrides: {
-            root: {
-              backgroundImage: "none",
-              borderColor: prismGarden.color.line,
-            },
-          },
-        },
-        MuiButtonBase: {
-          styleOverrides: {
-            root: {
-              "&:focus-visible": {
-                outline: `3px solid ${prismGarden.color.focus}`,
-                outlineOffset: 3,
-              },
-            },
-          },
-        },
-        MuiButton: {
-          styleOverrides: {
-            root: {
-              minHeight: 44,
-              borderRadius: prismGarden.radius.control,
-            },
-          },
-        },
-        MuiOutlinedInput: {
-          styleOverrides: {
-            root: {
-              minHeight: 44,
-              backgroundColor: prismGarden.color.surface,
-            },
-          },
-        },
+        } },
+        MuiButton: { styleOverrides: { root: { borderRadius: "999px", textTransform: "none" } } },
+        MuiOutlinedInput: { styleOverrides: { root: { borderRadius: prismGarden.radius.control, backgroundColor: alpha(prismGarden.color.surface, 0.74) } } },
+        MuiDialog: { styleOverrides: { paper: { borderRadius: 28, border: "1px solid rgba(255,255,255,.8)", boxShadow: prismGarden.shadow.raised } } },
       },
     });
   }
 
-/**
- * Creates the Joy UI adapter for the same Prism Garden token vocabulary.
- *
- * Material UI and Joy UI coexist in the current application. Keeping both
- * adapters here prevents subtle differences in surfaces, typography, focus
- * rings, radii, and minimum touch-target sizes.
- *
- * @param color User-selected aura hue used for contextual primary accents.
- * @param intensity Aura intensity from 0-100.
- * @returns A Joy UI theme ready for `CssVarsProvider`.
- */
-export function getAuraJoyTheme(color: AuraColor, intensity: number = 50) {
+export function getAuraJoyTheme(color: AuraColor, intensity: number = 500) {
   const palettes: Record<AuraColor, Record<number, string>> = {
     red,
     orange,
@@ -138,48 +94,44 @@ export function getAuraJoyTheme(color: AuraColor, intensity: number = 50) {
     gray: grey,
     pink,
   };
-  const shades = palettes[color] ?? palettes.blue;
-  const shade = getAuraShade(intensity);
-  const selected = shades[shade] ?? shades[500];
+  const shades = palettes[resolveAuraColor(color)];
+  const selected = shades[resolveAuraShade(intensity)] ?? shades[500];
 
   return extendJoyTheme({
+    components: {
+      JoyButton: { styleOverrides: { root: { borderRadius: "999px", minHeight: 42, paddingInline: 20, fontWeight: 600, transition: "transform .18s ease, box-shadow .18s ease", "&:hover": { transform: "translateY(-1px)" } } } },
+      JoySheet: { styleOverrides: { root: { borderColor: "var(--aura-line, #D8DDD4)" } } },
+      JoyInput: { styleOverrides: { root: { minHeight: 48, backgroundColor: "rgba(255,254,250,.72)", boxShadow: "none" } } },
+      JoySelect: { styleOverrides: { root: { minHeight: 48 } } },
+      JoyFormLabel: { styleOverrides: { root: { fontSize: "0.8rem", fontWeight: 600 } } },
+    },
     fontFamily: {
       body: prismGarden.font.body,
       display: prismGarden.font.display,
     },
-    radius: {
-      xs: "0.375rem",
-      sm: "0.5rem",
-      md: prismGarden.radius.control,
-      lg: prismGarden.radius.card,
-      xl: prismGarden.radius.shell,
-    },
+    radius: { sm: prismGarden.radius.control, md: prismGarden.radius.card, lg: prismGarden.radius.shell, xl: "2rem" },
     shadow: {
-      xs: "0 1px 2px rgba(53, 45, 44, 0.05)",
       sm: prismGarden.shadow.soft,
-      md: prismGarden.shadow.soft,
+      md: prismGarden.shadow.raised,
       lg: prismGarden.shadow.raised,
-      xl: prismGarden.shadow.raised,
     },
     colorSchemes: {
       light: {
         palette: {
           background: {
             body: prismGarden.color.canvas,
-            surface: prismGarden.color.surface,
+            surface: alpha(prismGarden.color.surface, 0.8),
             popup: prismGarden.color.surface,
-            level1: prismGarden.color.surfaceSoft,
-            level2: prismGarden.color.stone,
-            level3: prismGarden.color.line,
-            tooltip: prismGarden.color.ink,
           },
-          text: {
-            primary: prismGarden.color.ink,
-            secondary: prismGarden.color.inkMuted,
-            tertiary: "#766D66",
-            icon: prismGarden.color.inkMuted,
+          neutral: {
+            50: prismGarden.color.surface,
+            100: prismGarden.color.surfaceSoft,
+            200: prismGarden.color.stone,
+            300: prismGarden.color.line,
+            500: prismGarden.color.inkMuted,
+            700: prismGarden.color.ink,
+            900: prismGarden.color.ink,
           },
-          divider: prismGarden.color.line,
           focusVisible: prismGarden.color.focus,
           primary: {
             50: shades[50],
@@ -193,36 +145,9 @@ export function getAuraJoyTheme(color: AuraColor, intensity: number = 50) {
             800: shades[800],
             900: shades[900],
             solidBg: selected,
-            solidHoverBg: shades[Math.min(shade + 100, 900)] ?? shades[600],
-            solidActiveBg: shades[Math.min(shade + 200, 900)] ?? shades[700],
-          },
-        },
-      },
-    },
-    components: {
-      JoyButton: {
-        styleOverrides: {
-          root: {
-            minHeight: "44px",
-            borderRadius: prismGarden.radius.control,
-            fontWeight: 600,
-            transition: "background-color 160ms ease, border-color 160ms ease, color 160ms ease",
-          },
-        },
-      },
-      JoyInput: {
-        styleOverrides: {
-          root: {
-            minHeight: "44px",
-            backgroundColor: prismGarden.color.surface,
-            borderColor: prismGarden.color.line,
-          },
-        },
-      },
-      JoySheet: {
-        styleOverrides: {
-          root: {
-            backgroundImage: "none",
+            solidColor: getAuraTheme(color, intensity).palette.getContrastText(selected),
+            solidHoverBg: shades[Math.min(resolveAuraShade(intensity) + 100, 900)],
+            solidActiveBg: shades[Math.min(resolveAuraShade(intensity) + 200, 900)],
           },
         },
       },

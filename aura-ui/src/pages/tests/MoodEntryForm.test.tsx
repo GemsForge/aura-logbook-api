@@ -29,7 +29,7 @@ describe("MoodEntryForm", () => {
     renderWithProviders(<MoodEntryForm />);
 
     expect(
-      screen.getByRole("heading", { name: /log your mood/i })
+      screen.getByRole("heading", { name: /how are you feeling today/i })
     ).toBeInTheDocument();
     expect(screen.getByTestId("mood-entry-form-fields")).toBeInTheDocument();
   });

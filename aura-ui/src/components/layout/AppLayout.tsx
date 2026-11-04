@@ -1,113 +1,60 @@
 import Box from "@mui/joy/Box";
 import Container from "@mui/joy/Container";
+import Link from "@mui/joy/Link";
 import { Footer, NavBar, Sidebar } from ".";
 import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
-import ProfileCard from "../profile/ProfileCard";
 import EditProfileModal from "../profile/EditProfileModal";
+import MobileNavigation from "./MobileNavigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  closeProfileModal,
-  selectIsProfileModalOpen,
-} from "@/store/slices/uiSlice";
+import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 
-/**
- * Root page shell shared by public and authenticated routes.
- *
- * Authenticated pages use semantic grid areas so DOM reading order remains
- * navigation → primary content → profile. CSS repositions the profile beside
- * the content on larger screens while preserving that mobile and assistive-
- * technology order. The skip link targets the focusable `main` landmark.
- */
+/** Shares the aura atmosphere and responsive shell while keeping page content shrinkable. */
 const AppLayout = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated,
+    (state: RootState) => state.auth.isAuthenticated
   );
   const isProfileModalOpen = useAppSelector(selectIsProfileModalOpen);
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        minWidth: 0,
-        bgcolor: "background.body",
-      }}>
-      <a className="skip-link" href="#main-content">Skip to main content</a>
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-        }}>
+    <Box className="prism-page" sx={{ display: "flex", minHeight: "100vh", pb: isAuthenticated ? { xs: "calc(96px + env(safe-area-inset-bottom, 0px))", md: 0 } : 0 }}>
+      <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <Link href="#main-content" sx={{ position: "absolute", left: -10000, "&:focus": { left: 16, top: 16, zIndex: 10 } }}>
+          Skip to main content
+        </Link>
         <NavBar />
 
-        <Container
-          component="main"
-          id="main-content"
-          maxWidth={false}
-          tabIndex={-1}
-          sx={{
-            width: "min(100%, 1440px)",
-            mx: "auto",
-            py: { xs: 2, sm: 3, lg: 4 },
-            px: { xs: 2, sm: 3, lg: 5 },
-            flexGrow: 1,
-          }}>
+        {/* Programmatic focus lets the skip link move keyboard users into the page content. */}
+        <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" sx={{ mt: { xs: 3, md: 5 }, mb: 4, flexGrow: 1, px: { xs: 2, md: 4 } }}>
           {isAuthenticated ? (
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: {
-                  xs: "minmax(0, 1fr)",
-                  md: "17rem minmax(0, 1fr)",
-                },
-                gridTemplateAreas: {
-                  xs: '"navigation" "content" "profile"',
-                  md: '"navigation content" "profile content"',
-                },
-                alignItems: "start",
-                gap: { xs: 2, md: 3, lg: 4 },
-              }}>
-              <Box
-                component="aside"
-                aria-label="Journal destinations"
-                sx={{ gridArea: "navigation", minWidth: 0 }}>
-                <Sidebar />
-              </Box>
-              <Box
-                sx={{
-                  gridArea: "content",
-                  minWidth: 0,
-                  p: { xs: 0, lg: 0.5 },
-                  "& > :first-of-type": { mt: 0 },
-                }}>
+                gridTemplateColumns: { xs: "1fr", md: "188px minmax(0, 1fr)" },
+                gap: { xs: 3, md: 4 },
+              }}
+            >
+              <Box sx={{ gridColumn: { xs: "1", md: "2" }, gridRow: "1", minWidth: 0 }}>
                 <Outlet />
                 <EditProfileModal
                   onClose={() => dispatch(closeProfileModal())}
                   open={isProfileModalOpen}
                 />
               </Box>
-              <Box
-                sx={{
-                  gridArea: "profile",
-                  minWidth: 0,
-                  mt: { xs: 1, md: 0 },
-                }}>
-                <ProfileCard />
+              {/* Mobile destinations stay fixed at the bottom instead of following long page content. */}
+              <Box sx={{ display: { xs: "none", md: "block" }, gridColumn: "1", gridRow: "1" }}>
+                <Sidebar />
               </Box>
             </Box>
           ) : (
-            <Box sx={{ width: "min(100%, 72rem)", mx: "auto", minWidth: 0 }}>
-              <Outlet />
-            </Box>
+            <Outlet />
           )}
         </Container>
 
         <Footer />
+        {isAuthenticated && <MobileNavigation />}
       </Box>
     </Box>
   );

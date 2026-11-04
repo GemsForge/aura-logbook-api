@@ -14,6 +14,7 @@ import type {
 } from "../../features/mood/models/schema/MoodAuth";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
+import { prismGarden } from "@/theme";
 
 const COLORS = [
   "#FF6384",
@@ -103,7 +104,7 @@ export default function MoodPieChart({
             </Pie>
             <Tooltip
               contentStyle={{
-                fontFamily: "Nunito, sans-serif",
+                fontFamily: prismGarden.font.body,
                 fontSize: 14,
               }}
               formatter={(value, name) => [
@@ -114,7 +115,7 @@ export default function MoodPieChart({
             <Legend
               align="center"
               wrapperStyle={{
-                fontFamily: "Nunito, sans-serif",
+                fontFamily: prismGarden.font.body,
                 fontSize: 13,
                 fontWeight: 500,
               }}

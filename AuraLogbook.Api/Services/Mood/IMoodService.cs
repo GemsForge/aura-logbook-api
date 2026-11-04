@@ -11,5 +11,8 @@ namespace AuraLogbook.Api.Services
         Task<(bool Success, string Message)> UpdateMoodAsync(int userId, int moodId, MoodEntryRequest dto);
         Task<List<MoodEntry>> GetEntriesForUserAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
 
+        /// <summary>Returns one mood entry only when it belongs to the supplied user.</summary>
+        Task<MoodEntry?> GetEntryForUserAsync(int userId, int moodId);
+
     }
 }

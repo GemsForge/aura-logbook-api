@@ -8,6 +8,7 @@ erDiagram
     AuraColorDefinitions ||--o{ Users : preferred_by
     ZodiacSigns ||--o{ Users : describes
     Users ||--o{ MoodEntries : records
+    MoodEntries ||--o{ MoodMediaAttachments : has_private_media
     Users ||--o{ ReflectionResponses : writes
     Users ||--o{ WeeklyAuraSummaries : owns
 
@@ -64,6 +65,17 @@ erDiagram
     MoodEntryMoods {
         int MoodEntryId PK,FK
         string MoodKey PK,FK
+    }
+
+    MoodMediaAttachments {
+        string Id PK
+        int UserId
+        int MoodEntryId
+        string StorageKey UK
+        string FileName
+        string ContentType
+        int ByteLength
+        datetime CreatedAt
     }
 
     MoodDefinitions {
@@ -167,5 +179,6 @@ erDiagram
 - `MoodEntries.AuraColor` is currently contextual text rather than a declared foreign key; validate it at the application boundary until a forward migration adds a database constraint.
 - Reflection responses are owned by a user and tied to both a prompt and one of that user's mood entries. The API enforces that ownership relationship.
 - Weekly summaries are unique by the composite `(UserId, WeekStartDate)` key.
+- `MoodMediaAttachments` stores owner-scoped metadata in SQLite; file bytes stay in private filesystem storage. The mood-entry relationship is enforced by the API rather than a SQL foreign key because Production currently uses file-based mood storage.
 - Weekly aura summary and weather snapshot tables exist in migrations, but their complete generation, persistence, and UI journeys must be verified separately before being described as shipped features.
 - Migration history is authoritative. Do not edit an already-applied migration to make this diagram match; add a reviewed forward migration and update the diagram.

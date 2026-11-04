@@ -1,0 +1,145 @@
+{
+  "pathways": [
+    {
+      "id": "mindful",
+      "title": "Mindful Pathway",
+      "description": "For present-moment awareness and emotional reflection.",
+      "prompts": [
+        {
+          "id": "mindful-01",
+          "question": "What am I noticing right now—emotionally, mentally, and physically—without trying to change it?"
+        },
+        {
+          "id": "mindful-02",
+          "question": "What has been taking up the most space in my mind lately, and what might it be asking me to pay attention to?"
+        },
+        {
+          "id": "mindful-03",
+          "question": "Where did I feel most present today? What helped me settle into that moment?"
+        },
+        {
+          "id": "mindful-04",
+          "question": "What emotion have I been avoiding, minimizing, or trying to move past too quickly? What happens if I simply acknowledge it?"
+        },
+        {
+          "id": "mindful-05",
+          "question": "What feels within my control right now, and what am I carrying that I may need to release?"
+        },
+        {
+          "id": "mindful-06",
+          "question": "When did my energy shift today? What happened before the shift, and what did I notice afterward?"
+        },
+        {
+          "id": "mindful-07",
+          "question": "What does my body seem to need from me today—rest, movement, nourishment, quiet, connection, or something else?"
+        },
+        {
+          "id": "mindful-08",
+          "question": "What thought have I been treating as a fact? What other interpretation might also be true?"
+        },
+        {
+          "id": "mindful-09",
+          "question": "If my current energy had a color, texture, temperature, or movement, what would it look and feel like? What might that image be communicating?"
+        },
+        {
+          "id": "mindful-10",
+          "question": "What is one small, intentional choice I can make next that would help me feel more grounded, aligned, or present?"
+        }
+      ]
+    },
+    {
+      "id": "astrology-energy",
+      "title": "Astrology & Energy",
+      "description": "For those drawn to star signs, cosmic cycles, and energetic self-discovery.",
+      "prompts": [
+        {
+          "id": "astrology-energy-01",
+          "question": "How does my zodiac sign reflect the way I experience emotions, relationships, and personal growth? Which traits resonate with me, and which don’t?"
+        },
+        {
+          "id": "astrology-energy-02",
+          "question": "What kind of energy am I bringing into my life right now, and how might it be influencing my thoughts, decisions, and interactions?"
+        },
+        {
+          "id": "astrology-energy-03",
+          "question": "If my current emotional state were represented by a celestial body—the Sun, Moon, or a planet—which would it be, and why?"
+        },
+        {
+          "id": "astrology-energy-04",
+          "question": "What patterns keep appearing in my life, and how might astrology offer a different perspective on what I’m learning from them?"
+        },
+        {
+          "id": "astrology-energy-05",
+          "question": "How do I experience the different phases of the Moon? Do I notice changes in my motivation, emotions, or desire for reflection?"
+        },
+        {
+          "id": "astrology-energy-06",
+          "question": "Which of the four astrological elements—Fire, Earth, Air, or Water—best represents my current energy? What qualities of that element do I recognize in myself?"
+        },
+        {
+          "id": "astrology-energy-07",
+          "question": "What part of my birth chart am I most curious about, and what could exploring its symbolism reveal about how I understand myself?"
+        },
+        {
+          "id": "astrology-energy-08",
+          "question": "Where in my life do I feel energetically aligned, and where do I sense resistance, imbalance, or a need for change?"
+        },
+        {
+          "id": "astrology-energy-09",
+          "question": "If I could set one intention for the next lunar cycle, what would I invite into my life, and what would I be ready to release?"
+        },
+        {
+          "id": "astrology-energy-10",
+          "question": "How can I honor my natural rhythms and personal energy without feeling pressured to follow a particular astrological prediction or expectation?"
+        }
+      ]
+    },
+    {
+      "id": "faith-religion",
+      "title": "Faith & Religion",
+      "description": "For a journey guided by scripture, prayer, and spiritual growth.",
+      "prompts": [
+        {
+          "id": "faith-religion-01",
+          "question": "Where have I experienced God’s presence in my life recently, and how did that moment strengthen or challenge my faith?"
+        },
+        {
+          "id": "faith-religion-02",
+          "question": "What scripture has been speaking to my heart lately, and how can I apply its message to my current circumstances?"
+        },
+        {
+          "id": "faith-religion-03",
+          "question": "What burdens, worries, or uncertainties am I holding onto that I need to surrender through prayer?"
+        },
+        {
+          "id": "faith-religion-04",
+          "question": "How has my faith shaped the way I respond to challenges, disappointments, or unexpected changes in my life?"
+        },
+        {
+          "id": "faith-religion-05",
+          "question": "What am I praying for in this season of my life, and how am I preparing my heart to receive an answer that may differ from my expectations?"
+        },
+        {
+          "id": "faith-religion-06",
+          "question": "Where am I being called to practice greater patience, forgiveness, compassion, or humility in my relationships?"
+        },
+        {
+          "id": "faith-religion-07",
+          "question": "What blessings have I overlooked recently, and how can I become more intentional about expressing gratitude?"
+        },
+        {
+          "id": "faith-religion-08",
+          "question": "Is there an area of my life where my actions are not fully aligned with my spiritual values? What would taking a step toward alignment look like?"
+        },
+        {
+          "id": "faith-religion-09",
+          "question": "How can I strengthen my relationship with God beyond prayer and scripture reading, through service, community, obedience, or everyday acts of love?"
+        },
+        {
+          "id": "faith-religion-10",
+          "question": "If I wrote a letter to God today, what would I want to say honestly—my gratitude, questions, fears, hopes, or things I have struggled to express in prayer?"
+        }
+      ]
+    }
+  ]
+}

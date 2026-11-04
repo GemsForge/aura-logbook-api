@@ -61,21 +61,23 @@ export default function MoodUpdateModal({
       open
       onClose={onClose}
       title="Edit Mood Entry"
+      size="lg"
+      layout="top"
+      contentSx={{ maxHeight: "calc(100vh - 190px)", overflowY: "auto" }}
       actions={
         <>
           <Button onClick={onClose} disabled={loading}>
             Cancel
           </Button>
           <Button
-            onClick={() => {}}
+            onClick={() => (document.getElementById("mood-form") as HTMLFormElement | null)?.requestSubmit()}
             disabled={loading}
-            type="submit"
-            form="mood-form">
+            type="button">
             {loading ? <CircularProgress size={16} /> : "Update"}
           </Button>
         </>
       }>
-        <MoodEntryFormFields entry={entry} onSubmit={handleSubmit} />
+        <MoodEntryFormFields entry={entry} showSubmitButton={false} onSubmit={handleSubmit} />
     </AuraModal>
   );
 }

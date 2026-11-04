@@ -27,7 +27,7 @@ describe("MoodPieChart", () => {
           { mood: "Flowing", percent: 10 },
           { mood: "Weary", percent: 7 },
           { mood: "Tense", percent: 3 },
-          { mood: "Blocked", count: 100 },
+          { mood: "Frustrated", count: 100 },
         ]}
       />
     );

@@ -1,74 +1,30 @@
-// src/components/weather/WeatherCard.tsx
-import React from "react";
-import {
-  Typography,
-  Box,
-  CircularProgress
-} from "@mui/material";
+import Box from "@mui/joy/Box";
+import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
-import { useGetCurrentWeatherQuery } from "../../store/weatherApi";
+import CircularProgress from "@mui/joy/CircularProgress";
+import { useGetCurrentWeatherQuery } from "@/store/weatherApi";
 
 export interface WeatherCardProps {
-  /** You can supply either lat/lon or city/state/country */
-  lat?: number;
-  lon?: number;
-  city?: string;
-  state?: string;
-  country?: string;
+  /** Choose coordinates or a city query to retrieve current conditions. */
+  lat?: number; lon?: number; city?: string; state?: string; country?: string;
 }
 
-
-const WeatherCard: React.FC<WeatherCardProps> = ({
-    city,
-    state,
-    country,
-    lat,
-    lon,
-}) => {
-    const {
-            data: weather,
-            isLoading,
-            isError,
-          } = useGetCurrentWeatherQuery({ lat, lon, city, state, country });
-
-          if (isLoading) return <CircularProgress size={32} />;
-          if (isError || !weather)
-              return (
-                <Typography color="error" variant="body2">
-                  Unable to load weather.
-                </Typography>
-              );
-  // OpenWeather icon URL pattern
-  const iconUrl = `/weather-icons/icons/${weather.iconCode}.png`;  
-
- console.log(weather.iconCode);
+/** Keeps weather loading, failure and current conditions inside one consistent card. */
+export default function WeatherCard({ city, state, country, lat, lon }: WeatherCardProps) {
+  const { data: weather, isLoading, isError, refetch } = useGetCurrentWeatherQuery({ lat, lon, city, state, country });
   return (
-    <Sheet variant="outlined" sx={{ display: "flex", alignItems: "center", p: 2, mb: 2 }}>
-      <Box
-        component="img"
-        src={iconUrl}
-        alt={weather.description}
-        sx={{ width: 64, height: 64, mr: 2 }}
-      />
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h5">
-          {Math.round(weather.temperature)}°{/* adjust unit if needed */}
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          color="text.secondary"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {weather.description}
-        </Typography>
-        {(city || state || country) && (
-          <Typography variant="body2" color="text.secondary">
-            {[city, state, country].filter(Boolean).join(", ")}
-          </Typography>
-        )}
-      </Box>
+    <Sheet className="aura-panel" sx={{ p: 3 }}>
+      <Typography className="aura-eyebrow" color="neutral">Outside your window</Typography>
+      {isLoading ? <Box role="status" aria-label="Loading weather" sx={{ py: 3 }}><CircularProgress size="sm" /></Box>
+        : isError || !weather ? <Box sx={{ py: 2 }}><Typography role="alert" level="body-sm" color="danger">Unable to load weather.</Typography><Typography component="button" onClick={() => refetch()} sx={{ mt: 1, border: 0, cursor: "pointer", bgcolor: "transparent", textDecoration: "underline" }}>Try again</Typography></Box>
+        : <>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1 }}>
+            <Typography level="h3" sx={{ fontSize: "4rem", fontWeight: 400, letterSpacing: "-.06em" }}>{Math.round(weather.temperature)}°</Typography>
+            <Box component="img" src={`/weather-icons/icons/${weather.iconCode}.png`} alt={weather.description} sx={{ width: 76, height: 76 }} />
+          </Box>
+          <Typography level="title-sm">{weather.description}</Typography>
+          <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>{[city, state, country].filter(Boolean).join(", ")}</Typography>
+        </>}
     </Sheet>
   );
-};
-
-export default WeatherCard;
+}

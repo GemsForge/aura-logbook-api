@@ -1,8 +1,16 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import type { TextareaHTMLAttributes } from "react";
 import { renderWithProviders } from "@/test/testUtilities";
 import MoodEntryFormFields from "./MoodEntryFormFields";
+
+// Keep the form test focused on field wiring; the editor package's CSS is covered by the browser build.
+vi.mock("@uiw/react-md-editor", () => ({
+  default: ({ value, onChange, textareaProps }: { value: string; onChange: (value: string) => void; textareaProps?: TextareaHTMLAttributes<HTMLTextAreaElement> }) => (
+    <textarea value={value} onChange={(event) => onChange(event.target.value)} {...textareaProps} />
+  ),
+}));
 
 describe("MoodEntryFormFields", () => {
   it("selects a mood and submits the normalized date and trimmed comment", async () => {
@@ -11,6 +19,7 @@ describe("MoodEntryFormFields", () => {
 
     renderWithProviders(<MoodEntryFormFields onSubmit={onSubmit} />);
 
+    expect(document.getElementById("mood-form")).toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
     await user.type(screen.getByRole("textbox"), "  A good day  ");
     await user.click(screen.getByRole("button", { name: "Submit Entry" }));

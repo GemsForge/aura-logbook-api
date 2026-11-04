@@ -10,7 +10,7 @@ export type MoodType =
   | "Flowing"        // Motivated: creative flow & inspiration
   | "Weary"       // Tired: need for rest & stability
   | "Tense"          // Stressed: survival tension
-  | "Blocked"        // Frustrated: stuck energy
+  | "Frustrated"     // Frustrated: stuck energy
   | "Restless"       // Anxious: overactive mind
   | "Disconnected"   // Lonely: closed-off heart
   | "Heavy"          // Sad: emotional heaviness
@@ -31,7 +31,7 @@ export const MoodTypes: MoodType[] = [
   "Flowing",
   "Weary",
   "Tense",
-  "Blocked",
+  "Frustrated",
   "Restless",
   "Disconnected",
   "Heavy",

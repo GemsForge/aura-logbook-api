@@ -40,6 +40,7 @@ describe("NavBar", () => {
       "href",
       "/dashboard",
     );
+    fireEvent.click(screen.getByRole("button", { name: "Open profile menu" }));
     expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Login" })).not.toBeInTheDocument();
 

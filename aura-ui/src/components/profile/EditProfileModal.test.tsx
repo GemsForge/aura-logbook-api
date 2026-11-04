@@ -77,7 +77,7 @@ describe("EditProfileModal", () => {
     ).toBeInTheDocument();
   });
 
-  it("saves a persisted profile with no avatar and a percentage intensity", async () => {
+  it("saves the newly selected aura color with a percentage intensity", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     mockGetCurrentUser.mockReturnValue({
@@ -92,6 +92,9 @@ describe("EditProfileModal", () => {
 
     renderWithProviders(<EditProfileModal open onClose={onClose} />);
 
+    await user.click(await screen.findByRole("combobox", { name: "Aura Color" }));
+    await user.click(screen.getByRole("option", { name: /pink/i }));
+
     await user.click(
       await screen.findByRole("button", { name: "Save Changes" })
     );
@@ -101,7 +104,7 @@ describe("EditProfileModal", () => {
         expect.objectContaining({
           id: 1,
           avatar: "",
-          auraColor: "blue",
+          auraColor: "pink",
           auraIntensity: 50,
         })
       )

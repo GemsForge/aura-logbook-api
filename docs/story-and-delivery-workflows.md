@@ -30,5 +30,18 @@ The repository token handles issue, pull request, branch, and contents operation
 
 ## Verification
 
+## PO story metadata contract
+
+Before creating a story, the PO must inspect Aura Logbook's current GitHub
+milestones and configured Project. The selected milestone is repository-local
+and must be passed explicitly to `Scripts/create-github-story.mjs` with
+`--milestone NUMBER`; a milestone from another repository must never be used.
+After creation, verify the issue's milestone, labels, assignees, relationships,
+and Project membership. The Scrum Master may add story points, priority,
+iteration, and status afterward.
+
+QA may verify work and move Project status to `QA`, but QA must not close the
+working issue. Issue closure and release remain separate human-approved actions.
+
 Before opening a PR, run the repository's tests, build, lint, and the commit-policy checks. The issue remains the source of truth when automation and event arrival order disagree.
 undefined

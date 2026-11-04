@@ -66,15 +66,19 @@ export function LoginForm({ showTitle }: LoginFormProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f9f9f9",
+        minHeight: "min(680px, calc(100vh - 150px))",
+        px: { xs: 0, sm: 2 },
       }}
     >
-      <Sheet variant="outlined" sx={{ p: 4, width: 400, borderRadius: "md", boxShadow: "md" }}>
+      <Box sx={{ display: { xs: "none", md: "flex" }, flex: 1, flexDirection: "column", alignItems: "center", p: 7, maxWidth: 500 }}><Box aria-hidden="true" className="aura-orb" sx={{ width: 220, mb: 8 }} /><Typography level="h2" sx={{ fontSize: "3.3rem", fontWeight: 400, letterSpacing: "-.05em", lineHeight: 1.05 }}>Your world inside.<br />A little clearer.</Typography><Typography level="body-md" color="neutral" sx={{ mt: 2 }}>A quiet ritual. A more connected you.</Typography></Box>
+      <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 3, sm: 5 }, width: "100%", maxWidth: 440, flexShrink: 0, boxSizing: "border-box" }}>
+        <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 2 }}>Aura Logbook / Your own little universe</Typography>
+        {!showTitle && <Typography level="h1" sx={{ fontSize: "3rem", fontWeight: 400, letterSpacing: "-.05em", lineHeight: 1, mb: 3 }}>Make yourself at home.</Typography>}
         {showTitle && (
-          <Typography level="h3" sx={{ mb: 2, textAlign: "center" }}>
-            Sign In
-          </Typography>
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Typography level="h1" sx={{ fontSize: "3rem", fontWeight: 400, letterSpacing: "-0.05em", lineHeight: 1 }}>Welcome back · Sign in</Typography>
+            <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>A small pause can change the shape of a day.</Typography>
+          </Box>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -103,7 +107,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
             variant="contained"
             color="primary"
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, minHeight: 48 }}
             disabled={loading}>
             {loading ? <CircularProgress size="md" /> : "Login"}
           </Button>
@@ -113,7 +117,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           variant="text"
           size="small"
           onClick={() => setForgotPasswordOpen(true)}
-          sx={{ mt: 1, textTransform: "none" }}>
+          sx={{ mt: 1, textTransform: "none", color: "neutral.600" }}>
           Forgot password?
         </Button>
 

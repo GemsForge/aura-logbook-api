@@ -2,46 +2,34 @@ import Stack from "@mui/joy/Stack";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import { Link, useLocation } from "react-router-dom";
-import HomeRounded from "@mui/icons-material/HomeRounded";
-import EditNoteRounded from "@mui/icons-material/EditNoteRounded";
-import AutoStoriesRounded from "@mui/icons-material/AutoStoriesRounded";
-import { prismGarden } from "@/theme";
+import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import EditNoteOutlined from "@mui/icons-material/EditNoteOutlined";
+import MenuBookOutlined from "@mui/icons-material/MenuBookOutlined";
+import InsightsOutlined from "@mui/icons-material/InsightsOutlined";
 
 const navItems = [
-  { label: "Today", path: "/dashboard", icon: HomeRounded },
-  { label: "Log mood", path: "/log-mood", icon: EditNoteRounded },
-  { label: "Reflections", path: "/history", icon: AutoStoriesRounded },
+  { label: "Today", path: "/dashboard", icon: HomeOutlined },
+  { label: "Log mood", path: "/log-mood", icon: EditNoteOutlined },
+  { label: "Reflections", path: "/history", icon: MenuBookOutlined },
+  { label: "Insights", path: "/dashboard#insights", icon: InsightsOutlined },
 ];
 
-/**
- * Authenticated journal navigation.
- *
- * The destinations flow horizontally and wrap on small screens, then become a
- * vertical rail at the desktop breakpoint. Active-route state is conveyed by
- * both styling and `aria-current`, never by color alone.
- */
+/** Keeps journal destinations in a translucent rail that reflows below mobile content. */
 const Sidebar = () => {
   const location = useLocation();
+  const isCurrentDestination = (label: string, path: string) => {
+    if (label === "Insights") return location.pathname === "/dashboard" && location.hash === "#insights";
+    if (label === "Today") return location.pathname === path && location.hash !== "#insights";
+    return location.pathname === path;
+  };
 
   return (
-    <Stack
-      component="nav"
-      aria-label="Journal navigation"
-      direction={{ xs: "row", md: "column" }}
-      spacing={1}
-      sx={{
-        flexWrap: { xs: "wrap", md: "nowrap" },
-        alignItems: "stretch",
-        p: 1,
-        bgcolor: "rgba(255, 252, 247, 0.7)",
-        border: "1px solid",
-        borderColor: prismGarden.color.line,
-        borderRadius: prismGarden.radius.card,
-        boxShadow: prismGarden.shadow.soft,
-      }}>
+    <Stack component="nav" aria-label="Journal navigation" spacing={1} sx={{ p: 1, mt: { xs: 1, md: 2 }, position: { md: "sticky" }, top: { md: 112 }, borderRadius: "lg", backgroundColor: "rgba(255,254,250,.45)" }}>
+      <Typography className="aura-eyebrow" level="body-xs" sx={{ px: 1.5, py: 1, color: "neutral.500" }}>
+        Your logbook
+      </Typography>
       {navItems.map(({ label, path, icon: Icon }) => {
-        const isCurrent = location.pathname === path;
-
+        const isCurrent = isCurrentDestination(label, path);
         return (
           <Sheet
             component={Link}
@@ -50,30 +38,20 @@ const Sidebar = () => {
             aria-current={isCurrent ? "page" : undefined}
             key={label}
             sx={{
+              bgcolor: isCurrent ? "var(--aura-wash)" : "transparent",
+              border: "1px solid",
+              borderColor: isCurrent ? "var(--aura-line)" : "transparent",
+              borderRadius: "md",
+              transition: "background-color 0.2s, border-color 0.2s",
               display: "flex",
               alignItems: "center",
               gap: 1.25,
-              flex: { xs: "1 1 8.5rem", md: "0 0 auto" },
-              minHeight: 48,
-              px: 1.5,
-              py: 1,
-              bgcolor: isCurrent ? "rgba(200, 121, 97, 0.13)" : "transparent",
-              border: "1px solid",
-              borderColor: isCurrent ? prismGarden.color.rose : "transparent",
-              borderRadius: prismGarden.radius.control,
-              color: prismGarden.color.ink,
-              transition: "background-color 160ms ease, border-color 160ms ease",
               textDecoration: "none",
-              "&:hover": { bgcolor: prismGarden.color.surfaceSoft },
-              "&:focus-visible": {
-                outline: `3px solid ${prismGarden.color.focus}`,
-                outlineOffset: 2,
-              },
-            }}>
-            <Icon aria-hidden="true" fontSize="small" />
-            <Typography
-              level="title-sm"
-              sx={{ fontWeight: isCurrent ? 700 : 500 }}>
+              "&:hover": { bgcolor: "var(--aura-wash)", borderColor: "var(--aura-line)" },
+            }}
+          >
+            <Icon sx={{ ml: 1.25, color: isCurrent ? "primary.700" : "neutral.500", fontSize: 20 }} />
+            <Typography level="title-md" sx={{ py: 1.25, fontWeight: isCurrent ? 700 : 500, color: "neutral.800" }}>
               {label}
             </Typography>
           </Sheet>

@@ -3,22 +3,22 @@
  *
  * These values define the stable application shell: warm neutral surfaces,
  * readable text, accessible focus treatment, restrained jewel accents, and
- * shared geometry. User-selected aura colors remain contextual data and must
- * not replace these shell colors across large surfaces.
+ * shared geometry. User-selected aura colors add translucent ambient glows over
+ * the neutral canvas while text and popup surfaces retain their readable foundations.
  *
  * Keep this object independent of MUI so the same vocabulary can be mapped to
  * the future SwiftUI shell without importing web framework details.
  */
 export const prismGarden = {
   color: {
-    canvas: "#F7F2EA",
-    surface: "#FFFCF7",
-    surfaceSoft: "#EDE5D9",
+    canvas: "#F5F4EF",
+    surface: "#FFFEFA",
+    surfaceSoft: "#EBEDE6",
     stone: "#DED3C3",
-    ink: "#352D2C",
-    inkMuted: "#665D56",
-    line: "#D9CEC0",
-    focus: "#654A5D",
+    ink: "#242B27",
+    inkMuted: "#626B64",
+    line: "#D8DDD4",
+    focus: "#3E5948",
     sage: "#87917B",
     rose: "#C79A98",
     terracotta: "#C87961",
@@ -34,9 +34,9 @@ export const prismGarden = {
       '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif',
   },
   radius: {
-    control: "0.625rem",
-    card: "1rem",
-    shell: "1.5rem",
+    control: "0.9rem",
+    card: "1.5rem",
+    shell: "2rem",
   },
   shadow: {
     soft: "0 1px 2px rgba(53, 45, 44, 0.06), 0 12px 36px rgba(95, 76, 61, 0.08)",

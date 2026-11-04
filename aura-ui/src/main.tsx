@@ -16,13 +16,18 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ToastProvider } from "./hooks/useToast";
 import { useCurrentUserQuery } from "./store/hooks/useCurrentUserQuery";
 import "./index.css";
+import { useAppSelector } from "./store/hooks";
+import { selectCurrentUser } from "./store/slices/authSlice";
+import { normalizeAuraIntensity, resolveAuraColor } from "./theme/auraTheme";
 
 function ThemedApp() {
  
-  const { data: user, isLoading } = useCurrentUserQuery();
+  const { isLoading } = useCurrentUserQuery();
+  const user = useAppSelector(selectCurrentUser);
   
-  const auraColor     = user?.auraColor     ?? "blue";
- const auraIntensity = user?.auraIntensity ?? 50;
+  // Profile mutations update Redux immediately, making saved preferences visible across both themes.
+  const auraColor = resolveAuraColor(user?.auraColor);
+  const auraIntensity = normalizeAuraIntensity(user?.auraIntensity);
 
   const theme = useMemo(
     () => getAuraTheme(auraColor, auraIntensity),

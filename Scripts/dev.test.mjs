@@ -86,17 +86,16 @@ test("service plan rejects invalid port configuration", () => {
   );
 });
 
-test("development plan moves off an occupied default API port and keeps the UI aligned", async () => {
+test("development plan rejects an occupied default port so OAuth callbacks stay on the same API", async () => {
   const occupiedPort = await findAvailablePort(5200);
   const blocker = await import("node:net").then(({ default: net }) => new Promise(resolve => {
     const server = net.createServer().listen(occupiedPort, "127.0.0.1", () => resolve(server));
   }));
   try {
-    const plan = await createDevelopmentPlan({ root: "/repo", platform: "linux", env: {}, defaultPort: occupiedPort });
-    const apiUrl = plan[1].env.VITE_API_BASE_URL.replace(/\/api$/, "");
-    assert.equal(plan[0].args.at(-1), apiUrl);
-    assert.notEqual(plan[1].env.VITE_API_BASE_URL, `http://localhost:${occupiedPort}/api`);
-    assert.match(plan[0].notice, /AURA_API_PORT is busy/);
+    await assert.rejects(
+      createDevelopmentPlan({ root: "/repo", platform: "linux", env: {}, defaultPort: occupiedPort }),
+      new RegExp(`default API port ${occupiedPort} is already in use`),
+    );
   } finally {
     await new Promise(resolve => blocker.close(resolve));
   }

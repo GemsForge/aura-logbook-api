@@ -1,95 +1,29 @@
 :root {
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #352d2c;
-  background: #f7f2ea;
+  color: #2e2722;
+  background: #f4eee5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  --garden-canvas: #f7f2ea;
-  --garden-surface: #fffcf7;
-  --garden-surface-soft: #ede5d9;
-  --garden-stone: #ded3c3;
-  --garden-ink: #352d2c;
-  --garden-ink-muted: #665d56;
-  --garden-line: #d9cec0;
-  --garden-focus: #654a5d;
-  --garden-sage: #87917b;
-  --garden-rose: #c79a98;
-  --garden-terracotta: #c87961;
-  --garden-amber: #d39a4a;
-  --garden-blue-gray: #91a3ac;
-  --prism-orchid: #815f7e;
-  --prism-berry: #7f263f;
-  --prism-turquoise: #2d7180;
 }
 
-/* Predictable sizing is required for the 320px mobile/reflow anchor. */
-* {
-  box-sizing: border-box;
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, a, input, textarea, select { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid var(--aura-accent, #3e5948);
+  outline-offset: 3px;
 }
+#root { min-height: 100vh; }
 
-html {
-  min-width: 0;
-  min-height: 100%;
-  background: var(--garden-canvas);
-}
-
-body {
-  margin: 0;
-  min-width: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background:
-    radial-gradient(circle at 8% 2%, rgba(211, 154, 74, 0.09), transparent 24rem),
-    radial-gradient(circle at 96% 12%, rgba(135, 145, 123, 0.1), transparent 28rem),
-    var(--garden-canvas);
-}
-
-#root {
-  width: 100%;
-  min-width: 0;
-  min-height: 100vh;
-}
-
-a {
-  color: inherit;
-}
-
-::selection {
-  color: var(--garden-surface);
-  background: var(--garden-focus);
-}
-
-/* Hidden until keyboard focus; provides direct access to the main landmark. */
-.skip-link {
-  position: fixed;
-  z-index: 2000;
-  top: 0.75rem;
-  left: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: var(--garden-surface);
-  background: var(--garden-focus);
-  border-radius: 0.625rem;
-  transform: translateY(-180%);
-  transition: transform 120ms ease;
-}
-
-.skip-link:focus {
-  transform: translateY(0);
-  outline: 3px solid var(--garden-surface);
-  outline-offset: 2px;
-}
-
-/* Respect the user's motion preference across both MUI component systems. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* Luminous Journal: shared surface, type and orbital artwork roles across all routes. */
+.aura-eyebrow { font-size: .67rem !important; letter-spacing: .19em !important; text-transform: uppercase; font-weight: 700 !important; }
+.aura-panel { background: var(--aura-panel, rgba(255,254,250,.8)) !important; border: 1px solid var(--aura-line, #d8ddd4) !important; border-radius: 28px !important; box-shadow: 0 16px 50px rgba(34,44,39,.045); backdrop-filter: blur(18px); }
+.aura-dark-panel { background: var(--aura-dark, #222c27) !important; color: #fffef8 !important; border-radius: 28px !important; border: 1px solid rgba(255,255,255,.16); position: relative; overflow: hidden; }
+.aura-dark-panel::after { content: ""; position: absolute; width: 270px; height: 270px; border: 1px solid rgba(255,255,255,.13); border-radius: 50%; right: -120px; bottom: -150px; pointer-events: none; }
+.aura-page-heading { font-size: clamp(2.7rem, 5vw, 4.8rem) !important; letter-spacing: -.055em !important; line-height: 1.02 !important; font-weight: 400 !important; overflow-wrap: anywhere; }
+.aura-orb { position: relative; aspect-ratio: 1; width: min(100%, 360px); border-radius: 50%; background: radial-gradient(circle at 33% 28%, rgba(255,255,255,.94), var(--aura-glow, #b9cbd8) 47%, var(--aura-accent, #87a4ba) 100%); box-shadow: inset -20px -30px 60px rgba(34,44,39,.12), inset 8px 8px 26px rgba(255,255,255,.75), 0 25px 90px var(--aura-glow, #b9cbd8); }
+.aura-orb::before, .aura-orb::after { content: ""; position: absolute; border: 1px solid var(--aura-line, #b9cbd8); border-radius: 50%; inset: -12%; transform: rotate(-28deg) scaleY(.48); }
+.aura-orb::after { inset: -22%; transform: rotate(32deg) scaleY(.6); }
+.aura-brand-dot { display: inline-block; width: 22px; height: 28px; margin-right: 10px; vertical-align: middle; border-radius: 60% 40% 55% 45%; background: var(--aura-dark, #222c27); box-shadow: 0 3px 18px var(--aura-glow); transform: rotate(18deg); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
