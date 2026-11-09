@@ -15,7 +15,7 @@ name: Sync issue and pull request metadata
 # 7. A merged same-repository pull request deletes its source branch after
 #    metadata and project reconciliation; closed-but-unmerged and fork branches remain.
 #
-# Lifecycle policy (uses the existing Status options in the @GemsForge's Aura Log (#6) project)
+# Lifecycle policy (uses the existing Status options in Aura Logbook v1 Project #9)
 # - Development branch created: In progress; branch name identifies the issue.
 # - Open PR (including draft): QA; issue and PR receive that status.
 # - Approved Codex Review: In review; human approval is still required to merge.
@@ -282,13 +282,13 @@ jobs:
               });
 
               core.notice(
-              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and project @GemsForge's Aura Log (#6).`,
+              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and Aura Logbook v1 Project #9.`,
               );
             }
             const projectsToken = process.env.PROJECTS_TOKEN;
             if (!projectsToken) {
               core.setFailed(
-                "PROJECTS_TOKEN is required to synchronize the @GemsForge's Aura Log (#6) project.",
+                "PROJECTS_TOKEN is required to synchronize Aura Logbook v1 Project #9.",
               );
               return;
             }
@@ -325,7 +325,7 @@ jobs:
                 const message = error instanceof Error ? error.message : String(error);
                 if (/(Resource not accessible|GraphQL HTTP (401|403)|\b(401|403)\b)/i.test(message)) {
                   core.setFailed(
-        "PROJECTS_TOKEN cannot access user-owned Projects. Ensure it is a PAT owned by GemsForge with Projects read/write permission and repository access to GemsForge/Aura Logbook; do not use GITHUB_TOKEN.",
+                    "PROJECTS_TOKEN cannot access user-owned Projects. Ensure it is a PAT owned by GemsForge with Projects read/write permission and repository access to GemsForge/Aura Logbook; do not use GITHUB_TOKEN.",
                   );
                 }
                 throw error;
@@ -358,7 +358,7 @@ jobs:
             const visibleProjects = projectData.user?.projectsV2?.nodes ?? [];
             const project = visibleProjects.find(
               (candidate) =>
-                candidate.number === 6 && candidate.title?.trim() === "@GemsForge's Aura Log",
+                candidate.number === 9 && candidate.title?.trim() === "Aura Logbook v1",
             );
 
             if (!project) {
@@ -367,7 +367,7 @@ jobs:
                   .map((candidate) => `#${candidate.number} ${candidate.title}`)
                   .join(", ") || "none";
               core.setFailed(
-    `PROJECTS_TOKEN authenticated as ${projectData.viewer?.login ?? "unknown"} but could not see user project @GemsForge's Aura Log (#6) (@GemsForge's Aura Log (#6) project). Visible user projects: ${visibleProjectSummary}. Confirm the repository secret contains a classic PAT generated for GemsForge with both project and repo scopes.`,
+                    `PROJECTS_TOKEN authenticated as ${projectData.viewer?.login ?? "unknown"} but could not see user project Aura Logbook v1 Project #9. Visible user projects: ${visibleProjectSummary}. Confirm the repository secret contains a classic PAT generated for GemsForge with both project and repo scopes.`,
               );
               return;
             }
@@ -426,7 +426,7 @@ jobs:
                 fieldValues: { nodes: [] },
               };
               core.notice(
-                `Added issue #${issueNumber} to the @GemsForge's Aura Log (#6) project.`,
+                `Added issue #${issueNumber} to Aura Logbook v1 Project #9.`,
               );
             }
 
@@ -525,10 +525,10 @@ jobs:
                 pullRequest.merged ? "Merged" : pullRequest.state === "closed" ? "Done" : desiredStatus);
 
             core.notice(
-              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and project @GemsForge's Aura Log (#6).`,
+              `Synchronized PR #${pullRequest.number} from issue #${issueNumber}: ${issueLabels.length} source labels, ${issueAssignees.length} source assignees, milestone ${issue.milestone?.title ?? "preserved"}, and Aura Logbook v1 Project #9.`,
             );
             } else {
-              core.notice(`Issue #${issueNumber} is in project @GemsForge's Aura Log (#6).`);
+              core.notice(`Issue #${issueNumber} is in Aura Logbook v1 Project #9.`);
             }
 
             // Remove only the repository branch that produced a merged PR.

@@ -16,6 +16,7 @@ import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/
 import { auraPalettes } from "@/theme/auraTheme";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
+import { useGetMoodCombinationInterpretationQuery } from "@/store/auraApi";
 import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
 import MDEditor from "@uiw/react-md-editor";
 
@@ -31,6 +32,13 @@ const auraOrbitPositions = [
   [50, 9], [77, 18], [88, 42], [81, 71], [57, 88],
   [29, 85], [12, 65], [12, 37], [27, 15],
 ] as const;
+
+/** Maps the persisted pathway label to the API SpiritualPathway enum key. */
+const pathwayKeyByUserPathway: Record<string, number> = {
+  Mindfulness: 0,
+  Energy: 1,
+  Faith: 2,
+};
 
 type JournalingPrompt = { id: string; question: string };
 type JournalingPromptPathway = { id: string; prompts: JournalingPrompt[] };
@@ -84,6 +92,18 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   }, [entry, reset]);
 
   const selectedMoods = watch("moods");
+  const pathwayKey = pathwayKeyByUserPathway[currentUser?.selectedPathway ?? "Mindfulness"] ?? 0;
+  const interpretationEligible = selectedMoods.length >= 2 && selectedMoods.length <= 3;
+  const {
+    currentData: interpretation,
+    isError: interpretationError,
+    isFetching: interpretationLoading,
+    isSuccess: interpretationLoaded,
+    refetch: refetchInterpretation,
+  } = useGetMoodCombinationInterpretationQuery(
+    { moods: selectedMoods, pathwayKey },
+    { skip: !currentUser || !interpretationEligible },
+  );
   const promptPathwayId = promptPathwayByUserPathway[currentUser?.selectedPathway ?? "Mindfulness"] ?? "mindful";
   const promptPathway = (journalingPrompts.pathways as JournalingPromptPathway[]).find(({ id }) => id === promptPathwayId);
   const promptIndex = (dayjs().month() + dayjs().date()) % (promptPathway?.prompts.length || 1);
@@ -243,6 +263,26 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           </Typography>
         )}
       </Box>
+
+      {interpretationEligible && currentUser && (
+        <Sheet variant="soft" sx={{ p: { xs: 1.75, sm: 2.25 }, borderRadius: "lg", border: "1px solid", borderColor: "primary.outlinedBorder" }}>
+          <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.14em", color: "primary.700", fontWeight: 700 }}>
+            Your pathway reflection
+          </Typography>
+          {interpretationLoading && <Typography role="status" level="body-sm" sx={{ mt: 0.75 }}>Finding a reflection for this mood mix…</Typography>}
+          {interpretationError && (
+            <Typography role="alert" level="body-sm" color="danger" sx={{ mt: 0.75 }}>
+              This reflection couldn’t load. <Button variant="plain" onClick={() => refetchInterpretation()}>Try again</Button>
+            </Typography>
+          )}
+          {!interpretationLoading && !interpretationError && interpretation && (
+            <Typography level="body-md" sx={{ mt: 0.75, whiteSpace: "pre-wrap" }}>{interpretation.interpretation}</Typography>
+          )}
+          {interpretationLoaded && !interpretationLoading && !interpretation && !interpretationError && (
+            <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>There isn’t a reflection for this combination yet.</Typography>
+          )}
+        </Sheet>
+      )}
 
       <Divider />
       <Controller
