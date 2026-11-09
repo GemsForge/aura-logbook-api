@@ -5,7 +5,7 @@ import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { MoodMediaApi, type MoodMediaAttachment } from "@/api/MoodMediaApi";
 import { MoodApi } from "@/api/MoodApi";
 import { AuraButton } from "@/components/ui/AuraButton";
@@ -164,11 +164,35 @@ function GalleryTile({ photo, onOpen }: { photo: GalleryPhoto; onOpen: () => voi
   </Sheet>;
 }
 
-/** Loads private image bytes and revokes the temporary object URL when the viewer closes. */
+/** Defers thumbnail downloads until near the viewport and releases their object URLs outside it; lightbox images load immediately. */
 function PrivatePhoto({ photo, thumbnail }: { photo: GalleryPhoto; thumbnail: boolean }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(!thumbnail);
+  const imageRegionRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
+    if (!thumbnail) return;
+    const target = imageRegionRef.current;
+    if (!target) return;
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) {
+        setImageUrl(null);
+        setFailed(false);
+      }
+      setShouldLoad(entry.isIntersecting);
+    }, { rootMargin: "240px 0px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [thumbnail]);
+
+  useEffect(() => {
+    if (!shouldLoad) return;
     let active = true;
     let objectUrl: string | null = null;
     MoodMediaApi.getContent(photo.entry.id, photo.attachment.id).then((blob) => {
@@ -177,10 +201,13 @@ function PrivatePhoto({ photo, thumbnail }: { photo: GalleryPhoto; thumbnail: bo
       else URL.revokeObjectURL(objectUrl);
     }).catch(() => { if (active) setFailed(true); });
     return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [photo.attachment.id, photo.entry.id]);
-  return imageUrl
-    ? <Box component="img" src={imageUrl} alt={thumbnail ? photo.attachment.fileName : `${photo.entry.moods.join(", ")} mood photo`} sx={{ display: "block", width: "100%", height: thumbnail ? { xs: 132, sm: 168 } : "min(66vh, 720px)", objectFit: "contain", backgroundColor: "var(--aura-dark, #222c27)" }} />
-    : <Box role={failed ? "img" : "status"} aria-label={failed ? "Photo unavailable" : "Loading photo"} sx={{ display: "grid", placeItems: "center", width: "100%", height: thumbnail ? { xs: 132, sm: 168 } : "min(66vh, 720px)", backgroundColor: "var(--aura-wash, rgba(135,164,186,.15))" }}><Typography color={failed ? "danger" : "neutral"}>{failed ? "Photo unavailable" : "Loading photo…"}</Typography></Box>;
+  }, [photo.attachment.id, photo.entry.id, shouldLoad]);
+  const loadingLabel = shouldLoad ? "Loading photo" : "Photo preview loads as you scroll";
+  return <Box ref={thumbnail ? imageRegionRef : undefined} sx={{ display: "grid", placeItems: "center", width: "100%", height: thumbnail ? { xs: 132, sm: 168 } : "min(66vh, 720px)", backgroundColor: imageUrl ? "var(--aura-dark, #222c27)" : "var(--aura-wash, rgba(135,164,186,.15))" }}>
+    {imageUrl
+      ? <Box component="img" src={imageUrl} alt={thumbnail ? photo.attachment.fileName : `${photo.entry.moods.join(", ")} mood photo`} sx={{ display: "block", width: "100%", height: "100%", objectFit: "contain" }} />
+      : <Box role={failed || !shouldLoad ? "img" : "status"} aria-label={failed ? "Photo unavailable" : loadingLabel} sx={{ display: "grid", placeItems: "center", width: "100%", height: "100%" }}><Typography color={failed ? "danger" : "neutral"}>{failed ? "Photo unavailable" : shouldLoad ? "Loading photo…" : "Preview loads as you scroll"}</Typography></Box>}
+  </Box>;
 }
 
 /** Displays mood, date, and a visibly truncated optional reflection beneath the expanded image. */
