@@ -25,5 +25,4 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .aura-orb { position: relative; aspect-ratio: 1; width: min(100%, 360px); border-radius: 50%; background: radial-gradient(circle at 33% 28%, rgba(255,255,255,.94), var(--aura-glow, #b9cbd8) 47%, var(--aura-accent, #87a4ba) 100%); box-shadow: inset -20px -30px 60px rgba(34,44,39,.12), inset 8px 8px 26px rgba(255,255,255,.75), 0 25px 90px var(--aura-glow, #b9cbd8); }
 .aura-orb::before, .aura-orb::after { content: ""; position: absolute; border: 1px solid var(--aura-line, #b9cbd8); border-radius: 50%; inset: -12%; transform: rotate(-28deg) scaleY(.48); }
 .aura-orb::after { inset: -22%; transform: rotate(32deg) scaleY(.6); }
-.aura-brand-dot { display: inline-block; width: 22px; height: 28px; margin-right: 10px; vertical-align: middle; border-radius: 60% 40% 55% 45%; background: var(--aura-dark, #222c27); box-shadow: 0 3px 18px var(--aura-glow); transform: rotate(18deg); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
