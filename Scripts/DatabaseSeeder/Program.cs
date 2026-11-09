@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Data.Database;
 
 SQLitePCL.Batteries_V2.Init();
 var options = ParseArguments(args);
@@ -114,12 +115,15 @@ var zodiacPath = Path.GetFullPath(options.GetValueOrDefault("zodiac", "AuraLogbo
 var moodCount = await SeedMoodsAsync(connection, moodsPath, userIdMap);
 await SeedReferenceDataAsync(connection);
 var zodiacCount = await SeedZodiacAsync(connection, zodiacPath);
+// Import curated mood-combination reflections only after migrations and pathway reference rows exist.
+var combinationsPath = Path.GetFullPath(options.GetValueOrDefault("combinations", "aura-ui/data/aura_logbook_mood_combinations.json"));
+var combinationImport = await MoodCombinationImporter.ImportAsync(connection, combinationsPath);
 var reportPath = Path.GetFullPath(options.GetValueOrDefault("report", "AuraLogbook.Api/Data/seed-reconciliation.json"));
 var report = new
 {
     generatedAt = DateTime.UtcNow,
     source = new { users = users.Count, moods = JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(moodsPath)).GetArrayLength(), zodiacSigns = zodiacCount },
-    imported = new { users = imported, moodEntries = moodCount, zodiacSigns = zodiacCount },
+    imported = new { users = imported, moodEntries = moodCount, zodiacSigns = zodiacCount, moodCombinations = combinationImport.Combinations, moodCombinationInterpretations = combinationImport.Interpretations },
     uniqueUsers = await CountAsync(connection, "Users"),
     storedMoodEntries = await CountAsync(connection, "MoodEntries"),
     storedMoodPairs = await CountAsync(connection, "MoodEntryMoods"),
@@ -127,7 +131,7 @@ var report = new
     storedInsightTemplates = await CountAsync(connection, "InsightTemplates")
 };
 await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
-Console.WriteLine($"Seeded {imported} users, {moodCount} mood entries, and {zodiacCount} zodiac signs into {databasePath}.");
+Console.WriteLine($"Seeded {imported} users, {moodCount} mood entries, {zodiacCount} zodiac signs, and {combinationImport.Interpretations} mood-combination interpretations into {databasePath}.");
 Console.WriteLine($"Reconciliation report: {reportPath}");
 return 0;
 

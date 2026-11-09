@@ -1,0 +1,139 @@
+{
+  "combinations": [
+    {
+      "id": "tense-empowered",
+      "moods": ["Tense", "Empowered"],
+      "results": {
+        "mindful": "Strong but strained — You may feel capable while still carrying too much pressure.",
+        "astrology-energy": "Power seeking direction — Your energy is strong; decide where it deserves to go.",
+        "faith-religion": "Strength needing surrender — You can act with courage without carrying everything alone."
+      }
+    },
+    {
+      "id": "frustrated-visionary",
+      "moods": ["Frustrated", "Visionary"],
+      "results": {
+        "mindful": "Hopeful but blocked — Your imagination sees possibilities that your present circumstances haven't reached yet.",
+        "astrology-energy": "A vision meeting resistance — The delay may be revealing what needs to be refined.",
+        "faith-religion": "Hope during uncertainty — Continue nurturing the vision while trusting the timing."
+      }
+    },
+    {
+      "id": "heavy-abundant",
+      "moods": ["Heavy", "Abundant"],
+      "results": {
+        "mindful": "Grateful but burdened — Good things can exist alongside emotional heaviness.",
+        "astrology-energy": "Full energy with limited capacity — Abundance may require better boundaries, not more effort.",
+        "faith-religion": "Blessed but weary — Gratitude does not require you to hide your exhaustion."
+      }
+    },
+    {
+      "id": "restless-flowing",
+      "moods": ["Restless", "Flowing"],
+      "results": {
+        "mindful": "Moving without settling — You may be adapting well while still searching for inner quiet.",
+        "astrology-energy": "Energy in transition — Let movement guide you without forcing a destination.",
+        "faith-religion": "Being led through change — Stay open to direction while taking the next faithful step."
+      }
+    },
+    {
+      "id": "disconnected-harmonious",
+      "moods": ["Disconnected", "Harmonious"],
+      "results": {
+        "mindful": "Peaceful but distant — Calmness may be present even if emotional connection feels muted.",
+        "astrology-energy": "Surface harmony, inner distance — Explore what part of you is not yet participating.",
+        "faith-religion": "Quiet faith — Connection may be subtle rather than emotionally intense."
+      }
+    },
+    {
+      "id": "weary-centered",
+      "moods": ["Weary", "Centered"],
+      "results": {
+        "mindful": "Tired but grounded — You may not have much energy, but you know what matters today.",
+        "astrology-energy": "A restorative pause — Stability is the energy your system is asking you to protect.",
+        "faith-religion": "Steady through weariness — You do not need to feel strong to remain held and guided."
+      }
+    },
+    {
+      "id": "neutral-visionary",
+      "moods": ["Neutral", "Visionary"],
+      "results": {
+        "mindful": "Open and observant — A quieter emotional state may be giving new ideas room to appear.",
+        "astrology-energy": "A threshold moment — Your energy is available for intention and exploration.",
+        "faith-religion": "Listening before action — Let clarity develop before deciding what comes next."
+      }
+    },
+    {
+      "id": "charged-abundant",
+      "moods": ["Charged", "Abundant"],
+      "results": {
+        "mindful": "Energized but overflowing — Your motivation is high; choose where to focus it.",
+        "astrology-energy": "Amplified life force — Channel expansion into something purposeful and sustainable.",
+        "faith-religion": "Passion with responsibility — Let your energy become service rather than pressure."
+      }
+    },
+    {
+      "id": "tense-disconnected",
+      "moods": ["Tense", "Disconnected"],
+      "results": {
+        "mindful": "Guarded and overwhelmed — Stress may be making it harder to stay connected to yourself or others.",
+        "astrology-energy": "Energy contracted inward — Ground first, then decide what deserves your attention.",
+        "faith-religion": "A heart seeking refuge — Bring your guardedness honestly into prayer."
+      }
+    },
+    {
+      "id": "frustrated-restless",
+      "moods": ["Frustrated", "Restless"],
+      "results": {
+        "mindful": "Agitated and searching — You may need movement, expression, or a change of environment.",
+        "astrology-energy": "Blocked energy looking for an outlet — Identify what wants to change instead of forcing stillness.",
+        "faith-religion": "Impatience seeking guidance — Ask what action is wise and what action is only reactive."
+      }
+    },
+    {
+      "id": "scattered-harmonious",
+      "moods": ["Scattered", "Harmonious"],
+      "results": {
+        "mindful": "Many feelings, one need for balance — Your inner world may be busy even while parts of life feel peaceful.",
+        "astrology-energy": "Several energies competing for alignment — Look for the pattern connecting them.",
+        "faith-religion": "Peace within complexity — You can seek wisdom without needing every feeling resolved first."
+      }
+    },
+    {
+      "id": "heavy-restless-disconnected",
+      "moods": ["Heavy", "Restless", "Disconnected"],
+      "results": {
+        "mindful": "Overwhelmed and unable to settle — Start with one small act of care rather than solving everything.",
+        "astrology-energy": "Depleted energy in motion — Your system may need grounding, release, and restoration.",
+        "faith-religion": "A burdened spirit — Ask for support, rest, and the strength to face only today."
+      }
+    },
+    {
+      "id": "tense-frustrated-empowered",
+      "moods": ["Tense", "Frustrated", "Empowered"],
+      "results": {
+        "mindful": "Determined but overloaded — Your strength is real, but it needs a calmer direction.",
+        "astrology-energy": "Intense transformative energy — Use the pressure as information, not as a command to force outcomes.",
+        "faith-religion": "Courage under testing — Respond with conviction while leaving room for patience and grace."
+      }
+    },
+    {
+      "id": "visionary-flowing-abundant",
+      "moods": ["Visionary", "Flowing", "Abundant"],
+      "results": {
+        "mindful": "Inspired and open — You may be experiencing a generous flow of ideas, hope, and possibility.",
+        "astrology-energy": "Creative expansion — This is a strong moment to follow inspiration while staying aligned.",
+        "faith-religion": "Purposeful abundance — Consider how your gifts can become encouragement or service."
+      }
+    },
+    {
+      "id": "centered-harmonious-empowered",
+      "moods": ["Centered", "Harmonious", "Empowered"],
+      "results": {
+        "mindful": "Grounded confidence — You feel capable without needing to rush or prove yourself.",
+        "astrology-energy": "Aligned personal power — Your energy, values, and direction are working together.",
+        "faith-religion": "Peaceful strength — Move forward with humility, courage, and trust."
+      }
+    }
+  ]
+}
