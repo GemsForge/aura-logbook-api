@@ -7,6 +7,7 @@ import MoodEntryFormFields from "./MoodEntryFormFields";
 import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 
+/** Hosts mood creation in a compact card while preserving the circular mood selector. */
 export default function MoodEntryForm() {
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ export default function MoodEntryForm() {
       <Typography level="body-lg" color="neutral" sx={{ maxWidth: 560, mt: 1 }}>
         Take a moment to notice what is present. There is no right answer.
       </Typography>
-      <Sheet variant="outlined" className="aura-panel" sx={{ mt: 4, p: { xs: 2.5, md: 4 } }}>
+      <Sheet variant="outlined" className="aura-panel" sx={{ mt: 2.5, p: { xs: 2, md: 3 } }}>
         <MoodEntryFormFields onSubmit={handleSubmit} />
       </Sheet>
       <Typography level="body-sm" color="neutral" sx={{ mt: 2 }}>

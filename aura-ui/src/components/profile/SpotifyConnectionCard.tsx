@@ -150,7 +150,7 @@ export default function SpotifyConnectionCard() {
   };
 
   return (
-    <Sheet variant="outlined" className="aura-panel" aria-label="Spotify" sx={{ p: 3, minWidth: 0 }}>
+    <Sheet variant="outlined" className="aura-panel" aria-label="Spotify" sx={{ p: 2.5, minWidth: 0 }}>
       <Stack direction="row" flexWrap="wrap" justifyContent="space-between" alignItems="center" gap={1.5}>
         <Box role="img" aria-label="Spotify" sx={{ color: "#1DB954", display: "inline-flex" }}><svg width="42" height="42" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.59 14.42a.75.75 0 0 1-1.03.25c-2.82-1.72-6.37-2.11-10.55-1.16a.75.75 0 1 1-.33-1.46c4.58-1.05 8.51-.59 11.66 1.34.35.22.46.68.25 1.03Zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.23-1.98-8.15-2.55-11.97-1.4a.94.94 0 1 1-.54-1.8c4.36-1.32 9.78-.68 13.49 1.6.44.27.58.85.31 1.29Zm.13-3.4c-3.87-2.3-10.26-2.52-13.96-1.39a1.12 1.12 0 1 1-.65-2.14c4.25-1.29 11.3-1.04 15.76 1.61a1.12 1.12 0 0 1-1.15 1.92Z" /></svg></Box>
         {connected

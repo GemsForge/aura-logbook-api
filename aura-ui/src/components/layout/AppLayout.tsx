@@ -10,7 +10,7 @@ import MobileNavigation from "./MobileNavigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 
-/** Shares the aura atmosphere and responsive shell while keeping page content shrinkable. */
+/** Shares compact responsive page chrome while keeping content shrinkable at laptop widths. */
 const AppLayout = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useSelector(
@@ -27,13 +27,13 @@ const AppLayout = () => {
         <NavBar />
 
         {/* Programmatic focus lets the skip link move keyboard users into the page content. */}
-        <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" sx={{ mt: { xs: 3, md: 5 }, mb: 4, flexGrow: 1, px: { xs: 2, md: 4 } }}>
+        <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" sx={{ mt: { xs: 2, md: 3 }, mb: 2, flexGrow: 1, px: { xs: 2, md: 3 } }}>
           {isAuthenticated ? (
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "188px minmax(0, 1fr)" },
-                gap: { xs: 3, md: 4 },
+                gridTemplateColumns: { xs: "1fr", md: "168px minmax(0, 1fr)" },
+                gap: { xs: 2, md: 2.5 },
               }}
             >
               <Box sx={{ gridColumn: { xs: "1", md: "2" }, gridRow: "1", minWidth: 0 }}>
