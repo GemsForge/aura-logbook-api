@@ -33,6 +33,8 @@ The `http` launch profile uses the Development environment and port 5082. Swagge
 
 ## API surface
 
+For the optional, pathway-aware reflection shown for selected mood combinations, see [Mood-combination reflections](../docs/mood-combination-reflections.md).
+
 Controllers use the `/api` prefix. Key routes include:
 
 | Area | Routes | Authentication |
