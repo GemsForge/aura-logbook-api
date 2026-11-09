@@ -1,6 +1,6 @@
 # Private mood media attachments
 
-The History cards support private photo attachments for saved mood entries. The browser resizes and converts selected photos to JPEG before upload so large phone originals fit the API's 10 MB file limit. A maximum of 10 attachments is allowed per mood entry.
+The History cards support private photo attachments for saved mood entries. The separate **Gallery** view gathers those images across entries in a responsive grid. Selecting an image opens a lightbox with its mood, date, optional reflection, and delete action. The browser resizes and converts selected photos to JPEG before upload so large phone originals fit the API's 10 MB file limit. A maximum of 10 attachments is allowed per mood entry.
 
 ## User flow
 
@@ -8,6 +8,8 @@ The History cards support private photo attachments for saved mood entries. The 
 2. Open **Mood History** and choose **Add photo** on that entry.
 3. Choose an image. The browser downsamples large photos to a maximum 2400-pixel edge and compresses them as JPEG before sending them. The card displays its private preview and filename.
 4. Use the remove control on a preview to delete that attachment.
+
+In **Gallery**, choose an existing mood entry before uploading one or more photos. The gallery shows private images in a responsive grid. Open a photo to see its entry mood and date along the bottom, with an optional reflection clamped to two lines. The lightbox delete action removes the attachment from that entry.
 
 The browser requests image bytes through the authenticated API and keeps them in temporary object URLs. The API does not return a public media URL.
 

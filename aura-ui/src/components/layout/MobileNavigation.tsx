@@ -5,6 +5,7 @@ import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import EditNoteOutlined from "@mui/icons-material/EditNoteOutlined";
 import MenuBookOutlined from "@mui/icons-material/MenuBookOutlined";
 import InsightsOutlined from "@mui/icons-material/InsightsOutlined";
+import PhotoLibraryOutlined from "@mui/icons-material/PhotoLibraryOutlined";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -15,6 +16,7 @@ const destinations = [
   { label: "Insights", path: "/dashboard#insights", icon: InsightsOutlined },
   { label: "Log mood", path: "/log-mood", icon: EditNoteOutlined },
   { label: "Reflections", path: "/history", icon: MenuBookOutlined },
+  { label: "Gallery", path: "/gallery", icon: PhotoLibraryOutlined },
 ];
 
 /** Keeps journal destinations and profile access within thumb reach above the device safe area. */
@@ -32,7 +34,7 @@ export default function MobileNavigation() {
 
   return (
     <Sheet component="nav" aria-label="Mobile journal navigation" sx={{
-      display: { xs: "grid", md: "none" }, gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+      display: { xs: "grid", md: "none" }, gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
       position: "fixed", left: 12, right: 12, bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
       zIndex: 1050, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)",
       backgroundColor: "rgba(255,254,250,.92)", backdropFilter: "blur(24px)",

@@ -6,11 +6,13 @@ import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import EditNoteOutlined from "@mui/icons-material/EditNoteOutlined";
 import MenuBookOutlined from "@mui/icons-material/MenuBookOutlined";
 import InsightsOutlined from "@mui/icons-material/InsightsOutlined";
+import PhotoLibraryOutlined from "@mui/icons-material/PhotoLibraryOutlined";
 
 const navItems = [
   { label: "Today", path: "/dashboard", icon: HomeOutlined },
   { label: "Log mood", path: "/log-mood", icon: EditNoteOutlined },
   { label: "Reflections", path: "/history", icon: MenuBookOutlined },
+  { label: "Gallery", path: "/gallery", icon: PhotoLibraryOutlined },
   { label: "Insights", path: "/dashboard#insights", icon: InsightsOutlined },
 ];
 
