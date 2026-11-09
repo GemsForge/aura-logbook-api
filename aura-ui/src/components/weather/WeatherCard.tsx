@@ -10,10 +10,11 @@ export interface WeatherCardProps {
 }
 
 /** Keeps weather loading, failure and current conditions inside one consistent card. */
+/** Shows a concise current-weather summary in the dashboard card stack. */
 export default function WeatherCard({ city, state, country, lat, lon }: WeatherCardProps) {
   const { data: weather, isLoading, isError, refetch } = useGetCurrentWeatherQuery({ lat, lon, city, state, country });
   return (
-    <Sheet className="aura-panel" sx={{ p: 3 }}>
+    <Sheet className="aura-panel" sx={{ p: 2.5 }}>
       <Typography className="aura-eyebrow" color="neutral">Outside your window</Typography>
       {isLoading ? <Box role="status" aria-label="Loading weather" sx={{ py: 3 }}><CircularProgress size="sm" /></Box>
         : isError || !weather ? <Box sx={{ py: 2 }}><Typography role="alert" level="body-sm" color="danger">Unable to load weather.</Typography><Typography component="button" onClick={() => refetch()} sx={{ mt: 1, border: 0, cursor: "pointer", bgcolor: "transparent", textDecoration: "underline" }}>Try again</Typography></Box>

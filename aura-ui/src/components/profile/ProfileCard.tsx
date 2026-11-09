@@ -24,6 +24,7 @@ import { prismGarden } from "@/theme";
 
 
 
+/** Presents profile completion and insights with compact card spacing. */
 export default function ProfileCard() {
   const dispatch = useAppDispatch();
   const { isFetching: userLoading } = useGetCurrentUserQuery();
@@ -69,7 +70,7 @@ export default function ProfileCard() {
     <Sheet
       variant="outlined"
       sx={{
-        p: { xs: 2, sm: 3 },
+        p: { xs: 1.75, sm: 2.5 },
         textAlign: "center",
         mx: "auto",
         maxWidth: 350,

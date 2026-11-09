@@ -11,6 +11,7 @@ import { MoodTag } from "./MoodTag";
 import MarkdownReflection from "../MarkdownReflection";
 import MoodMediaGallery from "./MoodMediaGallery";
 
+/** Renders one history entry with concise spacing while keeping its edit, delete, and media actions. */
 export function MoodCard({
   entry,
   onEdit,
@@ -22,7 +23,7 @@ export function MoodCard({
 }) {
   const date = dayjs(entry.date).format("LL");
   return (
-    <Sheet variant="outlined" className="aura-panel" sx={{ mb: 2.5, p: { xs: 2.5, sm: 3.5 }, position: "relative" }}>
+    <Sheet variant="outlined" className="aura-panel" sx={{ mb: 1.5, p: { xs: 1.75, sm: 2.5 }, position: "relative" }}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography level="body-sm" textColor="text.secondary">
           {date}
@@ -37,14 +38,14 @@ export function MoodCard({
         </Box>
       </Box>
 
-      <Stack direction="row" flexWrap="wrap" mt={2}>
+      <Stack direction="row" flexWrap="wrap" mt={1.25}>
         {entry.moods.map((mood) => (
           <MoodTag key={mood} mood={mood} />
         ))}
       </Stack>
 
       {entry.comment && (
-        <Box mt={1} sx={{ fontSize: "var(--joy-fontSize-md)" }}><MarkdownReflection value={entry.comment} /></Box>
+        <Box mt={0.5} sx={{ fontSize: "var(--joy-fontSize-md)" }}><MarkdownReflection value={entry.comment} /></Box>
       )}
 
       <MoodMediaGallery moodEntryId={entry.id} />

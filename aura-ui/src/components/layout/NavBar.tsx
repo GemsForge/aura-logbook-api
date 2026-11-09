@@ -23,6 +23,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { getProfileCompletion } from "@/util/profile";
 
+/** Keeps navigation compact so laptop viewports retain more space for page content. */
 const NavBar = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
@@ -57,7 +58,7 @@ const NavBar = () => {
 
   return (
     <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--aura-line)", backgroundColor: "rgba(245,244,239,.8)", backdropFilter: "blur(24px)" }}>
-      <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 68, md: 82 }, px: { xs: 2, md: 4 }, gap: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 64, md: 70 }, px: { xs: 2, md: 3 }, gap: 1.5 }}>
         <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
@@ -68,7 +69,7 @@ const NavBar = () => {
             color="neutral"
             underline="none"
             className="prism-brand-mark"
-            sx={{ font: "inherit", fontWeight: "inherit", color: "text.primary", display: "inline-flex", alignItems: "center", gap: 1 }}
+            sx={{ font: "inherit", fontWeight: "inherit", color: "text.primary" }}
           >
             {/* The adjacent brand text names this decorative logo for assistive technology. */}
             <Box

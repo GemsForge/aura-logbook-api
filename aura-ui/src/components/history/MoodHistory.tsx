@@ -14,7 +14,7 @@ import { MoodCard } from "./MoodCard";
 import { downloadJournalExport } from "@/features/mood/utils/journalExport";
 import MoodCalendar from "./MoodCalendar";
 
-/** Presents API-backed journal entries, date filters, calendar browsing, and explicit request states. */
+/** Presents API-backed journal entries and calendar filters in a compact, scannable history view. */
 export default function MoodHistoryPage() {
   const [logs, setLogs] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,11 +75,11 @@ export default function MoodHistoryPage() {
       <Typography component="h1" level="h1" className="aura-page-heading" mb={2}>
         Mood History
       </Typography>
-      <Typography level="body-lg" color="neutral" sx={{ mb: 4 }}>A collection of who you’ve been, and how you’re becoming.</Typography>
+      <Typography level="body-lg" color="neutral" sx={{ mb: 2.5 }}>A collection of who you’ve been, and how you’re becoming.</Typography>
 
       {/* ─── date filter UI ─────────────────────────────────────────── */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box className="aura-panel" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 3, p: 2.5, "& > *": { minWidth: 0 }, "& .MuiTextField-root": { flex: "1 1 180px" } }}>
+        <Box className="aura-panel" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1.25, mb: 2, p: 1.5, "& > *": { minWidth: 0 }, "& .MuiTextField-root": { flex: "1 1 180px" } }}>
           <DatePicker
             label="Start date"
             value={startDate}
@@ -111,9 +111,9 @@ export default function MoodHistoryPage() {
         </Box>
       </LocalizationProvider>
 
-      {loading && <Typography role="status" level="body-sm" sx={{ mb: 2 }}>Gathering your reflections…</Typography>}
-      {failed && <Box role="alert" className="aura-panel" sx={{ p: 3, mb: 3 }}><Typography color="danger">We couldn’t load your reflections.</Typography><Button onClick={() => fetchLogs(startDate, endDate)}>Try again</Button></Box>}
-      {!loading && !failed && !logs.length && <Box className="aura-panel" sx={{ p: 5, textAlign: "center", mb: 3 }}><Typography level="h2">Every story starts somewhere.</Typography><Typography level="body-md" color="neutral" sx={{ my: 2 }}>Your saved reflections will find their home here.</Typography><Button component="a" href="/log-mood" variant="solid">Write your first reflection ↗</Button></Box>}
+      {loading && <Typography role="status" level="body-sm" sx={{ mb: 1.5 }}>Gathering your reflections…</Typography>}
+      {failed && <Box role="alert" className="aura-panel" sx={{ p: 2, mb: 2 }}><Typography color="danger">We couldn’t load your reflections.</Typography><Button onClick={() => fetchLogs(startDate, endDate)}>Try again</Button></Box>}
+      {!loading && !failed && !logs.length && <Box className="aura-panel" sx={{ p: 3, textAlign: "center", mb: 2 }}><Typography level="h2">Every story starts somewhere.</Typography><Typography level="body-md" color="neutral" sx={{ my: 1 }}>Your saved reflections will find their home here.</Typography><Button component="a" href="/log-mood" variant="solid">Write your first reflection ↗</Button></Box>}
 
       {!loading && !failed && logs.length > 0 && (
         <MoodCalendar
@@ -124,13 +124,13 @@ export default function MoodHistoryPage() {
       )}
 
       {selectedCalendarDate && visibleLogs.length === 0 && (
-        <Box role="status" className="aura-panel" sx={{ p: 3, mb: 3 }}>
+        <Box role="status" className="aura-panel" sx={{ p: 2, mb: 2 }}>
           <Typography>No reflections are saved for {dayjs(selectedCalendarDate).format("MMMM D, YYYY")}.</Typography>
         </Box>
       )}
 
       {selectedCalendarDate && visibleLogs.length > 0 && (
-        <Typography component="h2" level="h3" sx={{ mb: 2 }}>
+        <Typography component="h2" level="h3" sx={{ mb: 1.5 }}>
           Reflections for {dayjs(selectedCalendarDate).format("MMMM D, YYYY")}
         </Typography>
       )}

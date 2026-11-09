@@ -43,7 +43,7 @@ function MoodEntryTallies({ count }: { count: number }) {
   );
 }
 
-/** Shows API-backed mood-entry counts by day and lets the reader narrow History to one date. */
+/** Shows daily mood tallies in a compact calendar and narrows History to a selected date. */
 export default function MoodCalendar({
   entries,
   selectedDate,
@@ -82,11 +82,11 @@ export default function MoodCalendar({
   ).length;
 
   return (
-    <Sheet component="section" className="aura-panel" aria-labelledby="mood-calendar-title" sx={{ p: { xs: 2, sm: 3 }, mb: 3, overflow: "hidden", position: "relative" }}>
+    <Sheet component="section" className="aura-panel" aria-labelledby="mood-calendar-title" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2, overflow: "hidden", position: "relative" }}>
       <Box sx={{ height: 3, position: "absolute", top: 0, left: "8%", right: "8%", borderRadius: "0 0 8px 8px", background: "linear-gradient(90deg, transparent, var(--aura-accent), var(--aura-glow), transparent)", opacity: 0.65 }} />
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 2.5, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, mb: 1.5, flexWrap: "wrap" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box sx={{ width: 44, height: 44, borderRadius: "50%", display: "grid", placeItems: "center", color: "primary.700", background: "linear-gradient(145deg, var(--aura-wash), rgba(255,254,250,.8))", border: "1px solid var(--aura-line)", boxShadow: "0 4px 16px var(--aura-wash)" }}>
+          <Box sx={{ width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", color: "primary.700", background: "linear-gradient(145deg, var(--aura-wash), rgba(255,254,250,.8))", border: "1px solid var(--aura-line)", boxShadow: "0 4px 16px var(--aura-wash)" }}>
             <CalendarMonth aria-hidden="true" />
           </Box>
           <Box>
