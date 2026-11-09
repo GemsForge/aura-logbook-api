@@ -71,7 +71,15 @@ const NavBar = () => {
             className="prism-brand-mark"
             sx={{ font: "inherit", fontWeight: "inherit", color: "text.primary" }}
           >
-            <span data-testid="prism-mark" className="aura-brand-dot" aria-hidden="true" />
+            {/* The adjacent brand text names this decorative logo for assistive technology. */}
+            <Box
+              component="img"
+              data-testid="prism-mark"
+              src="/logo/aura-logbook-approved.png"
+              alt=""
+              aria-hidden="true"
+              sx={{ width: { xs: 36, sm: 40 }, height: { xs: 36, sm: 40 }, objectFit: "contain", flexShrink: 0 }}
+            />
             <span>Aura Logbook</span>
           </Link>
         </Typography>
