@@ -43,6 +43,19 @@ This starts the API and UI together, prefixes their output with `[API]` and `[UI
 
 The launcher keeps the local API listener and the UI's API target aligned. By default, both the listener and that target use API port `5082`; the UI itself uses port `58407`. When `aura-ui/.env.local` or an exported `VITE_API_BASE_URL` points to a local HTTP API, the launcher uses that URL's port for the API listener too. An explicit `AURA_API_PORT` must match a local `VITE_API_BASE_URL`; conflicting values stop startup with instructions to align them. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
 
+### Preview the web UI on a phone
+
+The responsive React web UI can be previewed in a phone browser over the same Wi-Fi network. This is a web preview; it does not require React Native or Expo. Start the API with the combined launcher above and leave it running. In a second terminal, start a network-accessible Vite server from `aura-ui/`:
+
+```bash
+cd aura-ui
+VITE_API_BASE_URL=/api npm run dev -- --host 0.0.0.0 --port 58413 --strictPort
+```
+
+Open `http://<laptop-LAN-IP>:58413` on the phone, replacing `<laptop-LAN-IP>` with the laptop's local network address. The phone and laptop must be on the same network, and that network must allow devices to communicate with each other. Add a web route to preview, such as `/login`; use an existing account to inspect protected pages.
+
+Vite's `/api` proxy forwards browser requests to the API at `http://127.0.0.1:5082`, so the API can remain bound to the laptop. The proxy is configured in `aura-ui/vite.config.ts`. `VITE_API_BASE_URL=/api` makes the browser use that same-origin proxy. The `--host 0.0.0.0` option makes the development UI reachable from other devices on the local network; use this only on a trusted network and stop the preview with **Ctrl+C** when finished. This is a development server, not a public or production deployment.
+
 To use different local ports, set `AURA_API_PORT` and/or `AURA_UI_PORT` before starting the launcher. For example, set `AURA_API_PORT=5124` and `VITE_API_BASE_URL=http://localhost:5124/api` together. If any requested API port is occupied, including the default, the launcher stops with the exact port and recovery options so OAuth callbacks cannot reach a different API instance. When changing ports, update the Spotify redirect URI in both API configuration and Spotify's app settings; the launcher never kills unrelated listeners. A `VITE_API_BASE_URL` that points to a remote host continues to be a UI-only override.
 
 ## Run each service separately
