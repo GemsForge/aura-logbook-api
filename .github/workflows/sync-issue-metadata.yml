@@ -325,7 +325,7 @@ jobs:
                 const message = error instanceof Error ? error.message : String(error);
                 if (/(Resource not accessible|GraphQL HTTP (401|403)|\b(401|403)\b)/i.test(message)) {
                   core.setFailed(
-        "PROJECTS_TOKEN cannot access user-owned Projects. Ensure it is a PAT owned by GemsForge with Projects read/write permission and repository access to GemsForge/Aura Logbook; do not use GITHUB_TOKEN.",
+                    "PROJECTS_TOKEN cannot access user-owned Projects. Ensure it is a PAT owned by GemsForge with Projects read/write permission and repository access to GemsForge/Aura Logbook; do not use GITHUB_TOKEN.",
                   );
                 }
                 throw error;
@@ -367,7 +367,7 @@ jobs:
                   .map((candidate) => `#${candidate.number} ${candidate.title}`)
                   .join(", ") || "none";
               core.setFailed(
-    `PROJECTS_TOKEN authenticated as ${projectData.viewer?.login ?? "unknown"} but could not see user project Aura Logbook v1 Project #9. Visible user projects: ${visibleProjectSummary}. Confirm the repository secret contains a classic PAT generated for GemsForge with both project and repo scopes.`,
+                    `PROJECTS_TOKEN authenticated as ${projectData.viewer?.login ?? "unknown"} but could not see user project Aura Logbook v1 Project #9. Visible user projects: ${visibleProjectSummary}. Confirm the repository secret contains a classic PAT generated for GemsForge with both project and repo scopes.`,
               );
               return;
             }
