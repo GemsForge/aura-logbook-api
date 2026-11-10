@@ -62,6 +62,13 @@ export async function stubApi(page: Page, entryCount: number, interfaceTheme = "
       body = { id: 42, userId: 7, date: entries[0]?.date ?? new Date().toISOString().slice(0, 10), moods: ["Tense"], comment: "", createdAt: new Date().toISOString() };
     } else if (/\/mood\/?$/.test(path)) {
       body = entries;
+    } else if (path.endsWith("/reference-data/auras")) {
+      // List endpoints must return arrays; an empty object crashes components that filter them.
+      body = [
+        { key: "blue", displayName: "Blue", baseHex: "#4F8FD6", chakraKey: null, description: "Calm and clear.", isNeutral: false, isActive: true },
+        { key: "green", displayName: "Green", baseHex: "#5FA86B", chakraKey: null, description: "Growth and balance.", isNeutral: false, isActive: true },
+        { key: "violet", displayName: "Violet", baseHex: "#8E62C9", chakraKey: null, description: "Imagination.", isNeutral: false, isActive: true },
+      ];
     } else if (path.endsWith("/weather/current")) {
       body = { temperature: 68, description: "Clear", iconCode: "01d" };
     } else if (path.endsWith("/spotify/connection")) {
