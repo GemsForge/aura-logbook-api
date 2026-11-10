@@ -29,9 +29,11 @@ type MoodEntryFormValues = {
 };
 
 /** Stable positions keep the aura selector readable while preserving a circular interaction model. */
+// Orbit card centers as [left%, top%] on the compact (~430px) wheel; the top card sits a little
+// lower so its tallest group (three moods) stays inside the wheel's box.
 const auraOrbitPositions = [
-  [50, 9], [77, 18], [88, 42], [81, 71], [57, 88],
-  [29, 85], [12, 65], [12, 37], [27, 15],
+  [50, 13], [78, 20], [89, 43], [82, 71], [58, 87],
+  [30, 85], [11, 65], [11, 39], [26, 18],
 ] as const;
 
 /** Maps the persisted pathway label to the API SpiritualPathway enum key. */
@@ -186,9 +188,9 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
       </Stack>
       <Typography level="body-xs" color="neutral">Color meanings are optional personal reflection, not a health assessment.</Typography>
 
-      <Box sx={{ position: "relative", width: "100%", maxWidth: 620, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 560 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, var(--al-theme-surface) 0 20%, color-mix(in srgb, var(--al-theme-surface-raised) 72%, transparent) 20.5% 45%, transparent 45.5%), conic-gradient(from 20deg, color-mix(in srgb, var(--aura-accent) 24%, transparent), color-mix(in srgb, var(--al-theme-accent) 24%, transparent), color-mix(in srgb, var(--aura-accent) 10%, transparent), color-mix(in srgb, var(--al-theme-primary) 18%, transparent), color-mix(in srgb, var(--aura-accent) 24%, transparent))", border: "1px solid var(--al-theme-border)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed color-mix(in srgb, var(--al-theme-ink-muted) 40%, transparent)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid color-mix(in srgb, var(--al-theme-ink-muted) 22%, transparent)", borderRadius: "50%" } }}>
+      <Box sx={{ position: "relative", width: "100%", maxWidth: 540, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 430 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, var(--al-theme-surface) 0 20%, color-mix(in srgb, var(--al-theme-surface-raised) 72%, transparent) 20.5% 45%, transparent 45.5%), conic-gradient(from 20deg, color-mix(in srgb, var(--aura-accent) 24%, transparent), color-mix(in srgb, var(--al-theme-accent) 24%, transparent), color-mix(in srgb, var(--aura-accent) 10%, transparent), color-mix(in srgb, var(--al-theme-primary) 18%, transparent), color-mix(in srgb, var(--aura-accent) 24%, transparent))", border: "1px solid var(--al-theme-border)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed color-mix(in srgb, var(--al-theme-ink-muted) 40%, transparent)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid color-mix(in srgb, var(--al-theme-ink-muted) 22%, transparent)", borderRadius: "50%" } }}>
         <Box sx={{ position: "absolute", inset: "32% 22%", display: { xs: "none", sm: "grid" }, placeItems: "center", textAlign: "center", pointerEvents: "none", zIndex: 2 }}>
-          <Box sx={{ width: "100%", minHeight: 112, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 2, borderRadius: "50%", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 10px 30px var(--al-theme-glow)" }}>
+          <Box sx={{ width: "100%", minHeight: 84, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 1.25, borderRadius: "50%", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 10px 30px var(--al-theme-glow)" }}>
             <Typography level="body-xs" sx={{ color: "neutral.500" }}>{selectedMoods.length ? "Your current mix" : "Your inner weather"}</Typography>
             <Typography level="title-lg" sx={{ mt: 0.5, fontFamily: "display", fontWeight: 400, lineHeight: 1.1 }}>{selectedMoods.length ? selectedMoods.slice(0, 2).join(" · ") : "Choose what feels close"}</Typography>
             {selectedMoods.length > 2 && <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>+ {selectedMoods.length - 2} more</Typography>}
@@ -204,18 +206,18 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           const selectedInGroup = moods.filter((mood) => selectedMoods.includes(mood)).length;
 
           return (
-            <Sheet key={color} variant="soft" sx={{ position: { xs: "relative", sm: "absolute" }, left: { xs: "auto", sm: `${left}%` }, top: { xs: "auto", sm: `${top}%` }, transform: { xs: "none", sm: "translate(-50%, -50%)" }, width: { xs: "auto", sm: 136 }, p: 1, borderRadius: "16px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: { xs: "translateY(-2px)", sm: "translate(-50%, -50%) scale(1.03)" }, boxShadow: `0 12px 30px ${swatch}5c` } }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Sheet key={color} variant="soft" sx={{ position: { xs: "relative", sm: "absolute" }, left: { xs: "auto", sm: `${left}%` }, top: { xs: "auto", sm: `${top}%` }, transform: { xs: "none", sm: "translate(-50%, -50%)" }, width: { xs: "auto", sm: 124 }, p: .75, borderRadius: "12px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: { xs: "translateY(-2px)", sm: "translate(-50%, -50%) scale(1.03)" }, boxShadow: `0 12px 30px ${swatch}5c` } }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: .5 }}>
                 <Box
                   sx={{
-                    width: 18,
-                    height: 18,
+                    width: 12,
+                    height: 12,
                     bgcolor: swatch,
                     borderRadius: "50%",
-                    mr: 1,
+                    mr: .75,
                   }}
                 />
-                <Typography level="title-sm" sx={{ color: "neutral.800", textTransform: "capitalize", mb: 0.5, fontWeight: 700 }}>
+                <Typography level="body-sm" sx={{ color: "neutral.800", textTransform: "capitalize", fontWeight: 700 }}>
                   {color}
                 </Typography>
                 {selectedInGroup > 0 && <Typography level="body-xs" sx={{ ml: "auto", color: swatch, fontWeight: 700 }}>{selectedInGroup}</Typography>}
@@ -249,7 +251,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                         size="lg"
                         uncheckedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
                         checkedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
-                        sx={{ width: "100%", px: 0.5, color: "neutral.900", "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: "0.75rem", lineHeight: 1.3, py: 0.375, whiteSpace: "nowrap" }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
+                        sx={{ width: "100%", px: 0.5, color: "neutral.900", "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: "0.72rem", lineHeight: 1.25, py: 0.25, whiteSpace: "nowrap" }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
                       />
                     </Sheet>
                   );
