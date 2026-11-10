@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import plugin from '@vitejs/plugin-react';
 
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -20,5 +20,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     globals: true,
+    // Playwright owns e2e/ browser specs; keep them out of the jsdom unit run.
+    exclude: [...configDefaults.exclude, "e2e/**"],
   },
 });
