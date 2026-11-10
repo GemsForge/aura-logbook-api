@@ -1,42 +1,27 @@
 import { Box, Typography } from "@mui/material";
 import { auraFeatures } from "./AuraFeatures";
-import { prismGarden } from "@/theme";
 
-/** Responsive overview cards used by the public home page. */
+/** Presents three plain-language product ideas without adding more card chrome. */
 export default function AuraFeatureCards() {
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 16rem), 1fr))",
-        gap: { xs: 2, sm: 3 },
-        width: "100%",
-        minWidth: 0,
-      }}>
+    <Box component="ul" aria-label="What you can do with Aura Logbook" sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" }, width: "100%", minWidth: 0 }}>
       {auraFeatures.map(({ title, description }, index) => (
         <Box
-          className="aura-panel"
+          component="li"
           key={title}
           sx={{
             width: "100%",
             minWidth: 0,
-            p: { xs: 2, sm: 2.5 },
-            border: "1px solid",
-            borderColor: prismGarden.color.line,
-            borderRadius: prismGarden.radius.card,
-            boxShadow: prismGarden.shadow.soft,
-            bgcolor: prismGarden.color.surface,
-            textAlign: "left",
-            minHeight: 160,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-start",
+            py: { xs: 2, md: 1 },
+            pr: { md: index < auraFeatures.length - 1 ? 3 : 0 },
+            pl: { md: index > 0 ? 3 : 0 },
+            borderTop: { xs: "1px solid var(--al-theme-border)", md: 0 },
+            borderLeft: { md: index > 0 ? "1px solid var(--al-theme-border)" : 0 },
           }}>
-          <Typography variant="overline" sx={{ mb: 2, color: "text.secondary" }}>0{index + 1} / Your practice</Typography>
-          <Typography variant="h6" gutterBottom sx={{ fontSize: "1.6rem", fontWeight: 400 }}>
+          <Typography component="h2" variant="h5" gutterBottom sx={{ fontSize: "clamp(1.25rem, 1.1rem + .5vw, 1.5rem)", fontWeight: 550 }}>
             {title}
           </Typography>
-          <Typography variant="body2">{description}</Typography>
+          <Typography variant="body1" color="text.secondary">{description}</Typography>
         </Box>
       ))}
     </Box>

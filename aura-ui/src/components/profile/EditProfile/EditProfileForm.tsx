@@ -15,6 +15,8 @@ import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { AuraSelector } from "../AuraSelectorField";
 import { AvatarPickerModal } from "../AvatarPickerModal";
 import { MottoField } from "../MottoField";
+import { InterfaceThemeField } from "../InterfaceThemeField";
+import type { InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface EditProfileFormProps {
@@ -27,6 +29,7 @@ interface EditProfileFormProps {
   defaultInitials: string;
   onSubmit: (data: EditProfileFormData) => Promise<void>;
   onCancel: () => void;
+  onThemePreviewChange: (theme: InterfaceTheme) => void;
 }
 
 export function EditProfileForm({
@@ -39,6 +42,7 @@ export function EditProfileForm({
   defaultInitials,
   onSubmit,
   onCancel,
+  onThemePreviewChange,
 }: EditProfileFormProps) {
   const {
     register,
@@ -70,7 +74,7 @@ export function EditProfileForm({
                 p: 2,
                 borderRadius: "16px",
                 background: "var(--aura-dark, #222C27)",
-                color: "#FFFEFA",
+                color: "var(--al-theme-ink, #FFFEFA)",
                 border: "1px solid var(--aura-line)",
                 alignSelf: "start",
                 flexDirection: { xs: "row", md: "column" },
@@ -93,7 +97,7 @@ export function EditProfileForm({
               {errors.avatar && (
                 <Typography color="error">{errors.avatar.message}</Typography>
               )}
-              <Box sx={{ mt: 1.5, pt: 1.5, borderTop: "1px solid rgba(217,206,192,.8)", display: { xs: "none", md: "block" } }}>
+              <Box sx={{ mt: 1.5, pt: 1.5, borderTop: "1px solid var(--al-theme-border)", display: { xs: "none", md: "block" } }}>
                 <Typography variant="caption" sx={{ color: "inherit", opacity: .7, display: "block" }}>Current aura</Typography>
                 <Box sx={{ height: 36, mt: 0.75, borderRadius: 2, background: currentAuraBg, border: "1px solid rgba(53,45,44,.12)" }} />
               </Box>
@@ -158,11 +162,25 @@ export function EditProfileForm({
         errorMessage={errors.spiritualPathway?.message}
       />
 
+      <Controller
+        name="interfaceTheme"
+        control={control}
+        render={({ field }) => (
+          <InterfaceThemeField
+            value={field.value}
+            onChange={(theme) => {
+              field.onChange(theme);
+              onThemePreviewChange(theme);
+            }}
+          />
+        )}
+      />
+
       <MottoField control={control} name="motto" />
 
       <Box sx={{ pt: 1 }}>
         <Typography variant="overline" sx={{ letterSpacing: "0.16em", color: "text.secondary" }}>Your aura</Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>Choose your color and let it shape the atmosphere.</Typography>
+        <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>Choose the color to record with your reflections. The interface theme is a separate preference.</Typography>
       </Box>
 
       {/* Aura Color Selector */}

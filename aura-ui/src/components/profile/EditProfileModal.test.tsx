@@ -112,4 +112,25 @@ describe("EditProfileModal", () => {
     expect(mockUnwrap).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("previews a selected interface theme before saving it", async () => {
+    const user = userEvent.setup();
+    mockGetCurrentUser.mockReturnValue({
+      data: {
+        ...baseUser,
+        avatar: "",
+        auraColor: "blue",
+        auraIntensity: 50,
+        interfaceTheme: "Aurora",
+      },
+      isFetching: false,
+    });
+
+    const { store } = renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
+
+    await user.click(await screen.findByRole("radio", { name: /Ocean/i }));
+
+    expect(store.getState().ui.interfaceThemePreview).toBe("Ocean");
+    expect(mockUpdateUser).not.toHaveBeenCalled();
+  });
 });

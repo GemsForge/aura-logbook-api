@@ -24,6 +24,8 @@ namespace AuraLogbook.Api.Models.Dto
 
         public string? Avatar { get; set; }
         public string? Motto { get; set; }
+        /// <summary>Optional appearance preference; omitted values preserve the current theme.</summary>
+        public string? InterfaceTheme { get; set; }
         [Required]
         public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
 }

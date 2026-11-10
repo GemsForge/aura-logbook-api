@@ -122,6 +122,7 @@ export function createProfileModalOpenState() {
   return {
     ui: {
       isProfileModalOpen: true,
+      interfaceThemePreview: null,
     },
   };
 }

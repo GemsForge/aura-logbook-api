@@ -1,0 +1,570 @@
+{
+  "library": "Aura Logbook Visual Asset Library",
+  "version": "3.0.0",
+  "visual_direction": "Reference-led luminous lotus petals, fine gold-pink-violet gradient linework, deep night atmosphere, refined illustrated landscapes.",
+  "format_note": "Generated artwork is high-resolution transparent or full-bleed PNG; feature marks, decorative accents, chakra symbols, and charts remain editable SVG with matching PNG exports.",
+  "pathway_rule": "Astrology & Energy and chakra graphics are pathway restricted. Faith & Religion and Mindful artwork is also pathway restricted. Shared defaults include no chakra symbols or religious emblems.",
+  "assets": [
+    {
+      "filename": "aura-colors/aura-blue.png",
+      "name": "Blue",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-coral.png",
+      "name": "Coral",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-gold.png",
+      "name": "Gold",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-green.png",
+      "name": "Green",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-indigo.png",
+      "name": "Indigo",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-peach.png",
+      "name": "Peach",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-rose.png",
+      "name": "Rose",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-silver.png",
+      "name": "Silver",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-teal.png",
+      "name": "Teal",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "aura-colors/aura-violet.png",
+      "name": "Violet",
+      "collection": "aura-colors",
+      "pathway_visibility": "shared",
+      "kind": "aura-motif",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Recorded aura color for personal reflection; interface theme remains independent."
+    },
+    {
+      "filename": "backgrounds/banner-amethyst.png",
+      "name": "Amethyst",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-aurora.png",
+      "name": "Aurora",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-earth.png",
+      "name": "Earth",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-ivory.png",
+      "name": "Ivory",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-midnight.png",
+      "name": "Midnight",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-ocean.png",
+      "name": "Ocean",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-sunset.png",
+      "name": "Sunset",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Interface background for the named theme; does not alter recorded aura color."
+    },
+    {
+      "filename": "brand/aura-logbook-approved-reference.png",
+      "name": "Logbook Approved Reference",
+      "collection": "brand",
+      "pathway_visibility": "shared",
+      "kind": "approved-brand-reference",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Approved logo reference. Preserve exactly as supplied."
+    },
+    {
+      "filename": "brand/aura-logbook-approved-reference.svg",
+      "name": "Logbook Approved Reference",
+      "collection": "brand",
+      "pathway_visibility": "shared",
+      "kind": "approved-brand-reference",
+      "format": [
+        "SVG"
+      ],
+      "intended_use": "Approved logo reference. Preserve exactly as supplied."
+    },
+    {
+      "filename": "data-visuals/aura-distribution.svg",
+      "name": "Distribution",
+      "collection": "data-visuals",
+      "pathway_visibility": "shared",
+      "kind": "chart-art",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Aura-colored sample visualization; include data labels, non-color cues, and explanatory text in product UI.",
+      "png_export": "png/data-visuals/aura-distribution.png"
+    },
+    {
+      "filename": "data-visuals/aura-trend-line.svg",
+      "name": "Trend Line",
+      "collection": "data-visuals",
+      "pathway_visibility": "shared",
+      "kind": "chart-art",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Aura-colored sample visualization; include data labels, non-color cues, and explanatory text in product UI.",
+      "png_export": "png/data-visuals/aura-trend-line.png"
+    },
+    {
+      "filename": "decorations/accent-aurora-sweep.svg",
+      "name": "Accent Aurora Sweep",
+      "collection": "decorations",
+      "pathway_visibility": "shared",
+      "kind": "decoration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Shared decorative accent without chakra or astrology-specific symbols.",
+      "png_export": "png/decorations/accent-aurora-sweep.png"
+    },
+    {
+      "filename": "decorations/accent-crescent.svg",
+      "name": "Accent Crescent",
+      "collection": "decorations",
+      "pathway_visibility": "shared",
+      "kind": "decoration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Shared decorative accent without chakra or astrology-specific symbols.",
+      "png_export": "png/decorations/accent-crescent.png"
+    },
+    {
+      "filename": "decorations/accent-leaf-sprig.svg",
+      "name": "Accent Leaf Sprig",
+      "collection": "decorations",
+      "pathway_visibility": "shared",
+      "kind": "decoration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Shared decorative accent without chakra or astrology-specific symbols.",
+      "png_export": "png/decorations/accent-leaf-sprig.png"
+    },
+    {
+      "filename": "decorations/accent-olive-branch.svg",
+      "name": "Accent Olive Branch",
+      "collection": "decorations",
+      "pathway_visibility": "shared",
+      "kind": "decoration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Shared decorative accent without chakra or astrology-specific symbols.",
+      "png_export": "png/decorations/accent-olive-branch.png"
+    },
+    {
+      "filename": "decorations/accent-star.svg",
+      "name": "Accent Star",
+      "collection": "decorations",
+      "pathway_visibility": "shared",
+      "kind": "decoration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Shared decorative accent without chakra or astrology-specific symbols.",
+      "png_export": "png/decorations/accent-star.png"
+    },
+    {
+      "filename": "feature-icons/icon-aura.svg",
+      "name": "Aura",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-aura.png"
+    },
+    {
+      "filename": "feature-icons/icon-calendar.svg",
+      "name": "Calendar",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-calendar.png"
+    },
+    {
+      "filename": "feature-icons/icon-insights.svg",
+      "name": "Insights",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-insights.png"
+    },
+    {
+      "filename": "feature-icons/icon-journal.svg",
+      "name": "Journal",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-journal.png"
+    },
+    {
+      "filename": "feature-icons/icon-mood.svg",
+      "name": "Mood",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-mood.png"
+    },
+    {
+      "filename": "feature-icons/icon-settings.svg",
+      "name": "Settings",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-settings.png"
+    },
+    {
+      "filename": "feature-icons/icon-summary.svg",
+      "name": "Summary",
+      "collection": "feature-icons",
+      "pathway_visibility": "shared",
+      "kind": "feature-icon",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Core feature navigation or feature illustration.",
+      "png_export": "png/feature-icons/icon-summary.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/astrology-energy-crystal.png",
+      "name": "Astrology Energy Crystal",
+      "collection": "pathways",
+      "pathway_visibility": "astrology-energy",
+      "kind": "pathway-illustration",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when astrology-energy is selected."
+    },
+    {
+      "filename": "pathways/astrology-energy/astrology-energy-moon-phases.png",
+      "name": "Astrology Energy Moon Phases",
+      "collection": "pathways",
+      "pathway_visibility": "astrology-energy",
+      "kind": "pathway-illustration",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when astrology-energy is selected."
+    },
+    {
+      "filename": "pathways/astrology-energy/astrology-energy-orbit.svg",
+      "name": "Astrology Energy Orbit",
+      "collection": "pathways",
+      "pathway_visibility": "astrology-energy",
+      "kind": "pathway-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when astrology-energy is selected.",
+      "png_export": "png/pathways/astrology-energy/astrology-energy-orbit.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-crown.svg",
+      "name": "Chakra Crown",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-crown.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-heart.svg",
+      "name": "Chakra Heart",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-heart.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-root.svg",
+      "name": "Chakra Root",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-root.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-sacral.svg",
+      "name": "Chakra Sacral",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-sacral.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-solar-plexus.svg",
+      "name": "Chakra Solar Plexus",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-solar-plexus.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-third-eye.svg",
+      "name": "Chakra Third Eye",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-third-eye.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-symbols/chakra-throat.svg",
+      "name": "Chakra Throat",
+      "collection": "chakra-symbols",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-symbol",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Optional reflective symbol, visible only when Astrology & Energy is selected.",
+      "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-throat.png"
+    },
+    {
+      "filename": "pathways/faith-religion/faith-religion-olive-branch.png",
+      "name": "Faith Religion Olive Branch",
+      "collection": "pathways",
+      "pathway_visibility": "faith-religion",
+      "kind": "pathway-illustration",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when faith-religion is selected."
+    },
+    {
+      "filename": "pathways/faith-religion/faith-religion-open-book.png",
+      "name": "Faith Religion Open Book",
+      "collection": "pathways",
+      "pathway_visibility": "faith-religion",
+      "kind": "pathway-illustration",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when faith-religion is selected."
+    },
+    {
+      "filename": "pathways/mindful/mindful-breathing.png",
+      "name": "Mindful Breathing",
+      "collection": "pathways",
+      "pathway_visibility": "mindful",
+      "kind": "pathway-illustration",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when mindful is selected."
+    },
+    {
+      "filename": "pathways/mindful/mindful-gentle-landscape.png",
+      "name": "Mindful Gentle Landscape",
+      "collection": "pathways",
+      "pathway_visibility": "mindful",
+      "kind": "pathway-illustration",
+      "format": [
+        "PNG"
+      ],
+      "intended_use": "Pathway-only artwork, visible only when mindful is selected."
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "Aurora": {
+    "colors": [
+      "#211640",
+      "#9169C4",
+      "#E8B8CE",
+      "#F6D8A8"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#9169C4",
+      "--al-theme-accent": "#E8B8CE",
+      "--al-theme-surface": "#211640",
+      "--al-theme-foreground": "#F6D8A8"
+    }
+  },
+  "Earth": {
+    "colors": [
+      "#28392F",
+      "#9B8060",
+      "#D5C5A1",
+      "#E9E2D1"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#9B8060",
+      "--al-theme-accent": "#D5C5A1",
+      "--al-theme-surface": "#28392F",
+      "--al-theme-foreground": "#E9E2D1"
+    }
+  },
+  "Ocean": {
+    "colors": [
+      "#102B43",
+      "#3989A5",
+      "#8CC8C5",
+      "#E5F1ED"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#3989A5",
+      "--al-theme-accent": "#8CC8C5",
+      "--al-theme-surface": "#102B43",
+      "--al-theme-foreground": "#E5F1ED"
+    }
+  },
+  "Sunset": {
+    "colors": [
+      "#542A3A",
+      "#E99A74",
+      "#F3C37A",
+      "#F3E4D1"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#E99A74",
+      "--al-theme-accent": "#F3C37A",
+      "--al-theme-surface": "#542A3A",
+      "--al-theme-foreground": "#F3E4D1"
+    }
+  },
+  "Amethyst": {
+    "colors": [
+      "#302044",
+      "#A277C6",
+      "#D6B8E8",
+      "#F5D2C2"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#A277C6",
+      "--al-theme-accent": "#D6B8E8",
+      "--al-theme-surface": "#302044",
+      "--al-theme-foreground": "#F5D2C2"
+    }
+  },
+  "Midnight": {
+    "colors": [
+      "#11182F",
+      "#495D9B",
+      "#AAB4E6",
+      "#F1D7B5"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#495D9B",
+      "--al-theme-accent": "#AAB4E6",
+      "--al-theme-surface": "#11182F",
+      "--al-theme-foreground": "#F1D7B5"
+    }
+  },
+  "Ivory": {
+    "colors": [
+      "#FBF6EC",
+      "#EBD9C0",
+      "#A277C6",
+      "#4B3A57"
+    ],
+    "cssVariables": {
+      "--al-theme-primary": "#EBD9C0",
+      "--al-theme-accent": "#A277C6",
+      "--al-theme-surface": "#FBF6EC",
+      "--al-theme-foreground": "#4B3A57"
+    }
+  }
+}

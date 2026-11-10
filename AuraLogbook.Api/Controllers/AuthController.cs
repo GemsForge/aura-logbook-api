@@ -1,4 +1,5 @@
-﻿using AuraLogbook.Api.Models.Dto;
+﻿using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -124,6 +125,7 @@ public class AuthController : ControllerBase
             ZodiacSign = user.ZodiacSign,
             AuraColor = user.AuraColor,
             AuraIntensity = user.AuraIntensity,
+            InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
             Avatar = user.Avatar ?? string.Empty,
             Motto = user.Motto ?? string.Empty,
             SelectedPathway = user.SelectedPathway

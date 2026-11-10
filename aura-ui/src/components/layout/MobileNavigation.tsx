@@ -37,8 +37,8 @@ export default function MobileNavigation() {
       display: { xs: "grid", md: "none" }, gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
       position: "fixed", left: 12, right: 12, bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
       zIndex: 1050, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)",
-      backgroundColor: "rgba(255,254,250,.92)", backdropFilter: "blur(24px)",
-      boxShadow: "0 8px 32px rgba(36,43,39,.12)",
+      backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 92%, transparent)", backdropFilter: "blur(24px)",
+      boxShadow: "0 8px 32px var(--al-theme-glow)",
     }}>
       {destinations.map(({ label, path, icon: Icon }) => {
         const isInsights = label === "Insights";

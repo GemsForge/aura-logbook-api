@@ -97,47 +97,47 @@
     {
       "id": "faith-religion",
       "title": "Faith & Religion",
-      "description": "For a journey guided by scripture, prayer, and spiritual growth.",
+      "description": "For reflection shaped by personal beliefs, meaningful traditions, values, community, or sacred texts.",
       "prompts": [
         {
           "id": "faith-religion-01",
-          "question": "Where have I experienced God’s presence in my life recently, and how did that moment strengthen or challenge my faith?"
+          "question": "What beliefs or values help me make sense of this moment?"
         },
         {
           "id": "faith-religion-02",
-          "question": "What scripture has been speaking to my heart lately, and how can I apply its message to my current circumstances?"
+          "question": "Which tradition, teaching, or reflective practice offers comfort or perspective?"
         },
         {
           "id": "faith-religion-03",
-          "question": "What burdens, worries, or uncertainties am I holding onto that I need to surrender through prayer?"
+          "question": "Is there a quiet practice—prayer, meditation, reading, or time in nature—that I want to make space for?"
         },
         {
           "id": "faith-religion-04",
-          "question": "How has my faith shaped the way I respond to challenges, disappointments, or unexpected changes in my life?"
+          "question": "What question am I carrying, and how might I explore it with curiosity and patience?"
         },
         {
           "id": "faith-religion-05",
-          "question": "What am I praying for in this season of my life, and how am I preparing my heart to receive an answer that may differ from my expectations?"
+          "question": "How does my faith or worldview shape the way I meet a challenge?"
         },
         {
           "id": "faith-religion-06",
-          "question": "Where am I being called to practice greater patience, forgiveness, compassion, or humility in my relationships?"
+          "question": "Where can I offer compassion while still honoring healthy boundaries?"
         },
         {
           "id": "faith-religion-07",
-          "question": "What blessings have I overlooked recently, and how can I become more intentional about expressing gratitude?"
+          "question": "What am I grateful for, even as I acknowledge what is difficult?"
         },
         {
           "id": "faith-religion-08",
-          "question": "Is there an area of my life where my actions are not fully aligned with my spiritual values? What would taking a step toward alignment look like?"
+          "question": "Which actions feel aligned with my deepest values?"
         },
         {
           "id": "faith-religion-09",
-          "question": "How can I strengthen my relationship with God beyond prayer and scripture reading, through service, community, obedience, or everyday acts of love?"
+          "question": "Who or what helps me feel connected to my community or a sense of meaning?"
         },
         {
           "id": "faith-religion-10",
-          "question": "If I wrote a letter to God today, what would I want to say honestly—my gratitude, questions, fears, hopes, or things I have struggled to express in prayer?"
+          "question": "What hope or intention would I like to carry into tomorrow?"
         }
       ]
     }

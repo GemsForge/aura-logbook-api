@@ -23,7 +23,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { getProfileCompletion } from "@/util/profile";
 
-/** Keeps navigation compact so laptop viewports retain more space for page content. */
+/** Keeps navigation compact and the approved logo prominent across viewport sizes. */
 const NavBar = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
@@ -57,19 +57,19 @@ const NavBar = () => {
   };
 
   return (
-    <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--aura-line)", backgroundColor: "rgba(245,244,239,.8)", backdropFilter: "blur(24px)" }}>
-      <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 64, md: 70 }, px: { xs: 2, md: 3 }, gap: 1.5 }}>
+    <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--al-theme-border)", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 86%, transparent)", backdropFilter: "blur(24px)" }}>
+      <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 64, md: 86 }, px: { xs: 1.5, md: 3 }, gap: { xs: 1, md: 1.5 } }}>
         <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
-        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "display", fontWeight: 400, fontSize: "1.5rem", letterSpacing: "-.04em" }}>
+        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "display", fontWeight: 400, fontSize: { xs: "1.28rem", sm: "1.5rem" }, letterSpacing: "-.04em" }}>
           <Link
             href={isAuthenticated ? "/dashboard" : "/home"}
             aria-label="Aura Logbook home"
             color="neutral"
             underline="none"
             className="prism-brand-mark"
-            sx={{ font: "inherit", fontWeight: "inherit", color: "text.primary" }}
+            sx={{ font: "inherit", fontWeight: "inherit", color: "text.primary", display: "inline-flex", alignItems: "center", gap: { xs: 0.5, sm: 1 } }}
           >
             {/* The adjacent brand text names this decorative logo for assistive technology. */}
             <Box
@@ -78,16 +78,12 @@ const NavBar = () => {
               src="/logo/aura-logbook-approved.png"
               alt=""
               aria-hidden="true"
-              sx={{ width: { xs: 36, sm: 40 }, height: { xs: 36, sm: 40 }, objectFit: "contain", flexShrink: 0 }}
+              sx={{ width: { xs: 52, sm: 76 }, height: { xs: 52, sm: 76 }, objectFit: "contain", flexShrink: 0 }}
             />
             <span>Aura Logbook</span>
           </Link>
         </Typography>
-        <Typography level="body-sm" sx={{ display: { xs: "none", sm: "block" }, mr: 1, color: "neutral.500", letterSpacing: "0.08em" }}>
-          A brighter day begins with a small pause.
-        </Typography>
         <Box component="nav" aria-label="Main navigation" sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
-          <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral">Home</Link>
           {isAuthenticated && (
             <>
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral">Dashboard</Link>
@@ -176,11 +172,8 @@ const NavBar = () => {
         <Box
           component="nav"
           aria-label="Mobile navigation"
-          sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, px: 2, pb: 2, pt: 1, borderTop: "1px solid", borderColor: "rgba(217,206,192,.72)" }}
+          sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, px: 2, pb: 2, pt: 1, borderTop: "1px solid", borderColor: "var(--al-theme-border)" }}
         >
-          <Link href={isAuthenticated ? "/dashboard" : "/home"} onClick={goTo(isAuthenticated ? "/dashboard" : "/home")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>
-            Home
-          </Link>
           {isAuthenticated ? (
             <>
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Dashboard</Link>

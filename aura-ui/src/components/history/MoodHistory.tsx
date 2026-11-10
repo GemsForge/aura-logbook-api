@@ -13,6 +13,7 @@ import MoodUpdateModal from "../MoodUpdateModal";
 import { MoodCard } from "./MoodCard";
 import { downloadJournalExport } from "@/features/mood/utils/journalExport";
 import MoodCalendar from "./MoodCalendar";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 
 /** Presents API-backed journal entries and calendar filters in a compact, scannable history view. */
 export default function MoodHistoryPage() {
@@ -71,11 +72,7 @@ export default function MoodHistoryPage() {
 
   return (
     <Box maxWidth={1000} mx="auto" mt={1}>
-      <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Your story, in small moments</Typography>
-      <Typography component="h1" level="h1" className="aura-page-heading" mb={2}>
-        Mood History
-      </Typography>
-      <Typography level="body-lg" color="neutral" sx={{ mb: 2.5 }}>A collection of who you’ve been, and how you’re becoming.</Typography>
+      <ThemeBanner eyebrow="Your story, in small moments" title="Mood History" description="A collection of who you’ve been, and how you’re becoming." illustration="calendar" />
 
       {/* ─── date filter UI ─────────────────────────────────────────── */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>

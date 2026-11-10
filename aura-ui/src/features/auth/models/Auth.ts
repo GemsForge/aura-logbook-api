@@ -1,5 +1,6 @@
 import type { AuraColor } from "@/features/mood/models/aura";
 import type { SpiritualPathway } from "./SpiritualPathway";
+import type { InterfaceTheme } from "./InterfaceTheme";
 
 export interface LoginRequest {
   email: string;
@@ -35,4 +36,6 @@ export interface UpdateUserRequest {
   birthday: string;
   avatar?: string; // base64 or image URL
   selectedPathway: SpiritualPathway;
+  /** Optional for compatibility with clients that predate interface themes. */
+  interfaceTheme?: InterfaceTheme;
 }

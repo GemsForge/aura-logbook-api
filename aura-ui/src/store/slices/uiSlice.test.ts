@@ -3,6 +3,8 @@ import uiReducer, {
   closeProfileModal,
   openProfileModal,
   selectIsProfileModalOpen,
+  selectInterfaceThemePreview,
+  setInterfaceThemePreview,
 } from "./uiSlice";
 import type { RootState } from "../store";
 
@@ -12,6 +14,7 @@ describe("uiSlice", () => {
 
     expect(state).toEqual({
       isProfileModalOpen: false,
+      interfaceThemePreview: null,
     });
   });
 
@@ -19,22 +22,33 @@ describe("uiSlice", () => {
     const state = uiReducer(undefined, openProfileModal());
 
     expect(state.isProfileModalOpen).toBe(true);
+    expect(state.interfaceThemePreview).toBeNull();
   });
 
   it("should close the profile modal", () => {
     const previousState = {
       isProfileModalOpen: true,
+      interfaceThemePreview: "Ocean" as const,
     };
 
     const state = uiReducer(previousState, closeProfileModal());
 
     expect(state.isProfileModalOpen).toBe(false);
+    expect(state.interfaceThemePreview).toBeNull();
+  });
+
+  it("stores and selects a temporary interface theme preview", () => {
+    const state = uiReducer(undefined, setInterfaceThemePreview("Ocean"));
+    const mockRootState = { ui: state } as RootState;
+
+    expect(selectInterfaceThemePreview(mockRootState)).toBe("Ocean");
   });
 
   it("should select whether the profile modal is open", () => {
     const mockRootState = {
       ui: {
         isProfileModalOpen: true,
+        interfaceThemePreview: null,
       },
     } as RootState;
 

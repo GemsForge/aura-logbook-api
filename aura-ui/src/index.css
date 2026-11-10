@@ -1,25 +1,46 @@
 :root {
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #2e2722;
-  background: #f4eee5;
+  color: var(--al-theme-ink, #352d2c);
+  background: var(--al-theme-canvas, #f7f2ea);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --garden-canvas: var(--al-theme-canvas, #f7f2ea);
+  --garden-surface: var(--al-theme-surface, #fffcf7);
+  --garden-surface-soft: var(--al-theme-surface-raised, #ede5d9);
+  --garden-stone: var(--al-theme-border, #ded3c3);
+  --garden-ink: var(--al-theme-ink, #352d2c);
+  --garden-ink-muted: var(--al-theme-ink-muted, #665d56);
+  --garden-line: var(--al-theme-border, #d9cec0);
+  --garden-focus: var(--al-theme-focus, #654a5d);
 }
 
-body { margin: 0; min-width: 320px; min-height: 100vh; }
+* { box-sizing: border-box; }
+
+html { min-width: 0; min-height: 100%; background: var(--garden-canvas); }
+
+body {
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 8% 2%, var(--al-theme-glow, rgba(211, 154, 74, 0.09)), transparent 28rem),
+    var(--garden-canvas);
+}
 button, a, input, textarea, select { font: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 3px solid var(--aura-accent, #3e5948);
+  outline: 3px solid var(--al-theme-focus, #654a5d);
   outline-offset: 3px;
 }
-#root { min-height: 100vh; }
+#root { width: 100%; min-width: 0; min-height: 100vh; }
 
 /* Luminous Journal: shared surface, type and orbital artwork roles across all routes. */
 .aura-eyebrow { font-size: .67rem !important; letter-spacing: .19em !important; text-transform: uppercase; font-weight: 700 !important; }
-.aura-panel { background: var(--aura-panel, rgba(255,254,250,.8)) !important; border: 1px solid var(--aura-line, #d8ddd4) !important; border-radius: 22px !important; box-shadow: 0 12px 38px rgba(34,44,39,.045); backdrop-filter: blur(18px); }
-.aura-dark-panel { background: var(--aura-dark, #222c27) !important; color: #fffef8 !important; border-radius: 22px !important; border: 1px solid rgba(255,255,255,.16); position: relative; overflow: hidden; }
+.aura-panel { background: var(--al-theme-surface, var(--aura-panel, rgba(255,254,250,.8))) !important; color: var(--al-theme-ink, #352d2c) !important; border: 1px solid var(--al-theme-border, var(--aura-line, #d8ddd4)) !important; border-radius: 22px !important; box-shadow: 0 12px 38px var(--al-theme-glow, rgba(34,44,39,.045)); backdrop-filter: blur(18px); }
+.aura-dark-panel { background: linear-gradient(135deg, var(--al-theme-glow, transparent), transparent 85%), var(--al-theme-surface-raised, var(--aura-dark, #222c27)) !important; color: var(--al-theme-ink, #fffef8) !important; border-radius: 22px !important; border: 1px solid var(--al-theme-border, rgba(255,255,255,.16)); position: relative; overflow: hidden; }
 .aura-dark-panel::after { content: ""; position: absolute; width: 270px; height: 270px; border: 1px solid rgba(255,255,255,.13); border-radius: 50%; right: -120px; bottom: -150px; pointer-events: none; }
 .aura-page-heading { font-size: clamp(2.1rem, 3.5vw, 3.4rem) !important; letter-spacing: -.055em !important; line-height: 1.02 !important; font-weight: 400 !important; overflow-wrap: anywhere; }
 .aura-orb { position: relative; aspect-ratio: 1; width: min(100%, 360px); border-radius: 50%; background: radial-gradient(circle at 33% 28%, rgba(255,255,255,.94), var(--aura-glow, #b9cbd8) 47%, var(--aura-accent, #87a4ba) 100%); box-shadow: inset -20px -30px 60px rgba(34,44,39,.12), inset 8px 8px 26px rgba(255,255,255,.75), 0 25px 90px var(--aura-glow, #b9cbd8); }

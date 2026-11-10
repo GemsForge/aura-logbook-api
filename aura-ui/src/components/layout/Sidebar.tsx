@@ -26,7 +26,7 @@ const Sidebar = () => {
   };
 
   return (
-    <Stack component="nav" aria-label="Journal navigation" spacing={1} sx={{ p: 1, mt: { xs: 1, md: 2 }, position: { md: "sticky" }, top: { md: 112 }, borderRadius: "lg", backgroundColor: "rgba(255,254,250,.45)" }}>
+    <Stack component="nav" aria-label="Journal navigation" spacing={1} sx={{ p: 1, mt: { xs: 1, md: 2 }, position: { md: "sticky" }, top: { md: 112 }, borderRadius: "lg", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 54%, transparent)" }}>
       <Typography className="aura-eyebrow" level="body-xs" sx={{ px: 1.5, py: 1, color: "neutral.500" }}>
         Your logbook
       </Typography>

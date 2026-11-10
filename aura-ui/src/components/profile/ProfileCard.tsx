@@ -24,18 +24,19 @@ import { prismGarden } from "@/theme";
 
 
 
-/** Presents profile completion and insights with compact card spacing. */
+/** Shows account details and limits optional zodiac details to the Astrology & Energy pathway. */
 export default function ProfileCard() {
   const dispatch = useAppDispatch();
   const { isFetching: userLoading } = useGetCurrentUserQuery();
   const user = useAppSelector(selectCurrentUser);
-  const { data: zodiac, isLoading, refetch } = useGetZodiacInsightQuery();
+  const showAstrologyContent = user?.selectedPathway === "Energy";
+  const { data: zodiac, isLoading, refetch } = useGetZodiacInsightQuery(undefined, { skip: !showAstrologyContent });
 
   useEffect(() => {
-    if (user?.birthday) {
+    if (showAstrologyContent && user?.birthday) {
       refetch();
     }
-  }, [user?.birthday, refetch]);
+  }, [showAstrologyContent, user?.birthday, refetch]);
 
 
   if (userLoading || !user) {
@@ -75,8 +76,8 @@ export default function ProfileCard() {
         mx: "auto",
         maxWidth: 350,
         width: "100%",
-        bgcolor: "rgba(255, 252, 247, 0.86)",
-        borderColor: prismGarden.color.line,
+        bgcolor: "var(--al-theme-surface)",
+        borderColor: "divider",
         borderRadius: prismGarden.radius.card,
         boxShadow: prismGarden.shadow.soft,
       }}>
@@ -86,7 +87,7 @@ export default function ProfileCard() {
           overlap="circular"
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           badgeContent={
-            zodiac && !isLoading ? (
+            showAstrologyContent && zodiac && !isLoading ? (
               <Typography fontSize={24} lineHeight={1}>
                 {zodiacEmojis[zodiac.sign.toLowerCase()] || "?"}
               </Typography>

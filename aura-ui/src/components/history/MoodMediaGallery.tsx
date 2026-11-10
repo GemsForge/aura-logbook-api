@@ -158,7 +158,7 @@ function PrivateMoodImage({
   }, [attachment.id, moodEntryId]);
 
   return (
-    <Sheet variant="outlined" sx={{ position: "relative", width: 132, minHeight: 104, overflow: "hidden", borderRadius: "md", borderColor: "var(--aura-line)", backgroundColor: "rgba(255,254,250,.7)" }}>
+    <Sheet variant="outlined" sx={{ position: "relative", width: 132, minHeight: 104, overflow: "hidden", borderRadius: "md", borderColor: "var(--aura-line)", backgroundColor: "var(--al-theme-surface)" }}>
       {imageUrl ? (
         <Box component="img" src={imageUrl} alt={attachment.fileName} sx={{ display: "block", width: "100%", height: 104, objectFit: "cover" }} />
       ) : (
@@ -175,7 +175,7 @@ function PrivateMoodImage({
         aria-label={`Remove photo ${attachment.fileName}`}
         disabled={disabled}
         onClick={onDelete}
-        sx={{ position: "absolute", top: 4, right: 4, backgroundColor: "rgba(255,254,250,.9)" }}
+        sx={{ position: "absolute", top: 4, right: 4, backgroundColor: "var(--al-theme-surface)" }}
       >
         <DeleteOutline fontSize="small" />
       </IconButton>

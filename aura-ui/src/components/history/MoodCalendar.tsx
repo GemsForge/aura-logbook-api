@@ -43,7 +43,7 @@ function MoodEntryTallies({ count }: { count: number }) {
   );
 }
 
-/** Shows daily mood tallies in a compact calendar and narrows History to a selected date. */
+/** Shows API-backed daily mood tallies and filters History using theme-aware calendar surfaces. */
 export default function MoodCalendar({
   entries,
   selectedDate,
@@ -86,7 +86,7 @@ export default function MoodCalendar({
       <Box sx={{ height: 3, position: "absolute", top: 0, left: "8%", right: "8%", borderRadius: "0 0 8px 8px", background: "linear-gradient(90deg, transparent, var(--aura-accent), var(--aura-glow), transparent)", opacity: 0.65 }} />
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, mb: 1.5, flexWrap: "wrap" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box sx={{ width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", color: "primary.700", background: "linear-gradient(145deg, var(--aura-wash), rgba(255,254,250,.8))", border: "1px solid var(--aura-line)", boxShadow: "0 4px 16px var(--aura-wash)" }}>
+          <Box sx={{ width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", color: "text.primary", background: "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))", border: "1px solid var(--aura-line)", boxShadow: "0 4px 16px var(--aura-wash)" }}>
             <CalendarMonth aria-hidden="true" />
           </Box>
           <Box>
@@ -97,7 +97,7 @@ export default function MoodCalendar({
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)", backgroundColor: "rgba(255,254,250,.68)", boxShadow: "0 3px 12px rgba(36,43,39,.04)" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 3px 12px var(--al-theme-glow)" }}>
           <IconButton
             variant="plain"
             aria-label="Previous month"
@@ -172,13 +172,13 @@ export default function MoodCalendar({
                         border: "1px solid",
                         borderColor: selected ? "var(--aura-accent)" : count ? "var(--aura-line)" : "transparent",
                         background: selected
-                          ? "linear-gradient(145deg, var(--aura-wash), rgba(255,254,250,.92))"
+                          ? "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))"
                           : count
-                            ? "linear-gradient(145deg, var(--aura-wash), rgba(255,254,250,.72))"
+                            ? "linear-gradient(145deg, var(--aura-wash), color-mix(in srgb, var(--al-theme-surface) 82%, transparent))"
                           : "transparent",
-                        boxShadow: selected ? "0 0 0 2px var(--aura-wash), 0 5px 16px var(--aura-glow)" : count ? "0 2px 8px rgba(36,43,39,.035)" : "none",
+                        boxShadow: selected ? "0 0 0 2px var(--aura-wash), 0 5px 16px var(--aura-glow)" : count ? "0 2px 8px var(--al-theme-glow)" : "none",
                         opacity: outsideMonth ? 0.55 : 1,
-                        "&:hover": { background: "linear-gradient(145deg, var(--aura-wash), rgba(255,254,250,.92))", borderColor: "var(--aura-accent)", transform: "translateY(-1px)" },
+                        "&:hover": { background: "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))", borderColor: "var(--aura-accent)", transform: "translateY(-1px)" },
                         "&:focus-visible": { outline: "2px solid var(--aura-accent)", outlineOffset: 1 },
                         transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
                         "@media (prefers-reduced-motion: reduce)": {

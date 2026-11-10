@@ -7,10 +7,11 @@ import {
   type EditProfileFormData,
 } from "@/features/auth/models/EditProfileSchema";
 import { AuraColor } from "@/features/mood/models/aura";
+import { resolveInterfaceTheme } from "@/theme";
 import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
 import { useAppDispatch } from "@/store/hooks";
-import { closeProfileModal } from "@/store/slices/uiSlice";
+import { closeProfileModal, setInterfaceThemePreview } from "@/store/slices/uiSlice";
 import {
   getAuraColorPreview,
   normalizeAuraIntensity,
@@ -23,7 +24,6 @@ import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import EditProfileForm from "./EditProfile/EditProfileForm";
 import { AuraModal } from "../ui/AuraModal";
-import { getAuraBackground } from "@/theme";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -56,6 +56,7 @@ export default function EditProfileModal({
       confirmPassword: "",
       motto: "",
       spiritualPathway: SpiritualPathway.Mindfulness,
+      interfaceTheme: "Aurora",
       isChangingPassword: false,
     },
   });
@@ -72,6 +73,7 @@ export default function EditProfileModal({
 
   useEffect(() => {
     if (open && user) {
+      dispatch(setInterfaceThemePreview(null));
       form.reset({
         displayName: user.displayName || "",
         email: user.email || "",
@@ -85,10 +87,13 @@ export default function EditProfileModal({
         confirmPassword: "",
         motto: user.motto || "",
         spiritualPathway: user.selectedPathway ?? SpiritualPathway.Mindfulness,
+        interfaceTheme: resolveInterfaceTheme(user.interfaceTheme),
       });
       setIsChangingPassword(false);
+    } else if (!open) {
+      dispatch(setInterfaceThemePreview(null));
     }
-  }, [open, user, reset, form]);
+  }, [open, user, reset, form, dispatch]);
 
   if (loadingUser || !user) return <LinearProgress color="secondary" />;
 
@@ -107,6 +112,7 @@ export default function EditProfileModal({
 
     try {
       await updateUser(payload).unwrap(); // runs PUT /update
+      dispatch(setInterfaceThemePreview(null));
       showToast("Profile updated!", "success");
       onClose(); // authApi invalidates “User” → refetches me
     } catch {
@@ -129,10 +135,13 @@ export default function EditProfileModal({
   return (
     <AuraModal
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        dispatch(setInterfaceThemePreview(null));
+        onClose();
+      }}
       title={<span>Edit Profile</span>}
       size="lg"
-      contentSx={{ p: 0, backgroundColor: "background.default", backgroundImage: getAuraBackground(colorKey, intensity) }}
+      contentSx={{ p: 0, backgroundColor: "background.default", backgroundImage: "none" }}
     >
         <EditProfileForm
           form={form}
@@ -144,6 +153,7 @@ export default function EditProfileModal({
           defaultInitials={defaultInitials}
           onSubmit={onSubmit}
           onCancel={() => dispatch(closeProfileModal())}
+          onThemePreviewChange={(theme) => dispatch(setInterfaceThemePreview(theme))}
         />
     </AuraModal>
   );

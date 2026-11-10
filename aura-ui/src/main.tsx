@@ -9,7 +9,12 @@ import { router } from "./router";
 import { Box, CircularProgress, CssBaseline } from "@mui/material";
 import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
 import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy/styles";
-import { getAuraJoyTheme, getAuraTheme } from "./theme";
+import {
+  getAuraJoyTheme,
+  getAuraTheme,
+  interfaceThemeTokens,
+  resolveInterfaceTheme,
+} from "./theme";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -18,24 +23,29 @@ import { useCurrentUserQuery } from "./store/hooks/useCurrentUserQuery";
 import "./index.css";
 import { useAppSelector } from "./store/hooks";
 import { selectCurrentUser } from "./store/slices/authSlice";
+import { selectInterfaceThemePreview } from "./store/slices/uiSlice";
 import { normalizeAuraIntensity, resolveAuraColor } from "./theme/auraTheme";
 
 function ThemedApp() {
  
   const { isLoading } = useCurrentUserQuery();
   const user = useAppSelector(selectCurrentUser);
+  const interfaceThemePreview = useAppSelector(selectInterfaceThemePreview);
   
   // Profile mutations update Redux immediately, making saved preferences visible across both themes.
   const auraColor = resolveAuraColor(user?.auraColor);
   const auraIntensity = normalizeAuraIntensity(user?.auraIntensity);
+  // An unsaved profile choice previews across the app, then falls back to the saved account setting.
+  const interfaceTheme = resolveInterfaceTheme(interfaceThemePreview ?? user?.interfaceTheme);
+  const interfaceMode = interfaceThemeTokens[interfaceTheme].mode;
 
   const theme = useMemo(
-    () => getAuraTheme(auraColor, auraIntensity),
-    [auraColor, auraIntensity]
+    () => getAuraTheme(auraColor, auraIntensity, interfaceTheme),
+    [auraColor, auraIntensity, interfaceTheme]
   );
   const joyTheme = useMemo(
-    () => getAuraJoyTheme(auraColor, auraIntensity),
-    [auraColor, auraIntensity],
+    () => getAuraJoyTheme(interfaceTheme),
+    [interfaceTheme],
   );
 
   if (isLoading) {
@@ -48,7 +58,13 @@ function ThemedApp() {
 
   return (
     <ThemeProvider theme={{ [MATERIAL_THEME_ID]: theme }}>
-      <JoyCssVarsProvider theme={joyTheme}>
+      <JoyCssVarsProvider
+        theme={joyTheme}
+        defaultMode={interfaceMode}
+        defaultColorScheme={interfaceMode}
+        modeStorageKey={`aura-theme-mode-${interfaceTheme}`}
+        colorSchemeStorageKey={`aura-theme-scheme-${interfaceTheme}`}
+      >
         <CssBaseline enableColorScheme />
         <ToastProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs}>

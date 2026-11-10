@@ -43,4 +43,7 @@ public class User
     public string? Motto { get; set; }
     // public string Role { get; set; } = "User";
     public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+
+    /// <summary>Saved interface appearance, independent of recorded aura color.</summary>
+    public string InterfaceTheme { get; set; } = InterfaceThemeValues.Aurora;
 }
