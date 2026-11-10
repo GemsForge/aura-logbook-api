@@ -2,6 +2,7 @@ import type { MoodEntry } from "@/features/mood/models/schema";
 import type {
   MoodDashboardSummary,
   MoodEntryRequest,
+  MoodEntryCreatedResponse,
   MoodFrequencyResponse,
 } from "../features/mood/models/schema/MoodAuth";
 
@@ -22,9 +23,9 @@ export const MoodApi = {
   },
 
   /**
-   * Log a new mood entry.
+   * Creates a mood entry and returns its identifier for private photo uploads.
    */
-  logMood: async (payload: MoodEntryRequest): Promise<string> => {
+  logMood: async (payload: MoodEntryRequest): Promise<MoodEntryCreatedResponse> => {
     const res = await api.post(API_BASE, payload);
     return res.data;
   },

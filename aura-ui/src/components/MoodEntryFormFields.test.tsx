@@ -49,7 +49,7 @@ describe("MoodEntryFormFields", () => {
       date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
       moods: ["Empowered"],
       comment: "A good day",
-    });
+    }, []);
   });
 
   it("renders a pathway interpretation when two authored moods are selected", async () => {

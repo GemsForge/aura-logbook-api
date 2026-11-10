@@ -80,13 +80,13 @@ describe("MoodApi", () => {
   });
 
   it("should log a new mood entry", async () => {
-    const responseMessage = "Mood logged successfully.";
-    mockedApi.post.mockResolvedValue({ data: responseMessage });
+    const response = { id: 42, message: "Mood entry recorded." };
+    mockedApi.post.mockResolvedValue({ data: response });
 
     const result = await MoodApi.logMood(testData.moodPayload);
 
     expect(mockedApi.post).toHaveBeenCalledWith("Mood", testData.moodPayload);
-    expect(result).toBe(responseMessage);
+    expect(result).toEqual(response);
   });
 
   it("should get a mood entry by id", async () => {

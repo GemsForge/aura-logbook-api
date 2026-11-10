@@ -41,6 +41,7 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal("Test User", user.DisplayName);
         Assert.Equal("blue", user.AuraColor);
         Assert.Equal(50, user.AuraIntensity);
+        Assert.Equal(InterfaceThemeValues.Aurora, user.InterfaceTheme);
     }
 
     [Fact]
@@ -95,6 +96,7 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal("Virgo", user.ZodiacSign);
         Assert.Equal("green", user.AuraColor);
         Assert.Equal(50, user.AuraIntensity);
+        Assert.Equal(InterfaceThemeValues.Aurora, user.InterfaceTheme);
         Assert.Equal("virgo", GetStoredZodiacSign(user.Id));
         Assert.True(await service.AuthenticateAsync(registration.Email, registration.Password));
 
@@ -108,11 +110,13 @@ public sealed class RelationalRepositoryTests : IDisposable
             AuraColor = user.AuraColor,
             AuraIntensity = user.AuraIntensity,
             SelectedPathway = user.SelectedPathway,
+            InterfaceTheme = "Midnight",
         });
 
         Assert.True(updated.Success);
         Assert.Equal(updatedBirthday, (await service.GetByIdAsync(user.Id))?.Birthday);
         Assert.Equal("2001-02-03", GetStoredBirthday(user.Id));
+        Assert.Equal("Midnight", (await service.GetByIdAsync(user.Id))?.InterfaceTheme);
     }
 
     private string? GetStoredBirthday(int userId)
@@ -143,6 +147,25 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal(2, entry.Moods.Count);
         Assert.Contains(MoodType.Centered, entry.Moods);
         Assert.Contains(MoodType.Harmonious, entry.Moods);
+    }
+
+    [Fact]
+    public async Task Mood_service_returns_the_created_entry_id_for_private_media_uploads()
+    {
+        var repository = new SqliteMoodRepository(_factory);
+        var service = new MoodService(repository);
+        var created = await service.CreateMoodAsync(7, new MoodEntryRequest
+        {
+            Date = new DateOnly(2026, 11, 10),
+            Moods = [MoodType.Centered],
+            Comment = "Photo flow test",
+        });
+
+        Assert.True(created.Success);
+        Assert.True(created.EntryId > 0);
+        var savedEntry = await service.GetEntryForUserAsync(7, created.EntryId);
+        Assert.NotNull(savedEntry);
+        Assert.Equal("Photo flow test", savedEntry.Comment);
     }
 
     [Fact]

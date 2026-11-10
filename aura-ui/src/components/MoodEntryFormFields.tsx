@@ -1,6 +1,5 @@
 import Box from "@mui/joy/Box";
 import Checkbox from "@mui/joy/Checkbox";
-import Tooltip from "@mui/joy/Tooltip";
 import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import Divider from "@mui/joy/Divider";
@@ -8,10 +7,11 @@ import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { AuraColor, AuraColorInfo, AuraMoodMap } from "@/features/mood/models/aura";
+import { AuraColor, AuraMoodMap } from "@/features/mood/models/aura";
 import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
 import { auraPalettes } from "@/theme/auraTheme";
 import { useAppSelector } from "@/store/hooks";
@@ -19,6 +19,7 @@ import { selectCurrentUser } from "@/store/slices/authSlice";
 import { useGetMoodCombinationInterpretationQuery } from "@/store/auraApi";
 import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
 import MDEditor from "@uiw/react-md-editor";
+import MoodPhotoPicker from "@/components/MoodPhotoPicker";
 
 
 type MoodEntryFormValues = {
@@ -54,14 +55,30 @@ const promptPathwayByUserPathway: Record<string, string> = {
 interface Props {
   entry?: MoodEntry;
   showSubmitButton?: boolean;
+  /** Reports normalized mood data and prepared photos without putting image bytes in the mood request. */
   onSubmit: (data: {
     date: string;
     moods: MoodType[];
     comment?: string;
-  }) => void;
+  }, photos: File[]) => void | Promise<void>;
+  /** Locks entry fields after mood creation to prevent photo retries from creating another entry. */
+  disabled?: boolean;
+  /** Disables submit while the mood or its photos are being saved. */
+  isSubmitting?: boolean;
+  /** Replaces the normal button label during a failed-photo retry. */
+  submitLabel?: string;
+  /** Progress or recovery copy announced to assistive technology. */
+  statusMessage?: string;
+  /** Uses an alert for failures and a polite status for progress. */
+  statusRole?: "alert" | "status";
+  /** Per-photo upload state displayed beside its preview. */
+  photoStatuses?: Array<"pending" | "uploaded" | "failed">;
 }
 
-export default function MoodEntryFormFields({ entry, showSubmitButton = true, onSubmit }: Props) {
+export default function MoodEntryFormFields({ entry, showSubmitButton = true, onSubmit, disabled = false, isSubmitting = false, submitLabel, statusMessage, statusRole = "status", photoStatuses = [] }: Props) {
+  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+  const location = useLocation();
+  const preselectedMood = (location.state as { preselectedMood?: MoodType } | null)?.preselectedMood;
   const currentUser = useAppSelector(selectCurrentUser);
   const {
     control,
@@ -76,7 +93,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
       date: entry
         ? dayjs(entry.date).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
-      moods: entry?.moods ?? [],
+      moods: entry?.moods ?? (preselectedMood ? [preselectedMood] : []),
       comment: entry?.comment ?? "",
     },
   });
@@ -126,11 +143,11 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   });
 
   const onFormSubmit = (data: MoodEntryFormValues) => {
-    onSubmit({
+    void onSubmit({
       date: dayjs(data.date).format("YYYY-MM-DD"),
       moods: data.moods,
       comment: data.comment?.trim() || undefined,
-    });
+    }, selectedPhotos);
   };
 
   return (
@@ -146,6 +163,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           render={({ field }) => (
             <DatePicker
               label="Date"
+              disabled={disabled || isSubmitting}
               value={dayjs(field.value)}
               onChange={(newDate) => newDate && field.onChange(newDate.format("YYYY-MM-DD"))}
               format="MM-DD-YYYY"
@@ -166,10 +184,11 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           {selectedMoods.length === 0 ? "Nothing selected" : `${selectedMoods.length} selected`}
         </Typography>
       </Stack>
+      <Typography level="body-xs" color="neutral">Color meanings are optional personal reflection, not a health assessment.</Typography>
 
-      <Box sx={{ position: "relative", width: "100%", maxWidth: 720, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 660 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, rgba(255,252,247,.98) 0 20%, rgba(237,229,217,.58) 20.5% 45%, rgba(255,252,247,0) 45.5%), conic-gradient(from 20deg, rgba(199,154,152,.16), rgba(135,145,123,.18), rgba(211,154,74,.16), rgba(129,95,126,.16), rgba(199,154,152,.16))", border: "1px solid rgba(217,206,192,.9)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed rgba(102,93,86,.25)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid rgba(102,93,86,.12)", borderRadius: "50%" } }}>
+      <Box sx={{ position: "relative", width: "100%", maxWidth: 720, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 660 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, var(--al-theme-surface) 0 20%, color-mix(in srgb, var(--al-theme-surface-raised) 72%, transparent) 20.5% 45%, transparent 45.5%), conic-gradient(from 20deg, color-mix(in srgb, var(--aura-accent) 24%, transparent), color-mix(in srgb, var(--al-theme-accent) 24%, transparent), color-mix(in srgb, var(--aura-accent) 10%, transparent), color-mix(in srgb, var(--al-theme-primary) 18%, transparent), color-mix(in srgb, var(--aura-accent) 24%, transparent))", border: "1px solid var(--al-theme-border)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed color-mix(in srgb, var(--al-theme-ink-muted) 40%, transparent)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid color-mix(in srgb, var(--al-theme-ink-muted) 22%, transparent)", borderRadius: "50%" } }}>
         <Box sx={{ position: "absolute", inset: "32% 22%", display: { xs: "none", sm: "grid" }, placeItems: "center", textAlign: "center", pointerEvents: "none", zIndex: 2 }}>
-          <Box sx={{ width: "100%", minHeight: 132, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 2.5, borderRadius: "50%", backgroundColor: "rgba(255,252,247,.86)", boxShadow: "0 10px 30px rgba(78,62,51,.10)" }}>
+          <Box sx={{ width: "100%", minHeight: 132, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 2.5, borderRadius: "50%", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 10px 30px var(--al-theme-glow)" }}>
             <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em", color: "neutral.500" }}>{selectedMoods.length ? "Your current mix" : "Your inner weather"}</Typography>
             <Typography level="title-lg" sx={{ mt: 0.5, fontFamily: "display", fontWeight: 400, lineHeight: 1.1 }}>{selectedMoods.length ? selectedMoods.slice(0, 2).join(" · ") : "Choose what feels close"}</Typography>
             {selectedMoods.length > 2 && <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>+ {selectedMoods.length - 2} more</Typography>}
@@ -180,7 +199,6 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           const color = colorKey as AuraColor;
           if (moods.length === 0) return null;
 
-          const info = AuraColorInfo[color];
           const swatch = auraPalettes[color].primary!.main;
           const [left, top] = auraOrbitPositions[groupIndex] ?? [50, 50];
           const selectedInGroup = moods.filter((mood) => selectedMoods.includes(mood)).length;
@@ -197,27 +215,9 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                     mr: 1,
                   }}
                 />
-                <Tooltip
-                  title={
-                    <Box>
-                      <Typography level="title-sm">{info.name}</Typography>
-                      <Typography level="body-sm">{info.meaning}</Typography>
-                    </Box>
-                  }
-                  arrow
-                >
-                  <Typography
-                    level="title-sm"
-                    sx={{
-                      color: "neutral.800",
-                      textTransform: "capitalize",
-                      mb: 0.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {color}
-                  </Typography>
-                </Tooltip>
+                <Typography level="title-sm" sx={{ color: "neutral.800", textTransform: "capitalize", mb: 0.5, fontWeight: 700 }}>
+                  {color}
+                </Typography>
                 {selectedInGroup > 0 && <Typography level="body-xs" sx={{ ml: "auto", color: swatch, fontWeight: 700 }}>{selectedInGroup}</Typography>}
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -234,7 +234,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                         alignItems: "center",
                         borderRadius: "md",
                         borderColor: checked ? hue : "neutral.200",
-                        backgroundColor: checked ? `${hue}55` : "rgba(255,252,247,.88)",
+                        backgroundColor: checked ? `${hue}55` : "var(--al-theme-surface)",
                         color: "neutral.900",
                         transition: "transform .18s ease, box-shadow .18s ease, background-color .18s ease",
                         "&:hover": { transform: "translateY(-1px)", boxShadow: "sm" },
@@ -242,6 +242,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                     >
                       <Checkbox
                         checked={checked}
+                        disabled={disabled || isSubmitting}
                         onChange={() => toggleMood(mood)}
                         label={`${icon} ${mood}`}
                         variant="plain"
@@ -263,6 +264,10 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           </Typography>
         )}
       </Box>
+
+      {!entry && <MoodPhotoPicker onChange={setSelectedPhotos} disabled={disabled || isSubmitting} statuses={photoStatuses} />}
+
+      {statusMessage && <Typography role={statusRole} aria-live={statusRole === "alert" ? "assertive" : "polite"} aria-atomic="true" level="body-sm" color={statusRole === "alert" ? "danger" : "primary"}>{statusMessage}</Typography>}
 
       {interpretationEligible && currentUser && (
         <Sheet variant="soft" sx={{ p: { xs: 1.75, sm: 2.25 }, borderRadius: "lg", border: "1px solid", borderColor: "primary.outlinedBorder" }}>
@@ -293,13 +298,13 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
             <Typography level="h3" sx={{ fontSize: "1.8rem", fontWeight: 400 }}>A little more space</Typography>
             <Typography level="body-sm" color="neutral" sx={{ mb: 1 }}>{reflectionPrompt} <span>(optional)</span></Typography>
             {/* Markdown remains the persisted comment value, so the editor does not introduce an HTML-only format. */}
-            <Box data-color-mode="light" sx={{ "& .w-md-editor": { borderRadius: "14px", borderColor: errors.comment ? "var(--joy-palette-danger-500)" : "rgba(128, 107, 87, .25)", backgroundColor: "rgba(255, 252, 247, .72)", boxShadow: "none", overflow: "hidden" }, "& .w-md-editor-toolbar": { backgroundColor: "rgba(242, 232, 219, .68)", borderBottomColor: "rgba(128, 107, 87, .16)" }, "& .w-md-editor-content": { backgroundColor: "transparent" }, "& .w-md-editor-text-pre, & .w-md-editor-text-input, & .w-md-editor-text": { fontFamily: "inherit", fontSize: "0.98rem", lineHeight: 1.6 }, "& .w-md-editor-text-input": { padding: "16px" }, "& .w-md-editor-preview": { padding: "16px", fontFamily: "inherit" } }}>
+            <Box data-color-mode="light" sx={{ "& .w-md-editor": { borderRadius: "14px", borderColor: errors.comment ? "var(--joy-palette-danger-500)" : "var(--al-theme-border)", backgroundColor: "var(--al-theme-surface)", color: "var(--al-theme-ink)", boxShadow: "none", overflow: "hidden" }, "& .w-md-editor-toolbar": { backgroundColor: "var(--al-theme-surface-raised)", borderBottomColor: "var(--al-theme-border)" }, "& .w-md-editor-content": { backgroundColor: "transparent" }, "& .w-md-editor-text-pre, & .w-md-editor-text-input, & .w-md-editor-text": { fontFamily: "inherit", fontSize: "0.98rem", lineHeight: 1.6, color: "var(--al-theme-ink)" }, "& .w-md-editor-text-input": { padding: "16px" }, "& .w-md-editor-preview": { padding: "16px", fontFamily: "inherit" } }}>
               <MDEditor
                 value={field.value ?? ""}
                 onChange={(value) => field.onChange(value ?? "")}
-                preview="edit"
-                hideToolbar={false}
-                textareaProps={{ "aria-label": "Reflection", placeholder: "Write what you noticed, felt, or want to remember…" }}
+                preview={disabled ? "preview" : "edit"}
+                hideToolbar={disabled}
+                textareaProps={{ "aria-label": "Reflection", placeholder: "Write what you noticed, felt, or want to remember…", readOnly: disabled || isSubmitting }}
                 height={180}
               />
             </Box>
@@ -313,8 +318,8 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
       />
 
       {showSubmitButton && (
-        <Button type="submit" variant="contained" sx={{ alignSelf: { xs: "stretch", sm: "flex-end" }, minWidth: 170, minHeight: 46 }}>
-          {entry ? "Update Entry" : "Submit Entry"}
+        <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ alignSelf: { xs: "stretch", sm: "flex-end" }, minWidth: 170, minHeight: 46 }}>
+          {submitLabel ?? (entry ? "Update Entry" : "Submit Entry")}
         </Button>
       )}
     </Box>
