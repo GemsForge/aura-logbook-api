@@ -52,7 +52,7 @@ describe("NavBar", () => {
       "/dashboard",
     );
     const mainNavigation = within(screen.getByRole("navigation", { name: "Main navigation" }));
-    expect(mainNavigation.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
+    expect(mainNavigation.getByRole("link", { name: "Today" })).toHaveAttribute("href", "/dashboard");
     expect(mainNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Open profile menu" }));
@@ -71,7 +71,7 @@ describe("NavBar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Open navigation" }));
     const mobileNavigation = within(screen.getByRole("navigation", { name: "Mobile navigation" }));
-    expect(mobileNavigation.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
+    expect(mobileNavigation.getByRole("link", { name: "Today" })).toHaveAttribute("href", "/dashboard");
     expect(mobileNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
   });
 });

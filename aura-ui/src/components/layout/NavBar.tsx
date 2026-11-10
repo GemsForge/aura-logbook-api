@@ -86,7 +86,7 @@ const NavBar = () => {
         <Box component="nav" aria-label="Main navigation" sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
           {isAuthenticated && (
             <>
-              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral">Dashboard</Link>
+              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral">Today</Link>
             </>
           )}
           {!isAuthenticated && (
@@ -177,7 +177,7 @@ const NavBar = () => {
         >
           {isAuthenticated ? (
             <>
-              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Dashboard</Link>
+              <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Today</Link>
               <Link href="/log-mood" onClick={goTo("/log-mood")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Log mood</Link>
               <Link href="/history" onClick={goTo("/history")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Reflections</Link>
             </>

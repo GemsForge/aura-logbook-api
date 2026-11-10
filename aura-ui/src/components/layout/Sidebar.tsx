@@ -13,17 +13,14 @@ const navItems = [
   { label: "Log mood", path: "/log-mood", icon: EditNoteOutlined },
   { label: "Reflections", path: "/history", icon: MenuBookOutlined },
   { label: "Gallery", path: "/gallery", icon: PhotoLibraryOutlined },
-  { label: "Insights", path: "/dashboard#insights", icon: InsightsOutlined },
+  { label: "Insights", path: "/insights", icon: InsightsOutlined },
 ];
 
 /** Keeps journal destinations in a translucent rail that reflows below mobile content. */
 const Sidebar = () => {
   const location = useLocation();
-  const isCurrentDestination = (label: string, path: string) => {
-    if (label === "Insights") return location.pathname === "/dashboard" && location.hash === "#insights";
-    if (label === "Today") return location.pathname === path && location.hash !== "#insights";
-    return location.pathname === path;
-  };
+  // Each destination is its own route, so the current page is a plain path match.
+  const isCurrentDestination = (path: string) => location.pathname === path;
 
   return (
     <Stack component="nav" aria-label="Journal navigation" spacing={1} sx={{ p: 1, mt: { xs: 1, md: 2 }, position: { md: "sticky" }, top: { md: 112 }, borderRadius: "lg", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 54%, transparent)" }}>
@@ -31,7 +28,7 @@ const Sidebar = () => {
         Your logbook
       </Typography>
       {navItems.map(({ label, path, icon: Icon }) => {
-        const isCurrent = isCurrentDestination(label, path);
+        const isCurrent = isCurrentDestination(path);
         return (
           <Sheet
             component={Link}

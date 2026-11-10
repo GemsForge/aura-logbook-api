@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
@@ -15,12 +15,11 @@ import { buildWeekMoodStrip, summarizeMoodPatterns } from "@/features/mood/moodP
 import { auraPalettes } from "@/theme/auraTheme";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { useGetCurrentUserQuery } from "@/store/authApi";
-import { useGetAllMoodsQuery, useGetDashboardSummaryQuery, useGetMoodBreakdownQuery, useGetMoodByIdQuery, useLogMoodMutation } from "@/store/moodApi";
+import { useGetAllMoodsQuery, useGetDashboardSummaryQuery, useGetMoodByIdQuery, useLogMoodMutation } from "@/store/moodApi";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { useAppSelector } from "@/store/hooks";
 import { getTimeGreeting } from "@/util/timeGreeting";
 import dayjs from "dayjs";
-import MoodPieChart from "@/components/dashboard/MoodPieChart";
 import dailyQuotes from "../../data/aura_logbook_daily_quotes.json";
 // Renders saved reflection Markdown in the recent-entries list.
 import MarkdownReflection from "@/components/MarkdownReflection";
@@ -52,17 +51,18 @@ const resolveDailyQuotePathwayId = (pathway?: string) => {
 // A module-load seed rotates the prompt on reload while keeping ordinary rerenders stable.
 const dailyQuoteReloadSeed = Math.random();
 
+/** Outlined secondary actions under the chips: clearly buttons, with a 44px touch target on phones. */
+const quickActionSx = { minHeight: { xs: 44, sm: 36 }, borderColor: "var(--al-theme-control-border)" } as const;
+
 /** Keeps Today focused on checking in, glancing at the week, and remembering recent writing. */
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
   const greeting = getTimeGreeting();
   const user = useAppSelector(selectCurrentUser);
   const today = dayjs().format("YYYY-MM-DD");
   const { isLoading: loadingUser } = useGetCurrentUserQuery();
   const { data: entries = [], isLoading: loadingToday, isError: entriesError, refetch: refetchEntries } = useGetAllMoodsQuery();
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummaryQuery();
-  const { data: breakdown, isLoading: loadingBreakdown } = useGetMoodBreakdownQuery(false);
   const [logMood] = useLogMoodMutation();
   const [quickCheckIn, setQuickCheckIn] = useState<{ mood: MoodType; saved: boolean; entryId?: number } | null>(null);
   const quickMoodEntry = useGetMoodByIdQuery(quickCheckIn?.entryId ?? 0, { skip: !quickCheckIn?.saved || !quickCheckIn.entryId });
@@ -87,16 +87,10 @@ export default function Dashboard() {
   // One persisted source drives today's entry and recent reflections.
   const recentEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
   const weekStrip = buildWeekMoodStrip(recentEntries);
-  const weeklyCheckInCount = weekStrip.reduce((sum, day) => sum + day.entryCount, 0);
+  // One-line weekly pattern shown under This week; the full Insights page repeats it with the breakdown.
   const patternSummary = summarizeMoodPatterns(recentEntries);
-  const loading = loadingUser || loadingToday || loadingSummary || loadingBreakdown || (showAstrologyContent && loadingZodiac);
-  // Scroll to the Insights destination after asynchronous dashboard data has rendered it.
-  useEffect(() => {
-    if (location.hash !== "#insights" || loading) return;
-    const section = document.getElementById("insights");
-    section?.scrollIntoView({ block: "start" });
-    section?.focus({ preventScroll: true });
-  }, [location.hash, loading]);
+  const weeklyCheckInCount = weekStrip.reduce((sum, day) => sum + day.entryCount, 0);
+  const loading = loadingUser || loadingToday || loadingSummary || (showAstrologyContent && loadingZodiac);
 
   // Saving unmounts the tapped chip, which would drop keyboard focus to the page body. Move it to
   // the confirmation instead, and back to the first chip when the user chooses "Done".
@@ -148,11 +142,11 @@ export default function Dashboard() {
           <WeatherCard compact city="Atlanta" state="GA" country="US" />
         </Stack>
         <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography>
-          {/* Both check-in states reserve the height of the tallest saved moment (longest pathway prompt), so saving never shifts the page; e2e/quick-check-in.spec.ts measures it. */}
+          {/* The check-in sizes to its content. The saved moment is taller than the chips, so the cards below move down only in direct response to the tap (not an unexpected layout shift), and return to place on "Done"; e2e/quick-check-in.spec.ts measures both. */}
           {/* Always mounted so screen readers announce the save; a live region inserted together with its text is often skipped. */}
           <Box role="status" aria-live="polite" sx={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{quickCheckIn?.saved ? `Logged ${quickCheckIn.mood}. Thank you for checking in.` : ""}</Box>
-          {quickCheckIn?.saved ? <Box ref={savedStateRef} tabIndex={-1} role="group" aria-label="Check-in saved" sx={{ mt: 1, minHeight: { xs: 232, sm: 148 }, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 4, borderRadius: "8px" } }}><Typography level="body-sm">Logged. Thank you for checking in.</Typography><Stack direction="row" alignItems="center" gap={.75} sx={{ mt: .5 }}><Typography level="body-sm">{MoodIcons[quickCheckIn.mood]} {quickCheckIn.mood} · {quickMoodEntry.data?.createdAt ? dayjs(quickMoodEntry.data.createdAt).format("h:mm A") : dayjs().format("h:mm A")}</Typography><Box aria-hidden="true" sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: auraPalettes[AuraMoodMap[quickCheckIn.mood].auraColor][500].main }} /><Typography level="body-xs" color="neutral">{AuraColorInfo[AuraMoodMap[quickCheckIn.mood].auraColor].name} reflection color</Typography></Stack><Stack direction="row" gap={1} sx={{ mt: .5 }}><Button variant="plain" disabled={!quickMoodEntry.data} onClick={() => setShowDetailModal(true)}>Add a note or photo</Button><Button variant="plain" color="neutral" onClick={() => { returnFocusToChips.current = true; setQuickCheckIn(null); }}>Done</Button></Stack>{nextStep && <Box sx={{ mt: .75, p: 1, borderRadius: "md", bgcolor: "var(--aura-wash)" }}><Typography level="body-xs" color="neutral">A gentle next step</Typography><Typography level="body-sm">{nextStep.prompt}</Typography></Box>}</Box>
-            : <Box sx={{ mt: 1, minHeight: { xs: 232, sm: 148 } }}><Box ref={moodGroupRef} role="group" aria-label="How are you feeling today?" sx={{ display: "flex", flexWrap: "wrap", gap: .75 }}>{quickMoods.map(mood => <Button key={mood} size="sm" variant="soft" color="neutral" disabled={isSavingQuickMood} aria-label={mood} onClick={() => void submitQuickMood(mood)} sx={{ color: "var(--al-theme-ink)" }}>{MoodIcons[mood]} {mood}</Button>)}</Box><Stack direction="row" gap={1.5} alignItems="center" sx={{ mt: .5 }}><Button variant="plain" color="neutral" onClick={() => setShowMoreMoods(value => !value)} aria-expanded={showMoreMoods}>{showMoreMoods ? "Fewer moods" : "More moods"}</Button><Button variant="plain" onClick={() => navigate("/log-mood")}>Add more detail</Button></Stack>{quickCheckIn && !quickCheckIn.saved && <Typography role="alert" level="body-sm" color="danger" sx={{ mt: .5 }}>That check-in didn’t save. <Button variant="plain" disabled={isSavingQuickMood} onClick={() => void submitQuickMood(quickCheckIn.mood)}>Retry {quickCheckIn.mood}</Button></Typography>}</Box>}
+          {quickCheckIn?.saved ? <Box ref={savedStateRef} tabIndex={-1} role="group" aria-label="Check-in saved" sx={{ mt: 1, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 4, borderRadius: "8px" } }}><Typography level="body-sm">Logged. Thank you for checking in.</Typography><Stack direction="row" alignItems="center" gap={.75} sx={{ mt: .5 }}><Typography level="body-sm">{MoodIcons[quickCheckIn.mood]} {quickCheckIn.mood} · {quickMoodEntry.data?.createdAt ? dayjs(quickMoodEntry.data.createdAt).format("h:mm A") : dayjs().format("h:mm A")}</Typography><Box aria-hidden="true" sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: auraPalettes[AuraMoodMap[quickCheckIn.mood].auraColor][500].main }} /><Typography level="body-xs" color="neutral">{AuraColorInfo[AuraMoodMap[quickCheckIn.mood].auraColor].name} reflection color</Typography></Stack><Stack direction="row" gap={1} sx={{ mt: .5 }}><Button variant="plain" disabled={!quickMoodEntry.data} onClick={() => setShowDetailModal(true)}>Add a note or photo</Button><Button variant="plain" color="neutral" onClick={() => { returnFocusToChips.current = true; setQuickCheckIn(null); }}>Done</Button></Stack>{nextStep && <Box sx={{ mt: .75, p: 1, borderRadius: "md", bgcolor: "var(--aura-wash)" }}><Typography level="body-xs" color="neutral">A gentle next step</Typography><Typography level="body-sm">{nextStep.prompt}</Typography></Box>}</Box>
+            : <Box sx={{ mt: 1 }}><Box ref={moodGroupRef} role="group" aria-label="How are you feeling today?" sx={{ display: "flex", flexWrap: "wrap", gap: .75 }}>{quickMoods.map(mood => <Button key={mood} size="sm" variant="soft" color="neutral" disabled={isSavingQuickMood} aria-label={mood} onClick={() => void submitQuickMood(mood)} sx={{ color: "var(--al-theme-ink)" }}>{MoodIcons[mood]} {mood}</Button>)}</Box><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" sx={{ mt: 1.25 }}><Button size="sm" variant="outlined" color="neutral" sx={quickActionSx} onClick={() => setShowMoreMoods(value => !value)} aria-expanded={showMoreMoods}>{showMoreMoods ? "Fewer moods" : "More moods"}</Button><Button size="sm" variant="outlined" sx={quickActionSx} onClick={() => navigate("/log-mood")}>Add more detail</Button></Stack>{quickCheckIn && !quickCheckIn.saved && <Typography role="alert" level="body-sm" color="danger" sx={{ mt: .5 }}>That check-in didn’t save. <Button variant="plain" disabled={isSavingQuickMood} onClick={() => void submitQuickMood(quickCheckIn.mood)}>Retry {quickCheckIn.mood}</Button></Typography>}</Box>}
           {entriesError && <Typography role="alert" level="body-sm" color="danger">Your entries couldn’t be loaded. <Button variant="plain" onClick={() => refetchEntries()}>Retry</Button></Typography>}
           <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>{summaryLine}</Typography>
         </Box>
@@ -166,7 +160,6 @@ export default function Dashboard() {
         </Stack></Sheet></Grid>
         <Grid xs={12}><details><summary style={{ cursor: "pointer", padding: "12px 16px", borderRadius: 12, background: "var(--aura-wash)" }}>Music</summary><Box sx={{ mt: 1 }}><SpotifyConnectionCard /></Box></details></Grid>
         {showAstrologyContent && zodiac && <Grid xs={12}><Sheet className="aura-panel" sx={{ p: 2 }}><Typography level="h3">A lens for reflection</Typography><Typography level="body-sm" color="neutral">{zodiac.sign} · {zodiac.element} · {String(zodiac.insights?.[0]?.message ?? "")}</Typography></Sheet></Grid>}
-        <Grid xs={12}><Sheet id="insights" tabIndex={-1} className="aura-panel" sx={{ p: 2, scrollMarginTop: 24 }}><Typography level="h3" sx={{ fontSize: "1.1rem" }}>Insights</Typography><Typography level="body-sm" color="neutral">{patternSummary}</Typography>{breakdown && breakdown.length > 0 && <Box sx={{ mt: 2 }}><MoodPieChart data={breakdown} /></Box>}{showAstrologyContent && zodiac && <Box sx={{ mt: 2 }}><Typography level="title-md">{zodiac.sign} • {zodiac.element}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.description ?? "")}</Typography><Typography level="body-sm" color="neutral">{String(zodiac.insights?.[0]?.message ?? "")}</Typography></Box>}</Sheet></Grid>
       </Grid>
       {showDetailModal && quickMoodEntry.data && <MoodUpdateModal entry={quickMoodEntry.data} title="Add a note or photo" saveLabel="Save details" onClose={() => setShowDetailModal(false)} onSuccess={() => { void refetchEntries(); void quickMoodEntry.refetch(); }} />}
     </Box>

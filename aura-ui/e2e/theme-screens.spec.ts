@@ -20,6 +20,7 @@ const screens = [
   { name: "log-mood", path: "/log-mood" },
   { name: "reflections", path: "/history" },
   { name: "gallery", path: "/gallery" },
+  { name: "insights", path: "/insights" },
 ] as const;
 
 for (const screen of screens) {

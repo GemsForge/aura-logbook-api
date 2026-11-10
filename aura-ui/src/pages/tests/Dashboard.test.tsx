@@ -160,9 +160,10 @@ describe("Dashboard", () => {
     expect(screen.getByRole("heading", { name: /a thought for today/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /recent reflections/i })).toBeInTheDocument();
     expect(screen.getByText(/mindful pathway/i)).toBeInTheDocument();
-    expect(screen.queryByText(/virgo • earth/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/virgo/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("weather-card")).toBeInTheDocument();
-    expect(screen.getByTestId("mood-pie-chart")).toBeInTheDocument();
+    // The breakdown chart lives on the Insights page, not Today.
+    expect(screen.queryByTestId("mood-pie-chart")).not.toBeInTheDocument();
     expect(screen.getByRole("list", { name: /last seven days/i })).toBeInTheDocument();
     expect(screen.queryByTestId("mood-timeline-chart")).not.toBeInTheDocument();
     expect(screen.getByText(/12 entries · most often Calm/i)).toBeInTheDocument();
@@ -177,9 +178,14 @@ describe("Dashboard", () => {
       preloadedState: createAuthenticatedState(),
     });
 
-    expect(screen.getByText(/virgo • earth/i)).toBeInTheDocument();
-    expect(screen.getByText(/grounded, reflective energy/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/take your time and trust your rhythm/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: /a lens for reflection/i })).toBeInTheDocument();
+    expect(screen.getByText(/virgo · earth · take your time and trust your rhythm/i)).toBeInTheDocument();
+  });
+
+  it("shows the secondary check-in actions as buttons", () => {
+    renderWithProviders(<Dashboard />, { preloadedState: createAuthenticatedState() });
+    expect(screen.getByRole("button", { name: "More moods" })).toHaveClass("MuiButton-variantOutlined");
+    expect(screen.getByRole("button", { name: "Add more detail" })).toHaveClass("MuiButton-variantOutlined");
   });
 
   it("shows a gentle empty summary without a streak when there are no entries", () => {

@@ -13,7 +13,7 @@ import { openProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSli
 
 const destinations = [
   { label: "Today", path: "/dashboard", icon: HomeOutlined },
-  { label: "Insights", path: "/dashboard#insights", icon: InsightsOutlined },
+  { label: "Insights", path: "/insights", icon: InsightsOutlined },
   { label: "Log mood", path: "/log-mood", icon: EditNoteOutlined },
   { label: "Reflections", path: "/history", icon: MenuBookOutlined },
   { label: "Gallery", path: "/gallery", icon: PhotoLibraryOutlined },
@@ -21,7 +21,7 @@ const destinations = [
 
 /** Keeps journal destinations and profile access within thumb reach above the device safe area. */
 export default function MobileNavigation() {
-  const { pathname, hash } = useLocation();
+  const { pathname } = useLocation();
   const dispatch = useAppDispatch();
   const profileOpen = useAppSelector(selectIsProfileModalOpen);
   const itemStyles = {
@@ -41,10 +41,7 @@ export default function MobileNavigation() {
       boxShadow: "0 8px 32px var(--al-theme-glow)",
     }}>
       {destinations.map(({ label, path, icon: Icon }) => {
-        const isInsights = label === "Insights";
-        const active = isInsights
-          ? pathname === "/dashboard" && hash === "#insights" && !profileOpen
-          : pathname === path && hash !== "#insights" && !profileOpen;
+        const active = pathname === path && !profileOpen;
         return <Box key={path} component={Link} to={path} aria-current={active ? "page" : undefined}
           sx={{ ...itemStyles, backgroundColor: active ? "var(--aura-wash)" : "transparent" }}>
           <Icon aria-hidden="true" sx={{ fontSize: 23 }} />
