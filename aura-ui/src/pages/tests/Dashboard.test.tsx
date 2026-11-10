@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createAuthenticatedState,
   renderWithProviders,
@@ -53,6 +53,9 @@ vi.mock("../../store/moodApi", () => ({
   useGetAllMoodsQuery: () => ({
     isLoading: false,
     data: [],
+  }),
+  useGetMoodByIdQuery: (id: number) => ({
+    data: id ? { id, userId: 7, date: "2026-11-10", moods: ["Empowered"], createdAt: "2026-11-10T12:30:00.000Z" } : undefined,
   }),
   useGetDashboardSummaryQuery: () => ({
     isLoading: false,
@@ -127,11 +130,23 @@ vi.mock("../../components/profile/SpotifyConnectionCard", () => ({
   default: () => <div data-testid="spotify-connection-card">Spotify Connection</div>,
 }));
 
+vi.mock("../../components/MoodUpdateModal", () => ({
+  default: ({ title }: { title: string }) => <div data-testid="mood-update-modal">{title}</div>,
+}));
+
 vi.mock("../../util/timeGreeting", () => ({
   getTimeGreeting: () => "Good morning",
 }));
 
 describe("Dashboard", () => {
+  beforeEach(() => {
+    dashboardSummary.data.totalEntries = 12;
+    dashboardSummary.data.mostFrequentMood = "Calm";
+    dashboardSummary.data.lastEntryDate = "2025-06-18";
+    dashboardPathway.selectedPathway = "Mindfulness";
+    quickMoodMutation.mockReset();
+  });
+
   it("prioritizes the check-in, week, prompt, and recent reflections on the mindful pathway", () => {
     dashboardPathway.selectedPathway = "Mindfulness";
     renderWithProviders(<Dashboard />, {
@@ -139,8 +154,8 @@ describe("Dashboard", () => {
     });
 
     expect(screen.getByText(/good morning, gem\./i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /log your mood/i })).toHaveAttribute("href", "/log-mood");
     expect(screen.getByRole("heading", { name: /how are you feeling today/i })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /how are you feeling today/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /this week/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /a thought for today/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /recent reflections/i })).toBeInTheDocument();
@@ -148,7 +163,8 @@ describe("Dashboard", () => {
     expect(screen.queryByText(/virgo • earth/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("weather-card")).toBeInTheDocument();
     expect(screen.getByTestId("mood-pie-chart")).toBeInTheDocument();
-    expect(screen.getAllByTestId("mood-timeline-chart")).toHaveLength(2);
+    expect(screen.getByRole("list", { name: /last seven days/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("mood-timeline-chart")).not.toBeInTheDocument();
     expect(screen.getByText(/12 entries · most often Calm/i)).toBeInTheDocument();
     expect(screen.getByText("Music")).toBeInTheDocument();
     expect(screen.getByTestId("spotify-connection-card").closest("details")).not.toHaveAttribute("open");
@@ -183,7 +199,24 @@ describe("Dashboard", () => {
     await user.click(screen.getByRole("button", { name: "Empowered" }));
     expect(quickMoodMutation).toHaveBeenCalledWith(expect.objectContaining({ moods: ["Empowered"] }));
     expect(await screen.findByText(/logged\. thank you for checking in/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /add more detail/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add a note or photo/i })).toBeInTheDocument();
+    expect(screen.getByText(/yellow reflection color/i)).toBeInTheDocument();
+    expect(screen.getByText(/a gentle next step/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /add a note or photo/i }));
+    expect(screen.getByTestId("mood-update-modal")).toHaveTextContent("Add a note or photo");
+  });
+
+  it("prevents duplicate requests from rapid taps", async () => {
+    dashboardPathway.selectedPathway = "Mindfulness";
+    let finishRequest!: (value: { id: number; message: string }) => void;
+    quickMoodMutation.mockReturnValue({ unwrap: () => new Promise((resolve) => { finishRequest = resolve; }) });
+    const user = userEvent.setup();
+    renderWithProviders(<Dashboard />, { preloadedState: createAuthenticatedState() });
+    const moodButton = screen.getByRole("button", { name: "Empowered" });
+    await user.click(moodButton);
+    expect(quickMoodMutation).toHaveBeenCalledTimes(1);
+    expect(moodButton).toBeDisabled();
+    finishRequest({ id: 42, message: "Saved" });
   });
 
   it("shows an inline retry after a failed quick mood save", async () => {
