@@ -22,7 +22,7 @@ export function makeEntries(count: number) {
  * Stubs only remote data so tests measure the real UI. Pass `signedIn: false` for public screens
  * as a visitor; unknown endpoints answer with an empty object.
  */
-export async function stubApi(page: Page, entryCount: number, interfaceTheme = "Aurora", signedIn = true) {
+export async function stubApi(page: Page, entryCount: number, interfaceTheme = "Aurora", signedIn = true, selectedPathway = "Mindfulness") {
   const entries = makeEntries(entryCount);
   if (signedIn) {
     await page.addInitScript(() => {
@@ -41,7 +41,7 @@ export async function stubApi(page: Page, entryCount: number, interfaceTheme = "
         id: 7,
         email: "alex@example.com",
         displayName: "Alex",
-        selectedPathway: "Mindfulness",
+        selectedPathway,
         auraColor: "blue",
         auraIntensity: 50,
         interfaceTheme,
@@ -55,7 +55,12 @@ export async function stubApi(page: Page, entryCount: number, interfaceTheme = "
       };
     } else if (path.endsWith("/mood/dashboard/mood-breakdown")) {
       body = [];
-    } else if (path.endsWith("/mood")) {
+    } else if (/\/mood\/?$/.test(path) && route.request().method() === "POST") {
+      // A quick check-in creates entry 42, which later reads and updates address by id.
+      body = { id: 42, message: "Saved" };
+    } else if (path.endsWith("/mood/42")) {
+      body = { id: 42, userId: 7, date: entries[0]?.date ?? new Date().toISOString().slice(0, 10), moods: ["Tense"], comment: "", createdAt: new Date().toISOString() };
+    } else if (/\/mood\/?$/.test(path)) {
       body = entries;
     } else if (path.endsWith("/weather/current")) {
       body = { temperature: 68, description: "Clear", iconCode: "01d" };

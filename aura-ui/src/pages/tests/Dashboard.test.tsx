@@ -131,7 +131,7 @@ vi.mock("../../components/profile/SpotifyConnectionCard", () => ({
 }));
 
 vi.mock("../../components/MoodUpdateModal", () => ({
-  default: ({ title }: { title: string }) => <div data-testid="mood-update-modal">{title}</div>,
+  default: ({ title, entry }: { title: string; entry: { id: number } }) => <div data-testid="mood-update-modal" data-entry-id={entry.id}>{title}</div>,
 }));
 
 vi.mock("../../util/timeGreeting", () => ({
@@ -204,6 +204,35 @@ describe("Dashboard", () => {
     expect(screen.getByText(/a gentle next step/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /add a note or photo/i }));
     expect(screen.getByTestId("mood-update-modal")).toHaveTextContent("Add a note or photo");
+  });
+
+  it("opens the saved entry for details instead of creating a second one", async () => {
+    dashboardPathway.selectedPathway = "Mindfulness";
+    quickMoodMutation.mockReset().mockReturnValue({ unwrap: () => Promise.resolve({ id: 42, message: "Saved" }) });
+    const user = userEvent.setup();
+    renderWithProviders(<Dashboard />, { preloadedState: createAuthenticatedState() });
+    await user.click(screen.getByRole("button", { name: "Empowered" }));
+    await user.click(await screen.findByRole("button", { name: /add a note or photo/i }));
+    // The update dialog receives the entry the quick check-in created (id 42)...
+    expect(screen.getByTestId("mood-update-modal")).toHaveAttribute("data-entry-id", "42");
+    // ...and no second create request was made.
+    expect(quickMoodMutation).toHaveBeenCalledTimes(1);
+  });
+
+  it("moves focus to the confirmation after saving and back to the chips on Done", async () => {
+    dashboardPathway.selectedPathway = "Mindfulness";
+    quickMoodMutation.mockReset().mockReturnValue({ unwrap: () => Promise.resolve({ id: 42, message: "Saved" }) });
+    const user = userEvent.setup();
+    renderWithProviders(<Dashboard />, { preloadedState: createAuthenticatedState() });
+    // The live region exists before saving so its later text change is announced.
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    await user.click(screen.getByRole("button", { name: "Empowered" }));
+    const saved = await screen.findByRole("group", { name: /check-in saved/i });
+    expect(saved).toHaveFocus();
+    expect(screen.getByRole("status")).toHaveTextContent(/logged empowered/i);
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.getByRole("group", { name: /how are you feeling today/i }).querySelector("button")).toHaveFocus();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("prevents duplicate requests from rapid taps", async () => {
