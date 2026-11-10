@@ -84,14 +84,13 @@ export default function MoodCalendar({
   return (
     <Sheet component="section" className="aura-panel" aria-labelledby="mood-calendar-title" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2, overflow: "hidden", position: "relative" }}>
       <Box sx={{ height: 3, position: "absolute", top: 0, left: "8%", right: "8%", borderRadius: "0 0 8px 8px", background: "linear-gradient(90deg, transparent, var(--aura-accent), var(--aura-glow), transparent)", opacity: 0.65 }} />
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, mb: 1.5, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: 1, flexWrap: "wrap" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box sx={{ width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", color: "text.primary", background: "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))", border: "1px solid var(--aura-line)", boxShadow: "0 4px 16px var(--aura-wash)" }}>
             <CalendarMonth aria-hidden="true" />
           </Box>
           <Box>
-            <Typography className="aura-eyebrow" level="body-xs" color="neutral">Your rhythm</Typography>
-            <Typography id="mood-calendar-title" component="h2" level="h3" sx={{ mt: 0.25 }}>Mood calendar</Typography>
+            <Typography id="mood-calendar-title" component="h2" level="h3">Mood calendar</Typography>
             <Typography level="body-sm" color="neutral" sx={{ mt: 0.25 }}>
               {entriesThisMonth} {entriesThisMonth === 1 ? "moment" : "moments"} marked this month
             </Typography>
@@ -162,7 +161,8 @@ export default function MoodCalendar({
                       sx={{
                         width: "100%",
                         minWidth: 0,
-                        minHeight: { xs: 50, sm: 66 },
+                        // Compact cells: room for the date and up to one row of tallies.
+                        minHeight: { xs: 40, sm: 50 },
                         height: "auto",
                         p: { xs: 0.25, sm: 0.5 },
                         display: "flex",
@@ -200,7 +200,7 @@ export default function MoodCalendar({
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 1, mt: 2 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 1, mt: 1 }}>
         <Typography level="body-xs" color="neutral">
           Each tally marks a saved mood entry. Select a day to read its reflections.
         </Typography>

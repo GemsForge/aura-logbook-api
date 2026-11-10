@@ -69,7 +69,7 @@ export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number 
   };
 
   return (
-    <Box component="section" aria-label="Private mood photos" sx={{ mt: 2 }}>
+    <Box component="section" aria-label="Private mood photos" sx={{ mt: 1 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, flexWrap: "wrap" }}>
         <Typography level="title-sm">Photos</Typography>
         <AuraButton
@@ -100,10 +100,11 @@ export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number 
           </AuraButton>
         )}
       </Box>
-      <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>
-        Private to your account · Large photos are resized and converted to JPEG before upload · 10 per entry
-      </Typography>
+      {/* Upload rules matter only while adding photos, so they show with the expanded gallery rather than on every card. */}
       {expanded && <>
+        <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>
+          Private to your account · Large photos are resized and converted to JPEG before upload · 10 per entry
+        </Typography>
         {loading && <Typography role="status" level="body-xs" sx={{ mt: 1 }}>Loading private photos…</Typography>}
         {error && <Typography role="alert" level="body-xs" color="danger" sx={{ mt: 1 }}>{error}</Typography>}
         {!loading && attachments.length > 0 && (

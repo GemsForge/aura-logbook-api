@@ -23,7 +23,7 @@ export function MoodCard({
 }) {
   const date = dayjs(entry.date).format("LL");
   return (
-    <Sheet variant="outlined" className="aura-panel" sx={{ mb: 1.5, p: { xs: 1.75, sm: 2.5 }, position: "relative" }}>
+    <Sheet variant="outlined" className="aura-panel" sx={{ mb: 1.25, p: { xs: 1.5, sm: 2 }, position: "relative" }}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography level="body-sm" textColor="text.secondary">
           {date}
@@ -38,7 +38,7 @@ export function MoodCard({
         </Box>
       </Box>
 
-      <Stack direction="row" flexWrap="wrap" mt={1.25}>
+      <Stack direction="row" flexWrap="wrap" mt={0.5}>
         {entry.moods.map((mood) => (
           <MoodTag key={mood} mood={mood} />
         ))}

@@ -151,7 +151,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   };
 
   return (
-    <Box id="mood-form" component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+    <Box id="mood-form" component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 1.75 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
         <Box>
           <Typography level="title-lg">Your check-in</Typography>
@@ -186,10 +186,10 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
       </Stack>
       <Typography level="body-xs" color="neutral">Color meanings are optional personal reflection, not a health assessment.</Typography>
 
-      <Box sx={{ position: "relative", width: "100%", maxWidth: 720, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 660 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, var(--al-theme-surface) 0 20%, color-mix(in srgb, var(--al-theme-surface-raised) 72%, transparent) 20.5% 45%, transparent 45.5%), conic-gradient(from 20deg, color-mix(in srgb, var(--aura-accent) 24%, transparent), color-mix(in srgb, var(--al-theme-accent) 24%, transparent), color-mix(in srgb, var(--aura-accent) 10%, transparent), color-mix(in srgb, var(--al-theme-primary) 18%, transparent), color-mix(in srgb, var(--aura-accent) 24%, transparent))", border: "1px solid var(--al-theme-border)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed color-mix(in srgb, var(--al-theme-ink-muted) 40%, transparent)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid color-mix(in srgb, var(--al-theme-ink-muted) 22%, transparent)", borderRadius: "50%" } }}>
+      <Box sx={{ position: "relative", width: "100%", maxWidth: 620, display: { xs: "grid", sm: "block" }, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5, p: { xs: 1.5, sm: 0 }, minHeight: { xs: "auto", sm: 560 }, mx: "auto", borderRadius: { xs: "24px", sm: "50%" }, background: "radial-gradient(circle, var(--al-theme-surface) 0 20%, color-mix(in srgb, var(--al-theme-surface-raised) 72%, transparent) 20.5% 45%, transparent 45.5%), conic-gradient(from 20deg, color-mix(in srgb, var(--aura-accent) 24%, transparent), color-mix(in srgb, var(--al-theme-accent) 24%, transparent), color-mix(in srgb, var(--aura-accent) 10%, transparent), color-mix(in srgb, var(--al-theme-primary) 18%, transparent), color-mix(in srgb, var(--aura-accent) 24%, transparent))", border: "1px solid var(--al-theme-border)", "&::before": { content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed color-mix(in srgb, var(--al-theme-ink-muted) 40%, transparent)", borderRadius: "50%" }, "&::after": { content: "\"\"", position: "absolute", inset: "31%", border: "1px solid color-mix(in srgb, var(--al-theme-ink-muted) 22%, transparent)", borderRadius: "50%" } }}>
         <Box sx={{ position: "absolute", inset: "32% 22%", display: { xs: "none", sm: "grid" }, placeItems: "center", textAlign: "center", pointerEvents: "none", zIndex: 2 }}>
-          <Box sx={{ width: "100%", minHeight: 132, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 2.5, borderRadius: "50%", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 10px 30px var(--al-theme-glow)" }}>
-            <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.16em", color: "neutral.500" }}>{selectedMoods.length ? "Your current mix" : "Your inner weather"}</Typography>
+          <Box sx={{ width: "100%", minHeight: 112, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 2, borderRadius: "50%", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 10px 30px var(--al-theme-glow)" }}>
+            <Typography level="body-xs" sx={{ color: "neutral.500" }}>{selectedMoods.length ? "Your current mix" : "Your inner weather"}</Typography>
             <Typography level="title-lg" sx={{ mt: 0.5, fontFamily: "display", fontWeight: 400, lineHeight: 1.1 }}>{selectedMoods.length ? selectedMoods.slice(0, 2).join(" · ") : "Choose what feels close"}</Typography>
             {selectedMoods.length > 2 && <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>+ {selectedMoods.length - 2} more</Typography>}
             {!selectedMoods.length && <Typography level="body-xs" color="neutral" sx={{ mt: 0.75 }}>Select one or more colors around you.</Typography>}
@@ -204,7 +204,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           const selectedInGroup = moods.filter((mood) => selectedMoods.includes(mood)).length;
 
           return (
-            <Sheet key={color} variant="soft" sx={{ position: { xs: "relative", sm: "absolute" }, left: { xs: "auto", sm: `${left}%` }, top: { xs: "auto", sm: `${top}%` }, transform: { xs: "none", sm: "translate(-50%, -50%)" }, width: { xs: "auto", sm: 140 }, p: 1.25, borderRadius: "20px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: { xs: "translateY(-2px)", sm: "translate(-50%, -50%) scale(1.03)" }, boxShadow: `0 12px 30px ${swatch}5c` } }}>
+            <Sheet key={color} variant="soft" sx={{ position: { xs: "relative", sm: "absolute" }, left: { xs: "auto", sm: `${left}%` }, top: { xs: "auto", sm: `${top}%` }, transform: { xs: "none", sm: "translate(-50%, -50%)" }, width: { xs: "auto", sm: 136 }, p: 1, borderRadius: "16px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: { xs: "translateY(-2px)", sm: "translate(-50%, -50%) scale(1.03)" }, boxShadow: `0 12px 30px ${swatch}5c` } }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                 <Box
                   sx={{
@@ -249,7 +249,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                         size="lg"
                         uncheckedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
                         checkedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
-                        sx={{ width: "100%", px: 0.5, color: "neutral.900", "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: "0.78rem", lineHeight: 1.3, py: 0.5 }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
+                        sx={{ width: "100%", px: 0.5, color: "neutral.900", "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: "0.75rem", lineHeight: 1.3, py: 0.375, whiteSpace: "nowrap" }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
                       />
                     </Sheet>
                   );
@@ -295,7 +295,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
         control={control}
         render={({ field }) => (
           <Box>
-            <Typography level="h3" sx={{ fontSize: "1.8rem", fontWeight: 400 }}>A little more space</Typography>
+            <Typography level="h3" sx={{ fontSize: "1.25rem", fontWeight: 500 }}>A little more space</Typography>
             <Typography level="body-sm" color="neutral" sx={{ mb: 1 }}>{reflectionPrompt} <span>(optional)</span></Typography>
             {/* Markdown remains the persisted comment value, so the editor does not introduce an HTML-only format. */}
             {/* The editor ships light-mode icon colors; toolbar buttons take theme ink so they stay visible in dark themes. */}
@@ -306,7 +306,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                 preview={disabled ? "preview" : "edit"}
                 hideToolbar={disabled}
                 textareaProps={{ "aria-label": "Reflection", placeholder: "Write what you noticed, felt, or want to remember…", readOnly: disabled || isSubmitting }}
-                height={180}
+                height={140}
               />
             </Box>
             {errors.comment && (
@@ -319,7 +319,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
       />
 
       {showSubmitButton && (
-        <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ alignSelf: { xs: "stretch", sm: "flex-end" }, minWidth: 170, minHeight: 46 }}>
+        <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ alignSelf: { xs: "stretch", sm: "flex-end" }, minWidth: 150, minHeight: 40 }}>
           {submitLabel ?? (entry ? "Update Entry" : "Submit Entry")}
         </Button>
       )}

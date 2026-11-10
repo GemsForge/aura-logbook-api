@@ -71,18 +71,19 @@ export default function MoodHistoryPage() {
     : logs;
 
   return (
-    <Box maxWidth={1000} mx="auto" mt={1}>
-      <ThemeBanner eyebrow="Your story, in small moments" title="Mood History" description="A collection of who you’ve been, and how you’re becoming." illustration="calendar" />
+    <Box maxWidth={1000} mx="auto">
+      <ThemeBanner title="Mood History" description="A collection of who you’ve been, and how you’re becoming." illustration="calendar" />
 
       {/* ─── date filter UI ─────────────────────────────────────────── */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box className="aura-panel" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1.25, mb: 2, p: 1.5, "& > *": { minWidth: 0 }, "& .MuiTextField-root": { flex: "1 1 180px" } }}>
+        <Box className="aura-panel" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, mb: 2, p: 1.25, "& > *": { minWidth: 0 }, "& .MuiTextField-root": { flex: "1 1 136px" } }}>
           <DatePicker
             label="Start date"
             value={startDate}
             onChange={setStartDate}
             disableFuture
             format="YYYY-MM-DD"
+            slotProps={{ textField: { size: "small" } }}
           />
           <DatePicker
             label="End date"
@@ -91,6 +92,7 @@ export default function MoodHistoryPage() {
             disableFuture
             minDate={startDate ?? undefined}
             format="YYYY-MM-DD"
+            slotProps={{ textField: { size: "small" } }}
           />
           <Button
             variant="contained"
