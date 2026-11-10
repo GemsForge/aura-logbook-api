@@ -16,6 +16,5 @@ namespace AuraLogbook.Api.Services
         Task<(bool Success, string Message)> RegisterAsync(RegisterUserRequest requestuser);
         Task<List<User>> SearchUsersAsync(string query);
         Task<(bool Success, string Message)> UpdateUserAsync(UpdateUserRequest request);
-        Task<(bool Success, string Message)> UpdatePasswordByEmailAsync(string email, string newPassword);
     }
 }

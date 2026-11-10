@@ -10,23 +10,11 @@ import api from "./api";
 
 const API_BASE = "/Auth";
 
+/**
+ * REST client for /api/Auth. Password reset, the diagnostic `test` route, and the all-users
+ * listing were removed with #327 and must not be reintroduced without a verified recovery flow.
+ */
 export const AuthApi = {
-  /**
-   * Test connection to the API.
-   */
-  testConnection: async (): Promise<UserProfile> => {
-    const res = await api.get(`${API_BASE}/test`);
-    return res.data;
-  },
-
-  /**
-   * Get all users (requires Authorization).
-   */
-  getAllUsers: async (): Promise<UserProfile[]> => {
-    const res = await api.get(`${API_BASE}/all`);
-    return res.data;
-  },
-
   /**
    * Authenticate user with email and password.
    */
@@ -48,14 +36,6 @@ export const AuthApi = {
    */
   updateUser: async (payload: UpdateUserRequest): Promise<UserProfile> => {
     const res = await api.put(`${API_BASE}/update`, payload);
-    return res.data;
-  },
-
-  resetPassword: async (email: string, newPassword: string): Promise<{message: string}> => {
-    const res = await api.post(`${API_BASE}/reset-password`, {
-      email,
-      newPassword,
-    });
     return res.data;
   },
 

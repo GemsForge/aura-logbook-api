@@ -31,6 +31,36 @@ public sealed class RelationalRepositoryTests : IDisposable
         SeedReferenceData();
     }
 
+    /// <summary>
+    /// #327: seeded users must still authenticate after <c>[JsonIgnore]</c> was added to
+    /// <see cref="User.PasswordHash"/>, because the seeder reads its own record type.
+    /// </summary>
+    [Fact]
+    public async Task Json_seeded_user_can_log_in_through_sqlite()
+    {
+        var contentRoot = Path.Combine(Path.GetTempPath(), $"aura-seed-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(contentRoot, "Data"));
+        try
+        {
+            var hash = BCrypt.Net.BCrypt.HashPassword("SeededPass1");
+            await File.WriteAllTextAsync(Path.Combine(contentRoot, "Data", "users.json"), System.Text.Json.JsonSerializer.Serialize(new[]
+            {
+                new { Id = 500, Email = "seeded@example.test", PasswordHash = hash, AuraColor = "blue", AuraIntensity = 50, SelectedPathway = 0, CreatedAt = "2026-11-10T00:00:00Z", UpdatedAt = "2026-11-10T00:00:00Z" },
+            }));
+            var environment = new Moq.Mock<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+            environment.SetupGet(e => e.ContentRootPath).Returns(contentRoot);
+
+            await new AuraLogbook.Api.Data.Database.JsonUserSeeder(_factory, environment.Object, Microsoft.Extensions.Logging.Abstractions.NullLogger<AuraLogbook.Api.Data.Database.JsonUserSeeder>.Instance).SeedUsersAsync();
+
+            var service = new UserService(new SqliteUserRepository(_factory));
+            Assert.True(await service.AuthenticateAsync("seeded@example.test", "SeededPass1"));
+        }
+        finally
+        {
+            Directory.Delete(contentRoot, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task User_repository_reads_seeded_user()
     {
