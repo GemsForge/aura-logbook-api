@@ -4,17 +4,17 @@ import type { ReactNode } from "react";
 interface ThemeBannerProps {
   title: string;
   description: string;
-  eyebrow?: string;
   illustration?: "journal" | "mood" | "aura" | "insights" | "summary" | "calendar" | "settings";
   children?: ReactNode;
+  /** Optional artwork (e.g. the user's pathway thumbnail) shown in place of the feature icon. */
+  art?: ReactNode;
 }
 
 /**
  * Compact themed page introduction using the selected theme art and a bounded text scrim.
- * Kept short (one title line plus one description line) so page content starts above the fold;
- * `eyebrow` is accepted for compatibility but no longer rendered, since it repeated the title.
+ * Kept short (one title line plus one description line) so page content starts above the fold.
  */
-export function ThemeBanner({ title, description, illustration, children }: ThemeBannerProps) {
+export function ThemeBanner({ title, description, illustration, children, art }: ThemeBannerProps) {
   return (
     <Box
       component="section"
@@ -50,7 +50,7 @@ export function ThemeBanner({ title, description, illustration, children }: Them
         </Typography>
         {children && <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.25 }}>{children}</Box>}
       </Box>
-      {illustration && (
+      {art ? <Box sx={{ position: "relative", zIndex: 1, flex: "0 0 auto" }}>{art}</Box> : illustration && (
         <Box
           component="img"
           src={`/theme-assets/feature-icons/icon-${illustration}.svg`}

@@ -7,10 +7,15 @@ import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import { ThemeBanner } from "@/components/ui/ThemeBanner";
+import { PathwayReflectionArt } from "@/components/dashboard/PathwayReflectionArt";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
 
 /** Hosts mood creation in a compact card while preserving the circular mood selector. */
 export default function MoodEntryForm() {
+  // The banner shows the user's own pathway thumbnail when they have chosen a pathway.
+  const user = useAppSelector(selectCurrentUser);
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,7 +104,7 @@ export default function MoodEntryForm() {
 
   return (
     <Box sx={{ maxWidth: 1000, mx: "auto", py: { xs: 0, md: 1 } }}>
-      <ThemeBanner title="How are you feeling today?" description="Take a moment to notice what is present. There is no right answer." illustration="mood" />
+      <ThemeBanner title="How are you feeling today?" description="Take a moment to notice what is present. There is no right answer." illustration="mood" art={user?.selectedPathway ? <PathwayReflectionArt pathway={user.selectedPathway} /> : undefined} />
       <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 1.75, md: 2.5 } }}>
         <MoodEntryFormFields
           onSubmit={handleSubmit}

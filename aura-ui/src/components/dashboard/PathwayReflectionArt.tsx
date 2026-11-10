@@ -1,37 +1,30 @@
-import { Box, Typography } from "@mui/material";
-import Sheet from "@mui/joy/Sheet";
+import Box from "@mui/joy/Box";
 import type { SpiritualPathway } from "@/features/auth/models/SpiritualPathway";
 
-const pathwayArt: Record<SpiritualPathway, { src: string; alt: string; title: string }> = {
+const pathwayArt: Record<SpiritualPathway, { src: string; alt: string }> = {
   Mindfulness: {
     src: "/theme-assets/pathways/mindful/mindful-gentle-landscape.png",
     alt: "A quiet mountain landscape in soft evening colors.",
-    title: "A mindful moment",
   },
   Faith: {
     src: "/theme-assets/pathways/faith-religion/faith-religion-open-book.png",
     alt: "An open book resting in a gentle pool of warm light.",
-    title: "A moment for meaning",
   },
   Energy: {
     src: "/theme-assets/pathways/astrology-energy/astrology-energy-moon-phases.png",
     alt: "A calm illustration of the moon's phases among stars.",
-    title: "A celestial reflection",
   },
 };
 
-/** Shows only the illustration collection for the user's selected reflection pathway. */
+/**
+ * Compact thumbnail of the user's own pathway illustration, shown inside a page banner.
+ * Only the selected pathway's art renders, so astrology imagery stays on Astrology & Energy.
+ */
 export function PathwayReflectionArt({ pathway }: { pathway: SpiritualPathway }) {
   const art = pathwayArt[pathway];
+  if (!art) return null;
   return (
-    <Sheet variant="outlined" sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, mb: 3, borderRadius: 3, borderColor: "divider", bgcolor: "background.paper" }}>
-      <Box component="img" src={art.src} alt={art.alt} loading="lazy" sx={{ width: { xs: 92, sm: 124 }, height: 88, objectFit: "cover", borderRadius: 2, flex: "0 0 auto" }} />
-      <Box>
-        <Typography variant="subtitle1" fontWeight={650}>{art.title}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Your pathway shapes optional prompts and imagery; your journal remains yours.
-        </Typography>
-      </Box>
-    </Sheet>
+    <Box component="img" src={art.src} alt={art.alt} loading="lazy"
+      sx={{ display: "block", width: { xs: 56, sm: 72 }, height: { xs: 56, sm: 72 }, objectFit: "cover", borderRadius: "12px", border: "1px solid var(--al-theme-border)" }} />
   );
 }
