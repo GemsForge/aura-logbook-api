@@ -24,7 +24,7 @@ function makeEntries(count: number) {
 }
 
 /** Stubs only remote data so the test measures the actual authenticated dashboard UI. */
-async function openDashboard(page: Page, entryCount: number) {
+async function openDashboard(page: Page, entryCount: number, interfaceTheme = "Aurora") {
   const entries = makeEntries(entryCount);
   await page.addInitScript(() => {
     localStorage.setItem("token", "playwright-dashboard-token");
@@ -44,7 +44,7 @@ async function openDashboard(page: Page, entryCount: number) {
         selectedPathway: "Mindfulness",
         auraColor: "blue",
         auraIntensity: 50,
-        interfaceTheme: "Aurora",
+        interfaceTheme,
       };
     } else if (path.endsWith("/mood/dashboard/summary")) {
       body = {
@@ -111,4 +111,54 @@ for (const entryCount of entryCounts) {
     await expect(page.getByRole("heading", { name: "This week" })).toBeVisible();
     await page.screenshot({ path: resolve(screenshotDirectory, `today-${entryCount}-entries-375x812.png`) });
   });
+}
+
+/** Canvas color each theme must put on the shell; mirrors src/theme/interfaceThemes.ts. */
+const themeCanvases = {
+  Aurora: "#170F26",
+  Earth: "#1C2A22",
+  Ocean: "#0C2233",
+  Sunset: "#351E2B",
+  Amethyst: "#21182F",
+  Midnight: "#0E1529",
+  Ivory: "#FBF6EC",
+} as const;
+
+for (const [theme, canvas] of Object.entries(themeCanvases)) {
+  for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 }]) {
+    test(`${theme} theme applies to Today at ${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await openDashboard(page, 3, theme);
+
+      // The saved profile preference must drive the shell's theme variables.
+      await expect
+        .poll(() => page.evaluate(() => {
+          for (const element of [document.documentElement, document.body, ...Array.from(document.querySelectorAll("body *"))]) {
+            const value = getComputedStyle(element).getPropertyValue("--al-theme-canvas").trim();
+            if (value) return value.toUpperCase();
+          }
+          return "";
+        }))
+        .toBe(canvas);
+      // Quick mood labels must stay readable (WCAG 4.5:1) against their own button fill.
+      const moodContrast = await page.getByRole("button", { name: "Centered", exact: true }).evaluate((button) => {
+        const parse = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+        const luminance = (rgb: number[]) => {
+          const [r, g, b] = rgb.map((channel) => {
+            const c = channel / 255;
+            return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const style = getComputedStyle(button);
+        const [hi, lo] = [luminance(parse(style.color)), luminance(parse(style.backgroundColor))].sort((a, b) => b - a);
+        return (hi + 0.05) / (lo + 0.05);
+      });
+      expect(moodContrast).toBeGreaterThanOrEqual(4.5);
+
+      const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }));
+      expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+      await page.screenshot({ path: resolve(screenshotDirectory, `theme-${theme.toLowerCase()}-${viewport.width}.png`) });
+    });
+  }
 }

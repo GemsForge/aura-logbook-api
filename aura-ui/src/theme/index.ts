@@ -48,7 +48,8 @@ export function getAuraTheme(
     palette: {
       mode: colorScheme,
       primary: { main: tokens.primary, contrastText: tokens.primaryContrast },
-      secondary: { main: tokens.accent, contrastText: tokens.ink },
+      // primaryContrast is the on-color token: dark on the light accents of dark themes, white on Ivory.
+      secondary: { main: tokens.accent, contrastText: tokens.primaryContrast },
       background: { default: tokens.canvas, paper: tokens.surface },
       text: { primary: tokens.ink, secondary: tokens.inkMuted },
       divider: tokens.border,
@@ -108,7 +109,7 @@ export function getAuraTheme(
           root: {
             minHeight: 44,
             backgroundColor: tokens.surfaceRaised,
-            "& fieldset": { borderColor: tokens.border },
+            "& fieldset": { borderColor: tokens.controlBorder },
           },
         },
       },
@@ -182,7 +183,12 @@ export function getAuraJoyTheme(
       900: tokens.ink,
       plainColor: tokens.ink,
       outlinedColor: tokens.ink,
-      outlinedBorder: tokens.border,
+      outlinedBorder: tokens.controlBorder,
+      // Soft neutral controls (e.g. quick mood buttons) must sit on a themed fill, or Joy's
+      // light default leaves light ink on a light button in the dark themes.
+      softBg: tokens.surfaceRaised,
+      softHoverBg: tokens.border,
+      softActiveBg: tokens.border,
       softColor: tokens.ink,
       solidColor: tokens.ink,
       solidBg: tokens.surfaceRaised,
