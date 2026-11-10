@@ -1,5 +1,4 @@
 import Box from "@mui/joy/Box";
-import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
 import { MoodApi } from "../api/MoodApi";
 import type { MoodType } from "../features/mood/models/schema/MoodType";
@@ -112,9 +111,6 @@ export default function MoodEntryForm() {
           photoStatuses={photoStatuses}
         />
       </Sheet>
-      <Typography level="body-sm" color="neutral" sx={{ mt: 2 }}>
-        Photos stay private to your account. You can also add or remove them later from History.
-      </Typography>
     </Box>
   );
 }

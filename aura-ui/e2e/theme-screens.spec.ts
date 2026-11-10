@@ -41,6 +41,10 @@ for (const screen of screens) {
         expect(overflow).toBeLessThanOrEqual(0);
 
         if (screen.name === "log-mood") {
+          // The default (mood-only) form is what most check-ins see; capture it, then open the
+          // optional note so the editor is included in the contrast checks below.
+          await page.screenshot({ path: resolve(screenshotDirectory, `log-mood-quick-${theme.toLowerCase()}-${viewport.width}.png`), fullPage: true });
+          await page.getByRole("button", { name: "Add a note" }).click();
           // Toolbar icons are SVGs the text scan cannot see; they need 3:1 against the toolbar.
           const iconContrast = await page.locator(".w-md-editor-toolbar li > button").first().evaluate((button) => {
             const parse = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);

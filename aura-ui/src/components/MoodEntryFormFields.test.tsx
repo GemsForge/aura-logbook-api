@@ -41,6 +41,8 @@ describe("MoodEntryFormFields", () => {
 
     expect(document.getElementById("mood-form")).toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
+    // The note is optional and closed until asked for.
+    await user.click(screen.getByRole("button", { name: "Add a note" }));
     await user.type(screen.getByRole("textbox"), "  A good day  ");
     await user.click(screen.getByRole("button", { name: "Submit Entry" }));
 

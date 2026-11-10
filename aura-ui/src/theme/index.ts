@@ -171,6 +171,12 @@ export function getAuraJoyTheme(
       softColor: tokens.ink,
       outlinedColor: tokens.primary,
       outlinedBorder: tokens.primary,
+      // Joy's default hover fill is a mid purple that drops primary text to ~2.4:1. Hover on the
+      // raised surface instead, where primary text keeps its readable contrast.
+      outlinedHoverBg: tokens.surfaceRaised,
+      outlinedActiveBg: tokens.surfaceRaised,
+      plainHoverBg: tokens.surfaceRaised,
+      plainActiveBg: tokens.surfaceRaised,
     },
     // Joy's default danger text is tuned for white pages; use the per-theme readable token.
     danger: {
