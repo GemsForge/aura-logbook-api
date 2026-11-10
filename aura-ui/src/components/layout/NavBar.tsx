@@ -100,10 +100,11 @@ const NavBar = () => {
           {isAuthenticated && (
             <>
               <IconButton aria-label="Open profile menu" onClick={handleAvatarClick} sx={{ ml: 1, p: 0.5 }}>
+                {/* primary.main/contrastText are themed tokens; MUI has no primary.400, which fell back to grey. */}
                 <Avatar
                   alt={user?.displayName ?? "Your profile"}
                   src={avatarIsImage ? avatarValue : undefined}
-                  sx={{ width: 36, height: 36, bgcolor: "primary.400", color: "common.white", fontSize: "0.9rem" }}
+                  sx={{ width: 36, height: 36, bgcolor: "primary.main", color: "primary.contrastText", fontSize: "0.9rem" }}
                 >
                   {!avatarIsImage && (avatarValue || user?.displayName?.slice(0, 1) || "A")}
                 </Avatar>
@@ -136,7 +137,7 @@ const NavBar = () => {
                       <Avatar
                         alt={user?.displayName ?? "Your profile"}
                         src={avatarIsImage ? avatarValue : undefined}
-                        sx={{ width: 48, height: 48, bgcolor: "primary.400", color: "common.white", fontSize: "1.1rem" }}
+                        sx={{ width: 48, height: 48, bgcolor: "primary.main", color: "primary.contrastText", fontSize: "1.1rem" }}
                       >
                         {!avatarIsImage && (avatarValue || user?.displayName?.slice(0, 1) || "A")}
                       </Avatar>

@@ -1,75 +1,14 @@
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import { stubApi } from "./apiStubs";
 
 const screenshotDirectory = resolve(process.cwd(), "artifacts/dashboard-layout");
 mkdirSync(screenshotDirectory, { recursive: true });
 
-/** Produces deterministic current-week mood entries for sparse and dense visual states. */
-function makeEntries(count: number) {
-  const now = new Date();
-  return Array.from({ length: count }, (_, index) => {
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (index % 7), 12);
-    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    const mood = ["Centered", "Tense", "Empowered", "Weary"][index % 4];
-    return {
-      id: index + 1,
-      userId: 7,
-      date: dateKey,
-      moods: [mood],
-      comment: index % 2 === 0 ? `A short reflection for entry ${index + 1}.` : "",
-      createdAt: `${dateKey}T12:00:00.000Z`,
-    };
-  });
-}
-
-/** Stubs only remote data so the test measures the actual authenticated dashboard UI. */
+/** Opens the signed-in Today screen on stubbed data and waits for its primary content. */
 async function openDashboard(page: Page, entryCount: number, interfaceTheme = "Aurora") {
-  const entries = makeEntries(entryCount);
-  await page.addInitScript(() => {
-    localStorage.setItem("token", "playwright-dashboard-token");
-    localStorage.setItem("session_hydrated", "true");
-  });
-
-  await page.route("http://127.0.0.1:5082/api/**", async (route) => {
-    const url = new URL(route.request().url());
-    const path = url.pathname.toLowerCase();
-    let body: unknown = {};
-
-    if (path.endsWith("/auth/me")) {
-      body = {
-        id: 7,
-        email: "alex@example.com",
-        displayName: "Alex",
-        selectedPathway: "Mindfulness",
-        auraColor: "blue",
-        auraIntensity: 50,
-        interfaceTheme,
-      };
-    } else if (path.endsWith("/mood/dashboard/summary")) {
-      body = {
-        totalEntries: entryCount,
-        mostFrequentMood: entryCount ? "Centered" : null,
-        currentStreak: 0,
-        lastEntryDate: entryCount ? entries[0].date : null,
-      };
-    } else if (path.endsWith("/mood/dashboard/mood-breakdown")) {
-      body = [];
-    } else if (path.endsWith("/mood")) {
-      body = entries;
-    } else if (path.endsWith("/weather/current")) {
-      body = { temperature: 68, description: "Clear", iconCode: "01d" };
-    } else if (path.endsWith("/spotify/connection")) {
-      body = { configured: false, connected: false };
-    } else if (path.endsWith("/spotify/currently-playing")) {
-      body = null;
-    } else if (path.endsWith("/spotify/playlists")) {
-      body = { items: [], hasMore: false, nextOffset: null };
-    }
-
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
-  });
-
+  await stubApi(page, entryCount, interfaceTheme);
   await page.goto("/dashboard");
   await expect(page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Alex\.$/ })).toBeVisible();
   await expect(page.getByRole("group", { name: "How are you feeling today?" })).toBeVisible();

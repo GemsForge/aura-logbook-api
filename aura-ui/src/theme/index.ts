@@ -50,6 +50,8 @@ export function getAuraTheme(
       primary: { main: tokens.primary, contrastText: tokens.primaryContrast },
       // primaryContrast is the on-color token: dark on the light accents of dark themes, white on Ivory.
       secondary: { main: tokens.accent, contrastText: tokens.primaryContrast },
+      // Error text uses the per-theme danger token so it stays readable on every surface.
+      error: { main: tokens.danger },
       background: { default: tokens.canvas, paper: tokens.surface },
       text: { primary: tokens.ink, secondary: tokens.inkMuted },
       divider: tokens.border,
@@ -169,6 +171,14 @@ export function getAuraJoyTheme(
       softColor: tokens.ink,
       outlinedColor: tokens.primary,
       outlinedBorder: tokens.primary,
+    },
+    // Joy's default danger text is tuned for white pages; use the per-theme readable token.
+    danger: {
+      // Joy Typography colors text from mainChannel ("R G B"), not plainColor.
+      mainChannel: [1, 3, 5].map((i) => parseInt(tokens.danger.slice(i, i + 2), 16)).join(" "),
+      plainColor: tokens.danger,
+      outlinedColor: tokens.danger,
+      outlinedBorder: tokens.danger,
     },
     neutral: {
       50: tokens.surface,

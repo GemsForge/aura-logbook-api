@@ -24,7 +24,7 @@ describe.each(interfaceThemes)("%s theme contrast", (theme) => {
   const t = interfaceThemeTokens[theme];
   const surfaces = [t.canvas, t.surface, t.surfaceRaised];
 
-  it.each(["ink", "inkMuted", "primary"] as const)("%s text reaches 4.5:1 on every surface", (token) => {
+  it.each(["ink", "inkMuted", "primary", "danger"] as const)("%s text reaches 4.5:1 on every surface", (token) => {
     for (const surface of surfaces) expect(contrast(t[token], surface)).toBeGreaterThanOrEqual(4.5);
   });
 
