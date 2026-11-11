@@ -57,6 +57,39 @@ The Spotify authorization request asks for these read permissions:
 
 When requested permissions change, reconnect Spotify in Aura Logbook to review and grant the updated access. The integration uses the currently-playing endpoint matching `user-read-currently-playing`. See [Spotify integration](spotify-integration.md) for setup, storage, routes and recovery.
 
+## JWT signing key
+
+`Jwt:Key` signs and validates sign-in tokens. It is a secret and is not in
+`appsettings.json`; the API refuses to start when it is missing or shorter than
+32 bytes. Set it locally with user secrets:
+
+```bash
+dotnet user-secrets --project AuraLogbook.Api set "Jwt:Key" "$(openssl rand -base64 48)"
+```
+
+Each deployed environment needs its own random `Jwt__Key` from the hosting
+platform's secret store. Changing the key signs everyone out once; they sign in
+again normally. A key that was ever committed must be treated as exposed and
+replaced.
+
+## Email (SMTP) configuration
+
+Account recovery sends mail through any SMTP relay (provider decision for #335:
+standard SMTP, so the relay can be Postmark, Amazon SES, SendGrid or another
+provider without code changes). `Email:Smtp:Host`, `Port`, `UseImplicitTls`,
+`FromAddress` and `FromName` are configuration. `Email:Smtp:Username` and
+`Email:Smtp:Password` are secrets.
+
+```bash
+dotnet user-secrets set "Email:Smtp:Username" "your-smtp-username"
+dotnet user-secrets set "Email:Smtp:Password" "your-smtp-password"
+```
+
+In deployments, use `Email__Smtp__Username` and `Email__Smtp__Password` from the
+hosting platform's secret store. Development ignores SMTP settings and logs
+mail instead. See [Runtime environments](runtime-environments.md#password-recovery)
+for how recovery is enabled per environment.
+
 ## What not to commit
 
 Do not commit:
