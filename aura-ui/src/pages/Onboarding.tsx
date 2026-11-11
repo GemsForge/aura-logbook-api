@@ -1,3 +1,4 @@
+import { ThemeModeToggle } from "@/components/layout/ThemeModeToggle";
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/joy/Box";
@@ -217,6 +218,8 @@ export default function Onboarding() {
         {progress !== undefined
           ? <LinearProgress determinate value={progress} aria-label="Quiz progress" sx={{ flexGrow: 1 }} />
           : <Box sx={{ flexGrow: 1 }} />}
+        {/* The full-screen route shares the same mode control as the app header. */}
+        <ThemeModeToggle />
         {step.kind !== "reminder"
           ? <Link component="button" onClick={() => (step.kind === "question" ? finish(true) : go(1))} sx={{ minHeight: 44 }}>Skip</Link>
           : <Box sx={{ width: 44 }} />}

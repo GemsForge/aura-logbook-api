@@ -1,5 +1,5 @@
 // src/main.tsx (or index.tsx)
-import { StrictMode, useLayoutEffect, useMemo } from "react";
+import { StrictMode, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
@@ -8,11 +8,11 @@ import { router } from "./router";
 
 import { Box, Button, CircularProgress, CssBaseline } from "@mui/material";
 import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
-import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy/styles";
+import { CssVarsProvider as JoyCssVarsProvider, useColorScheme } from "@mui/joy/styles";
 import {
   getAuraJoyTheme,
   getAuraTheme,
-  interfaceThemeTokens,
+  type InterfaceMode,
   resolveInterfaceTheme,
 } from "./theme";
 
@@ -23,12 +23,19 @@ import { useCurrentUserQuery } from "./store/hooks/useCurrentUserQuery";
 import "./index.css";
 import { useAppSelector } from "./store/hooks";
 import { selectCurrentUser } from "./store/slices/authSlice";
-import { selectInterfaceThemePreview } from "./store/slices/uiSlice";
+import { selectInterfaceThemePreview, selectInterfaceMode } from "./store/slices/uiSlice";
 import { normalizeAuraIntensity } from "./theme/auraTheme";
 import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
 import { useGetReferenceDataQuery } from "./store/referenceDataApi";
 import { hasUsableReferenceData } from "./theme/referenceDataValidation";
 import { installThemeTokenVariables } from "./theme";
+
+/** Redux keeps both UI libraries aligned; Joy’s render cache never overrides the account preference. */
+function ModeBridge({ mode, children }: { mode: InterfaceMode; children: ReactNode }) {
+  const { setMode } = useColorScheme();
+  useLayoutEffect(() => { setMode(mode); }, [mode, setMode]);
+  return children;
+}
 
 function ThemedApp() {
   const { data: referenceData, isLoading: referenceDataLoading, isError: referenceDataError, refetch } = useGetReferenceDataQuery();
@@ -41,7 +48,7 @@ function ThemedApp() {
   const auraIntensity = normalizeAuraIntensity(user?.auraIntensity);
   // An unsaved profile choice previews across the app, then falls back to the saved account setting.
   const interfaceTheme = resolveInterfaceTheme(interfaceThemePreview ?? user?.interfaceTheme);
-  const interfaceMode = interfaceThemeTokens[interfaceTheme].mode;
+  const interfaceMode = useAppSelector(selectInterfaceMode);
 
   useLayoutEffect(() => {
     if (referenceData) installThemeTokenVariables(referenceData.themeTokens, referenceData.auras);
@@ -49,12 +56,12 @@ function ThemedApp() {
   const referenceDataValid = referenceData ? hasUsableReferenceData(referenceData) : false;
 
   const theme = useMemo(
-    () => getAuraTheme(auraColor, auraIntensity, interfaceTheme),
-    [auraColor, auraIntensity, interfaceTheme]
+    () => getAuraTheme(auraColor, auraIntensity, interfaceTheme, interfaceMode),
+    [auraColor, auraIntensity, interfaceTheme, interfaceMode]
   );
   const joyTheme = useMemo(
-    () => getAuraJoyTheme(interfaceTheme),
-    [interfaceTheme],
+    () => getAuraJoyTheme(interfaceTheme, undefined, undefined, interfaceMode),
+    [interfaceTheme, interfaceMode],
   );
 
   if (referenceDataLoading || isLoading) {
@@ -79,18 +86,21 @@ function ThemedApp() {
       <JoyCssVarsProvider
         theme={joyTheme}
         defaultMode={interfaceMode}
-        defaultColorScheme={interfaceMode}
-        modeStorageKey={`aura-theme-mode-${interfaceTheme}`}
-        colorSchemeStorageKey={`aura-theme-scheme-${interfaceTheme}`}
+        defaultColorScheme={{ light: "light", dark: "dark" }}
+        storageWindow={null}
+        modeStorageKey="aura-joy-render-mode"
+        colorSchemeStorageKey="aura-joy-render-scheme"
       >
+        <ModeBridge mode={interfaceMode}>
         <CssBaseline enableColorScheme />
         {/* #344: derived aura accents; off when the user disabled aura reveals or is signed out. */}
-        <AuraTokensStyle interfaceTheme={interfaceTheme} enabled={!!user && user.auraRevealsEnabled !== false} />
+        <AuraTokensStyle interfaceTheme={interfaceTheme} interfaceMode={interfaceMode} enabled={!!user && user.auraRevealsEnabled !== false} />
         <ToastProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <RouterProvider router={router} />
           </LocalizationProvider>
         </ToastProvider>
+        </ModeBridge>
       </JoyCssVarsProvider>
     </ThemeProvider>
   );

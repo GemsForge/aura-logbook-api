@@ -1,0 +1,13 @@
+# Interface theme and screen mode — Story #359
+
+The six interface families are Aurora, Earth, Ocean, Sunset, Amethyst, and Midnight. Each has light and dark palettes. Screen brightness is independent of theme family, recorded aura color/intensity, and derived aura hue. The header and full-screen onboarding top bar share `ThemeModeToggle`; Edit Profile retains the separate aura, intensity, family and mode controls.
+
+Signed-in mode changes preview immediately, then save `interfaceMode` with only the existing required identity fields through `PUT /api/Auth/update`. A failed save clears the pending mode and exposes a persistent accessible error. The returned profile updates Redux, so the selected family and recorded data survive the change. Profile drafts have their own previews and restore the saved appearance on Cancel.
+
+Signed-out mode uses the `aura-interface-mode` browser-storage key, with guarded access when storage is blocked. Redux remains the source for both Material and Joy providers; Joy's internal rendering cache is synchronized to that value. Guest mode is never imported into an account on sign-in. Mode changes introduce no animation.
+
+Migration `022_user_interface_mode.sql` adds a dark-default column and maps existing Ivory rows to Aurora light. The former Ivory palette is Aurora's light palette. JSON user storage converts legacy Ivory during reads and writes. An omitted update field preserves the saved mode; unsupported values fall back to dark. The UI no longer offers Ivory as a family. Legacy image filenames remain compatible.
+
+`interfaceThemePalettes` selects semantic tokens by family and mode. Page canvas and corner glow use those variables, including the existing `index.css` fallback. Mode banners are 1774 × 887 px with original-art fallback layers and palette-specific text scrims. Meaningful UI remains outside decorative artwork or on a verified contrast surface.
+
+Verification covers all 360 aura hues at three chroma levels across all twelve family/mode combinations, semantic text at 4.5:1, control/focus contrast at 3:1, API and JSON defaults/preservation, SQLite migration and repository reloads, plus real Chromium header/onboarding behavior at 320 and 1440 px. Browser remote-data stubs do not prove backend persistence; the isolated real API smoke check verifies that separately. This is not a full screen-reader audit or production acceptance.

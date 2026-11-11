@@ -1,41 +1,47 @@
-// src/store/slices/uiSlice.ts
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
-import type { InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
+import { resolveInterfaceMode, type InterfaceMode, type InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
 
+export const GUEST_MODE_STORAGE_KEY = "aura-interface-mode";
+/** Browser storage can be unavailable; the guest session still starts safely in dark mode. */
+export function readGuestInterfaceMode(): InterfaceMode {
+  try { return resolveInterfaceMode(localStorage.getItem(GUEST_MODE_STORAGE_KEY)); }
+  catch { return "dark"; }
+}
+/** Saves only display brightness; failures leave the current session usable. */
+export function persistGuestInterfaceMode(mode: InterfaceMode): boolean {
+  try { localStorage.setItem(GUEST_MODE_STORAGE_KEY, mode); return true; }
+  catch { return false; }
+}
 interface UIState {
   isProfileModalOpen: boolean;
   interfaceThemePreview: InterfaceTheme | null;
+  interfaceModePreview: InterfaceMode | null;
+  pendingInterfaceMode: InterfaceMode | null;
+  guestInterfaceMode: InterfaceMode;
 }
-
 const initialState: UIState = {
-  isProfileModalOpen: false,
-  interfaceThemePreview: null,
+  isProfileModalOpen: false, interfaceThemePreview: null, interfaceModePreview: null,
+  pendingInterfaceMode: null, guestInterfaceMode: readGuestInterfaceMode(),
 };
-
 const uiSlice = createSlice({
-  name: "ui",
-  initialState,
+  name: "ui", initialState,
   reducers: {
-    openProfileModal(state) {
-      state.isProfileModalOpen = true;
-      state.interfaceThemePreview = null;
-    },
-    closeProfileModal(state) {
-      state.isProfileModalOpen = false;
-      state.interfaceThemePreview = null;
-    },
-    setInterfaceThemePreview(state, action: PayloadAction<InterfaceTheme | null>) {
-      state.interfaceThemePreview = action.payload;
-    },
+    /** Opening and closing a profile draft clears its own preview, not the saved or guest mode. */
+    openProfileModal(state) { state.isProfileModalOpen = true; state.interfaceThemePreview = null; state.interfaceModePreview = null; },
+    closeProfileModal(state) { state.isProfileModalOpen = false; state.interfaceThemePreview = null; state.interfaceModePreview = null; },
+    setInterfaceThemePreview(state, action: PayloadAction<InterfaceTheme | null>) { state.interfaceThemePreview = action.payload; },
+    /** Profile previews and in-flight header saves have separate lifetimes. */
+    setInterfaceModePreview(state, action: PayloadAction<InterfaceMode | null>) { state.interfaceModePreview = action.payload; },
+    setPendingInterfaceMode(state, action: PayloadAction<InterfaceMode | null>) { state.pendingInterfaceMode = action.payload; },
+    setGuestInterfaceMode(state, action: PayloadAction<InterfaceMode>) { state.guestInterfaceMode = action.payload; },
   },
 });
-
-export const { openProfileModal, closeProfileModal, setInterfaceThemePreview } = uiSlice.actions;
-export const selectIsProfileModalOpen = (state: RootState) =>
-  state.ui.isProfileModalOpen;
-/** Returns the temporary unsaved interface choice used for live profile previews. */
-export const selectInterfaceThemePreview = (state: RootState) =>
-  state.ui.interfaceThemePreview;
-
+export const { openProfileModal, closeProfileModal, setInterfaceThemePreview, setInterfaceModePreview, setPendingInterfaceMode, setGuestInterfaceMode } = uiSlice.actions;
+export const selectIsProfileModalOpen = (state: RootState) => state.ui.isProfileModalOpen;
+/** Unsaved profile family, independent of brightness. */
+export const selectInterfaceThemePreview = (state: RootState) => state.ui.interfaceThemePreview;
+/** Resolves the active brightness for both providers and the one-click toggle. */
+export const selectInterfaceMode = (state: RootState): InterfaceMode => state.ui.interfaceModePreview ?? state.ui.pendingInterfaceMode ??
+  (state.auth.profile ? resolveInterfaceMode(state.auth.profile.interfaceMode, state.auth.profile.interfaceTheme) : state.ui.guestInterfaceMode ?? "dark");
 export default uiSlice.reducer;

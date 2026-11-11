@@ -8,16 +8,18 @@ import {
   RadioGroup,
   Typography,
 } from "@mui/material";
-import { interfaceThemes, interfaceThemeTokens } from "@/theme";
-import type { InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
+import { interfaceThemes, getInterfaceThemeTokens } from "@/theme";
+import type { InterfaceTheme, InterfaceMode } from "@/features/auth/models/InterfaceTheme";
 
 interface InterfaceThemeFieldProps {
   value: InterfaceTheme;
+  /** Swatches reflect brightness without changing it when a family is selected. */
+  mode?: InterfaceMode;
   onChange: (theme: InterfaceTheme) => void;
 }
 
 /** Offers clear, keyboard-selectable previews for the saved application theme. */
-export function InterfaceThemeField({ value, onChange }: InterfaceThemeFieldProps) {
+export function InterfaceThemeField({ value, mode = "dark", onChange }: InterfaceThemeFieldProps) {
   return (
     <FormControl component="fieldset" fullWidth>
       <FormLabel component="legend" id="interface-theme-label">
@@ -35,7 +37,7 @@ export function InterfaceThemeField({ value, onChange }: InterfaceThemeFieldProp
           mt: 1,
         }}>
         {interfaceThemes.map((theme) => {
-          const tokens = interfaceThemeTokens[theme];
+          const tokens = getInterfaceThemeTokens(theme, mode);
           const selected = value === theme;
           return (
             <FormControlLabel

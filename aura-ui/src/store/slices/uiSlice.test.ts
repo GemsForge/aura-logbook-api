@@ -15,6 +15,7 @@ describe("uiSlice", () => {
     expect(state).toEqual({
       isProfileModalOpen: false,
       interfaceThemePreview: null,
+      interfaceModePreview: null, pendingInterfaceMode: null, guestInterfaceMode: "dark",
     });
   });
 
@@ -27,6 +28,7 @@ describe("uiSlice", () => {
 
   it("should close the profile modal", () => {
     const previousState = {
+      ...uiReducer(undefined, { type: "init" }),
       isProfileModalOpen: true,
       interfaceThemePreview: "Ocean" as const,
     };
@@ -49,6 +51,7 @@ describe("uiSlice", () => {
       ui: {
         isProfileModalOpen: true,
         interfaceThemePreview: null,
+      interfaceModePreview: null, pendingInterfaceMode: null, guestInterfaceMode: "dark",
       },
     } as RootState;
 

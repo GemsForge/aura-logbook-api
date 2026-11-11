@@ -6,11 +6,11 @@ import {
   editProfileSchema,
   type EditProfileFormData,
 } from "@/features/auth/models/EditProfileSchema";
-import { resolveInterfaceTheme } from "@/theme";
+import { resolveInterfaceTheme, resolveInterfaceMode } from "@/theme";
 import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
 import { useAppDispatch } from "@/store/hooks";
-import { closeProfileModal, setInterfaceThemePreview } from "@/store/slices/uiSlice";
+import { closeProfileModal, setInterfaceThemePreview, setInterfaceModePreview } from "@/store/slices/uiSlice";
 import {
   getAuraColorPreview,
   normalizeAuraIntensity,
@@ -60,6 +60,7 @@ export default function EditProfileModal({
       motto: "",
       spiritualPathway: "",
       interfaceTheme: "Aurora",
+      interfaceMode: "dark",
       weatherLocationMode: "Off",
       weatherCity: "",
       weatherRegion: "",
@@ -83,6 +84,7 @@ export default function EditProfileModal({
   useEffect(() => {
     if (open && user) {
       dispatch(setInterfaceThemePreview(null));
+      dispatch(setInterfaceModePreview(null));
       form.reset({
         displayName: user.displayName || "",
         email: user.email || "",
@@ -99,6 +101,7 @@ export default function EditProfileModal({
           ? user.selectedPathway!
           : pathwayOptions[0]?.key ?? "",
         interfaceTheme: resolveInterfaceTheme(user.interfaceTheme),
+        interfaceMode: resolveInterfaceMode(user.interfaceMode, user.interfaceTheme),
         weatherLocationMode: resolveWeatherLocationMode(user.weatherLocationMode),
         weatherCity: user.weatherCity ?? "",
         weatherRegion: user.weatherRegion ?? "",
@@ -109,6 +112,7 @@ export default function EditProfileModal({
       setIsChangingPassword(false);
     } else if (!open) {
       dispatch(setInterfaceThemePreview(null));
+      dispatch(setInterfaceModePreview(null));
     }
   }, [open, user, reset, form, dispatch, auraOptions, pathwayOptions]);
 
@@ -136,6 +140,7 @@ export default function EditProfileModal({
     try {
       await updateUser(payload).unwrap(); // runs PUT /update
       dispatch(setInterfaceThemePreview(null));
+      dispatch(setInterfaceModePreview(null));
       showToast("Profile updated!", "success");
       onClose(); // authApi invalidates “User” → refetches me
     } catch {
@@ -160,6 +165,7 @@ export default function EditProfileModal({
       open={open}
       onClose={() => {
         dispatch(setInterfaceThemePreview(null));
+      dispatch(setInterfaceModePreview(null));
         onClose();
       }}
       title={<span>Edit Profile</span>}
@@ -177,6 +183,7 @@ export default function EditProfileModal({
           defaultInitials={defaultInitials}
           onSubmit={onSubmit}
           onCancel={() => dispatch(closeProfileModal())}
+          onModePreviewChange={(mode) => dispatch(setInterfaceModePreview(mode))}
           onThemePreviewChange={(theme) => dispatch(setInterfaceThemePreview(theme))}
         />
     </AuraModal>

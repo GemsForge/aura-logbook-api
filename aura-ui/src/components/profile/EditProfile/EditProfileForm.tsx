@@ -16,9 +16,10 @@ import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { AuraSelector } from "../AuraSelectorField";
 import { AvatarPickerModal } from "../AvatarPickerModal";
 import { MottoField } from "../MottoField";
+import { InterfaceModeField } from "../InterfaceModeField";
 import { InterfaceThemeField } from "../InterfaceThemeField";
 import { WeatherLocationField } from "../WeatherLocationField";
-import type { InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
+import type { InterfaceTheme, InterfaceMode } from "@/features/auth/models/InterfaceTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface EditProfileFormProps {
@@ -32,6 +33,8 @@ interface EditProfileFormProps {
   avatars: GraphicAsset[];
   onSubmit: (data: EditProfileFormData) => Promise<void>;
   onCancel: () => void;
+  /** Live previews preserve all aura and family fields until Save or Cancel. */
+  onModePreviewChange: (mode: InterfaceMode) => void;
   onThemePreviewChange: (theme: InterfaceTheme) => void;
 }
 
@@ -47,6 +50,7 @@ export function EditProfileForm({
   onSubmit,
   onCancel,
   onThemePreviewChange,
+  onModePreviewChange,
 }: EditProfileFormProps) {
   const {
     register,
@@ -173,6 +177,7 @@ export function EditProfileForm({
         render={({ field }) => (
           <InterfaceThemeField
             value={field.value}
+            mode={form.watch("interfaceMode")}
             onChange={(theme) => {
               field.onChange(theme);
               onThemePreviewChange(theme);
@@ -180,6 +185,10 @@ export function EditProfileForm({
           />
         )}
       />
+
+      <Controller name="interfaceMode" control={control} render={({ field }) => (
+        <InterfaceModeField value={field.value} onChange={(mode) => { field.onChange(mode); onModePreviewChange(mode); }} />
+      )} />
 
       {/* #344: aura reveals can be turned off; accents then fall back to the interface theme. */}
       <Controller
