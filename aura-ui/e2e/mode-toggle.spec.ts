@@ -104,8 +104,9 @@ test("profile family selection keeps mode and retains the separate aura controls
   await expect(page.getByRole("button", { name: "Screen mode" })).toBeEnabled();
   await page.getByRole("button", { name: "Open profile menu" }).click();
   await page.getByRole("button", { name: "Edit profile", exact: true }).click();
+  await page.getByRole("tab", { name: "Appearance", exact: true }).click();
   await expect(page.getByRole("radio", { name: "Ivory" })).toHaveCount(0);
-  await expect(page.getByRole("radio", { name: "Light", exact: true })).toBeChecked();
+  await expect(page.getByRole("button", { name: "Light", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("radio", { name: "Earth", exact: true }).check();
   await expect.poll(() => canvas(page)).toBe(lightCanvas.Earth);
   await page.getByRole("button", { name: "Save Changes" }).click();
@@ -230,11 +231,22 @@ test("profile saves System and keeps it when the theme family changes", async ({
  await expect(page.getByRole("button",{name:"Screen mode"})).toBeEnabled();
  await page.getByRole("button",{name:"Open profile menu"}).click();
  await page.getByRole("button",{name:"Edit profile",exact:true}).click();
- await expect(page.getByRole("radio",{name:"Use device setting",exact:true})).toBeChecked();
+ await page.getByRole("tab",{name:"Appearance",exact:true}).click();
+ await expect(page.getByRole("button",{name:"System",exact:true})).toHaveAttribute("aria-pressed","true");
  await page.getByRole("radio",{name:"Earth",exact:true}).check();
  await expect.poll(()=>canvas(page)).toBe(lightCanvas.Earth);
  await page.getByRole("button",{name:"Save Changes"}).click();
  await expect.poll(()=>service.profile().interfaceTheme).toBe("Earth");
  expect(service.profile()).toMatchObject({interfaceMode:"system",auraColor:"blue",auraIntensity:72});
  await page.emulateMedia({colorScheme:"dark"});await expect.poll(()=>canvas(page)).toBe("#1C2A22");
+});
+
+test("compact System control fits and saves at phone width", async ({page}) => {
+ await page.setViewportSize({width:320,height:900});const service=await api(page);await page.goto("/dashboard");
+ await page.getByRole("button",{name:"Open profile menu"}).click();await page.getByRole("button",{name:"Edit profile",exact:true}).click();
+ const appearance=page.getByRole("button",{name:"Appearance",exact:true});if(await appearance.getAttribute("aria-expanded")==="false")await appearance.click();
+ await page.getByRole("button",{name:"System",exact:true}).click();
+ await expect(page.getByRole("button",{name:"System",exact:true})).toHaveAttribute("aria-pressed","true");
+ const button=await page.getByRole("button",{name:"System",exact:true}).boundingBox();expect(button!.x+button!.width).toBeLessThanOrEqual(320);
+ await page.getByRole("button",{name:"Save Changes"}).click();await expect.poll(()=>service.profile().interfaceMode).toBe("system");
 });

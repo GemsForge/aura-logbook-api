@@ -17,8 +17,8 @@ export function InterfaceModeField({ value, onChange }: { value: InterfaceModePr
         aria-labelledby="interface-mode-label"
         onChange={(_, mode: InterfaceModePreference | null) => { if (mode) onChange(mode); }}>
         {interfaceModePreferences.map((mode) => (
-          <ToggleButton key={mode} value={mode} sx={{ px: 2, minHeight: 36, textTransform: "none" }}>
-            {mode === "system" ? "Use device setting" : mode === "light" ? "Light" : "Dark"}
+          <ToggleButton key={mode} value={mode} title={mode === "system" ? "Use device setting" : undefined} sx={{ px: 2, minHeight: 36, textTransform: "none" }}>
+            {mode === "system" ? "System" : mode === "light" ? "Light" : "Dark"}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>
