@@ -17,7 +17,8 @@ namespace AuraLogbook.Api.Models.Dto
         [MaxLength(30)]
         public string? DisplayName { get; set; }
 
-        public DateOnly Birthday { get; set; }
+        /// <summary>Optional; omitted preserves the saved birthday (and its zodiac sign).</summary>
+        public DateOnly? Birthday { get; set; }
 
         public string? AuraColor { get; set; }
         [Range(0, 100)]

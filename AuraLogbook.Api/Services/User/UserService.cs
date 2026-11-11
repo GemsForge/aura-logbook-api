@@ -64,9 +64,12 @@ public class UserService : IUserService
             return (false, "User not found.");
 
 
-        // Apply changes
-        existingUser.Birthday = request.Birthday;
-        existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday);
+        // Apply changes. Birthday is optional (#341); omitting it keeps the saved one.
+        if (request.Birthday is { } birthday)
+        {
+            existingUser.Birthday = birthday;
+            existingUser.ZodiacSign = ZodiacHelper.GetZodiacSign(birthday);
+        }
         // existingUser.ProfilePictureBlob = request.ProfilePictureBlob;
         existingUser.Email = request.Email ?? existingUser.Email;
         if (!string.IsNullOrWhiteSpace(request.Password))
@@ -161,8 +164,70 @@ public class UserService : IUserService
     /// </summary>
     public Task ClearAllUsersAsync() => _userRepo.ClearAsync();
 
+    /// <summary>
+    /// Completes onboarding for <paramref name="userId"/> (#341): saves the pathway, the optional
+    /// birthday and color-moment hue, and the quiz answers, then stamps
+    /// <see cref="User.OnboardingCompletedAt"/>. Calling it again replaces the previous answers.
+    /// </summary>
+    /// <returns>Success, or a validation message for unknown pathways, duplicate or out-of-range
+    /// questions, future birthdays, pathway-page choices that don't fit the pathway, or a missing user.</returns>
+    public async Task<(bool Success, string Message)> CompleteOnboardingAsync(int userId, OnboardingRequest request)
+    {
+        var error = ValidateOnboarding(request);
+        if (error is not null) return (false, error);
+
+        var user = await _userRepo.GetByIdAsync(userId);
+        if (user is null) return (false, "User not found.");
+
+        user.SelectedPathway = request.SelectedPathway;
+        if (request.Birthday is { } birthday)
+        {
+            user.Birthday = birthday;
+            user.ZodiacSign = ZodiacHelper.GetZodiacSign(birthday);
+        }
+        user.OnboardingColorHue = request.ColorMomentHue;
+        user.OnboardingAnswers = request.Answers.OrderBy(a => a.QuestionNumber).ToList();
+        user.PathwayPreferences = request.PathwayPreferences;
+        var now = DateTime.UtcNow.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+        user.OnboardingCompletedAt = now;
+        user.UpdatedAt = now;
+
+        var updated = await _userRepo.UpdateAsync(user);
+        return updated ? (true, "Onboarding completed.") : (false, "Failed to save onboarding.");
+    }
+
+    /// <summary>Returns a user-facing validation message, or null when the request is valid.</summary>
+    private static string? ValidateOnboarding(OnboardingRequest request)
+    {
+        // Enum binding accepts any integer, so unknown pathways are rejected here.
+        if (!Enum.IsDefined(request.SelectedPathway))
+            return "Choose a supported pathway.";
+        if (request.Birthday is { } birthday && birthday > DateOnly.FromDateTime(DateTime.UtcNow))
+            return "Birthday cannot be in the future.";
+        if (request.ColorMomentHue is < 0 or > 359)
+            return "Color hue must be between 0 and 359.";
+        if (request.Answers.Count > OnboardingAnswer.QuestionCount)
+            return "Too many quiz answers.";
+        foreach (var answer in request.Answers)
+        {
+            if (answer.QuestionNumber is < 1 or > OnboardingAnswer.QuestionCount)
+                return "Quiz answers must reference questions 1 to 5.";
+            if (!Enum.IsDefined(answer.Pathway))
+                return "Quiz answers must reference a supported pathway.";
+        }
+        if (request.Answers.Select(a => a.QuestionNumber).Distinct().Count() != request.Answers.Count)
+            return "Each quiz question can be answered only once.";
+        return request.PathwayPreferences?.Validate(request.SelectedPathway);
+    }
+
+    /// <summary>
+    /// Builds a new user from a short registration (#341). Birthday and pathway are optional; the
+    /// aura starts from defaults because it is derived later, not chosen. A legacy client that still
+    /// sends a pathway at registration is treated as already onboarded so it is not sent to the quiz.
+    /// </summary>
     private User MapToUser(RegisterUserRequest request)
     {
+        var now = DateTime.UtcNow.ToString();
         return new User
         {
             Email = request.Email,
@@ -170,13 +235,13 @@ public class UserService : IUserService
             DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
                 ? request.Email
                 : request.DisplayName,
-            CreatedAt = DateTime.UtcNow.ToString(),
+            CreatedAt = now,
             Birthday = request.Birthday,
-            ZodiacSign = ZodiacHelper.GetZodiacSign(request.Birthday).ToLowerInvariant(),
-            AuraColor = request.AuraColor ?? "blue",
-            AuraIntensity = request.AuraIntensity ?? 50,
-            SelectedPathway = request.SelectedPathway
-            // ProfilePictureBlob = request.ProfilePictureBlob
+            ZodiacSign = request.Birthday is { } birthday
+                ? ZodiacHelper.GetZodiacSign(birthday).ToLowerInvariant()
+                : string.Empty,
+            SelectedPathway = request.SelectedPathway ?? SpiritualPathway.Mindfulness,
+            OnboardingCompletedAt = request.SelectedPathway is null ? null : now,
         };
     }
 

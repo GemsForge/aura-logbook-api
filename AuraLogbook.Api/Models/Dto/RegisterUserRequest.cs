@@ -6,6 +6,11 @@ namespace AuraLogbook.Api.Models.Dto
     /// New-account request. Standalone rather than derived from <see cref="AuthRequest"/> so the
     /// stricter <see cref="PasswordRules"/> apply here without changing login validation.
     /// </summary>
+    /// <remarks>
+    /// Since #341 registration is short: email, password and display name. Birthday and pathway
+    /// are optional here and are normally supplied through onboarding. Aura color and intensity
+    /// are no longer accepted as input; the aura is derived, not chosen.
+    /// </remarks>
     public class RegisterUserRequest
     {
         [Required]
@@ -19,13 +24,11 @@ namespace AuraLogbook.Api.Models.Dto
 
         [MaxLength(30, ErrorMessage = "Display name cannot exceed 30 characters.")]
         public string? DisplayName { get; set; }
-        [Required(ErrorMessage = "Date is required.")]
-        public DateOnly Birthday { get; set; } = DateOnly.MaxValue;
-        // public byte[]? ProfilePictureBlob { get; set; }
-        public string? AuraColor { get; set; }
-        [Range(0, 100)]
-        public int? AuraIntensity { get; set; }
-        [Required]
-        public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+
+        /// <summary>Optional; when present the zodiac sign is derived from it.</summary>
+        public DateOnly? Birthday { get; set; }
+
+        /// <summary>Optional; defaults to Mindfulness until onboarding sets it.</summary>
+        public SpiritualPathway? SelectedPathway { get; set; }
     }
 }

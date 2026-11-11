@@ -41,7 +41,8 @@ public class User
 
     public string? DisplayName { get; set; }
 
-    public DateOnly Birthday { get; set; }
+    /// <summary>Optional since #341: registration no longer asks for it; onboarding may add it.</summary>
+    public DateOnly? Birthday { get; set; }
 
     public string ZodiacSign { get; set; } = string.Empty;
 
@@ -66,4 +67,14 @@ public class User
     public string? WeatherCountry { get; set; }
     /// <summary>Temperature unit for weather: "F" (default) or "C".</summary>
     public string TemperatureUnit { get; set; } = WeatherLocationValues.Fahrenheit;
+    /// <summary>When onboarding was completed or skipped (UTC, round-trip format); null while it is still pending.</summary>
+    public string? OnboardingCompletedAt { get; set; }
+    /// <summary>Whether aura reveal copy and accents are shown; users can turn this off in Settings.</summary>
+    public bool AuraRevealsEnabled { get; set; } = true;
+    /// <summary>Optional hue (0-359) from the onboarding color moment; an input to the derived aura.</summary>
+    public int? OnboardingColorHue { get; set; }
+    /// <summary>Pathway-quiz answers saved at onboarding; empty when the quiz was skipped.</summary>
+    public List<OnboardingAnswer> OnboardingAnswers { get; set; } = [];
+    /// <summary>Choices from the pathway page after the reveal; null until the user makes them.</summary>
+    public PathwayPreferences? PathwayPreferences { get; set; }
 }

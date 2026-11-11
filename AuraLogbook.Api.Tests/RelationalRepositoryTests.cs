@@ -113,8 +113,6 @@ public sealed class RelationalRepositoryTests : IDisposable
             Password = "StrongPassword123!",
             DisplayName = "Date Test",
             Birthday = new DateOnly(1994, 9, 12),
-            AuraColor = "green",
-            AuraIntensity = 50,
         };
 
         var registered = await service.RegisterAsync(registration);
@@ -124,7 +122,8 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.NotNull(user);
         Assert.Equal(registration.Birthday, user.Birthday);
         Assert.Equal("Virgo", user.ZodiacSign);
-        Assert.Equal("green", user.AuraColor);
+        // #341: the aura is derived, not chosen at registration, so it starts at defaults.
+        Assert.Equal("blue", user.AuraColor);
         Assert.Equal(50, user.AuraIntensity);
         Assert.Equal(InterfaceThemeValues.Aurora, user.InterfaceTheme);
         Assert.Equal("virgo", GetStoredZodiacSign(user.Id));
@@ -244,6 +243,171 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.NotNull(zodiac);
         Assert.Single(zodiac.Insights);
         Assert.Equal("Take a step.", zodiac.Insights[0].Message);
+    }
+
+    /// <summary>#341: a short registration (no birthday, no pathway) succeeds and leaves onboarding pending.</summary>
+    [Fact]
+    public async Task Short_registration_defaults_pathway_and_leaves_onboarding_pending()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+
+        var registered = await service.RegisterAsync(new RegisterUserRequest { Email = "short@example.com", Password = "StrongPassword123!", DisplayName = "Alex" });
+
+        Assert.True(registered.Success);
+        var user = await service.GetByEmailAsync("short@example.com");
+        Assert.NotNull(user);
+        Assert.Null(user.Birthday);
+        Assert.Equal(string.Empty, user.ZodiacSign);
+        Assert.Equal(SpiritualPathway.Mindfulness, user.SelectedPathway);
+        Assert.Null(user.OnboardingCompletedAt);
+        Assert.True(user.AuraRevealsEnabled);
+        Assert.Null(GetStoredBirthday(user.Id));
+    }
+
+    /// <summary>#341: a legacy client that still sends a pathway at registration is not sent to the quiz.</summary>
+    [Fact]
+    public async Task Legacy_registration_with_pathway_is_marked_onboarded()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+
+        await service.RegisterAsync(new RegisterUserRequest { Email = "legacy@example.com", Password = "StrongPassword123!", Birthday = new DateOnly(1994, 9, 12), SelectedPathway = SpiritualPathway.Faith });
+
+        var user = await service.GetByEmailAsync("legacy@example.com");
+        Assert.NotNull(user);
+        Assert.Equal(SpiritualPathway.Faith, user.SelectedPathway);
+        Assert.NotNull(user.OnboardingCompletedAt);
+    }
+
+    /// <summary>#341: onboarding stores pathway, birthday, hue and ordered answers, and marks completion.</summary>
+    [Fact]
+    public async Task Complete_onboarding_persists_result_and_marks_completion()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = "quiz@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync("quiz@example.com"))!;
+
+        var result = await service.CompleteOnboardingAsync(user.Id, new OnboardingRequest
+        {
+            SelectedPathway = SpiritualPathway.Energy,
+            Birthday = new DateOnly(1994, 9, 12),
+            ColorMomentHue = 285,
+            PathwayPreferences = new PathwayPreferences { Focus = ["moon-phases", "my-sign"] },
+            Answers =
+            [
+                new OnboardingAnswer { QuestionNumber = 2, Pathway = SpiritualPathway.Energy },
+                new OnboardingAnswer { QuestionNumber = 1, Pathway = SpiritualPathway.Mindfulness },
+            ],
+        });
+
+        Assert.True(result.Success, result.Message);
+        var saved = (await service.GetByIdAsync(user.Id))!;
+        Assert.Equal(SpiritualPathway.Energy, saved.SelectedPathway);
+        Assert.Equal(new DateOnly(1994, 9, 12), saved.Birthday);
+        Assert.Equal("Virgo", saved.ZodiacSign);
+        Assert.Equal(285, saved.OnboardingColorHue);
+        Assert.Equal(["moon-phases", "my-sign"], saved.PathwayPreferences!.Focus);
+        Assert.Null(saved.PathwayPreferences.CheckInOpener);
+        Assert.Equal([1, 2], saved.OnboardingAnswers.Select(a => a.QuestionNumber));
+        Assert.Equal(SpiritualPathway.Energy, saved.OnboardingAnswers[1].Pathway);
+        Assert.NotNull(saved.OnboardingCompletedAt);
+    }
+
+    /// <summary>#341: skipping the quiz completes onboarding with Mindful Living and no answers.</summary>
+    [Fact]
+    public async Task Skipped_onboarding_defaults_to_mindfulness()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = "skip@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync("skip@example.com"))!;
+
+        var result = await service.CompleteOnboardingAsync(user.Id, new OnboardingRequest());
+
+        Assert.True(result.Success);
+        var saved = (await service.GetByIdAsync(user.Id))!;
+        Assert.Equal(SpiritualPathway.Mindfulness, saved.SelectedPathway);
+        Assert.Empty(saved.OnboardingAnswers);
+        Assert.Null(saved.Birthday);
+        Assert.NotNull(saved.OnboardingCompletedAt);
+    }
+
+    /// <summary>#341: invalid onboarding input is rejected and nothing is saved.</summary>
+    [Theory]
+    [InlineData("pathway")]
+    [InlineData("duplicate")]
+    [InlineData("question")]
+    [InlineData("future")]
+    [InlineData("hue")]
+    [InlineData("foreign-focus")]
+    [InlineData("too-many-intentions")]
+    [InlineData("opener-off-pathway")]
+    public async Task Invalid_onboarding_is_rejected(string problem)
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = $"bad-{problem}@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync($"bad-{problem}@example.com"))!;
+        var request = new OnboardingRequest();
+        switch (problem)
+        {
+            case "pathway": request.SelectedPathway = (SpiritualPathway)99; break;
+            case "duplicate": request.Answers = [new() { QuestionNumber = 1 }, new() { QuestionNumber = 1 }]; break;
+            case "question": request.Answers = [new() { QuestionNumber = 6 }]; break;
+            case "future": request.Birthday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2); break;
+            case "hue": request.ColorMomentHue = 360; break;
+            case "foreign-focus": request.SelectedPathway = SpiritualPathway.Faith; request.PathwayPreferences = new() { Focus = ["crystals"] }; break;
+            case "too-many-intentions": request.PathwayPreferences = new() { Focus = ["calm", "rest", "focus"] }; break;
+            case "opener-off-pathway": request.SelectedPathway = SpiritualPathway.Energy; request.PathwayPreferences = new() { CheckInOpener = "one-minute" }; break;
+        }
+
+        var result = await service.CompleteOnboardingAsync(user.Id, request);
+
+        Assert.False(result.Success);
+        Assert.Null((await service.GetByIdAsync(user.Id))!.OnboardingCompletedAt);
+    }
+
+    /// <summary>#341: Mindful Living keeps its intentions and check-in opener through a round trip.</summary>
+    [Fact]
+    public async Task Mindful_pathway_preferences_round_trip()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = "mindful@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync("mindful@example.com"))!;
+
+        var result = await service.CompleteOnboardingAsync(user.Id, new OnboardingRequest
+        {
+            PathwayPreferences = new PathwayPreferences { Focus = ["calm", "clarity"], CheckInOpener = "three-breaths" },
+        });
+
+        Assert.True(result.Success, result.Message);
+        var saved = (await service.GetByIdAsync(user.Id))!;
+        Assert.Equal(["calm", "clarity"], saved.PathwayPreferences!.Focus);
+        Assert.Equal("three-breaths", saved.PathwayPreferences.CheckInOpener);
+    }
+
+    /// <summary>#341: users that existed before migration 019 are treated as already onboarded.</summary>
+    [Fact]
+    public void Migration_019_marks_existing_users_onboarded()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"aura-019-{Guid.NewGuid():N}.db");
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={path}");
+            connection.Open();
+            var migrations = Directory.EnumerateFiles(Path.Combine("..", "..", "..", "..", "AuraLogbook.Api", "Data", "Database", "Migrations"), "*.sql").OrderBy(x => x).ToList();
+            foreach (var migration in migrations.Where(m => string.CompareOrdinal(Path.GetFileName(m), "019") < 0))
+                connection.ExecuteNonQuery(File.ReadAllText(migration));
+            connection.ExecuteNonQuery("INSERT INTO Users (Id,Email,PasswordHash,AuraColor,AuraIntensity,SelectedPathway,CreatedAt,UpdatedAt) VALUES (1,'old@example.com','hash','blue',50,2,'2025-01-01T00:00:00Z','2025-01-01T00:00:00Z');");
+            foreach (var migration in migrations.Where(m => string.CompareOrdinal(Path.GetFileName(m), "019") >= 0))
+                connection.ExecuteNonQuery(File.ReadAllText(migration));
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT OnboardingCompletedAt || '|' || AuraRevealsEnabled FROM Users WHERE Id = 1";
+            Assert.Equal("2025-01-01T00:00:00Z|1", command.ExecuteScalar() as string);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(path)) File.Delete(path);
+        }
     }
 
     private void SeedReferenceData()
