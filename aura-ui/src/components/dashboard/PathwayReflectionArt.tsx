@@ -23,6 +23,9 @@ const pathwayArt: Record<SpiritualPathway, { src: string; alt: string }> = {
  */
 export function PathwayReflectionArt({ pathway }: { pathway: SpiritualPathway }) {
   const art = pathwayArt[pathway];
+  // Stored pathway values can outlive the supported art set; omit art instead of crashing the form.
+  if (!art) return null;
+
   return (
     <Box component="img" src={art.src} alt={art.alt}
       sx={{ display: "block", width: { xs: 56, sm: 72 }, height: { xs: 56, sm: 72 }, objectFit: "cover", borderRadius: "12px", border: "1px solid var(--al-theme-border)" }} />

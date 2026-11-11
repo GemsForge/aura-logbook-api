@@ -16,6 +16,11 @@ describe("PathwayReflectionArt", () => {
     expect(images[0].getAttribute("src")).toContain(file);
     if (pathway !== "Energy") expect(images[0].getAttribute("src")).not.toContain("astrology");
   });
+
+  it("omits art for an unsupported runtime pathway", () => {
+    render(<PathwayReflectionArt pathway={"unrecognized"} />);
+    expect(screen.queryByRole("img")).toBeNull();
+  });
 });
 
 describe("normalizeSpiritualPathway", () => {
