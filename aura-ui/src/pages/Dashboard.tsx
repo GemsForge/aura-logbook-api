@@ -20,6 +20,7 @@ import { selectCurrentUser } from "@/store/slices/authSlice";
 import { useAppSelector } from "@/store/hooks";
 import { getTimeGreeting } from "@/util/timeGreeting";
 import dayjs from "dayjs";
+import { normalizeSpiritualPathway, type SpiritualPathway } from "@/features/auth/models/SpiritualPathway";
 import dailyQuotes from "../../data/aura_logbook_daily_quotes.json";
 // Renders saved reflection Markdown in the recent-entries list.
 import MarkdownReflection from "@/components/MarkdownReflection";
@@ -31,22 +32,9 @@ type DailyQuote = { id: string; text: string; theme: string; author: string };
 type DailyQuotePathway = { id: string; title: string; quotes: DailyQuote[] };
 type JournalingPromptPathway = { id: string; prompts: Array<{ id: string; question: string }> };
 
-/** Maps enum values or display labels from the profile API to prompt-library identifiers. */
-const resolveDailyQuotePathwayId = (pathway?: string) => {
-  switch (pathway?.trim().toLowerCase()) {
-    case "energy":
-    case "astrology & energy":
-      return "astrology-energy";
-    case "faith":
-    case "faith & religion":
-    case "christian faith":
-      return "faith-religion";
-    case "mindfulness":
-    case "mindful living":
-    default:
-      return "mindful";
-  }
-};
+/** Maps the profile pathway (enum key or display label) to its prompt-library identifier. */
+const dailyQuotePathwayIds: Record<SpiritualPathway, string> = { Mindfulness: "mindful", Energy: "astrology-energy", Faith: "faith-religion" };
+const resolveDailyQuotePathwayId = (pathway?: string) => dailyQuotePathwayIds[normalizeSpiritualPathway(pathway) ?? "Mindfulness"];
 
 // A module-load seed rotates the prompt on reload while keeping ordinary rerenders stable.
 const dailyQuoteReloadSeed = Math.random();

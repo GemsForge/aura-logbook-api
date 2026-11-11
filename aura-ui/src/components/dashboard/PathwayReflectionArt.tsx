@@ -19,12 +19,12 @@ const pathwayArt: Record<SpiritualPathway, { src: string; alt: string }> = {
 /**
  * Compact thumbnail of the user's own pathway illustration, shown inside a page banner.
  * Only the selected pathway's art renders, so astrology imagery stays on Astrology & Energy.
+ * Callers pass a normalized pathway; with none, they omit the art and the banner keeps its icon.
  */
 export function PathwayReflectionArt({ pathway }: { pathway: SpiritualPathway }) {
   const art = pathwayArt[pathway];
-  if (!art) return null;
   return (
-    <Box component="img" src={art.src} alt={art.alt} loading="lazy"
+    <Box component="img" src={art.src} alt={art.alt}
       sx={{ display: "block", width: { xs: 56, sm: 72 }, height: { xs: 56, sm: 72 }, objectFit: "cover", borderRadius: "12px", border: "1px solid var(--al-theme-border)" }} />
   );
 }

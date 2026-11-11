@@ -40,6 +40,8 @@ export function summarizeMoodPatterns(entries: MoodEntry[], referenceDate: Date 
   const moodCounts = new Map<MoodType, number>();
   weeklyEntries.forEach((entry) => entry.moods.forEach((mood) => moodCounts.set(mood, (moodCounts.get(mood) ?? 0) + 1)));
   const [topMood, topMoodCount] = [...moodCounts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))[0];
+  // If no mood repeated, naming an alphabetical "winner" would overstate the data.
+  if (topMoodCount === 1 && moodCounts.size > 1) return "No single mood stood out this week.";
   let sentence = `${topMood} appeared most often this week (${topMoodCount} ${topMoodCount === 1 ? "check-in" : "check-ins"}).`;
 
   if (weeklyEntries.length >= 6) {

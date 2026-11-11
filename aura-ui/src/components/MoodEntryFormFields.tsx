@@ -15,6 +15,7 @@ import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/
 import { auraPalettes } from "@/theme/auraTheme";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
+import { normalizeSpiritualPathway, type SpiritualPathway } from "@/features/auth/models/SpiritualPathway";
 import { useGetMoodCombinationInterpretationQuery } from "@/store/auraApi";
 import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
 import MDEditor from "@uiw/react-md-editor";
@@ -36,7 +37,7 @@ const auraOrbitPositions = [
 ] as const;
 
 /** Maps the persisted pathway label to the API SpiritualPathway enum key. */
-const pathwayKeyByUserPathway: Record<string, number> = {
+const pathwayKeyByUserPathway: Record<SpiritualPathway, number> = {
   Mindfulness: 0,
   Energy: 1,
   Faith: 2,
@@ -46,7 +47,7 @@ type JournalingPrompt = { id: string; question: string };
 type JournalingPromptPathway = { id: string; prompts: JournalingPrompt[] };
 
 /** Maps the persisted user pathway to the prompt-library pathway identifier. */
-const promptPathwayByUserPathway: Record<string, string> = {
+const promptPathwayByUserPathway: Record<SpiritualPathway, string> = {
   Mindfulness: "mindful",
   Energy: "astrology-energy",
   Faith: "faith-religion",
@@ -115,7 +116,9 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   const selectedMoods = watch("moods");
   const showNote = noteOpen || Boolean(entry) || Boolean(watch("comment"));
   const showPhotos = photosOpen || Boolean(entry) || selectedPhotos.length > 0;
-  const pathwayKey = pathwayKeyByUserPathway[currentUser?.selectedPathway ?? "Mindfulness"] ?? 0;
+  // Labels and enum keys resolve the same way as on Today and in the banner art.
+  const userPathway = normalizeSpiritualPathway(currentUser?.selectedPathway) ?? "Mindfulness";
+  const pathwayKey = pathwayKeyByUserPathway[userPathway];
   const interpretationEligible = selectedMoods.length >= 2 && selectedMoods.length <= 3;
   const {
     currentData: interpretation,
@@ -127,7 +130,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
     { moods: selectedMoods, pathwayKey },
     { skip: !currentUser || !interpretationEligible },
   );
-  const promptPathwayId = promptPathwayByUserPathway[currentUser?.selectedPathway ?? "Mindfulness"] ?? "mindful";
+  const promptPathwayId = promptPathwayByUserPathway[userPathway];
   const promptPathway = (journalingPrompts.pathways as JournalingPromptPathway[]).find(({ id }) => id === promptPathwayId);
   const promptIndex = (dayjs().month() + dayjs().date()) % (promptPathway?.prompts.length || 1);
   const reflectionPrompt = promptPathway?.prompts[promptIndex]?.question ?? "What would you like to remember about this moment?";

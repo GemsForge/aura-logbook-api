@@ -19,9 +19,9 @@ describe("moodPatternSummary", () => {
     }
   });
 
-  it("uses the singular when the top mood appeared once", () => {
+  it("does not name a winner when every mood appeared once", () => {
     const entries = makeEntries([["2026-11-10", ["Centered"]], ["2026-11-09", ["Empowered"]], ["2026-11-08", ["Tense"]]]);
-    expect(summarizeMoodPatterns(entries, today)).toBe("Centered appeared most often this week (1 check-in).");
+    expect(summarizeMoodPatterns(entries, today)).toBe("No single mood stood out this week.");
   });
 
   it("adds a weekday observation at six entries and handles ties deterministically", () => {

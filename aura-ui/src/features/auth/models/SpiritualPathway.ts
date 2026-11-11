@@ -12,3 +12,24 @@ export const SpiritualPathwayDescriptions: Record<SpiritualPathway, string> = {
   Energy: "For those drawn to star signs and energy.",
   Faith: "For reflection shaped by personal beliefs, meaningful traditions, values, community, or sacred texts.",
 };
+
+/**
+ * Resolves a stored pathway value (enum key or display label, any case) to its enum key.
+ * Returns undefined for unknown values so callers choose their own fallback.
+ */
+export function normalizeSpiritualPathway(value?: string | null): SpiritualPathway | undefined {
+  switch (value?.trim().toLowerCase()) {
+    case "mindfulness":
+    case "mindful living":
+      return "Mindfulness";
+    case "energy":
+    case "astrology & energy":
+      return "Energy";
+    case "faith":
+    case "faith & religion":
+    case "christian faith":
+      return "Faith";
+    default:
+      return undefined;
+  }
+}
