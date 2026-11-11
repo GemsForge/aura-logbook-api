@@ -150,7 +150,8 @@ export function EditProfileForm({
         render={({ field }) => (
           <DatePicker
             label="Birthday"
-            value={dayjs(field.value)}
+            // An empty birthday (allowed since #341) shows a blank picker, not "Invalid Date".
+            value={field.value ? dayjs(field.value) : null}
             onChange={(newDate) => newDate && field.onChange(newDate)}
             format="MM-DD-YYYY"
           />

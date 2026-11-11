@@ -1,5 +1,6 @@
 // src/store/authApi.ts
 import type {
+  OnboardingRequest,
   LoginRequest,
   LoginResponse,
   UpdateUserRequest,
@@ -65,6 +66,11 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["User"], // auto-refetch getCurrentUser
     }),
+    /** Completes onboarding (#341) and refreshes the cached profile. */
+    completeOnboarding: build.mutation<UserProfile, OnboardingRequest>({
+      query: (body) => ({ url: "/me/onboarding", method: "PUT", body }),
+      invalidatesTags: ["User"],
+    }),
     updateAura: build.mutation<
       UserProfile,
       { auraColor: AuraColor; auraIntensity: number }
@@ -83,5 +89,6 @@ export const {
   useGetCurrentUserQuery,
   useUpdateUserMutation,
   useLoginMutation,
-  useUpdateAuraMutation
+  useUpdateAuraMutation,
+  useCompleteOnboardingMutation,
 } = authApi;

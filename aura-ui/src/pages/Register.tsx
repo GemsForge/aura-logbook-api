@@ -1,5 +1,4 @@
-import { MyPathwaySelector } from "@/components/MyPathwaySelector";
-import { SpiritualPathway, type RegisterRequest } from "@/features/auth/models";
+import type { RegisterRequest } from "@/features/auth/models";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Box from "@mui/joy/Box";
 import CircularProgress from "@mui/joy/CircularProgress";
@@ -9,10 +8,8 @@ import Sheet from "@mui/joy/Sheet";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { PasswordField } from "@/components/ui/PasswordField";
-import { DatePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { AuthApi } from "../api/AuthApi";
 import {
@@ -21,21 +18,20 @@ import {
 } from "../features/auth/models/RegisterSchema";
 import { useToast } from "../hooks/useToast";
 
-/** Collects account details and creates a new private Aura Logbook account. */
+/**
+ * Creates a private account with only email, display name and password (#342). Birthday and
+ * pathway are gathered afterwards in onboarding, which the app opens after the first login.
+ */
 export default function RegisterForm() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const {
     register,
-    control,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: yupResolver(registerSchema),
-    defaultValues: {
-      spiritualPathway: SpiritualPathway.Mindfulness,
-    },
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
@@ -43,8 +39,6 @@ export default function RegisterForm() {
       email: data.email,
       password: data.password,
       displayName: data.displayName,
-      birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
-      selectedPathway: data.spiritualPathway,
     };
     setLoading(true);
     try {
@@ -102,10 +96,10 @@ export default function RegisterForm() {
             level="h1"
             className="aura-page-heading"
             sx={{ fontSize: "clamp(1.5rem, 1.2rem + 1vw, 2rem)" }}>
-            Begin your logbook
+            Create your space
           </Typography>
           <Typography level="body-sm" color="neutral" sx={{ mt: 0.5 }}>
-            Make space for the moments that matter.
+            Your check-ins are private. Only you can see them.
           </Typography>
         </Box>
 
@@ -141,45 +135,12 @@ export default function RegisterForm() {
             helperText={errors.password?.message}
           />
 
-          <Controller
-            name="birthday"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                label="Birthday"
-                value={field.value ? dayjs(field.value) : null}
-                onChange={(newDate) =>
-                  field.onChange(
-                    newDate?.isValid() ? newDate.format("YYYY-MM-DD") : "",
-                  )
-                }
-                slotProps={{
-                  textField: {
-                    fullWidth: true, // fixes the orphaned half-width box
-                    onBlur: field.onBlur,
-                    error: !!errors.birthday,
-                    helperText: errors.birthday?.message,
-                  },
-                }}
-                format="MM-DD-YYYY"
-              />
-            )}
-          />
-
-          {/* Spans both columns. Chips live inside MyPathwaySelector. */}
-          <Box sx={{ gridColumn: "1 / -1" }}>
-            <MyPathwaySelector
-              control={control}
-              errorMessage={errors.spiritualPathway?.message}
-            />
-          </Box>
-
           <Button
             type="submit"
             variant="contained"
             sx={{ gridColumn: "1 / -1", minHeight: 48, mt: 0.5 }}
             disabled={loading}>
-            {loading ? <CircularProgress size="md" /> : "Start my logbook"}
+            {loading ? <CircularProgress size="md" /> : "Create my space"}
           </Button>
         </Box>
 

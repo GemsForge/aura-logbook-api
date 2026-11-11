@@ -116,7 +116,8 @@ export default function EditProfileModal({
       auraIntensity: normalizeAuraIntensity(
         auraIntensity ?? user!.auraIntensity
       ),
-      birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
+      // Birthday is optional (#341): omit it when empty so the saved value is kept.
+      birthday: data.birthday ? dayjs(data.birthday).format("YYYY-MM-DD") : undefined,
       password: isChangingPassword ? data.password : undefined,
       selectedPathway: spiritualPathway,
       // Only a typed place is sent; the API clears it for Off and Device (#331).

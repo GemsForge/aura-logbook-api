@@ -37,7 +37,8 @@ export const editProfileSchema = yup
 
     displayName: yup.string().required("Display name is required"),
 
-    birthday: yup.string().required("Birthday is required"),
+    // Optional since #341: registration no longer asks for a birthday.
+    birthday: yup.string().optional(),
 
     spiritualPathway: yup
       .mixed<SpiritualPathway>()

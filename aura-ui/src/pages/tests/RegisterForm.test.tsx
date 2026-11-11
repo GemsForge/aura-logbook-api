@@ -38,16 +38,17 @@ describe("RegisterForm", () => {
     renderWithProviders(<RegisterForm />);
 
     expect(
-      screen.getByRole("heading", { name: /begin your logbook/i })
+      screen.getByRole("heading", { name: /create your space/i })
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/confirm password/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
-    expect(screen.getByTestId("pathway-selector")).toBeInTheDocument();
-    expect(screen.getByLabelText(/birthday/i)).toBeInTheDocument();
+    // #342: birthday and pathway moved to onboarding.
+    expect(screen.queryByTestId("pathway-selector")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/birthday/i)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /start my logbook/i })
+      screen.getByRole("button", { name: /create my space/i })
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /log in/i })).toBeInTheDocument();
   });
