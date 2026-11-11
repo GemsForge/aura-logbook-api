@@ -68,9 +68,11 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             await _email.SendAsync(user.Email, "Reset your Aura Logbook password",
                 $"Use this link within {_options.TokenLifetimeMinutes} minutes to choose a new password:\n{link}\n\nIf you did not ask for this, you can ignore this email.",
-                cancellationToken);
+                // Not the request token: a client disconnect mid-send could cancel after delivery and
+                // skip storing the token, leaving the user with a link that never works.
+                CancellationToken.None);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex)
         {
             // Provider outage (#335): keep the generic response and log only the exception type,
             // never the message, token, or link (provider errors can echo the body).

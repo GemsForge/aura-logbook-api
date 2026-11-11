@@ -32,10 +32,12 @@ public sealed class PasswordResetOptions
 
     /// <summary>
     /// Enablement rule (#335): the flag is on, a real sender exists, and the reset link base is an
-    /// absolute http(s) URL. Replaces the former Development-only guard.
+    /// absolute http(s) URL with no query or fragment, since the token is appended as
+    /// <c>?token=</c>. Replaces the former Development-only guard.
     /// </summary>
     public static bool IsEffectivelyEnabled(bool configuredEnabled, bool senderAvailable, string? resetUrlBase) =>
         configuredEnabled && senderAvailable
         && Uri.TryCreate(resetUrlBase, UriKind.Absolute, out var uri)
-        && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+        && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
+        && uri.Query.Length == 0 && uri.Fragment.Length == 0;
 }

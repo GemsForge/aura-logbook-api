@@ -83,6 +83,8 @@ public sealed class EmailSenderTests
     [InlineData(true, true, "/reset-password", false)]
     [InlineData(true, true, "", false)]
     [InlineData(true, true, "ftp://aura.test/reset", false)]
+    [InlineData(true, true, "https://aura.test/reset-password?src=mail", false)]
+    [InlineData(true, true, "https://aura.test/#/reset-password", false)]
     public void Enablement_RequiresFlagSenderAndAbsoluteUrl(bool flag, bool sender, string url, bool expected) =>
         Assert.Equal(expected, PasswordResetOptions.IsEffectivelyEnabled(flag, sender, url));
 
