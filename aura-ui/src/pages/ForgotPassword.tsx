@@ -7,7 +7,7 @@ import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AuthApi } from "../api/AuthApi";
 import {
@@ -27,6 +27,7 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const confirmationRef = useRef<HTMLParagraphElement>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormData>({
     resolver: yupResolver(forgotPasswordSchema),
   });
@@ -47,19 +48,32 @@ export default function ForgotPassword() {
     }
   };
 
+  // Move keyboard focus to the confirmation when success replaces the focused submit button.
+  useEffect(() => {
+    if (sent) confirmationRef.current?.focus();
+  }, [sent]);
+
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "min(680px, calc(100vh - 150px))", px: { xs: 0, sm: 2 } }}>
       <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 3, sm: 5 }, width: "100%", maxWidth: 440, boxSizing: "border-box" }}>
         <Typography level="h1" sx={{ fontSize: "2.4rem", fontWeight: 400, letterSpacing: "-.04em", mb: 1 }}>Forgot password</Typography>
         {sent ? (
-          <Typography role="status" level="body-md" sx={{ mt: 2 }}>{FORGOT_PASSWORD_CONFIRMATION}</Typography>
+          <Typography
+            ref={confirmationRef}
+            role="status"
+            tabIndex={-1}
+            level="body-md"
+            sx={{ mt: 2, "&:focus": { outline: "3px solid var(--al-theme-focus)", outlineOffset: 3 } }}>
+            {FORGOT_PASSWORD_CONFIRMATION}
+          </Typography>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <Typography level="body-sm" color="neutral">Enter your email and we'll send you a link to choose a new password.</Typography>
             <TextField label="Email" type="email" fullWidth margin="normal" {...register("email")}
               error={!!errors.email} helperText={errors.email?.message} />
             {error && <Typography role="alert" color="danger" level="body-sm">{error}</Typography>}
-            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2, minHeight: 48 }} disabled={loading}>
+            {/* Keep the disabled action named when its visible label becomes a spinner. */}
+            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2, minHeight: 48 }} disabled={loading} aria-label={loading ? "Sending reset link" : undefined}>
               {loading ? <CircularProgress size="md" /> : "Send reset link"}
             </Button>
           </form>

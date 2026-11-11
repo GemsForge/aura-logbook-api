@@ -7,7 +7,7 @@ import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import { AuthApi } from "../api/AuthApi";
@@ -30,6 +30,7 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(token ? null : INVALID_RESET_LINK);
+  const successRef = useRef<HTMLParagraphElement>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordFormData>({
     resolver: yupResolver(resetPasswordSchema),
   });
@@ -50,12 +51,22 @@ export default function ResetPassword() {
     }
   };
 
+  // Move keyboard focus to the success message when it replaces the focused submit button.
+  useEffect(() => {
+    if (done) successRef.current?.focus();
+  }, [done]);
+
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "min(680px, calc(100vh - 150px))", px: { xs: 0, sm: 2 } }}>
       <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 3, sm: 5 }, width: "100%", maxWidth: 440, boxSizing: "border-box" }}>
         <Typography level="h1" sx={{ fontSize: "2.4rem", fontWeight: 400, letterSpacing: "-.04em", mb: 1 }}>Choose a new password</Typography>
         {done ? (
-          <Typography role="status" level="body-md" sx={{ mt: 2 }}>
+          <Typography
+            ref={successRef}
+            role="status"
+            tabIndex={-1}
+            level="body-md"
+            sx={{ mt: 2, "&:focus": { outline: "3px solid var(--al-theme-focus)", outlineOffset: 3 } }}>
             Your password has been reset. <Link href="/login" underline="hover">Sign in</Link>
           </Typography>
         ) : (
@@ -67,7 +78,8 @@ export default function ResetPassword() {
                   error={!!errors.password} helperText={errors.password?.message} />
                 <TextField label="Confirm new password" type="password" fullWidth margin="normal" {...register("confirmPassword")}
                   error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />
-                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2, minHeight: 48 }} disabled={loading}>
+                {/* Keep the disabled action named when its visible label becomes a spinner. */}
+                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2, minHeight: 48 }} disabled={loading} aria-label={loading ? "Resetting password" : undefined}>
                   {loading ? <CircularProgress size="md" /> : "Reset password"}
                 </Button>
               </form>

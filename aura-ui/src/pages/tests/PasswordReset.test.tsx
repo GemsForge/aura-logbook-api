@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../test/testUtilities";
 import { AuthApi } from "../../api/AuthApi";
@@ -16,14 +16,22 @@ const type = (label: RegExp, value: string) =>
 describe("ForgotPassword", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows the generic confirmation after a request", async () => {
-    vi.mocked(AuthApi.forgotPassword).mockResolvedValue({ message: "ok" });
+  it("keeps the action named while loading and focuses the generic confirmation", async () => {
+    let finishRequest!: (value: { message: string }) => void;
+    vi.mocked(AuthApi.forgotPassword).mockImplementation(() => new Promise((resolve) => {
+      finishRequest = resolve;
+    }));
     renderWithProviders(<ForgotPassword />);
 
     type(/email/i, "someone@example.test");
     fireEvent.click(screen.getByRole("button", { name: /send reset link/i }));
 
-    expect(await screen.findByText(FORGOT_PASSWORD_CONFIRMATION)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Sending reset link" })).toBeDisabled();
+    await act(async () => finishRequest({ message: "ok" }));
+
+    const confirmation = await screen.findByRole("status");
+    expect(confirmation).toHaveTextContent(FORGOT_PASSWORD_CONFIRMATION);
+    await waitFor(() => expect(confirmation).toHaveFocus());
     expect(AuthApi.forgotPassword).toHaveBeenCalledWith("someone@example.test");
   });
 
@@ -70,14 +78,22 @@ describe("ResetPassword", () => {
     expect(AuthApi.resetPassword).not.toHaveBeenCalled();
   });
 
-  it("submits the token and shows success", async () => {
-    vi.mocked(AuthApi.resetPassword).mockResolvedValue({ message: "ok" });
+  it("keeps the action named while loading and focuses the success message", async () => {
+    let finishReset!: (value: { message: string }) => void;
+    vi.mocked(AuthApi.resetPassword).mockImplementation(() => new Promise((resolve) => {
+      finishReset = resolve;
+    }));
     renderWithProviders(<ResetPassword />, { route: "/reset-password?token=abc" });
     type(/^new password/i, "NewPassword1");
     type(/confirm new password/i, "NewPassword1");
     fireEvent.click(screen.getByRole("button", { name: /reset password/i }));
 
-    expect(await screen.findByText(/has been reset/i)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Resetting password" })).toBeDisabled();
+    await act(async () => finishReset({ message: "ok" }));
+
+    const success = await screen.findByRole("status");
+    expect(success).toHaveTextContent(/has been reset/i);
+    await waitFor(() => expect(success).toHaveFocus());
     expect(AuthApi.resetPassword).toHaveBeenCalledWith("abc", "NewPassword1");
   });
 
