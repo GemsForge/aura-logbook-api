@@ -1,0 +1,137 @@
+using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Services.Aura;
+
+namespace AuraLogbook.Api.Tests;
+
+/// <summary>#343: the derived aura blend, decay and pathway base layer.</summary>
+public sealed class AuraEngineTests
+{
+    private static readonly DateOnly Today = new(2026, 7, 15); // Ordinary Time
+
+    private static User NewUser(SpiritualPathway pathway = SpiritualPathway.Mindfulness) =>
+        new() { Id = 1, Email = "a@example.test", SelectedPathway = pathway, OnboardingCompletedAt = "2026-07-15T00:00:00Z" };
+
+    private static MoodEntry Entry(DateOnly date, params MoodType[] moods) => new() { UserId = 1, Date = date, Moods = moods.ToList() };
+
+    [Fact]
+    public void Nothing_to_blend_returns_a_neutral_aura()
+    {
+        var aura = AuraEngine.Compute(NewUser(), [], Today);
+
+        Assert.Null(aura.Hue);
+        Assert.Equal(0, aura.Intensity);
+        Assert.Empty(aura.Contributors);
+    }
+
+    [Fact]
+    public void Single_mood_sets_the_hue_and_full_strength()
+    {
+        var aura = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Centered)], Today);
+
+        Assert.Equal(AuraHueTables.Blue, aura.Hue!.Value, 1);
+        Assert.Contains("1 check-in in the last 30 days, mostly Centered", aura.Contributors);
+    }
+
+    [Fact]
+    public void Opposing_hues_cancel_to_low_strength()
+    {
+        var user = NewUser();
+        user.OnboardingColorHue = 100;
+        var aura = AuraEngine.Compute(user, [Entry(Today, MoodType.Abundant)], Today); // 85° vs 100° agree
+        var opposed = NewUser();
+        opposed.OnboardingColorHue = 265; // roughly opposite of Gold 85°
+        var cancelled = AuraEngine.Compute(opposed, [Entry(Today, MoodType.Abundant)], Today);
+
+        Assert.True(aura.Strength > 0.8);
+        Assert.True(cancelled.Strength < 0.25);
+    }
+
+    [Fact]
+    public void Neutral_mutes_strength_without_moving_the_hue()
+    {
+        var plain = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Visionary)], Today);
+        var muted = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Visionary, MoodType.Neutral)], Today);
+
+        Assert.Equal(plain.Hue!.Value, muted.Hue!.Value, 1);
+        Assert.True(muted.Strength < plain.Strength);
+    }
+
+    [Fact]
+    public void Hue_wraps_around_zero()
+    {
+        var aura = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Charged, MoodType.Frustrated)], Today); // 350° and 29°
+
+        Assert.True(aura.Hue is < 15 or > 345, $"hue was {aura.Hue}");
+    }
+
+    [Fact]
+    public void Recent_moods_outweigh_the_decayed_onboarding_seed()
+    {
+        var user = NewUser();
+        user.OnboardingCompletedAt = "2026-06-01T00:00:00Z"; // ~6 half-lives ago
+        user.OnboardingColorHue = (int)AuraHueTables.Gold;
+        var aura = AuraEngine.Compute(user, [Entry(Today, MoodType.Centered)], Today);
+
+        Assert.InRange(aura.Hue!.Value, 230, 260);
+    }
+
+    [Fact]
+    public void Old_moods_outside_the_window_are_ignored()
+    {
+        var aura = AuraEngine.Compute(NewUser(), [Entry(Today.AddDays(-31), MoodType.Charged)], Today);
+
+        Assert.Null(aura.Hue);
+    }
+
+    [Fact]
+    public void Energy_base_layer_needs_a_birthday()
+    {
+        var withoutBirthday = AuraEngine.Compute(NewUser(SpiritualPathway.Energy), [], Today);
+        var user = NewUser(SpiritualPathway.Energy);
+        user.Birthday = new DateOnly(1994, 9, 12); // Virgo, Earth
+        var withBirthday = AuraEngine.Compute(user, [], Today);
+
+        Assert.Null(withoutBirthday.Hue);
+        Assert.Equal(130, withBirthday.Hue!.Value, 1);
+        Assert.Contains("Your Earth sign", withBirthday.Contributors);
+    }
+
+    [Fact]
+    public void Faith_base_layer_follows_the_church_season()
+    {
+        var aura = AuraEngine.Compute(NewUser(SpiritualPathway.Faith), [], new DateOnly(2026, 3, 1)); // Lent 2026
+
+        Assert.Equal(AuraHueTables.Violet, aura.Hue!.Value, 1);
+        Assert.Contains("The season of Lent", aura.Contributors);
+    }
+
+    [Fact]
+    public void Onboarding_answers_and_color_moment_are_listed_as_contributors()
+    {
+        var user = NewUser();
+        user.OnboardingAnswers = [new OnboardingAnswer { QuestionNumber = 1, Pathway = SpiritualPathway.Mindfulness }];
+        user.OnboardingColorHue = 210;
+        var aura = AuraEngine.Compute(user, [], Today);
+
+        Assert.Equal(["Your onboarding answers", "The color you were drawn to"], aura.Contributors);
+        Assert.InRange(aura.Hue!.Value, 200, 250);
+    }
+
+    [Theory]
+    [InlineData(2024, 3, 31)]
+    [InlineData(2025, 4, 20)]
+    [InlineData(2026, 4, 5)]
+    public void Easter_dates_match_the_calendar(int year, int month, int day) =>
+        Assert.Equal(new DateOnly(year, month, day), LiturgicalSeason.Easter(year));
+
+    [Theory]
+    [InlineData("2026-11-29", "Advent")]   // first Sunday of Advent 2026
+    [InlineData("2026-11-28", "Ordinary Time")]
+    [InlineData("2026-12-25", "Christmas")]
+    [InlineData("2027-01-03", "Christmas")]
+    [InlineData("2026-05-24", "Pentecost")]
+    [InlineData("2026-04-20", "Easter")]
+    public void Seasons_are_placed_correctly(string date, string season) =>
+        Assert.Equal(season, LiturgicalSeason.For(DateOnly.Parse(date)).Name);
+}
