@@ -15,6 +15,12 @@ export type DerivedAura = {
   contributors: string[];
 };
 
+/** Named season reflection and date spans returned by `GET /api/aura/seasons` (#346). */
+export type AuraSeasonResponse = {
+  current: { key: string; name: string; oftenLinkedWith: string; prompt: string; nextStep: string } | null;
+  history: Array<{ key: string; name: string; startedOn: string; endedOn: string | null }>;
+};
+
 /** Pathway reflection returned for one exact selected mood combination. */
 export type MoodCombinationInterpretation = {
   combinationId: string;
@@ -35,12 +41,17 @@ export const auraApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura"],
+  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura", "AuraSeasons"],
   endpoints: (build) => ({
     /** Derived aura (#343); refetched on mount so new check-ins show up. */
     getCurrentAura: build.query<DerivedAura, void>({
       query: () => "/aura/current",
       providesTags: ["Aura"],
+    }),
+    /** Held named season and season history (#346); respects the account's reveal preference. */
+    getAuraSeasons: build.query<AuraSeasonResponse, void>({
+      query: () => "/aura/seasons",
+      providesTags: ["AuraSeasons"],
     }),
     getZodiacInsight: build.query<ZodiacInsightResponse, void>({
       // instead of build.query({ query: ... }), we call our existing Axios wrapper:
@@ -75,4 +86,4 @@ export const auraApi = createApi({
   }),
 });
 
-export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery, useGetCurrentAuraQuery } = auraApi;
+export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery, useGetCurrentAuraQuery, useGetAuraSeasonsQuery } = auraApi;

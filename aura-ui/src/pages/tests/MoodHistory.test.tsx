@@ -5,6 +5,11 @@ import MoodHistoryPage from "../../components/history/MoodHistory";
 import { MoodApi } from "@/api/MoodApi";
 import type { MoodType } from "@/features/mood/models/schema";
 
+vi.mock("@/store/auraApi", () => ({
+  auraApi: { reducerPath: "auraApi", reducer: (state = {}) => state, middleware: () => (next: (action: unknown) => unknown) => next },
+  useGetAuraSeasonsQuery: () => ({ data: { current: null, history: [] }, isLoading: false, isError: false, refetch: vi.fn() }),
+}));
+
 vi.mock("@/api/MoodApi", () => ({
   MoodApi: {
     getAllMoods: vi.fn(),

@@ -9,6 +9,7 @@ import Typography from "@mui/joy/Typography";
 import dayjs, { type Dayjs } from "dayjs";
 import { useMemo, useState } from "react";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import { useGetAuraSeasonsQuery } from "@/store/auraApi";
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -54,6 +55,7 @@ export default function MoodCalendar({
   onSelectDate: (date: string | null) => void;
 }) {
   const [visibleMonth, setVisibleMonth] = useState(() => dayjs().startOf("month"));
+  const { data: seasons } = useGetAuraSeasonsQuery();
   const today = dayjs().startOf("day");
   const entryCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -147,12 +149,17 @@ export default function MoodCalendar({
                 const selected = selectedDate === key;
                 const outsideMonth = !day.isSame(visibleMonth, "month");
                 const future = day.isAfter(today, "day");
+                const season = seasons?.history.find((span) =>
+                  key >= span.startedOn && (span.endedOn === null || key <= span.endedOn),
+                );
+                // Include the ribbon's meaning in the button name because its visual mark is decorative.
+                const seasonLabel = season ? `, ${season.name} season` : "";
                 return (
                   <Box component="td" key={key} sx={{ p: 0, verticalAlign: "top" }}>
                     <IconButton
                       variant="plain"
                       disabled={future}
-                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}`}
+                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${seasonLabel}`}
                       aria-pressed={selected}
                       onClick={() => {
                         setVisibleMonth(day.startOf("month"));
@@ -191,6 +198,7 @@ export default function MoodCalendar({
                       <Box sx={{ minHeight: "1.1em", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {count > 0 && <MoodEntryTallies count={count} />}
                       </Box>
+                      {season && <Box aria-hidden="true" sx={{ width: "80%", height: 3, borderRadius: 99, bgcolor: "var(--aura-accent)", opacity: 0.75 }} />}
                     </IconButton>
                   </Box>
                 );

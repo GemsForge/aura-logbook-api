@@ -8,6 +8,7 @@ import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
 import { WhyThisColor } from "@/components/aura/WhyThisColor";
+import AuraSeasonCard from "@/components/aura/AuraSeasonCard";
 import WeatherCard from "@/components/weather/WeatherCard";
 import { useWeatherLocation } from "@/hooks/useWeatherLocation";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
@@ -144,6 +145,7 @@ export default function Dashboard() {
           <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>{summaryLine}</Typography>
         </Box>
       </Sheet>
+      <AuraSeasonCard />
       <Grid container spacing={2}>
         <Grid xs={12} md={7}><Sheet className="aura-panel" sx={{ p: 2, height: "100%" }}><Typography level="h3" sx={{ fontSize: "1.1rem", mb: .5 }}>This week</Typography><Box role="list" aria-label="Mood check-ins for the last seven days" sx={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: .5, mt: 1.25 }}>{weekStrip.map(day => <Box key={day.date} role="listitem" aria-label={`${day.label}, ${day.date}: ${day.mood ?? "No check-in"}`} sx={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: .35 }}><Typography level="body-xs" color="neutral">{day.label}</Typography><Box aria-hidden="true" sx={{ width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--aura-line)", bgcolor: day.auraColor ? (referenceData?.auras.find((aura) => aura.key === day.auraColor)?.shades?.[500] ?? "transparent") : "transparent" }} /><Typography level="body-xs" sx={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{day.mood ?? "—"}</Typography></Box>)}</Box><Typography level="body-xs" color="neutral" sx={{ mt: 1 }}> {weeklyCheckInCount} {weeklyCheckInCount === 1 ? "check-in" : "check-ins"} this week · Missing a day costs nothing.</Typography><Typography level="body-sm" sx={{ mt: .5 }}>{patternSummary}</Typography></Sheet></Grid>
         <Grid xs={12} md={5}><Sheet className="aura-dark-panel" sx={{ p: 2, height: "100%" }}><Typography level="h3" sx={{ color: "inherit", fontSize: "1.1rem" }}>A thought for today</Typography><Typography level="body-md" sx={{ color: "inherit", lineHeight: 1.45, my: 1 }}>“{dailyQuote?.text ?? "What would you like to notice about today?"}”</Typography><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap"><Typography level="body-xs" sx={{ color: "inherit", opacity: .75 }}>{dailyQuote?.author ?? "Aura Logbook"}</Typography><Typography level="body-xs" sx={{ color: "inherit", px: 1, py: .25, borderRadius: 99, bgcolor: "rgba(255,255,255,.16)" }}>{dailyQuotePathway?.title ?? "Mindful"}</Typography></Stack></Sheet></Grid>
