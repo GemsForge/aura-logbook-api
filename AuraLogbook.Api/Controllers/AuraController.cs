@@ -12,10 +12,11 @@ namespace AuraLogbook.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/aura")]
-public sealed class AuraController(IFileUserRepository users, IFileMoodRepository moods) : ControllerBase
+public sealed class AuraController(IFileUserRepository users, IFileMoodRepository moods, IMoodCombinationRepository combinations) : ControllerBase
 {
     /// <summary>
-    /// Computes the current aura from onboarding answers, recent mood logs and the pathway base layer.
+    /// Computes the current aura from onboarding answers, recent mood logs (with authored mood-combination
+    /// hues, #345) and the pathway base layer.
     /// Computed on read, so it always reflects the latest check-ins.
     /// </summary>
     /// <response code="200">The aura tone and its contributors.</response>
@@ -30,6 +31,7 @@ public sealed class AuraController(IFileUserRepository users, IFileMoodRepositor
         if (user is null) return NotFound("User not found.");
 
         var entries = await moods.GetAllByUserAsync(userId);
-        return Ok(AuraEngine.Compute(user, entries, DateOnly.FromDateTime(DateTime.UtcNow)));
+        var hues = await combinations.GetHuesAsync();
+        return Ok(AuraEngine.Compute(user, entries, DateOnly.FromDateTime(DateTime.UtcNow), hues));
     }
 }

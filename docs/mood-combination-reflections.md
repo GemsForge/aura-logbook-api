@@ -30,3 +30,7 @@ The endpoint returns the authored interpretation or `204 No Content` when the co
 ## UI behavior
 
 The mood-entry form requests a reflection only when two or three moods are selected and a user is signed in. While data loads it shows a status message. Missing content is explained, and request errors offer a retry. Logging remains available if the endpoint fails. The panel uses the current primary theme surface and border tokens; user-authored reflection text remains independent.
+
+## Combination hues (#345)
+
+Migration `020_mood_combination_hues.sql` seeds `MoodCombinationHues` with one OKLCH hue, chroma factor and weight (default 1.25) per authored `MoodSetKey`; it is pathway-independent. The interpretation endpoint now also returns `hue` (null when none is authored), and the check-in reflection shows it as a small swatch beside the text. When a logged entry's distinct moods match a combination, the derived aura (`GET /api/aura/current`) uses that hue instead of the individual mood hues, and the "Why this color?" contributors name it, e.g. "Empowered + Tense on Wednesday". Unmatched combinations still blend their individual moods. Add a hue row whenever a new combination is authored; a test checks every source record has one.
