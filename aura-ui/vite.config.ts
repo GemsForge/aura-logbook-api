@@ -11,6 +11,8 @@ export default defineConfig({
   plugins: [plugin(), tsconfigPaths()],
   server: {
     port: 58407,
+    // Fixed port: PasswordReset:ResetUrlBase in appsettings.Development.json points here (#335).
+    strictPort: true,
     // Route phone-preview API requests through the laptop while the API remains on loopback.
     proxy: {
       "/api": { target: apiProxyTarget, changeOrigin: true },

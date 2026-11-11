@@ -3,9 +3,11 @@ import * as yup from "yup";
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "./RegisterSchema";
 
 /**
- * Recovery stays hidden in built deployments until the API has a reviewed production email sender.
+ * Shows recovery links and routes. On in Vite dev; deployed builds opt in with
+ * VITE_PASSWORD_RESET_ENABLED=true (case-insensitive, surrounding spaces ignored), kept in step with the API's PasswordReset:Enabled (#335).
  */
-export const passwordResetEnabled = import.meta.env.DEV;
+export const passwordResetEnabled =
+  import.meta.env.DEV || import.meta.env.VITE_PASSWORD_RESET_ENABLED?.trim().toLowerCase() === "true";
 
 export const forgotPasswordSchema = yup.object({
   email: yup.string().trim().email("Enter a valid email").required("Email is required"),
