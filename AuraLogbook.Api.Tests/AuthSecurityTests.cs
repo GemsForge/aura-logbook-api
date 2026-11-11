@@ -134,7 +134,7 @@ public class AuthSecurityTests
         var repo = new Mock<Repositories.IFileUserRepository>();
         repo.Setup(r => r.GetByEmailAsync("old@example.test")).ReturnsAsync(stored);
 
-        Assert.True(await new UserService(repo.Object).AuthenticateAsync("old@example.test", "abc123"));
+        Assert.True(await new UserService(repo.Object, new TestReferenceDataValidator()).AuthenticateAsync("old@example.test", "abc123"));
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class AuthSecurityTests
         try
         {
             var repo = new FileUserRepository(Options.Create(new StorageSettings { UserFilePath = path }));
-            var service = new UserService(repo);
+            var service = new UserService(repo, new TestReferenceDataValidator());
             var registered = await service.RegisterAsync(new RegisterUserRequest
             {
                 Email = "file@example.test",
@@ -200,7 +200,7 @@ public class AuthSecurityTests
             Assert.StartsWith("$2", hash);
 
             // A fresh repository instance proves the hash round-trips from the file.
-            var reloaded = new UserService(new FileUserRepository(Options.Create(new StorageSettings { UserFilePath = path })));
+            var reloaded = new UserService(new FileUserRepository(Options.Create(new StorageSettings { UserFilePath = path })), new TestReferenceDataValidator());
             Assert.True(await reloaded.AuthenticateAsync("file@example.test", "Password123!"));
             Assert.False(await reloaded.AuthenticateAsync("file@example.test", "wrong-password"));
         }

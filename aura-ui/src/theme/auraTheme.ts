@@ -2,6 +2,15 @@ import type { AuraColorDefinition } from "@/features/mood/models/aura";
 
 export type ShadeKey = 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 
+/** CSS-variable palette adapter; shade values are installed from the active database definitions. */
+export const auraPalettes: Record<string, Record<ShadeKey | "primary", { main: string }>> = new Proxy({}, {
+  get: (_target, key) => {
+    const color = String(key);
+    const palette = Object.fromEntries([50, 100, 200, 300, 400, 500, 600, 700, 800, 900].map((shade) => [shade, { main: `var(--aura-palette-${color}-${shade})` }]));
+    return { ...palette, primary: { main: `var(--aura-palette-${color}-500)` } };
+  },
+});
+
 /** Normalize persisted aura intensity values to the current 0-100 contract. */
 export function normalizeAuraIntensity(intensity: unknown): number {
   const value = typeof intensity === "number" ? intensity : Number(intensity);

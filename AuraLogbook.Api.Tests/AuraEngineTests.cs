@@ -10,9 +10,14 @@ public sealed class AuraEngineTests
     private static readonly DateOnly Today = new(2026, 7, 15); // Ordinary Time
 
     private static User NewUser(SpiritualPathway pathway = SpiritualPathway.Mindfulness) =>
-        new() { Id = 1, Email = "a@example.test", SelectedPathway = pathway, OnboardingCompletedAt = "2026-07-15T00:00:00Z" };
+        new() { Id = 1, Email = "a@example.test", SelectedPathway = pathway switch
+        {
+            SpiritualPathway.Energy => SpiritualPathwayKeys.Energy,
+            SpiritualPathway.Faith => SpiritualPathwayKeys.Faith,
+            _ => SpiritualPathwayKeys.Mindfulness,
+        }, OnboardingCompletedAt = "2026-07-15T00:00:00Z" };
 
-    private static MoodEntry Entry(DateOnly date, params MoodType[] moods) => new() { UserId = 1, Date = date, Moods = moods.ToList() };
+    private static MoodEntry Entry(DateOnly date, params string[] moods) => new() { UserId = 1, Date = date, Moods = moods.ToList() };
 
     [Fact]
     public void Nothing_to_blend_returns_a_neutral_aura()

@@ -57,7 +57,7 @@ public sealed class RelationalRepositoryTests : IDisposable
 
             await new AuraLogbook.Api.Data.Database.JsonUserSeeder(_factory, environment.Object, Microsoft.Extensions.Logging.Abstractions.NullLogger<AuraLogbook.Api.Data.Database.JsonUserSeeder>.Instance).SeedUsersAsync();
 
-            var service = new UserService(new SqliteUserRepository(_factory));
+            var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
             Assert.True(await service.AuthenticateAsync("seeded@example.test", "SeededPass1"));
         }
         finally
@@ -271,7 +271,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     public async Task Mood_service_returns_the_created_entry_id_for_private_media_uploads()
     {
         var repository = new SqliteMoodRepository(_factory);
-        var service = new MoodService(repository);
+        var service = new MoodService(repository, new TestReferenceDataValidator());
         var created = await service.CreateMoodAsync(7, new MoodEntryRequest
         {
             Date = new DateOnly(2026, 11, 10),
@@ -326,7 +326,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Short_registration_defaults_pathway_and_leaves_onboarding_pending()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
 
         var registered = await service.RegisterAsync(new RegisterUserRequest { Email = "short@example.com", Password = "StrongPassword123!", DisplayName = "Alex" });
 
@@ -345,7 +345,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Legacy_registration_with_pathway_is_marked_onboarded()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
 
         await service.RegisterAsync(new RegisterUserRequest { Email = "legacy@example.com", Password = "StrongPassword123!", Birthday = new DateOnly(1994, 9, 12), SelectedPathway = SpiritualPathwayKeys.Faith });
 
@@ -359,7 +359,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Complete_onboarding_persists_result_and_marks_completion()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = "quiz@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync("quiz@example.com"))!;
 
@@ -393,7 +393,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Skipped_onboarding_defaults_to_mindfulness()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = "skip@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync("skip@example.com"))!;
 
@@ -419,7 +419,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [InlineData("opener-off-pathway")]
     public async Task Invalid_onboarding_is_rejected(string problem)
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = $"bad-{problem}@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync($"bad-{problem}@example.com"))!;
         var request = new OnboardingRequest();
@@ -445,7 +445,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Mindful_pathway_preferences_round_trip()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = "mindful@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync("mindful@example.com"))!;
 
@@ -464,7 +464,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Null_answers_and_focus_are_treated_as_empty()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = "nulls@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync("nulls@example.com"))!;
 
@@ -485,7 +485,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Null_answer_entry_is_rejected()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = "null-entry@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync("null-entry@example.com"))!;
 
@@ -499,7 +499,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     [Fact]
     public async Task Aura_reveals_toggle_is_saved_and_preserved()
     {
-        var service = new UserService(new SqliteUserRepository(_factory));
+        var service = new UserService(new SqliteUserRepository(_factory), new TestReferenceDataValidator());
         await service.RegisterAsync(new RegisterUserRequest { Email = "reveals@example.com", Password = "StrongPassword123!" });
         var user = (await service.GetByEmailAsync("reveals@example.com"))!;
 
@@ -520,7 +520,7 @@ public sealed class RelationalRepositoryTests : IDisposable
             ? source.RootElement.EnumerateArray()
             : source.RootElement.EnumerateObject().First(p => p.Value.ValueKind == System.Text.Json.JsonValueKind.Array).Value.EnumerateArray();
         var keys = records.Select(r => MoodCombinationImporter.CreateMoodSetKey(
-            r.GetProperty("moods").EnumerateArray().Select(m => Enum.Parse<MoodType>(m.GetString()!)))).ToList();
+            r.GetProperty("moods").EnumerateArray().Select(m => m.GetString()!))).ToList();
 
         Assert.NotEmpty(keys);
         Assert.All(keys, k => Assert.True(hues.ContainsKey(k), $"no hue for {k}"));

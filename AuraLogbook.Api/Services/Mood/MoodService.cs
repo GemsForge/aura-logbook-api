@@ -55,7 +55,7 @@ public class MoodService : IMoodService
     public async Task<(bool Success, string Message, int EntryId)> CreateMoodAsync(int userId, MoodEntryRequest dto)
     {
         if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
-            return (false, "Select one or more active moods.");
+            return (false, "Select one or more active moods.", 0);
         var moodEntry = new MoodEntry
         {
             UserId = userId,

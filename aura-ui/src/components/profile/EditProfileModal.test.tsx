@@ -98,7 +98,7 @@ describe("EditProfileModal", () => {
     renderWithProviders(<EditProfileModal open onClose={onClose} />);
 
     await user.click(await screen.findByRole("combobox", { name: "Aura Color" }));
-    await user.click(screen.getByRole("option", { name: /pink/i }));
+    await user.click(screen.getByRole("option", { name: /green/i }));
 
     await user.click(
       await screen.findByRole("button", { name: "Save Changes" })
@@ -109,7 +109,7 @@ describe("EditProfileModal", () => {
         expect.objectContaining({
           id: 1,
           avatar: "",
-          auraColor: "pink",
+      auraColor: "green",
           auraIntensity: 50,
         })
       )

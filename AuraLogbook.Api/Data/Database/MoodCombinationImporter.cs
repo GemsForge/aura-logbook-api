@@ -15,6 +15,13 @@ public static class MoodCombinationImporter
         ["astrology-energy"] = 1,
         ["faith-religion"] = 2,
     };
+    // The importer validates legacy authored combinations against the stable keys understood by interpretation code.
+    private static readonly string[] KnownMoodKeys =
+    [
+        MoodType.Empowered, MoodType.Centered, MoodType.Harmonious, MoodType.Flowing, MoodType.Weary,
+        MoodType.Tense, MoodType.Frustrated, MoodType.Restless, MoodType.Disconnected, MoodType.Heavy,
+        MoodType.Charged, MoodType.Scattered, MoodType.Abundant, MoodType.Visionary, MoodType.Neutral,
+    ];
 
     /// <summary>Validates a source snapshot without opening or changing the target database.</summary>
     /// <param name="sourceBytes">The exact bytes that will be imported.</param>
@@ -97,8 +104,8 @@ public static class MoodCombinationImporter
     }
 
     /// <summary>Creates the stable, case-normalized lookup key used by the database and API.</summary>
-    public static string CreateMoodSetKey(IEnumerable<MoodType> moods) => string.Join("|",
-        moods.Select(mood => mood.ToString()).Order(StringComparer.Ordinal));
+    public static string CreateMoodSetKey(IEnumerable<string> moods) => string.Join("|",
+        moods.Order(StringComparer.Ordinal));
 
     private static List<CombinationRow> ParseSource(ReadOnlyMemory<byte> sourceBytes)
     {
@@ -128,12 +135,12 @@ public static class MoodCombinationImporter
                 throw new InvalidDataException("Mood-combination records must have unique, non-empty IDs.");
             if (source.Moods is null || source.Moods.Count is < 2 or > 3)
                 throw new InvalidDataException("Each mood combination must contain two or three moods.");
-            var moods = new List<MoodType>();
+            var moods = new List<string>();
             foreach (var moodName in source.Moods)
             {
-                if (string.IsNullOrWhiteSpace(moodName) || !Enum.TryParse<MoodType>(moodName.Trim(), true, out var mood) || !Enum.IsDefined(mood))
+                if (string.IsNullOrWhiteSpace(moodName) || !KnownMoodKeys.Contains(moodName.Trim(), StringComparer.OrdinalIgnoreCase))
                     throw new InvalidDataException("A mood-combination source contains an unknown mood.");
-                moods.Add(mood);
+                moods.Add(moodName.Trim());
             }
             if (moods.Distinct().Count() != moods.Count)
                 throw new InvalidDataException("A mood combination cannot repeat a mood.");

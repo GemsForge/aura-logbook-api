@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MoodEntry, MoodType } from "./models/schema";
 import { buildWeekMoodStrip, summarizeMoodPatterns } from "./moodPatternSummary";
+import { testReferenceData } from "@/test/referenceDataFixtures";
 
 const today = new Date("2026-11-10T12:00:00");
 const makeEntries = (moodsByDate: Array<[string, MoodType[]]>): MoodEntry[] =>
@@ -37,9 +38,9 @@ describe("moodPatternSummary", () => {
 
   it("labels all seven days and keeps empty days explicit", () => {
     const entries = makeEntries([["2026-11-10", ["Tense"]]]);
-    const strip = buildWeekMoodStrip(entries, today);
+    const strip = buildWeekMoodStrip(entries, today, testReferenceData.moods);
     expect(strip).toHaveLength(7);
-    expect(strip[6]).toMatchObject({ date: "2026-11-10", mood: "Tense", auraColor: "red", entryCount: 1 });
+    expect(strip[6]).toMatchObject({ date: "2026-11-10", mood: "Tense", auraColor: "blue", entryCount: 1 });
     expect(strip.slice(0, 6).every(({ mood, auraColor }) => mood === null && auraColor === null)).toBe(true);
   });
 });

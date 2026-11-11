@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import type { MoodEntry, MoodType } from "./models/schema";
-import { AuraMoodMap } from "./models/aura";
+import type { MoodDefinition } from "@/store/referenceDataApi";
 
 export interface WeekMoodDay {
   date: string;
@@ -11,7 +11,7 @@ export interface WeekMoodDay {
 }
 
 /** Builds seven labeled daily summaries from entries without treating empty days as missed goals. */
-export function buildWeekMoodStrip(entries: MoodEntry[], referenceDate: Date = new Date()): WeekMoodDay[] {
+export function buildWeekMoodStrip(entries: MoodEntry[], referenceDate: Date = new Date(), moodDefinitions: MoodDefinition[] = []): WeekMoodDay[] {
   const today = dayjs(referenceDate).startOf("day");
   return Array.from({ length: 7 }, (_, index) => {
     const day = today.subtract(6 - index, "day");
@@ -24,15 +24,15 @@ export function buildWeekMoodStrip(entries: MoodEntry[], referenceDate: Date = n
       date,
       label: day.format("ddd"),
       mood,
-      auraColor: mood ? AuraMoodMap[mood].auraColor : null,
+      auraColor: mood ? moodDefinitions.find((definition) => definition.key === mood)?.auraColorKeys[0] ?? null : null,
       entryCount: dayEntries.length,
     };
   });
 }
 
 /** Returns one factual weekly sentence, with thresholds based on this week's saved entries. */
-export function summarizeMoodPatterns(entries: MoodEntry[], referenceDate: Date = new Date()): string {
-  const week = buildWeekMoodStrip(entries, referenceDate);
+export function summarizeMoodPatterns(entries: MoodEntry[], referenceDate: Date = new Date(), moodDefinitions: MoodDefinition[] = []): string {
+  const week = buildWeekMoodStrip(entries, referenceDate, moodDefinitions);
   const weekDates = new Set(week.map(({ date }) => date));
   const weeklyEntries = entries.filter((entry) => weekDates.has(dayjs(entry.date).format("YYYY-MM-DD")));
   if (weeklyEntries.length < 3) return "Log a few more days to see your patterns.";

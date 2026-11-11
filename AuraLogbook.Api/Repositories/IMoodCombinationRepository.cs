@@ -7,7 +7,7 @@ namespace AuraLogbook.Api.Repositories;
 public interface IMoodCombinationRepository
 {
     /// <summary>Returns the matching interpretation, or null when the mood set is not authored.</summary>
-    Task<MoodCombinationInterpretation?> GetAsync(IReadOnlyCollection<MoodType> moods, int pathwayKey);
+    Task<MoodCombinationInterpretation?> GetAsync(IReadOnlyCollection<string> moods, int pathwayKey);
 
     /// <summary>Authored combination hues (#345) keyed by canonical MoodSetKey.</summary>
     Task<IReadOnlyDictionary<string, CombinationHue>> GetHuesAsync();

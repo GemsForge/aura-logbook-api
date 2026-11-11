@@ -24,7 +24,7 @@ import "./index.css";
 import { useAppSelector } from "./store/hooks";
 import { selectCurrentUser } from "./store/slices/authSlice";
 import { selectInterfaceThemePreview } from "./store/slices/uiSlice";
-import { normalizeAuraIntensity, resolveAuraColor } from "./theme/auraTheme";
+import { normalizeAuraIntensity } from "./theme/auraTheme";
 import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
 import { useGetReferenceDataQuery } from "./store/referenceDataApi";
 import { hasUsableReferenceData } from "./theme/referenceDataValidation";
@@ -37,14 +37,14 @@ function ThemedApp() {
   const interfaceThemePreview = useAppSelector(selectInterfaceThemePreview);
   
   // Profile mutations update Redux immediately, making saved preferences visible across both themes.
-  const auraColor = resolveAuraColor(user?.auraColor);
+  const auraColor = user?.auraColor ?? referenceData?.auras[0]?.key ?? "blue";
   const auraIntensity = normalizeAuraIntensity(user?.auraIntensity);
   // An unsaved profile choice previews across the app, then falls back to the saved account setting.
   const interfaceTheme = resolveInterfaceTheme(interfaceThemePreview ?? user?.interfaceTheme);
   const interfaceMode = interfaceThemeTokens[interfaceTheme].mode;
 
   useLayoutEffect(() => {
-    if (referenceData) installThemeTokenVariables(referenceData.themeTokens);
+    if (referenceData) installThemeTokenVariables(referenceData.themeTokens, referenceData.auras);
   }, [referenceData]);
   const referenceDataValid = referenceData ? hasUsableReferenceData(referenceData) : false;
 

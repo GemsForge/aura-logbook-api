@@ -3,7 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { TextareaHTMLAttributes } from "react";
 import { renderWithProviders } from "@/test/testUtilities";
+import { testReferenceData } from "@/test/referenceDataFixtures";
 import MoodEntryFormFields from "./MoodEntryFormFields";
+
+vi.mock("@/store/referenceDataApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/store/referenceDataApi")>();
+  return { ...actual, useGetReferenceDataQuery: () => ({ data: testReferenceData, isError: false }) };
+});
 
 const moodQueryState = vi.hoisted(() => ({ fetchingReplacement: false }));
 

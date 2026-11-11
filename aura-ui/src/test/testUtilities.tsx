@@ -4,7 +4,6 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { configureStore } from "@reduxjs/toolkit";
 import { referenceDataApi } from "../store/referenceDataApi";
-import { testAuraDefinitions, testThemeTokens } from "./referenceDataFixtures";
 export { testAuraDefinitions, testThemeTokens, testReferenceData } from "./referenceDataFixtures";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
@@ -74,8 +73,8 @@ export function renderWithProviders(
     preloadedState,
   });
 
-  const theme = getAuraTheme(auraColor, auraIntensity, testAuraDefinitions, testThemeTokens);
-  const joyTheme = getAuraJoyTheme(auraColor, auraIntensity, testAuraDefinitions, testThemeTokens);
+  const theme = getAuraTheme(auraColor, auraIntensity);
+  const joyTheme = getAuraJoyTheme("Aurora");
 
   return {
     store,

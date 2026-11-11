@@ -60,7 +60,7 @@ public static class AuraEngine
 
         // Mood logs from the last WindowDays, newest weighted most.
         var recent = moods.Where(m => m.Date <= today && today.DayNumber - m.Date.DayNumber < WindowDays).ToList();
-        var counts = new Dictionary<MoodType, int>();
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
         var combinationLines = new List<string>();
         foreach (var entry in recent.OrderByDescending(e => e.Date))
         {

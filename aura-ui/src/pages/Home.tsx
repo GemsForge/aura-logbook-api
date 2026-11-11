@@ -5,18 +5,9 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../store/store";
 import AuraFeatureCards from "../components/home/AuraFeatureCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import { auraPalettes } from "@/theme/auraTheme";
-
-const moodColorPreviews = [
-  { name: "Pink", color: auraPalettes.pink[300].main! },
-  { name: "Orange", color: auraPalettes.orange[300].main! },
-  { name: "Yellow", color: auraPalettes.yellow[300].main! },
-  { name: "Green", color: auraPalettes.green[300].main! },
-  { name: "Blue", color: auraPalettes.blue[300].main! },
-  { name: "Violet", color: auraPalettes.violet[300].main! },
-];
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 
 /** Introduces the journal with one clear action and a non-persistent mood-color preview. */
 export default function HomePage() {
@@ -24,7 +15,17 @@ export default function HomePage() {
     (state: RootState) => state.auth.isAuthenticated
   );
   const navigate = useNavigate();
-  const [previewColor, setPreviewColor] = useState(moodColorPreviews[5]);
+  const { data: referenceData } = useGetReferenceDataQuery();
+  const moodColorPreviews = (referenceData?.auras ?? []).map((aura) => ({
+    name: aura.displayName,
+    color: aura.shades?.[300] ?? aura.baseHex,
+  }));
+  const [previewColor, setPreviewColor] = useState({ name: "", color: "transparent" });
+  useEffect(() => {
+    if (!moodColorPreviews.some(({ name }) => name === previewColor.name) && moodColorPreviews[0]) {
+      setPreviewColor(moodColorPreviews[0]);
+    }
+  }, [moodColorPreviews, previewColor.name]);
 
   const handleStart = () => {
     navigate(isAuthenticated ? "/dashboard" : "/register");

@@ -37,7 +37,7 @@ public sealed class MoodCombinationImporterTests : IDisposable
         using var source = JsonDocument.Parse(await File.ReadAllTextAsync(_sourcePath));
         var item = source.RootElement.GetProperty("combinations")[0];
         var expectedMoods = item.GetProperty("moods").EnumerateArray()
-            .Select(value => Enum.Parse<MoodType>(value.GetString()!, ignoreCase: true)).ToArray();
+            .Select(value => value.GetString()!).ToArray();
         var expectedText = item.GetProperty("results").GetProperty("mindful").GetString();
         var actual = await new SqliteMoodCombinationRepository(new TestConnectionFactory(_databasePath))
             .GetAsync(expectedMoods.Reverse().ToArray(), pathwayKey: 0);
