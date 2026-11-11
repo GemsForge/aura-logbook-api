@@ -147,6 +147,12 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
         /// <summary>Interface theme preference; missing in legacy files and resolved to Aurora on read.</summary>
         public string? InterfaceTheme { get; set; }
+        /// <summary>Weather location preference (#331); missing in older files and resolved to Off.</summary>
+        public string? WeatherLocationMode { get; set; }
+        public string? WeatherCity { get; set; }
+        public string? WeatherRegion { get; set; }
+        public string? WeatherCountry { get; set; }
+        public string? TemperatureUnit { get; set; }
 
         /// <summary>Copies a domain user into its storage shape.</summary>
         public static StoredUser FromUser(User u) => new()
@@ -154,6 +160,7 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
             Id = u.Id, Email = u.Email, PasswordHash = u.PasswordHash, CreatedAt = u.CreatedAt, UpdatedAt = u.UpdatedAt,
             DisplayName = u.DisplayName, Birthday = u.Birthday, ZodiacSign = u.ZodiacSign, AuraColor = u.AuraColor,
             AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway, InterfaceTheme = u.InterfaceTheme,
+            WeatherLocationMode = u.WeatherLocationMode, WeatherCity = u.WeatherCity, WeatherRegion = u.WeatherRegion, WeatherCountry = u.WeatherCountry, TemperatureUnit = u.TemperatureUnit,
         };
 
         /// <summary>Copies a stored record back into the domain user.</summary>
@@ -162,6 +169,8 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
             Id = s.Id, Email = s.Email, PasswordHash = s.PasswordHash, CreatedAt = s.CreatedAt, UpdatedAt = s.UpdatedAt,
             DisplayName = s.DisplayName, Birthday = s.Birthday, ZodiacSign = s.ZodiacSign, AuraColor = s.AuraColor,
             AuraIntensity = s.AuraIntensity, Avatar = s.Avatar, Motto = s.Motto, SelectedPathway = s.SelectedPathway, InterfaceTheme = InterfaceThemeValues.Resolve(s.InterfaceTheme),
+            WeatherLocationMode = WeatherLocationValues.ResolveMode(s.WeatherLocationMode), WeatherCity = s.WeatherCity, WeatherRegion = s.WeatherRegion, WeatherCountry = s.WeatherCountry,
+            TemperatureUnit = WeatherLocationValues.ResolveUnit(s.TemperatureUnit),
         };
     }
 }

@@ -55,4 +55,15 @@ public class User
 
     /// <summary>Saved interface appearance, independent of recorded aura color.</summary>
     public string InterfaceTheme { get; set; } = InterfaceThemeValues.Aurora;
+
+    /// <summary>Where Today's weather comes from: Off (default), City, or Device. See <see cref="WeatherLocationValues"/>.</summary>
+    public string WeatherLocationMode { get; set; } = WeatherLocationValues.Off;
+    /// <summary>Typed city, used only when <see cref="WeatherLocationMode"/> is City.</summary>
+    public string? WeatherCity { get; set; }
+    /// <summary>Optional state or region for the typed city.</summary>
+    public string? WeatherRegion { get; set; }
+    /// <summary>Optional two-letter country code for the typed city.</summary>
+    public string? WeatherCountry { get; set; }
+    /// <summary>Temperature unit for weather: "F" (default) or "C".</summary>
+    public string TemperatureUnit { get; set; } = WeatherLocationValues.Fahrenheit;
 }

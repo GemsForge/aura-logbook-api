@@ -32,6 +32,22 @@ public class WeatherServiceTests
     }
 
     [Fact]
+    public async Task GetCurrentAsync_requests_celsius_and_reports_the_unit()
+    {
+        Uri? requestUri = null;
+        var client = new HttpClient(new StubHttpMessageHandler(request =>
+        {
+            requestUri = request.RequestUri;
+            return JsonResponse("""{"current":{"temperature_2m":20.1,"weather_code":0,"is_day":1}}""");
+        }));
+
+        var weather = await new WeatherService(client).GetCurrentAsync(38.72, -9.14, null, null, null, "C");
+
+        Assert.Equal("celsius", QueryHelpers.ParseQuery(requestUri!.Query)["temperature_unit"]);
+        Assert.Equal("C", weather.Unit);
+    }
+
+    [Fact]
     public async Task GetCurrentAsync_resolves_city_then_requests_forecast_with_night_icon()
     {
         var requestUris = new List<Uri?>();

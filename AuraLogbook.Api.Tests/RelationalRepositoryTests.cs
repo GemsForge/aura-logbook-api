@@ -147,6 +147,18 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal(updatedBirthday, (await service.GetByIdAsync(user.Id))?.Birthday);
         Assert.Equal("2001-02-03", GetStoredBirthday(user.Id));
         Assert.Equal("Midnight", (await service.GetByIdAsync(user.Id))?.InterfaceTheme);
+
+        // #331: a typed weather city and unit round-trip through SQLite; new users start Off.
+        Assert.Equal(WeatherLocationValues.Off, user.WeatherLocationMode);
+        var withCity = await service.UpdateUserAsync(new UpdateUserRequest
+        {
+            Id = user.Id, Email = user.Email, Birthday = updatedBirthday, DisplayName = user.DisplayName,
+            AuraColor = user.AuraColor, AuraIntensity = user.AuraIntensity, SelectedPathway = user.SelectedPathway,
+            WeatherLocationMode = "City", WeatherCity = "Lisbon", WeatherCountry = "pt", TemperatureUnit = "C",
+        });
+        Assert.True(withCity.Success);
+        var saved = await service.GetByIdAsync(user.Id);
+        Assert.Equal(("City", "Lisbon", "PT", "C"), (saved?.WeatherLocationMode, saved?.WeatherCity, saved?.WeatherCountry, saved?.TemperatureUnit));
     }
 
     private string? GetStoredBirthday(int userId)

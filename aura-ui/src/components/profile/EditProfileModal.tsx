@@ -1,3 +1,4 @@
+import { resolveTemperatureUnit, resolveWeatherLocationMode } from "@/features/weather/weatherLocation";
 import {
   SpiritualPathway,
   type UpdateUserRequest,
@@ -57,6 +58,11 @@ export default function EditProfileModal({
       motto: "",
       spiritualPathway: SpiritualPathway.Mindfulness,
       interfaceTheme: "Aurora",
+      weatherLocationMode: "Off",
+      weatherCity: "",
+      weatherRegion: "",
+      weatherCountry: "",
+      temperatureUnit: "F",
       isChangingPassword: false,
     },
   });
@@ -88,6 +94,11 @@ export default function EditProfileModal({
         motto: user.motto || "",
         spiritualPathway: user.selectedPathway ?? SpiritualPathway.Mindfulness,
         interfaceTheme: resolveInterfaceTheme(user.interfaceTheme),
+        weatherLocationMode: resolveWeatherLocationMode(user.weatherLocationMode),
+        weatherCity: user.weatherCity ?? "",
+        weatherRegion: user.weatherRegion ?? "",
+        weatherCountry: user.weatherCountry ?? "",
+        temperatureUnit: resolveTemperatureUnit(user.temperatureUnit),
       });
       setIsChangingPassword(false);
     } else if (!open) {
@@ -108,6 +119,10 @@ export default function EditProfileModal({
       birthday: dayjs(data.birthday).format("YYYY-MM-DD"),
       password: isChangingPassword ? data.password : undefined,
       selectedPathway: spiritualPathway,
+      // Only a typed place is sent; the API clears it for Off and Device (#331).
+      weatherCity: data.weatherLocationMode === "City" ? data.weatherCity?.trim() : undefined,
+      weatherRegion: data.weatherLocationMode === "City" ? data.weatherRegion?.trim() || undefined : undefined,
+      weatherCountry: data.weatherLocationMode === "City" ? data.weatherCountry?.trim().toUpperCase() || undefined : undefined,
     };
 
     try {

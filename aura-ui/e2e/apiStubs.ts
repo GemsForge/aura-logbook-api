@@ -22,7 +22,8 @@ export function makeEntries(count: number) {
  * Stubs only remote data so tests measure the real UI. Pass `signedIn: false` for public screens
  * as a visitor; unknown endpoints answer with an empty object.
  */
-export async function stubApi(page: Page, entryCount: number, interfaceTheme = "Aurora", signedIn = true, selectedPathway = "Mindfulness") {
+/** `profile` merges extra fields into /auth/me, e.g. the #331 weather location preference. */
+export async function stubApi(page: Page, entryCount: number, interfaceTheme = "Aurora", signedIn = true, selectedPathway = "Mindfulness", profile: Record<string, unknown> = {}) {
   const entries = makeEntries(entryCount);
   if (signedIn) {
     await page.addInitScript(() => {
@@ -45,6 +46,7 @@ export async function stubApi(page: Page, entryCount: number, interfaceTheme = "
         auraColor: "blue",
         auraIntensity: 50,
         interfaceTheme,
+        ...profile,
       };
     } else if (path.endsWith("/mood/dashboard/summary")) {
       body = {
@@ -70,7 +72,7 @@ export async function stubApi(page: Page, entryCount: number, interfaceTheme = "
         { key: "violet", displayName: "Violet", baseHex: "#8E62C9", chakraKey: null, description: "Imagination.", isNeutral: false, isActive: true },
       ];
     } else if (path.endsWith("/weather/current")) {
-      body = { temperature: 68, description: "Clear", iconCode: "01d" };
+      body = { temperature: 68, unit: url.searchParams.get("unit") ?? "F", description: "Clear", iconCode: "01d" };
     } else if (path.endsWith("/spotify/connection")) {
       body = { configured: false, connected: false };
     } else if (path.endsWith("/spotify/currently-playing")) {

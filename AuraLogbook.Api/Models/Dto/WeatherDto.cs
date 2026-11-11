@@ -5,10 +5,14 @@ namespace AuraLogbookApi.Dtos
     public class WeatherDto
     {
         /// <summary>
-        /// Current temperature (°F).
+        /// Current temperature, in <see cref="Unit"/>.
         /// </summary>
         [JsonPropertyName("temperature")]
         public double Temperature { get; set; }
+
+        /// <summary>Temperature unit: "F" or "C".</summary>
+        [JsonPropertyName("unit")]
+        public string Unit { get; set; } = "F";
 
         /// <summary>
         /// Text description of the weather (e.g. "Partly cloudy").

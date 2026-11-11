@@ -17,7 +17,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         using var c = _factory.CreateConnection();
         return await c.ExecuteScalarAsync<int>(
-            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, InterfaceTheme, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,@SelectedPathway,@InterfaceTheme,@CreatedAt,@UpdatedAt) RETURNING Id",
+            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, InterfaceTheme, WeatherLocationMode, WeatherCity, WeatherRegion, WeatherCountry, TemperatureUnit, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,@SelectedPathway,@InterfaceTheme,@WeatherLocationMode,@WeatherCity,@WeatherRegion,@WeatherCountry,@TemperatureUnit,@CreatedAt,@UpdatedAt) RETURNING Id",
             ToSqlParameters(user));
     }
 
@@ -25,7 +25,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         using var c = _factory.CreateConnection();
         return await c.ExecuteAsync(
-            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=@SelectedPathway, InterfaceTheme=@InterfaceTheme, UpdatedAt=@UpdatedAt WHERE Id=@Id",
+            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=@SelectedPathway, InterfaceTheme=@InterfaceTheme, WeatherLocationMode=@WeatherLocationMode, WeatherCity=@WeatherCity, WeatherRegion=@WeatherRegion, WeatherCountry=@WeatherCountry, TemperatureUnit=@TemperatureUnit, UpdatedAt=@UpdatedAt WHERE Id=@Id",
             ToSqlParameters(user)) == 1;
     }
 
@@ -43,6 +43,11 @@ public sealed class SqliteUserRepository : IFileUserRepository
         user.Motto,
         user.SelectedPathway,
         InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
+        WeatherLocationMode = WeatherLocationValues.ResolveMode(user.WeatherLocationMode),
+        user.WeatherCity,
+        user.WeatherRegion,
+        user.WeatherCountry,
+        TemperatureUnit = WeatherLocationValues.ResolveUnit(user.TemperatureUnit),
         user.CreatedAt,
         user.UpdatedAt,
     };
@@ -58,6 +63,9 @@ public sealed class SqliteUserRepository : IFileUserRepository
         AuraColor = row.AuraColor, AuraIntensity = row.AuraIntensity,
         // Older rows can contain a null or unsupported value; normalize them on every read.
         InterfaceTheme = InterfaceThemeValues.Resolve(row.InterfaceTheme),
+        WeatherLocationMode = WeatherLocationValues.ResolveMode(row.WeatherLocationMode),
+        WeatherCity = row.WeatherCity, WeatherRegion = row.WeatherRegion, WeatherCountry = row.WeatherCountry,
+        TemperatureUnit = WeatherLocationValues.ResolveUnit(row.TemperatureUnit),
         Avatar = row.Avatar, Motto = row.Motto, SelectedPathway = (SpiritualPathway)row.SelectedPathway,
         CreatedAt = row.CreatedAt, UpdatedAt = row.UpdatedAt
     };
@@ -67,7 +75,9 @@ public sealed class SqliteUserRepository : IFileUserRepository
         public int Id { get; set; } public string Email { get; set; } = ""; public string PasswordHash { get; set; } = "";
         public string? DisplayName { get; set; } public string? Birthday { get; set; } public string? ZodiacSign { get; set; }
         public string AuraColor { get; set; } = "blue"; public int AuraIntensity { get; set; } public string? Avatar { get; set; }
-        public string? Motto { get; set; } public int SelectedPathway { get; set; } public string? InterfaceTheme { get; set; } public string CreatedAt { get; set; } = ""; public string UpdatedAt { get; set; } = "";
+        public string? Motto { get; set; } public int SelectedPathway { get; set; } public string? InterfaceTheme { get; set; }
+        public string? WeatherLocationMode { get; set; } public string? WeatherCity { get; set; } public string? WeatherRegion { get; set; } public string? WeatherCountry { get; set; } public string? TemperatureUnit { get; set; }
+        public string CreatedAt { get; set; } = ""; public string UpdatedAt { get; set; } = "";
     }
 }
     /// <summary>Initializes a user repository backed by SQLite.</summary>

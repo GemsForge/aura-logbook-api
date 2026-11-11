@@ -1,3 +1,4 @@
+import type { TemperatureUnit, WeatherLocationMode } from "@/features/weather/weatherLocation";
 import type { AuraColor } from "@/features/mood/models/aura";
 import type { SpiritualPathway } from "./SpiritualPathway";
 import type { InterfaceTheme } from "./InterfaceTheme";
@@ -15,10 +16,10 @@ export interface UserProfile {
   selectedPathway: SpiritualPathway;
   /** Saved app appearance, independent of recorded aura color. */
   interfaceTheme?: InterfaceTheme;
-
-  lat?: number;
-  lon?: number;
-  city?: string;
-  state?: string;
-  country?: string;
+  /** #331 weather location preference; device coordinates are never part of the profile. */
+  weatherLocationMode?: WeatherLocationMode;
+  weatherCity?: string | null;
+  weatherRegion?: string | null;
+  weatherCountry?: string | null;
+  temperatureUnit?: TemperatureUnit;
 }

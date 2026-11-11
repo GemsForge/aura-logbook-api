@@ -1,3 +1,4 @@
+import { weatherLocationModes, type TemperatureUnit, type WeatherLocationMode } from "@/features/weather/weatherLocation";
 import { AuraColor } from "@/features/mood/models/aura";
 import * as yup from "yup";
 import { SpiritualPathway } from "./SpiritualPathway";
@@ -19,6 +20,11 @@ export interface EditProfileFormData {
   motto?: string;
   spiritualPathway: SpiritualPathway;
   interfaceTheme: InterfaceTheme;
+  weatherLocationMode: WeatherLocationMode;
+  weatherCity?: string;
+  weatherRegion?: string;
+  weatherCountry?: string;
+  temperatureUnit: TemperatureUnit;
   isChangingPassword: boolean;
 }
 
@@ -45,6 +51,18 @@ export const editProfileSchema = yup
       .mixed<InterfaceTheme>()
       .oneOf([...interfaceThemes], "Select a valid interface theme")
       .required("Select an interface theme"),
+
+    weatherLocationMode: yup.mixed<WeatherLocationMode>().oneOf([...weatherLocationModes]).required(),
+    // A city is required only when weather follows a typed place (#331).
+    weatherCity: yup.string().trim().max(100, "City can’t exceed 100 characters").when("weatherLocationMode", {
+      is: "City",
+      then: (schema) => schema.required("Enter a city for your weather"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    weatherRegion: yup.string().trim().max(100, "State or region can’t exceed 100 characters").notRequired(),
+    weatherCountry: yup.string().trim().notRequired()
+      .test("country-code", "Use a two-letter country code, like US", (value) => !value || /^[A-Za-z]{2}$/.test(value)),
+    temperatureUnit: yup.mixed<TemperatureUnit>().oneOf(["F", "C"]).required(),
 
     avatar: yup.string().notRequired(),
 

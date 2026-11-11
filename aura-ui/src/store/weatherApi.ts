@@ -16,6 +16,8 @@ export const weatherApi = createApi({
         city?: string;
         state?: string;
         country?: string;
+        /** "F" or "C" (#331). */
+        unit?: "F" | "C";
       }
     >({
       // instead of `query: () => ...` we use `queryFn` to call your existing axios-based API

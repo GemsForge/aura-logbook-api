@@ -1,3 +1,4 @@
+import type { TemperatureUnit, WeatherLocationMode } from "@/features/weather/weatherLocation";
 import type { AuraColor } from "@/features/mood/models/aura";
 import type { SpiritualPathway } from "./SpiritualPathway";
 import type { InterfaceTheme } from "./InterfaceTheme";
@@ -38,4 +39,10 @@ export interface UpdateUserRequest {
   selectedPathway: SpiritualPathway;
   /** Optional for compatibility with clients that predate interface themes. */
   interfaceTheme?: InterfaceTheme;
+  /** #331 weather location preference; device coordinates are never part of the profile. */
+  weatherLocationMode?: WeatherLocationMode;
+  weatherCity?: string | null;
+  weatherRegion?: string | null;
+  weatherCountry?: string | null;
+  temperatureUnit?: TemperatureUnit;
 }
