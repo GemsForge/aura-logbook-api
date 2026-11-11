@@ -71,7 +71,7 @@ export default function MoodHistoryPage() {
     : logs;
 
   return (
-    <Box maxWidth={1000} mx="auto">
+    <Box className="signed-in-content" maxWidth={1000} mx="auto">
       <ThemeBanner title="Mood History" description="A collection of who you’ve been, and how you’re becoming." illustration="calendar" />
 
       {/* ─── date filter UI ─────────────────────────────────────────── */}
@@ -134,14 +134,16 @@ export default function MoodHistoryPage() {
         </Typography>
       )}
 
-      {visibleLogs.map((entry) => (
-        <MoodCard
-          key={entry.id}
-          entry={entry}
-          onEdit={setEntryToEdit}
-          onDelete={setEntryToDelete}
-        />
-      ))}
+      <Box className="signed-in-history-list">
+        {visibleLogs.map((entry) => (
+          <MoodCard
+            key={entry.id}
+            entry={entry}
+            onEdit={setEntryToEdit}
+            onDelete={setEntryToDelete}
+          />
+        ))}
+      </Box>
 
       {entryToEdit && (
         <MoodUpdateModal

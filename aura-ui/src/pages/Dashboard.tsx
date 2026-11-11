@@ -129,7 +129,7 @@ export default function Dashboard() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1240, mx: "auto" }}>
+    <Box className="signed-in-content" sx={{ maxWidth: 1240, mx: "auto" }}>
       <Sheet className="aura-panel" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1.5}>
           <Box><Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, lineHeight: 1.15 }}>{greeting}, {displayName}.</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{dayjs().format("dddd, MMMM D")}</Typography><WhyThisColor /></Box>

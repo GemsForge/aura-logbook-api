@@ -105,7 +105,7 @@ export default function MediaGallery() {
   };
 
   return (
-    <Box maxWidth={1120} mx="auto" mt={1}>
+    <Box className="signed-in-content" maxWidth={1120} mx="auto" mt={1}>
       <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Moments you’ve kept</Typography>
       <Typography component="h1" level="h1" className="aura-page-heading" sx={{ mb: 1 }}>Media Gallery</Typography>
       <Typography level="body-lg" color="neutral" sx={{ mb: 2.5 }}>Private photos from your mood entries, gathered in one place.</Typography>

@@ -24,7 +24,7 @@ export default function Insights() {
   const loading = loadingEntries || loadingBreakdown;
 
   return (
-    <Box sx={{ maxWidth: 1240, mx: "auto" }}>
+    <Box className="signed-in-content" sx={{ maxWidth: 1240, mx: "auto" }}>
       <Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, mb: 2 }}>Insights</Typography>
       <Stack gap={2}>
         <Sheet className="aura-panel" sx={{ p: 2 }}>

@@ -104,7 +104,7 @@ export default function MoodEntryForm() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: "auto", py: { xs: 0, md: 1 } }}>
+    <Box className="signed-in-content" sx={{ maxWidth: 1000, mx: "auto", py: { xs: 0, md: 1 } }}>
       <ThemeBanner title="How are you feeling today?" description="Take a moment to notice what is present. There is no right answer." illustration="mood" art={pathway ? <PathwayReflectionArt pathway={pathway} /> : undefined} />
       <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 1.75, md: 2.5 } }}>
         <MoodEntryFormFields

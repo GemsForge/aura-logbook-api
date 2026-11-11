@@ -150,9 +150,9 @@ export default function SpotifyConnectionCard() {
   };
 
   return (
-    <Sheet variant="outlined" className="aura-panel" aria-label="Spotify" sx={{ p: 2.5, minWidth: 0 }}>
+    <Sheet variant="outlined" className="aura-panel spotify-connection-card" aria-label="Spotify" sx={{ p: 2.5, minWidth: 0 }}>
       <Stack direction="row" flexWrap="wrap" justifyContent="space-between" alignItems="center" gap={1.5}>
-        <Box role="img" aria-label="Spotify" sx={{ color: "#1DB954", display: "inline-flex" }}><svg width="42" height="42" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.59 14.42a.75.75 0 0 1-1.03.25c-2.82-1.72-6.37-2.11-10.55-1.16a.75.75 0 1 1-.33-1.46c4.58-1.05 8.51-.59 11.66 1.34.35.22.46.68.25 1.03Zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.23-1.98-8.15-2.55-11.97-1.4a.94.94 0 1 1-.54-1.8c4.36-1.32 9.78-.68 13.49 1.6.44.27.58.85.31 1.29Zm.13-3.4c-3.87-2.3-10.26-2.52-13.96-1.39a1.12 1.12 0 1 1-.65-2.14c4.25-1.29 11.3-1.04 15.76 1.61a1.12 1.12 0 0 1-1.15 1.92Z" /></svg></Box>
+        <Box role="img" aria-label="Spotify" className="spotify-mark" sx={{ color: "#1DB954", display: "inline-flex" }}><svg width="42" height="42" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.59 14.42a.75.75 0 0 1-1.03.25c-2.82-1.72-6.37-2.11-10.55-1.16a.75.75 0 1 1-.33-1.46c4.58-1.05 8.51-.59 11.66 1.34.35.22.46.68.25 1.03Zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.23-1.98-8.15-2.55-11.97-1.4a.94.94 0 1 1-.54-1.8c4.36-1.32 9.78-.68 13.49 1.6.44.27.58.85.31 1.29Zm.13-3.4c-3.87-2.3-10.26-2.52-13.96-1.39a1.12 1.12 0 1 1-.65-2.14c4.25-1.29 11.3-1.04 15.76 1.61a1.12 1.12 0 0 1-1.15 1.92Z" /></svg></Box>
         {connected
           ? <Button variant="outlined" color="neutral" loading={disconnectState.isLoading} disabled={startState.isLoading} onClick={handleDisconnect}>Disconnect</Button>
           : <Button variant="solid" loading={startState.isLoading} disabled={!configured || !userId} onClick={connect}>Connect Spotify</Button>}
@@ -173,7 +173,7 @@ export default function SpotifyConnectionCard() {
             <Button variant="plain" loading={playback.isFetching} onClick={() => playback.refetch()}>Retry playback</Button>
           </Box>}
           {track ? <Stack direction="row" alignItems="center" gap={1.5} sx={{ mt: 1 }}>
-            {track.imageUrl && <Box component="img" src={track.imageUrl} alt="" sx={{ width: 48, height: 48, borderRadius: "sm", objectFit: "cover" }} />}
+            {track.imageUrl && <Box component="img" className="spotify-track-art" src={track.imageUrl} alt="" sx={{ width: 48, height: 48, borderRadius: "sm", objectFit: "cover" }} />}
             <Box sx={{ minWidth: 0 }}>
               <Typography level="body-xs" color="neutral">{track.isPlaying ? "Now playing" : "Paused"}</Typography>
               <Typography level="title-sm">{track.name}</Typography>
@@ -202,7 +202,7 @@ export default function SpotifyConnectionCard() {
             <Button variant="plain" loading={morePlaylists.isFetching} onClick={() => void loadMorePlaylists(nextPlaylistOffset)}>Retry loading playlists</Button>
           </Box>}
           {/* Native scrolling supports touch, trackpads, and focus navigation without autoplay. */}
-          <Box ref={carouselRef} id={carouselId} role="region" aria-label="Spotify playlists" aria-roledescription="carousel"
+          <Box ref={carouselRef} id={carouselId} role="region" aria-label="Spotify playlists" aria-roledescription="carousel" className="spotify-playlist-track"
             sx={{ display: "flex", gap: 1, overflowX: "auto", scrollSnapType: "x mandatory", scrollBehavior: "smooth", p: 0.5,
               "@media (prefers-reduced-motion: reduce)": { scrollBehavior: "auto" } }}>
             {items.map((playlist) => <Sheet
@@ -213,6 +213,7 @@ export default function SpotifyConnectionCard() {
               target={playlist.spotifyUrl ? "_blank" : undefined}
               rel={playlist.spotifyUrl ? "noopener noreferrer" : undefined}
               variant="soft"
+              className="spotify-playlist-card"
               sx={{
                 p: 0.5, borderRadius: "md", minWidth: 0, flex: "0 0 calc((100% - 16px) / 3)", boxSizing: "border-box", scrollSnapAlign: "start", textDecoration: "none", color: "inherit",
                 border: "1px solid var(--aura-line)",
@@ -224,8 +225,8 @@ export default function SpotifyConnectionCard() {
                 }),
               }}
             >
-              {playlist.imageUrl ? <Box component="img" src={playlist.imageUrl} alt="" loading="lazy" sx={{ display: "block", width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: "sm" }} />
-                : <Box aria-hidden="true" sx={{ aspectRatio: "1", backgroundColor: "neutral.softBg", borderRadius: "sm" }} />}
+              {playlist.imageUrl ? <Box component="img" className="spotify-playlist-cover" src={playlist.imageUrl} alt="" loading="lazy" sx={{ display: "block", width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: "sm" }} />
+                : <Box aria-hidden="true" className="spotify-playlist-cover" sx={{ aspectRatio: "1", backgroundColor: "neutral.softBg", borderRadius: "sm" }} />}
               {/* Compact captions preserve cover emphasis; the full title remains the link's accessible name. */}
               <Typography level="body-xs" title={playlist.name} sx={{ mt: 0.5, fontSize: "0.6875rem", lineHeight: 1.3, fontWeight: 500, overflowWrap: "anywhere", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 2, overflow: "hidden" }}>{playlist.name}</Typography>
             </Sheet>)}
