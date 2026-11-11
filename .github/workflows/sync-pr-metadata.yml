@@ -86,11 +86,13 @@ jobs:
               }
               return body.data;
             };
+            // Project #9 is owned by the GemsForge *user* account, not an organization;
+            // look it up the same way sync-issue-metadata.yml does.
             const projectData = await gql(
-              "query($login:String!){organization(login:$login){projectsV2(first:100){nodes{id number title}}}}",
-              { login: "GemsForge-LLC" }
+              "query($login:String!){user(login:$login){projectsV2(first:100){nodes{id number title}}}}",
+              { login: "GemsForge" }
             );
-            const project = (projectData.organization?.projectsV2?.nodes || [])
+            const project = (projectData.user?.projectsV2?.nodes || [])
               .find((p) => p.number === projectNumber);
             if (!project) throw new Error("GemsForge Project #" + projectNumber + " was not found.");
             const fieldsData = await gql(
