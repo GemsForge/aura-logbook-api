@@ -1,3 +1,4 @@
+using AuraLogbook.Api.Services.Helpers;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Repositories;
@@ -54,6 +55,8 @@ builder.Services.AddDataProtection();
 builder.Services.AddHttpClient("Spotify", client => client.Timeout = TimeSpan.FromSeconds(10));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
+// Validated before the app is built so a missing key stops startup instead of failing per request.
+var jwtSigningKey = JwtSigningKey.Require(builder.Configuration);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -70,8 +73,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+        IssuerSigningKey = new SymmetricSecurityKey(jwtSigningKey)
     };
 });
 
