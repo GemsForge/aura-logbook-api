@@ -21,6 +21,8 @@ export type MoodCombinationInterpretation = {
   moods: string[];
   pathwayKey: number;
   interpretation: string;
+  /** OKLCH hue authored for this combination (#345), or null/absent when none. */
+  hue?: number | null;
 };
 
 export const auraApi = createApi({

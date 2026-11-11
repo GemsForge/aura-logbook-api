@@ -433,6 +433,35 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.False((await service.GetByIdAsync(user.Id))!.AuraRevealsEnabled);
     }
 
+    /// <summary>#345: every authored combination in the curated source has a seeded hue.</summary>
+    [Fact]
+    public async Task Every_source_combination_has_a_seeded_hue()
+    {
+        var hues = await new SqliteMoodCombinationRepository(_factory).GetHuesAsync();
+        var source = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine("..", "..", "..", "..", "aura-ui", "data", "aura_logbook_mood_combinations.json")));
+        var records = source.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array
+            ? source.RootElement.EnumerateArray()
+            : source.RootElement.EnumerateObject().First(p => p.Value.ValueKind == System.Text.Json.JsonValueKind.Array).Value.EnumerateArray();
+        var keys = records.Select(r => MoodCombinationImporter.CreateMoodSetKey(
+            r.GetProperty("moods").EnumerateArray().Select(m => Enum.Parse<MoodType>(m.GetString()!)))).ToList();
+
+        Assert.NotEmpty(keys);
+        Assert.All(keys, k => Assert.True(hues.ContainsKey(k), $"no hue for {k}"));
+    }
+
+    /// <summary>#345: the interpretation lookup returns the combination's hue alongside the text.</summary>
+    [Fact]
+    public async Task Interpretation_includes_the_combination_hue()
+    {
+        using (var c = _factory.CreateConnection())
+            c.ExecuteNonQuery("INSERT INTO MoodCombinationInterpretations (CombinationId, MoodSetKey, MoodsJson, PathwayKey, Interpretation) VALUES ('t1','Empowered|Tense','[\"Tense\",\"Empowered\"]',0,'Pressure into drive.');");
+
+        var result = await new SqliteMoodCombinationRepository(_factory).GetAsync([MoodType.Tense, MoodType.Empowered], 0);
+
+        Assert.Equal("Pressure into drive.", result!.Interpretation);
+        Assert.Equal(35, result.Hue);
+    }
+
     /// <summary>#341: users that existed before migration 019 are treated as already onboarded.</summary>
     [Fact]
     public void Migration_019_marks_existing_users_onboarded()

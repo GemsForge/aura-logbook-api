@@ -1,6 +1,8 @@
+using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Repositories;
 
 namespace AuraLogbook.Api.Services.Aura;
 
@@ -30,8 +32,13 @@ public static class AuraEngine
         }
     }
 
+    /// <summary>Most recent mood combinations named in the contributors list.</summary>
+    public const int MaxCombinationContributors = 3;
+
     /// <summary>Computes the aura for <paramref name="user"/> from <paramref name="moods"/> as of <paramref name="today"/>.</summary>
-    public static AuraDto Compute(User user, IEnumerable<MoodEntry> moods, DateOnly today)
+    /// <param name="combinationHues">Authored combination hues (#345); a matching entry uses its combination hue
+    /// instead of the individual mood hues.</param>
+    public static AuraDto Compute(User user, IEnumerable<MoodEntry> moods, DateOnly today, IReadOnlyDictionary<string, CombinationHue>? combinationHues = null)
     {
         var blend = new Blend();
         var contributors = new List<string>();
@@ -54,12 +61,24 @@ public static class AuraEngine
         // Mood logs from the last WindowDays, newest weighted most.
         var recent = moods.Where(m => m.Date <= today && today.DayNumber - m.Date.DayNumber < WindowDays).ToList();
         var counts = new Dictionary<MoodType, int>();
-        foreach (var entry in recent)
+        var combinationLines = new List<string>();
+        foreach (var entry in recent.OrderByDescending(e => e.Date))
         {
             var decay = Decay(today.DayNumber - entry.Date.DayNumber);
+            foreach (var mood in entry.Moods) counts[mood] = counts.GetValueOrDefault(mood) + 1;
+
+            var distinct = entry.Moods.Distinct().ToList();
+            if (distinct.Count is 2 or 3 && combinationHues is not null
+                && combinationHues.TryGetValue(MoodCombinationImporter.CreateMoodSetKey(distinct), out var combo))
+            {
+                blend.Add(combo.Hue, combo.Weight * decay, combo.ChromaFactor);
+                if (combinationLines.Count < MaxCombinationContributors)
+                    combinationLines.Add($"{string.Join(" + ", distinct)} on {entry.Date.DayOfWeek}");
+                continue;
+            }
+
             foreach (var mood in entry.Moods)
             {
-                counts[mood] = counts.GetValueOrDefault(mood) + 1;
                 var (hue, chroma) = AuraHueTables.Moods[mood];
                 if (hue is { } h) blend.Add(h, decay, chroma);
                 else blend.Weight += decay; // Neutral mutes the blend without moving the hue.
@@ -69,6 +88,7 @@ public static class AuraEngine
         {
             var top = counts.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key).First().Key;
             contributors.Add($"{recent.Count} check-in{(recent.Count == 1 ? "" : "s")} in the last {WindowDays} days, mostly {top}");
+            contributors.AddRange(combinationLines);
         }
 
         // Pathway base layer as a fixed share of the final mix.

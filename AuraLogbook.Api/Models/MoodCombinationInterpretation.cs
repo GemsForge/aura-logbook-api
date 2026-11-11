@@ -14,4 +14,7 @@ public sealed class MoodCombinationInterpretation
 
     /// <summary>Gets or sets the reflection text for the selected pathway.</summary>
     public string Interpretation { get; set; } = string.Empty;
+
+    /// <summary>OKLCH hue of this combination (#345), or null when no hue is authored for it.</summary>
+    public double? Hue { get; set; }
 }

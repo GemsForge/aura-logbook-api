@@ -294,7 +294,13 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
             </Typography>
           )}
           {!interpretationLoading && !interpretationError && interpretation && (
-            <Typography level="body-md" sx={{ mt: 0.75, whiteSpace: "pre-wrap" }}>{interpretation.interpretation}</Typography>
+            <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start", mt: 0.75 }}>
+              {/* #345: the combination's own color, shown with its reflection. Decorative; the text carries the meaning. */}
+              {interpretation.hue != null && (
+                <Box aria-hidden="true" data-testid="combination-swatch" sx={{ width: 28, height: 28, flexShrink: 0, mt: 0.25, borderRadius: "50%", background: `radial-gradient(circle at 33% 28%, rgba(255,255,255,.9), oklch(0.72 0.14 ${interpretation.hue}) 70%)` }} />
+              )}
+              <Typography level="body-md" sx={{ whiteSpace: "pre-wrap" }}>{interpretation.interpretation}</Typography>
+            </Box>
           )}
           {interpretationLoaded && !interpretationLoading && !interpretation && !interpretationError && (
             <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>There isn’t a reflection for this combination yet.</Typography>

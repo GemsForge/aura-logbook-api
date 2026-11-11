@@ -135,3 +135,34 @@ public sealed class AuraEngineTests
     public void Seasons_are_placed_correctly(string date, string season) =>
         Assert.Equal(season, LiturgicalSeason.For(DateOnly.Parse(date)).Name);
 }
+
+/// <summary>#345: authored mood-combination hues replace the individual mood hues for an entry.</summary>
+public sealed class AuraCombinationTests
+{
+    private static readonly DateOnly Today = new(2026, 7, 15); // a Wednesday
+    private static readonly IReadOnlyDictionary<string, AuraLogbook.Api.Repositories.CombinationHue> Hues =
+        new Dictionary<string, AuraLogbook.Api.Repositories.CombinationHue> { ["Tense|Visionary"] = new(330, 1.0, 1.25) };
+
+    private static User NewUser() => new() { Id = 1, Email = "c@example.test", OnboardingCompletedAt = "2026-07-15T00:00:00Z" };
+
+    [Fact]
+    public void Matching_combination_uses_its_own_hue_and_is_named()
+    {
+        var entry = new MoodEntry { Date = Today, Moods = [MoodType.Visionary, MoodType.Tense] };
+        var aura = AuraEngine.Compute(NewUser(), [entry], Today, Hues);
+
+        Assert.Equal(330, aura.Hue!.Value, 1);
+        Assert.Contains("Visionary + Tense on Wednesday", aura.Contributors);
+    }
+
+    [Fact]
+    public void Unmatched_combination_falls_back_to_individual_moods()
+    {
+        var entry = new MoodEntry { Date = Today, Moods = [MoodType.Centered, MoodType.Harmonious] };
+        var withTable = AuraEngine.Compute(NewUser(), [entry], Today, Hues);
+        var without = AuraEngine.Compute(NewUser(), [entry], Today);
+
+        Assert.Equal(without.Hue!.Value, withTable.Hue!.Value, 3);
+        Assert.DoesNotContain(withTable.Contributors, c => c.Contains(" on "));
+    }
+}
