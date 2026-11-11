@@ -8,6 +8,7 @@ import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
 import WeatherCard from "@/components/weather/WeatherCard";
+import { useWeatherLocation } from "@/hooks/useWeatherLocation";
 import { AuraColorInfo, AuraMoodMap, MoodIcons } from "@/features/mood/models/aura";
 import { MoodTypes, type MoodType } from "@/features/mood/models/schema/MoodType";
 import { getQuickMoodNextStep } from "@/features/mood/quickMoodNextStep";
@@ -63,6 +64,8 @@ export default function Dashboard() {
   const moodGroupRef = useRef<HTMLDivElement>(null);
   const returnFocusToChips = useRef(false);
   // Celestial data is neither requested nor rendered on shared/default pathways.
+  // #331: weather follows the user's own setting; with it off, nothing is requested.
+  const weatherLocation = useWeatherLocation(user);
   const showAstrologyContent = user?.selectedPathway === "Energy";
   const { data: zodiac, isLoading: loadingZodiac } = useGetZodiacInsightQuery(undefined, { skip: !showAstrologyContent });
 
@@ -127,7 +130,7 @@ export default function Dashboard() {
       <Sheet className="aura-panel" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1.5}>
           <Box><Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, lineHeight: 1.15 }}>{greeting}, {displayName}.</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{dayjs().format("dddd, MMMM D")}</Typography></Box>
-          <WeatherCard compact city="Atlanta" state="GA" country="US" />
+          <WeatherCard location={weatherLocation} />
         </Stack>
         <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography>
           {/* The check-in sizes to its content. The saved moment is taller than the chips, so the cards below move down only in direct response to the tap (not an unexpected layout shift), and return to place on "Done"; e2e/quick-check-in.spec.ts measures both. */}

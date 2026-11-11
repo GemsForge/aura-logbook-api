@@ -16,6 +16,7 @@ import { AuraSelector } from "../AuraSelectorField";
 import { AvatarPickerModal } from "../AvatarPickerModal";
 import { MottoField } from "../MottoField";
 import { InterfaceThemeField } from "../InterfaceThemeField";
+import { WeatherLocationField } from "../WeatherLocationField";
 import type { InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
@@ -175,6 +176,8 @@ export function EditProfileForm({
           />
         )}
       />
+
+      <WeatherLocationField control={control} setValue={setValue} errors={errors} />
 
       <MottoField control={control} name="motto" />
 

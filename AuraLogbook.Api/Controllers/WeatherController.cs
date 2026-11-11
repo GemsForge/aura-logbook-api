@@ -21,7 +21,8 @@ public class WeatherController : ControllerBase
         [FromQuery] double? lon,
         [FromQuery] string? city,
         [FromQuery] string? state,
-        [FromQuery] string? country)
+        [FromQuery] string? country,
+        [FromQuery] string? unit = null)
     {
         // Validate: either coords or city must be present
         if (!(lat.HasValue && lon.HasValue) && string.IsNullOrWhiteSpace(city))
@@ -29,7 +30,11 @@ public class WeatherController : ControllerBase
 
         try
         {
-            var weather = await _ws.GetCurrentAsync(lat, lon, city, state, country);
+            // #331: coordinates are rounded to city level before they reach the provider, even if a
+            // client sends more precision. Neither form is logged or stored.
+            var roundedLat = lat.HasValue ? AuraLogbook.Api.Models.WeatherLocationValues.RoundCoordinate(lat.Value) : (double?)null;
+            var roundedLon = lon.HasValue ? AuraLogbook.Api.Models.WeatherLocationValues.RoundCoordinate(lon.Value) : (double?)null;
+            var weather = await _ws.GetCurrentAsync(roundedLat, roundedLon, city, state, country, unit);
             return Ok(weather);
         }
         catch (ArgumentException ex)

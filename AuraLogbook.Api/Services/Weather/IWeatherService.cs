@@ -12,11 +12,13 @@ public interface IWeatherService
     /// <param name="city">City name. Required if lat/lon are not provided.</param>
     /// <param name="state">State code (e.g. 'GA'). Optional, only used if city is provided.</param>
     /// <param name="country">Country code (e.g. 'US'). Optional, only used if city is provided.</param>
+    /// <param name="unit">"F" (default) or "C"; the returned temperature and its unit follow it.</param>
     Task<WeatherDto> GetCurrentAsync(
         double? lat = null,
         double? lon = null,
         string? city = null,
         string? state = null,
-        string? country = null);
+        string? country = null,
+        string? unit = null);
 }
 

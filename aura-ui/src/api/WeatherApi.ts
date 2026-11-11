@@ -16,6 +16,7 @@ export const WeatherApi = {
     city?: string;
     state?: string;
     country?: string;
+    unit?: "F" | "C";
   }): Promise<WeatherDto> => {
     const response = await api.get<WeatherDto>(`${API_BASE}/current`, {
       params,

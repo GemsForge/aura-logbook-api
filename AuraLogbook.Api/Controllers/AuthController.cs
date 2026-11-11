@@ -104,6 +104,11 @@ public class AuthController : ControllerBase
             AuraColor = user.AuraColor,
             AuraIntensity = user.AuraIntensity,
             InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
+            WeatherLocationMode = WeatherLocationValues.ResolveMode(user.WeatherLocationMode),
+            WeatherCity = user.WeatherCity,
+            WeatherRegion = user.WeatherRegion,
+            WeatherCountry = user.WeatherCountry,
+            TemperatureUnit = WeatherLocationValues.ResolveUnit(user.TemperatureUnit),
             Avatar = user.Avatar ?? string.Empty,
             Motto = user.Motto ?? string.Empty,
             SelectedPathway = user.SelectedPathway

@@ -27,6 +27,19 @@ namespace AuraLogbook.Api.Models.Dto
         public string? Motto { get; set; }
         /// <summary>Optional appearance preference; omitted values preserve the current theme.</summary>
         public string? InterfaceTheme { get; set; }
+        /// <summary>Optional weather location mode (Off, City, Device); omitted preserves the current setting.</summary>
+        public string? WeatherLocationMode { get; set; }
+        /// <summary>City for City mode; required when the mode is City, ignored otherwise.</summary>
+        [StringLength(100)]
+        public string? WeatherCity { get; set; }
+        /// <summary>Optional state or region for City mode.</summary>
+        [StringLength(100)]
+        public string? WeatherRegion { get; set; }
+        /// <summary>Optional two-letter country code for City mode.</summary>
+        [StringLength(2)]
+        public string? WeatherCountry { get; set; }
+        /// <summary>Optional temperature unit, "F" or "C"; omitted preserves the current unit.</summary>
+        public string? TemperatureUnit { get; set; }
         [Required]
         public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
 }

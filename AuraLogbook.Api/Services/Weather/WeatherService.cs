@@ -16,8 +16,10 @@ namespace AuraLogbook.Api.Services
             double? lon,
             string? city,
             string? state,
-            string? country)
+            string? country,
+            string? unit = null)
         {
+            var resolvedUnit = AuraLogbook.Api.Models.WeatherLocationValues.ResolveUnit(unit);
             double latitude;
             double longitude;
 
@@ -40,7 +42,7 @@ namespace AuraLogbook.Api.Services
                 ["latitude"] = latitude.ToString(CultureInfo.InvariantCulture),
                 ["longitude"] = longitude.ToString(CultureInfo.InvariantCulture),
                 ["current"] = "temperature_2m,weather_code,is_day",
-                ["temperature_unit"] = "fahrenheit",
+                ["temperature_unit"] = resolvedUnit == AuraLogbook.Api.Models.WeatherLocationValues.Celsius ? "celsius" : "fahrenheit",
                 ["timezone"] = "auto"
             };
             var url = QueryHelpers.AddQueryString(ForecastUrl, query);
@@ -59,6 +61,7 @@ namespace AuraLogbook.Api.Services
             return new WeatherDto
             {
                 Temperature = temperature,
+                Unit = resolvedUnit,
                 Description = description,
                 IconCode = icon + (isDay ? "d" : "n")
             };

@@ -96,6 +96,23 @@ public class UserService : IUserService
         if (request.InterfaceTheme is not null)
             existingUser.InterfaceTheme = InterfaceThemeValues.Resolve(request.InterfaceTheme);
 
+        // #331: only a typed place is kept. Turning location off, or switching to device
+        // location, clears any saved place so nothing location-like lingers on the profile.
+        if (request.WeatherLocationMode is not null)
+        {
+            var mode = WeatherLocationValues.ResolveMode(request.WeatherLocationMode);
+            var city = WeatherLocationValues.Clean(request.WeatherCity);
+            if (mode == WeatherLocationValues.City && city is null)
+                return (false, "Enter a city to use for weather.");
+
+            existingUser.WeatherLocationMode = mode;
+            existingUser.WeatherCity = mode == WeatherLocationValues.City ? city : null;
+            existingUser.WeatherRegion = mode == WeatherLocationValues.City ? WeatherLocationValues.Clean(request.WeatherRegion) : null;
+            existingUser.WeatherCountry = mode == WeatherLocationValues.City ? WeatherLocationValues.Clean(request.WeatherCountry)?.ToUpperInvariant() : null;
+        }
+        if (request.TemperatureUnit is not null)
+            existingUser.TemperatureUnit = WeatherLocationValues.ResolveUnit(request.TemperatureUnit);
+
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");
     }
