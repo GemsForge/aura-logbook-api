@@ -25,6 +25,7 @@ import { useAppSelector } from "./store/hooks";
 import { selectCurrentUser } from "./store/slices/authSlice";
 import { selectInterfaceThemePreview } from "./store/slices/uiSlice";
 import { normalizeAuraIntensity, resolveAuraColor } from "./theme/auraTheme";
+import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
 
 function ThemedApp() {
  
@@ -66,6 +67,8 @@ function ThemedApp() {
         colorSchemeStorageKey={`aura-theme-scheme-${interfaceTheme}`}
       >
         <CssBaseline enableColorScheme />
+        {/* #344: derived aura accents; off when the user disabled aura reveals or is signed out. */}
+        <AuraTokensStyle interfaceTheme={interfaceTheme} enabled={!!user && user.auraRevealsEnabled !== false} />
         <ToastProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <RouterProvider router={router} />

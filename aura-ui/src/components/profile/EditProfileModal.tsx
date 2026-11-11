@@ -63,6 +63,7 @@ export default function EditProfileModal({
       weatherRegion: "",
       weatherCountry: "",
       temperatureUnit: "F",
+      auraRevealsEnabled: true,
       isChangingPassword: false,
     },
   });
@@ -99,6 +100,7 @@ export default function EditProfileModal({
         weatherRegion: user.weatherRegion ?? "",
         weatherCountry: user.weatherCountry ?? "",
         temperatureUnit: resolveTemperatureUnit(user.temperatureUnit),
+        auraRevealsEnabled: user.auraRevealsEnabled !== false,
       });
       setIsChangingPassword(false);
     } else if (!open) {

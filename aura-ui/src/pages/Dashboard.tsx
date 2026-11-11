@@ -7,6 +7,7 @@ import Grid from "@mui/joy/Grid";
 import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
+import { WhyThisColor } from "@/components/aura/WhyThisColor";
 import WeatherCard from "@/components/weather/WeatherCard";
 import { useWeatherLocation } from "@/hooks/useWeatherLocation";
 import { AuraColorInfo, AuraMoodMap, MoodIcons } from "@/features/mood/models/aura";
@@ -129,7 +130,7 @@ export default function Dashboard() {
     <Box sx={{ maxWidth: 1240, mx: "auto" }}>
       <Sheet className="aura-panel" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1.5}>
-          <Box><Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, lineHeight: 1.15 }}>{greeting}, {displayName}.</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{dayjs().format("dddd, MMMM D")}</Typography></Box>
+          <Box><Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, lineHeight: 1.15 }}>{greeting}, {displayName}.</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{dayjs().format("dddd, MMMM D")}</Typography><WhyThisColor /></Box>
           <WeatherCard location={weatherLocation} />
         </Stack>
         <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography>

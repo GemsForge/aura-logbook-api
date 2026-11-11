@@ -2,6 +2,7 @@ import {
   Box,
   Checkbox,
   FormControlLabel,
+  Switch,
   Avatar as MuiAvatar,
   Typography,
 } from "@mui/material";
@@ -174,6 +175,18 @@ export function EditProfileForm({
               field.onChange(theme);
               onThemePreviewChange(theme);
             }}
+          />
+        )}
+      />
+
+      {/* #344: aura reveals can be turned off; accents then fall back to the interface theme. */}
+      <Controller
+        name="auraRevealsEnabled"
+        control={control}
+        render={({ field }) => (
+          <FormControlLabel
+            control={<Switch checked={field.value !== false} onChange={(e) => field.onChange(e.target.checked)} />}
+            label="Aura reveals: tint my space with my aura and show what shaped it"
           />
         )}
       />

@@ -418,6 +418,21 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Null((await service.GetByIdAsync(user.Id))!.OnboardingCompletedAt);
     }
 
+    /// <summary>#344: the aura reveals toggle is saved when sent and kept when omitted.</summary>
+    [Fact]
+    public async Task Aura_reveals_toggle_is_saved_and_preserved()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = "reveals@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync("reveals@example.com"))!;
+
+        await service.UpdateUserAsync(new UpdateUserRequest { Id = user.Id, Email = user.Email, AuraRevealsEnabled = false });
+        Assert.False((await service.GetByIdAsync(user.Id))!.AuraRevealsEnabled);
+
+        await service.UpdateUserAsync(new UpdateUserRequest { Id = user.Id, Email = user.Email, DisplayName = "Renamed" });
+        Assert.False((await service.GetByIdAsync(user.Id))!.AuraRevealsEnabled);
+    }
+
     /// <summary>#341: users that existed before migration 019 are treated as already onboarded.</summary>
     [Fact]
     public void Migration_019_marks_existing_users_onboarded()

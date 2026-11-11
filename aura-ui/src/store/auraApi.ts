@@ -5,6 +5,16 @@ import type { ZodiacInsightResponse } from "@/features/zodiac/models/ZodiacInsig
 import type { RootState } from "./store";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
 
+/** `GET /api/aura/current`: OKLCH tone plus plain-language contributors (#343). */
+export type DerivedAura = {
+  hue: number | null;
+  chroma: number;
+  lightness: number;
+  strength: number;
+  intensity: number;
+  contributors: string[];
+};
+
 /** Pathway reflection returned for one exact selected mood combination. */
 export type MoodCombinationInterpretation = {
   combinationId: string;
@@ -23,8 +33,13 @@ export const auraApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Zodiac", "MoodCombinationInterpretation"],
+  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura"],
   endpoints: (build) => ({
+    /** Derived aura (#343); refetched on mount so new check-ins show up. */
+    getCurrentAura: build.query<DerivedAura, void>({
+      query: () => "/aura/current",
+      providesTags: ["Aura"],
+    }),
     getZodiacInsight: build.query<ZodiacInsightResponse, void>({
       // instead of build.query({ query: ... }), we call our existing Axios wrapper:
       async queryFn() {
@@ -58,4 +73,4 @@ export const auraApi = createApi({
   }),
 });
 
-export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery } = auraApi;
+export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery, useGetCurrentAuraQuery } = auraApi;
