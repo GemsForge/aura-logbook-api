@@ -12,6 +12,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ToastProvider } from "../hooks/useToast";
 import { getAuraJoyTheme, getAuraTheme } from "../theme";
+import { authApi } from "../store/authApi";
 import authReducer from "../store/slices/authSlice";
 import uiReducer from "../store/slices/uiSlice";
 import type { AuraColor } from "@/features/mood/models/aura";
@@ -66,10 +67,11 @@ export function renderWithProviders(
   const store = configureStore({
     reducer: {
       auth: authReducer,
+      [authApi.reducerPath]: authApi.reducer,
       ui: uiReducer,
       [referenceDataApi.reducerPath]: referenceDataApi.reducer,
     },
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(referenceDataApi.middleware),
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(referenceDataApi.middleware, authApi.middleware),
     preloadedState,
   });
 
@@ -127,6 +129,7 @@ export function createProfileModalOpenState() {
     ui: {
       isProfileModalOpen: true,
       interfaceThemePreview: null,
+      interfaceModePreview: null, pendingInterfaceMode: null, guestInterfaceMode: "dark",
     },
   };
 }

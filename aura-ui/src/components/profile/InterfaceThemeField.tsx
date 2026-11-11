@@ -1,3 +1,5 @@
+import { useAppSelector } from "@/store/hooks";
+import { resolveEffectiveInterfaceMode } from "@/features/auth/models/InterfaceTheme";
 import {
   Box,
   FormControl,
@@ -6,21 +8,30 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import { interfaceThemes, interfaceThemeTokens } from "@/theme";
-import type { InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
+import { interfaceThemes, getInterfaceThemeTokens } from "@/theme";
+import type { InterfaceTheme, InterfaceModePreference } from "@/features/auth/models/InterfaceTheme";
 
 interface InterfaceThemeFieldProps {
   value: InterfaceTheme;
+  /** Swatches reflect brightness without changing it when a family is selected. */
+  mode?: InterfaceModePreference;
   onChange: (theme: InterfaceTheme) => void;
 }
 
-/** Offers clear, keyboard-selectable previews for the saved application theme. */
-export function InterfaceThemeField({ value, onChange }: InterfaceThemeFieldProps) {
+/**
+ * Compact, keyboard-selectable theme chips. Each chip is a visually hidden radio whose
+ * accessible name is the theme name; the selected name is also shown as text so the
+ * choice is never conveyed by color alone. Chips keep a 44px touch target.
+ */
+export function InterfaceThemeField({ value, mode = "dark", onChange }: InterfaceThemeFieldProps) {
+  const systemMode = useAppSelector((state) => state.ui.systemInterfaceMode);
+  const effectiveMode = resolveEffectiveInterfaceMode(mode, systemMode);
   return (
-    <FormControl component="fieldset" fullWidth>
-      <FormLabel component="legend" id="interface-theme-label">
+    <FormControl component="fieldset" fullWidth sx={{ minWidth: 0 }}>
+      <FormLabel component="legend" id="interface-theme-label" sx={{ fontSize: "0.875rem" }}>
         Interface theme
       </FormLabel>
       <RadioGroup
@@ -28,58 +39,47 @@ export function InterfaceThemeField({ value, onChange }: InterfaceThemeFieldProp
         name="interfaceTheme"
         value={value}
         onChange={(event) => onChange(event.target.value as InterfaceTheme)}
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" },
-          gap: 1,
-          mt: 1,
-        }}>
+        sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
         {interfaceThemes.map((theme) => {
-          const tokens = interfaceThemeTokens[theme];
+          const tokens = getInterfaceThemeTokens(theme, effectiveMode);
           const selected = value === theme;
           return (
-            <FormControlLabel
-              key={theme}
-              value={theme}
-              control={<Radio size="small" sx={{ position: "absolute", opacity: 0, width: 1, height: 1 }} />}
-              label={
-                <Box sx={{ width: "100%", minWidth: 0 }}>
-                  <Box
-                    aria-hidden="true"
-                    sx={{
-                      height: 42,
-                      borderRadius: 1.5,
-                      border: "1px solid",
-                      borderColor: tokens.border,
-                      background: `linear-gradient(110deg, ${tokens.canvas} 0%, ${tokens.surface} 54%, ${tokens.primary} 100%)`,
-                      boxShadow: selected ? `0 0 0 2px ${tokens.focus}, 0 5px 18px ${tokens.glow}` : "none",
-                    }}
-                  />
-                  <Typography component="span" variant="caption" sx={{ display: "block", mt: 0.75, fontWeight: selected ? 700 : 500 }}>
-                    {theme}{theme === "Aurora" ? " · Default" : ""}
-                  </Typography>
-                </Box>
-              }
-              sx={{
-                position: "relative",
-                minWidth: 0,
-                m: 0,
-                p: 1,
-                alignItems: "stretch",
-                border: "1px solid",
-                borderColor: selected ? "primary.main" : "divider",
-                borderRadius: 2,
-                bgcolor: selected ? "action.selected" : "background.paper",
-                cursor: "pointer",
-                "&:focus-within": { outline: "3px solid", outlineColor: "primary.main", outlineOffset: 2 },
-                "& .MuiFormControlLabel-label": { width: "100%" },
-              }}
-            />
+            <Tooltip key={theme} title={theme} disableInteractive>
+              <FormControlLabel
+                value={theme}
+                control={<Radio size="small" sx={{ position: "absolute", opacity: 0, width: 1, height: 1 }} />}
+                label={<Box component="span" sx={{ position: "absolute", top: 0, left: 0, width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>{theme}</Box>}
+                sx={{
+                  position: "relative",
+                  m: 0,
+                  width: 44,
+                  height: 44,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  "&:focus-within": { outline: "3px solid", outlineColor: "primary.main", outlineOffset: 1 },
+                  "&::before": {
+                    content: '""',
+                    width: { xs: 30, sm: 34 },
+                    height: { xs: 30, sm: 34 },
+                    borderRadius: "50%",
+                    border: "1px solid",
+                    borderColor: tokens.border,
+                    background: `linear-gradient(135deg, ${tokens.canvas} 0%, ${tokens.surface} 45%, ${tokens.primary} 100%)`,
+                    boxShadow: selected ? `0 0 0 2px ${tokens.canvas}, 0 0 0 4px ${tokens.focus}` : "none",
+                  },
+                }}
+              />
+            </Tooltip>
           );
         })}
       </RadioGroup>
-      <FormHelperText>
-        Changes the app’s appearance only; your recorded aura colors and journal entries stay as they are.
+      <Typography variant="caption" sx={{ fontWeight: 700, mt: 0.5 }} aria-hidden="true">
+        {value}{value === "Aurora" ? " · Default" : ""}
+      </Typography>
+      <FormHelperText sx={{ mx: 0 }}>
+        Changes the app’s look only. Your aura colors and entries stay the same.
       </FormHelperText>
     </FormControl>
   );

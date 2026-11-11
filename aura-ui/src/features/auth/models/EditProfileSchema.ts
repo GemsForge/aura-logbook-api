@@ -2,7 +2,7 @@ import { weatherLocationModes, type TemperatureUnit, type WeatherLocationMode } 
 import * as yup from "yup";
 import type { SpiritualPathway } from "./SpiritualPathway";
 import type { AuraColor } from "@/features/mood/models/aura";
-import { interfaceThemes, type InterfaceTheme } from "./InterfaceTheme";
+import { DEFAULT_INTERFACE_MODE, interfaceThemes, interfaceModePreferences, type InterfaceTheme, type InterfaceModePreference } from "./InterfaceTheme";
 
 export interface EditProfileFormData {
   email: string;
@@ -18,6 +18,8 @@ export interface EditProfileFormData {
   motto?: string;
   spiritualPathway: SpiritualPathway;
   interfaceTheme: InterfaceTheme;
+  /** Brightness choice is validated independently from the theme family. */
+  interfaceMode: InterfaceModePreference;
   weatherLocationMode: WeatherLocationMode;
   weatherCity?: string;
   weatherRegion?: string;
@@ -42,6 +44,7 @@ export const editProfileSchema = yup
 
     spiritualPathway: yup.string().required("Spiritual pathway is required"),
 
+    interfaceMode: yup.mixed<InterfaceModePreference>().oneOf([...interfaceModePreferences]).required().default(DEFAULT_INTERFACE_MODE),
     interfaceTheme: yup
       .mixed<InterfaceTheme>()
       .oneOf([...interfaceThemes], "Select a valid interface theme")

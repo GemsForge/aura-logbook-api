@@ -1,3 +1,4 @@
+import { ThemeModeToggle } from "./ThemeModeToggle";
 import Box from "@mui/joy/Box";
 import Link from "@mui/joy/Link";
 import IconButton from "@mui/joy/IconButton";
@@ -62,7 +63,7 @@ const NavBar = () => {
         <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
-        <Typography level="title-lg" sx={{ flexGrow: 1, fontFamily: "display", fontWeight: 400, fontSize: { xs: "1.28rem", sm: "1.5rem" }, letterSpacing: "-.04em" }}>
+        <Typography level="title-lg" sx={{ flexGrow: 1, minWidth: 0, fontFamily: "display", fontWeight: 400, fontSize: { xs: "1.28rem", sm: "1.5rem" }, letterSpacing: "-.04em" }}>
           <Link
             href={isAuthenticated ? "/dashboard" : "/home"}
             aria-label="Aura Logbook home"
@@ -80,7 +81,8 @@ const NavBar = () => {
               aria-hidden="true"
               sx={{ width: { xs: 52, sm: 76 }, height: { xs: 52, sm: 76 }, objectFit: "contain", flexShrink: 0 }}
             />
-            <span>Aura Logbook</span>
+            {/* Keep the mode control and profile reachable at 320px; the logo link retains its full accessible name. */}
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Aura Logbook</Box>
           </Link>
         </Typography>
         <Box component="nav" aria-label="Main navigation" sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
@@ -96,6 +98,7 @@ const NavBar = () => {
             </>
           )}
         </Box>
+          <ThemeModeToggle />
           {/* Profile preferences remain reachable when desktop navigation is hidden. */}
           {isAuthenticated && (
             <>

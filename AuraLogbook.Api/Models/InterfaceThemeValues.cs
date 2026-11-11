@@ -8,10 +8,10 @@ public static class InterfaceThemeValues
 
     private static readonly HashSet<string> Supported = new(StringComparer.Ordinal)
     {
-        Aurora, "Earth", "Ocean", "Sunset", "Amethyst", "Midnight", "Ivory"
+        Aurora, "Earth", "Ocean", "Sunset", "Amethyst", "Midnight"
     };
 
-    /// <summary>Returns a supported interface theme or Aurora when the value is missing or unknown.</summary>
+    /// <summary>Returns a supported theme; legacy Ivory, missing and unknown values resolve to Aurora.</summary>
     /// <param name="value">Persisted or requested theme identifier.</param>
     public static string Resolve(string? value) =>
         value is not null && Supported.Contains(value) ? value : Aurora;

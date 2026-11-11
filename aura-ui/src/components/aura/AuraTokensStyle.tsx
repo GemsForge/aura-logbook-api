@@ -1,10 +1,12 @@
 import GlobalStyles from "@mui/material/GlobalStyles";
 import { useGetCurrentAuraQuery } from "@/store/auraApi";
 import { breathSeconds, deriveAuraTokens } from "@/theme/auraTokens";
-import { interfaceThemeTokens, type InterfaceTheme } from "@/theme/interfaceThemes";
+import { getInterfaceThemeTokens, type InterfaceTheme, type InterfaceMode } from "@/theme/interfaceThemes";
 
 interface Props {
   interfaceTheme: InterfaceTheme;
+  /** Current display brightness changes contrast surfaces, never the derived hue. */
+  interfaceMode: InterfaceMode;
   /** False when the user turned aura reveals off, or is signed out. */
   enabled: boolean;
 }
@@ -14,10 +16,10 @@ interface Props {
  * `deriveAuraTokens`, so text and buttons always pass contrast against the interface theme.
  * When reveals are off or there is no aura yet, nothing is overridden and the theme accents remain.
  */
-export function AuraTokensStyle({ interfaceTheme, enabled }: Props) {
+export function AuraTokensStyle({ interfaceTheme, interfaceMode, enabled }: Props) {
   const { data: aura } = useGetCurrentAuraQuery(undefined, { skip: !enabled, refetchOnMountOrArgChange: true });
   if (!enabled || aura?.hue == null) return null;
-  const { mode, canvas } = interfaceThemeTokens[interfaceTheme];
+  const { mode, canvas } = getInterfaceThemeTokens(interfaceTheme, interfaceMode);
   const t = deriveAuraTokens(aura.hue, aura.chroma, mode, canvas);
   return (
     <GlobalStyles

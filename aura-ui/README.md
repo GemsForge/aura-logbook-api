@@ -47,3 +47,7 @@ npm run build
 ```
 
 See [DEPENDENCIES.md](../DEPENDENCIES.md) for major UI dependencies and [the API README](../AuraLogbook.Api/README.md) for routes and backend configuration.
+
+## Interface screen mode
+
+The account’s `interfaceMode` (`light` or `dark`) is separate from `interfaceTheme` and aura data. Omitted mode updates preserve the saved value. SQLite migration 022 and legacy JSON normalization convert Ivory to Aurora light. See [Interface theme and screen mode](../docs/ux/interface-screen-mode.md) for the controls, browser storage, palette and verification contracts.

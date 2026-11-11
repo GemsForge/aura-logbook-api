@@ -14,7 +14,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     // Writes match pathway keys case-insensitively; an unmatched key falls back to mindfulness (0) on insert
     // and keeps the stored pathway on update instead of writing NULL.
     // The join preserves legacy integer foreign keys in storage and exposes stable keys to API callers.
-    private const string UserSelect = "SELECT u.Id, u.Email, u.PasswordHash, u.DisplayName, u.Birthday, u.ZodiacSign, u.AuraColor, u.AuraIntensity, u.Avatar, u.Motto, p.StableKey AS SelectedPathway, u.InterfaceTheme, u.WeatherLocationMode, u.WeatherCity, u.WeatherRegion, u.WeatherCountry, u.TemperatureUnit, u.OnboardingCompletedAt, u.AuraRevealsEnabled, u.OnboardingColorHue, u.OnboardingAnswersJson, u.PathwayPreferencesJson, u.CreatedAt, u.UpdatedAt FROM Users u LEFT JOIN SpiritualPathways p ON p.PathwayKey = u.SelectedPathway";
+    private const string UserSelect = "SELECT u.Id, u.Email, u.PasswordHash, u.DisplayName, u.Birthday, u.ZodiacSign, u.AuraColor, u.AuraIntensity, u.Avatar, u.Motto, p.StableKey AS SelectedPathway, u.InterfaceTheme, u.InterfaceMode, u.WeatherLocationMode, u.WeatherCity, u.WeatherRegion, u.WeatherCountry, u.TemperatureUnit, u.OnboardingCompletedAt, u.AuraRevealsEnabled, u.OnboardingColorHue, u.OnboardingAnswersJson, u.PathwayPreferencesJson, u.CreatedAt, u.UpdatedAt FROM Users u LEFT JOIN SpiritualPathways p ON p.PathwayKey = u.SelectedPathway";
     public async Task<List<User>> GetAllAsync() { using var c = _factory.CreateConnection(); return (await c.QueryAsync<UserRow>($"{UserSelect} ORDER BY u.Id")).Select(Map).ToList(); }
     public async Task<User?> GetByEmailAsync(string email) { using var c = _factory.CreateConnection(); var row = await c.QuerySingleOrDefaultAsync<UserRow>($"{UserSelect} WHERE u.Email = @email", new { email }); return row is null ? null : Map(row); }
     public async Task<User?> GetByIdAsync(int id) { using var c = _factory.CreateConnection(); var row = await c.QuerySingleOrDefaultAsync<UserRow>($"{UserSelect} WHERE u.Id = @id", new { id }); return row is null ? null : Map(row); }
@@ -22,7 +22,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         using var c = _factory.CreateConnection();
         return await c.ExecuteScalarAsync<int>(
-            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, InterfaceTheme, WeatherLocationMode, WeatherCity, WeatherRegion, WeatherCountry, TemperatureUnit, OnboardingCompletedAt, AuraRevealsEnabled, OnboardingColorHue, OnboardingAnswersJson, PathwayPreferencesJson, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,COALESCE((SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway COLLATE NOCASE),0),@InterfaceTheme,@WeatherLocationMode,@WeatherCity,@WeatherRegion,@WeatherCountry,@TemperatureUnit,@OnboardingCompletedAt,@AuraRevealsEnabled,@OnboardingColorHue,@OnboardingAnswersJson,@PathwayPreferencesJson,@CreatedAt,@UpdatedAt) RETURNING Id",
+            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, InterfaceTheme, InterfaceMode, WeatherLocationMode, WeatherCity, WeatherRegion, WeatherCountry, TemperatureUnit, OnboardingCompletedAt, AuraRevealsEnabled, OnboardingColorHue, OnboardingAnswersJson, PathwayPreferencesJson, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,COALESCE((SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway COLLATE NOCASE),0),@InterfaceTheme,@InterfaceMode,@WeatherLocationMode,@WeatherCity,@WeatherRegion,@WeatherCountry,@TemperatureUnit,@OnboardingCompletedAt,@AuraRevealsEnabled,@OnboardingColorHue,@OnboardingAnswersJson,@PathwayPreferencesJson,@CreatedAt,@UpdatedAt) RETURNING Id",
             ToSqlParameters(user));
     }
 
@@ -30,7 +30,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         using var c = _factory.CreateConnection();
         return await c.ExecuteAsync(
-            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=COALESCE((SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway COLLATE NOCASE),SelectedPathway), InterfaceTheme=@InterfaceTheme, WeatherLocationMode=@WeatherLocationMode, WeatherCity=@WeatherCity, WeatherRegion=@WeatherRegion, WeatherCountry=@WeatherCountry, TemperatureUnit=@TemperatureUnit, OnboardingCompletedAt=@OnboardingCompletedAt, AuraRevealsEnabled=@AuraRevealsEnabled, OnboardingColorHue=@OnboardingColorHue, OnboardingAnswersJson=@OnboardingAnswersJson, PathwayPreferencesJson=@PathwayPreferencesJson, UpdatedAt=@UpdatedAt WHERE Id=@Id",
+            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=COALESCE((SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway COLLATE NOCASE),SelectedPathway), InterfaceTheme=@InterfaceTheme, InterfaceMode=@InterfaceMode, WeatherLocationMode=@WeatherLocationMode, WeatherCity=@WeatherCity, WeatherRegion=@WeatherRegion, WeatherCountry=@WeatherCountry, TemperatureUnit=@TemperatureUnit, OnboardingCompletedAt=@OnboardingCompletedAt, AuraRevealsEnabled=@AuraRevealsEnabled, OnboardingColorHue=@OnboardingColorHue, OnboardingAnswersJson=@OnboardingAnswersJson, PathwayPreferencesJson=@PathwayPreferencesJson, UpdatedAt=@UpdatedAt WHERE Id=@Id",
             ToSqlParameters(user)) == 1;
     }
 
@@ -49,6 +49,8 @@ public sealed class SqliteUserRepository : IFileUserRepository
         user.Motto,
         user.SelectedPathway,
         InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
+        // Persist the shared light default when no brightness was supplied.
+        InterfaceMode = InterfaceModeValues.Resolve(user.InterfaceMode, user.InterfaceTheme),
         WeatherLocationMode = WeatherLocationValues.ResolveMode(user.WeatherLocationMode),
         user.WeatherCity,
         user.WeatherRegion,
@@ -74,6 +76,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
         AuraColor = row.AuraColor, AuraIntensity = row.AuraIntensity,
         // Older rows can contain a null or unsupported value; normalize them on every read.
         InterfaceTheme = InterfaceThemeValues.Resolve(row.InterfaceTheme),
+        InterfaceMode = InterfaceModeValues.Resolve(row.InterfaceMode, row.InterfaceTheme),
         WeatherLocationMode = WeatherLocationValues.ResolveMode(row.WeatherLocationMode),
         WeatherCity = row.WeatherCity, WeatherRegion = row.WeatherRegion, WeatherCountry = row.WeatherCountry,
         TemperatureUnit = WeatherLocationValues.ResolveUnit(row.TemperatureUnit),
@@ -89,7 +92,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
         public int Id { get; set; } public string Email { get; set; } = ""; public string PasswordHash { get; set; } = "";
         public string? DisplayName { get; set; } public string? Birthday { get; set; } public string? ZodiacSign { get; set; }
         public string AuraColor { get; set; } = "blue"; public int AuraIntensity { get; set; } public string? Avatar { get; set; }
-        public string? Motto { get; set; } public string? SelectedPathway { get; set; } public string? InterfaceTheme { get; set; }
+        public string? Motto { get; set; } public string? SelectedPathway { get; set; } public string? InterfaceTheme { get; set; } public string? InterfaceMode { get; set; }
         public string? WeatherLocationMode { get; set; } public string? WeatherCity { get; set; } public string? WeatherRegion { get; set; } public string? WeatherCountry { get; set; } public string? TemperatureUnit { get; set; }
         public string? OnboardingCompletedAt { get; set; } public int AuraRevealsEnabled { get; set; } = 1; public int? OnboardingColorHue { get; set; } public string? OnboardingAnswersJson { get; set; } public string? PathwayPreferencesJson { get; set; }
         public string CreatedAt { get; set; } = ""; public string UpdatedAt { get; set; } = "";

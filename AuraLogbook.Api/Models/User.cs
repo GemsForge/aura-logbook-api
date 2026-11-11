@@ -58,6 +58,8 @@ public class User
 
     /// <summary>Saved interface appearance, independent of recorded aura color.</summary>
     public string InterfaceTheme { get; set; } = InterfaceThemeValues.Aurora;
+    /// <summary>Saved brightness; new accounts start light and explicitly saved choices are preserved.</summary>
+    public string? InterfaceMode { get; set; } = InterfaceModeValues.Default;
 
     /// <summary>Where Today's weather comes from: Off (default), City, or Device. See <see cref="WeatherLocationValues"/>.</summary>
     public string WeatherLocationMode { get; set; } = WeatherLocationValues.Off;

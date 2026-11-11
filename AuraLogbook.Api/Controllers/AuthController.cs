@@ -178,6 +178,8 @@ public class AuthController : ControllerBase
             AuraColor = user.AuraColor,
             AuraIntensity = user.AuraIntensity,
             InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
+            // Normalize missing brightness to the light default while honoring saved modes.
+            InterfaceMode = InterfaceModeValues.Resolve(user.InterfaceMode, user.InterfaceTheme),
             WeatherLocationMode = WeatherLocationValues.ResolveMode(user.WeatherLocationMode),
             WeatherCity = user.WeatherCity,
             WeatherRegion = user.WeatherRegion,

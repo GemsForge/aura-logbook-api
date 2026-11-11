@@ -149,6 +149,8 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         public string SelectedPathway { get; set; } = SpiritualPathwayKeys.Mindfulness;
         /// <summary>Interface theme preference; missing in legacy files and resolved to Aurora on read.</summary>
         public string? InterfaceTheme { get; set; }
+        /// <summary>Separate brightness preference; absent in legacy files and normalized on read.</summary>
+        public string? InterfaceMode { get; set; }
         /// <summary>Weather location preference (#331); missing in older files and resolved to Off.</summary>
         public string? WeatherLocationMode { get; set; }
         public string? WeatherCity { get; set; }
@@ -167,7 +169,8 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         {
             Id = u.Id, Email = u.Email, PasswordHash = u.PasswordHash, CreatedAt = u.CreatedAt, UpdatedAt = u.UpdatedAt,
             DisplayName = u.DisplayName, Birthday = u.Birthday, ZodiacSign = u.ZodiacSign, AuraColor = u.AuraColor,
-            AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway, InterfaceTheme = u.InterfaceTheme,
+            AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway, InterfaceTheme = InterfaceThemeValues.Resolve(u.InterfaceTheme),
+            InterfaceMode = InterfaceModeValues.Resolve(u.InterfaceMode, u.InterfaceTheme),
             WeatherLocationMode = u.WeatherLocationMode, WeatherCity = u.WeatherCity, WeatherRegion = u.WeatherRegion, WeatherCountry = u.WeatherCountry, TemperatureUnit = u.TemperatureUnit,
             OnboardingCompletedAt = u.OnboardingCompletedAt, AuraRevealsEnabled = u.AuraRevealsEnabled, OnboardingColorHue = u.OnboardingColorHue, OnboardingAnswers = u.OnboardingAnswers, PathwayPreferences = u.PathwayPreferences,
         };
@@ -178,6 +181,7 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
             Id = s.Id, Email = s.Email, PasswordHash = s.PasswordHash, CreatedAt = s.CreatedAt, UpdatedAt = s.UpdatedAt,
             DisplayName = s.DisplayName, Birthday = s.Birthday, ZodiacSign = s.ZodiacSign, AuraColor = s.AuraColor,
             AuraIntensity = s.AuraIntensity, Avatar = s.Avatar, Motto = s.Motto, SelectedPathway = s.SelectedPathway, InterfaceTheme = InterfaceThemeValues.Resolve(s.InterfaceTheme),
+            InterfaceMode = InterfaceModeValues.Resolve(s.InterfaceMode, s.InterfaceTheme),
             WeatherLocationMode = WeatherLocationValues.ResolveMode(s.WeatherLocationMode), WeatherCity = s.WeatherCity, WeatherRegion = s.WeatherRegion, WeatherCountry = s.WeatherCountry,
             TemperatureUnit = WeatherLocationValues.ResolveUnit(s.TemperatureUnit),
             // Legacy records predate onboarding: treat them as complete, matching migration 019.

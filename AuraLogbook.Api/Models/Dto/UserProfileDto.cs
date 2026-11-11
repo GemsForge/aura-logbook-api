@@ -1,4 +1,4 @@
-﻿namespace AuraLogbook.Api.Models.Dto
+namespace AuraLogbook.Api.Models.Dto
 {
     public class UserProfileDto
     {
@@ -11,6 +11,8 @@
         public required string AuraColor { get; set; }
         /// <summary>Saved interface appearance, normalized to a supported theme.</summary>
         public required string InterfaceTheme { get; set; }
+        /// <summary>Normalized saved screen brightness, independent of interface family and aura color.</summary>
+        public string InterfaceMode { get; set; } = InterfaceModeValues.Default;
         /// <summary>Weather location mode: Off, City, or Device. Device coordinates are never returned or stored.</summary>
         public string WeatherLocationMode { get; set; } = WeatherLocationValues.Off;
         public string? WeatherCity { get; set; }
