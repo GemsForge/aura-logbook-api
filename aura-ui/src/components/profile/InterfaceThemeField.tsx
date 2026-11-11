@@ -1,3 +1,5 @@
+import { useAppSelector } from "@/store/hooks";
+import { resolveEffectiveInterfaceMode } from "@/features/auth/models/InterfaceTheme";
 import {
   Box,
   FormControl,
@@ -10,12 +12,12 @@ import {
   Typography,
 } from "@mui/material";
 import { interfaceThemes, getInterfaceThemeTokens } from "@/theme";
-import type { InterfaceTheme, InterfaceMode } from "@/features/auth/models/InterfaceTheme";
+import type { InterfaceTheme, InterfaceModePreference } from "@/features/auth/models/InterfaceTheme";
 
 interface InterfaceThemeFieldProps {
   value: InterfaceTheme;
   /** Swatches reflect brightness without changing it when a family is selected. */
-  mode?: InterfaceMode;
+  mode?: InterfaceModePreference;
   onChange: (theme: InterfaceTheme) => void;
 }
 
@@ -25,6 +27,8 @@ interface InterfaceThemeFieldProps {
  * choice is never conveyed by color alone. Chips keep a 44px touch target.
  */
 export function InterfaceThemeField({ value, mode = "dark", onChange }: InterfaceThemeFieldProps) {
+  const systemMode = useAppSelector((state) => state.ui.systemInterfaceMode);
+  const effectiveMode = resolveEffectiveInterfaceMode(mode, systemMode);
   return (
     <FormControl component="fieldset" fullWidth sx={{ minWidth: 0 }}>
       <FormLabel component="legend" id="interface-theme-label" sx={{ fontSize: "0.875rem" }}>
@@ -37,7 +41,7 @@ export function InterfaceThemeField({ value, mode = "dark", onChange }: Interfac
         onChange={(event) => onChange(event.target.value as InterfaceTheme)}
         sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
         {interfaceThemes.map((theme) => {
-          const tokens = getInterfaceThemeTokens(theme, mode);
+          const tokens = getInterfaceThemeTokens(theme, effectiveMode);
           const selected = value === theme;
           return (
             <Tooltip key={theme} title={theme} disableInteractive>

@@ -102,7 +102,7 @@ export default function EditProfileModal({
           ? user.selectedPathway!
           : pathwayOptions[0]?.key ?? "",
         interfaceTheme: resolveInterfaceTheme(user.interfaceTheme),
-        interfaceMode: resolveInterfaceMode(user.interfaceMode, user.interfaceTheme),
+        interfaceMode: resolveInterfaceMode(user.interfaceMode),
         weatherLocationMode: resolveWeatherLocationMode(user.weatherLocationMode),
         weatherCity: user.weatherCity ?? "",
         weatherRegion: user.weatherRegion ?? "",

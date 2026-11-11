@@ -14,6 +14,7 @@ describe("uiSlice", () => {
 
     expect(state).toEqual({
       isProfileModalOpen: false,
+      systemInterfaceMode: "light",
       interfaceThemePreview: null,
       interfaceModePreview: null, pendingInterfaceMode: null, guestInterfaceMode: "light",
     });

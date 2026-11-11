@@ -10,21 +10,26 @@ const mocks = vi.hoisted(() => ({ update: vi.fn() }));
 vi.mock("@/store/authApi", async (original) => ({ ...await original<object>(), useUpdateUserMutation: () => [mocks.update, { isLoading: false }] }));
 const profile = { id: 9, email: "alex@example.test", displayName: "Alex", birthday: null, zodiacSign: "", selectedPathway: "Mindfulness", auraColor: "blue", auraIntensity: 72, interfaceTheme: "Ocean", interfaceMode: "dark" } as const;
 
+/** Choose a persisted preference through the same accessible menu as the header. */
+function choose(label: string) {
+  fireEvent.click(screen.getByRole("button", { name: "Screen mode" }));
+  fireEvent.click(screen.getByRole("menuitemradio", { name: label }));
+}
 describe("ThemeModeToggle", () => {
   beforeEach(() => { localStorage.clear(); mocks.update.mockReset(); });
   it("stores a guest mode independently and restores it from browser storage", () => {
     const { store } = renderWithProviders(<ThemeModeToggle />);
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark theme" }));
+    choose("Dark");
     expect(selectInterfaceMode(store.getState() as RootState)).toBe("dark");
     expect(localStorage.getItem(GUEST_MODE_STORAGE_KEY)).toBe("dark");
     expect(readGuestInterfaceMode()).toBe("dark");
-    expect(screen.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Screen mode" })).toBeEnabled();
   });
   it("keeps a guest session usable when browser storage is blocked", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
     renderWithProviders(<ThemeModeToggle />);
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark theme" }));
-    expect(screen.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
+    choose("Dark");
+    expect(screen.getByRole("button", { name: "Screen mode" })).toBeEnabled();
     expect(screen.getByRole("alert")).toHaveTextContent("It applies for this visit");
     vi.restoreAllMocks();
   });
@@ -32,7 +37,7 @@ describe("ThemeModeToggle", () => {
     let reject!: (reason: Error) => void;
     mocks.update.mockReturnValue({ unwrap: () => new Promise((_resolve, fail) => { reject = fail; }) });
     const { store } = renderWithProviders(<ThemeModeToggle />, { preloadedState: { auth: { token: "token", isAuthenticated: true, profile } } });
-    fireEvent.click(screen.getByRole("button", { name: "Switch to light theme" }));
+    choose("Light");
     expect(selectInterfaceMode(store.getState() as RootState)).toBe("light");
     expect(mocks.update).toHaveBeenCalledWith({ id: 9, email: profile.email, displayName: "Alex", selectedPathway: "Mindfulness", interfaceMode: "light" });
     expect(store.getState().auth.profile).toEqual(profile);
@@ -45,7 +50,7 @@ describe("ThemeModeToggle", () => {
     let resolve!: () => void;
     mocks.update.mockReturnValue({ unwrap: () => new Promise<void>((done) => { resolve = done; }) });
     const { store } = renderWithProviders(<ThemeModeToggle />, { preloadedState: { auth: { token: "token", isAuthenticated: true, profile } } });
-    fireEvent.click(screen.getByRole("button", { name: "Switch to light theme" }));
+    choose("Light");
     await act(async () => { store.dispatch(setProfile({ ...profile, interfaceMode: "light" })); resolve(); });
     expect(selectInterfaceMode(store.getState() as RootState)).toBe("light");
     expect(store.getState().ui.pendingInterfaceMode).toBeNull();

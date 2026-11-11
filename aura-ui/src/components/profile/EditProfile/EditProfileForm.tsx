@@ -23,7 +23,7 @@ import { MottoField } from "../MottoField";
 import { InterfaceModeField } from "../InterfaceModeField";
 import { InterfaceThemeField } from "../InterfaceThemeField";
 import { WeatherLocationField } from "../WeatherLocationField";
-import type { InterfaceTheme, InterfaceMode } from "@/features/auth/models/InterfaceTheme";
+import type { InterfaceTheme, InterfaceModePreference } from "@/features/auth/models/InterfaceTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface EditProfileFormProps {
@@ -38,7 +38,7 @@ interface EditProfileFormProps {
   onSubmit: (data: EditProfileFormData) => Promise<void>;
   onCancel: () => void;
   /** Live previews preserve all aura and family fields until Save or Cancel. */
-  onModePreviewChange: (mode: InterfaceMode) => void;
+  onModePreviewChange: (mode: InterfaceModePreference) => void;
   onThemePreviewChange: (theme: InterfaceTheme) => void;
 }
 

@@ -45,24 +45,31 @@ async function api(page: Page, family = "Ocean", signedIn = true, onboardingComp
 /** Read the final palette consumed by the real page rather than a selected-swatch marker. */
 async function canvas(page: Page) { return page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--al-theme-canvas").trim()); }
 
+/** Select a saved preference, distinct from its effective device-driven colors. */
+async function chooseMode(page: Page, label: string) {
+  await page.getByRole("button", { name: "Screen mode" }).click();
+  await page.getByRole("menuitemradio", { name: label, exact: true }).click();
+}
+
 for (const width of [320, 1440]) {
   for (const family of families) {
     test(`${family} mode saves and restores independently at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       const service = await api(page, family);
       await page.goto("/dashboard");
-      await page.getByRole("button", { name: "Switch to light theme" }).click();
+      await chooseMode(page, "Light");
       await expect.poll(() => canvas(page)).toBe(lightCanvas[family]);
-      await expect(page.getByRole("button", { name: "Switch to dark theme" })).toBeEnabled();
+      await expect(page.getByRole("button", { name: "Screen mode" })).toBeEnabled();
       expect(service.updates[0]).toEqual({ id: 7, email: "alex@example.test", displayName: "Alex", selectedPathway: "Mindfulness", interfaceMode: "light" });
       expect(service.profile()).toMatchObject({ interfaceTheme: family, auraColor: "blue", auraIntensity: 72 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: `artifacts/mode-toggle/${family.toLowerCase()}-light-${width}.png`, fullPage: true });
       await page.reload();
       await expect.poll(() => canvas(page)).toBe(lightCanvas[family]);
-      const toggle = page.getByRole("button", { name: "Switch to dark theme" });
+      const toggle = page.getByRole("button", { name: "Screen mode" });
       await toggle.focus(); await page.keyboard.press("Enter");
-      await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
+      await page.getByRole("menuitemradio", { name: "Dark", exact: true }).press("Enter");
+      await expect(page.getByRole("button", { name: "Screen mode" })).toBeEnabled();
       expect(service.profile()).toMatchObject({ interfaceTheme: family, interfaceMode: "dark", auraColor: "blue", auraIntensity: 72 });
     });
   }
@@ -71,15 +78,15 @@ for (const width of [320, 1440]) {
     await page.goto("/login");
     // Fresh visitors start light, then a deliberate dark selection survives reload.
     await expect.poll(() => canvas(page)).toBe(lightCanvas.Aurora);
-    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await chooseMode(page, "Dark");
     await expect.poll(() => canvas(page)).toBe("#170F26");
-    await page.reload(); await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
+    await page.reload(); await expect(page.getByRole("button", { name: "Screen mode" })).toBeEnabled();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
   test(`onboarding has a mode control without the app header at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 }); await api(page, "Ocean", true, false);
     await page.goto("/onboarding"); await expect(page.locator("header")).toHaveCount(0);
-    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await chooseMode(page, "Light");
     await expect.poll(() => canvas(page)).toBe(lightCanvas.Ocean);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `artifacts/mode-toggle/onboarding-light-${width}.png`, fullPage: true });
@@ -87,14 +94,14 @@ for (const width of [320, 1440]) {
 }
 test("failed account save restores the visible mode", async ({ page }) => {
   const service = await api(page); await page.goto("/dashboard"); service.fail();
-  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await chooseMode(page, "Light");
   await expect(page.getByRole("alert").filter({ hasText: "previous mode has been restored" })).toBeVisible();
   await expect.poll(() => canvas(page)).toBe("#0C2233");
 });
 test("profile family selection keeps mode and retains the separate aura controls", async ({ page }) => {
   const service = await api(page); await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Switch to light theme" }).click();
-  await expect(page.getByRole("button", { name: "Switch to dark theme" })).toBeEnabled();
+  await chooseMode(page, "Light");
+  await expect(page.getByRole("button", { name: "Screen mode" })).toBeEnabled();
   await page.getByRole("button", { name: "Open profile menu" }).click();
   await page.getByRole("button", { name: "Edit profile", exact: true }).click();
   await expect(page.getByRole("radio", { name: "Ivory" })).toHaveCount(0);
@@ -112,7 +119,7 @@ for (const failedSave of [false, true]) {
     const release = service.pauseMode();
     if (failedSave) service.fail();
     await page.goto("/onboarding");
-    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await chooseMode(page, "Light");
     await expect.poll(() => service.updates.length).toBe(1);
     const skip = page.getByRole("button", { name: "Skip", exact: true });
     await expect(skip).toBeDisabled();
@@ -131,7 +138,7 @@ test("onboarding waits for a mode save before Enter my space", async ({ page }) 
   const release = service.pauseMode();
   await page.addInitScript(() => sessionStorage.setItem("aura.onboarding.draft", JSON.stringify({ stepIndex: 9, answers: {}, focus: [], pathway: "Energy" })));
   await page.goto("/onboarding");
-  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await chooseMode(page, "Light");
   const finish = page.getByRole("button", { name: "Enter my space" }).filter({ visible: true });
   await expect(finish).toBeDisabled();
   expect(service.completions).toHaveLength(0);
@@ -146,7 +153,7 @@ test("mode switching waits for onboarding completion", async ({ page }) => {
   await page.goto("/onboarding");
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect.poll(() => service.completions.length).toBe(1);
-  await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Screen mode" })).toBeDisabled();
   expect(service.updates).toHaveLength(0);
   release();
   await expect(page).toHaveURL(/dashboard$/);
@@ -162,7 +169,7 @@ test("banner downloads only the active variant across mode changes", async ({ pa
   await expect(page.locator('img[src="/theme-assets/backgrounds/banner-ocean-dark.png"]')).toHaveJSProperty("naturalWidth", 1774);
   await page.waitForLoadState("networkidle");
   expect(images).toEqual(["/theme-assets/backgrounds/banner-ocean-dark.png"]);
-  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await chooseMode(page, "Light");
   await expect(page.locator('img[src="/theme-assets/backgrounds/banner-ocean-light.png"]')).toHaveJSProperty("naturalWidth", 1774);
   await page.waitForLoadState("networkidle");
   expect(images).toEqual(["/theme-assets/backgrounds/banner-ocean-dark.png", "/theme-assets/backgrounds/banner-ocean-light.png"]);
@@ -183,3 +190,51 @@ for (const missingOriginal of [false, true]) {
     await expect(page.getByRole("heading", { name: "Mood History", exact: true })).toBeVisible();
   });
 }
+
+for (const signedIn of [true, false]) {
+ test(`system preference follows device changes and survives reload (${signedIn ? "account" : "visitor"})`, async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  const service = await api(page, "Ocean", signedIn);
+  await page.goto(signedIn ? "/history" : "/login");
+  await chooseMode(page, "Use device setting");
+  await expect.poll(() => canvas(page)).toBe(signedIn ? "#0C2233" : "#170F26");
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect.poll(() => canvas(page)).toBe(signedIn ? lightCanvas.Ocean : lightCanvas.Aurora);
+  if (signedIn) {
+   expect(service.profile()).toMatchObject({ interfaceMode: "system", interfaceTheme: "Ocean", auraColor: "blue", auraIntensity: 72 });
+   expect(service.updates).toHaveLength(1);
+   await expect(page.locator('img[src="/theme-assets/backgrounds/banner-ocean-light.png"]')).toHaveJSProperty("naturalWidth",1774);
+  } else expect(await page.evaluate(() => localStorage.getItem("aura-interface-mode"))).toBe("system");
+  await page.reload();
+  await expect.poll(() => canvas(page)).toBe(signedIn ? lightCanvas.Ocean : lightCanvas.Aurora);
+  await page.getByRole("button", { name: "Screen mode" }).click();
+  await expect(page.getByRole("menuitemradio", { name: "Use device setting" })).toHaveAttribute("aria-checked","true");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button",{name:"Screen mode"})).toBeFocused();
+  await chooseMode(page,"Light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(() => canvas(page)).toBe(signedIn ? lightCanvas.Ocean : lightCanvas.Aurora);
+ });
+}
+test("a failed system save restores the explicit preference", async ({page}) => {
+ const service=await api(page);await page.emulateMedia({colorScheme:"light"});await page.goto("/dashboard");service.fail();
+ await chooseMode(page,"Use device setting");
+ await expect(page.getByRole("alert").filter({hasText:"previous mode has been restored"})).toBeVisible();
+ await expect.poll(()=>canvas(page)).toBe("#0C2233");
+ expect(service.profile().interfaceMode).toBe("dark");
+});
+
+test("profile saves System and keeps it when the theme family changes", async ({page}) => {
+ const service=await api(page);await page.emulateMedia({colorScheme:"light"});await page.goto("/dashboard");
+ await chooseMode(page,"Use device setting");
+ await expect(page.getByRole("button",{name:"Screen mode"})).toBeEnabled();
+ await page.getByRole("button",{name:"Open profile menu"}).click();
+ await page.getByRole("button",{name:"Edit profile",exact:true}).click();
+ await expect(page.getByRole("radio",{name:"Use device setting",exact:true})).toBeChecked();
+ await page.getByRole("radio",{name:"Earth",exact:true}).check();
+ await expect.poll(()=>canvas(page)).toBe(lightCanvas.Earth);
+ await page.getByRole("button",{name:"Save Changes"}).click();
+ await expect.poll(()=>service.profile().interfaceTheme).toBe("Earth");
+ expect(service.profile()).toMatchObject({interfaceMode:"system",auraColor:"blue",auraIntensity:72});
+ await page.emulateMedia({colorScheme:"dark"});await expect.poll(()=>canvas(page)).toBe("#1C2A22");
+});

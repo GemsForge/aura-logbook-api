@@ -11,3 +11,9 @@ Migration `022_user_interface_mode.sql` adds a dark-default column and maps exis
 `interfaceThemePalettes` selects semantic tokens by family and mode. Page canvas and corner glow use those variables, including the existing `index.css` fallback. Mode banners are 1774 × 887 px with palette-specific text scrims. Only the selected variant downloads; ThemeBanner requests the original artwork after an image error and hides the decoration if both files fail. Family/mode changes reset that fallback without changing the banner layout. Meaningful UI remains outside decorative artwork or on a verified contrast surface.
 
 Verification covers all 360 aura hues at three chroma levels across all twelve family/mode combinations, semantic text at 4.5:1, control/focus contrast at 3:1, API and JSON defaults/preservation, SQLite migration and repository reloads, plus real Chromium header/onboarding behavior at 320 and 1440 px. Browser remote-data stubs do not prove backend persistence; the isolated real API smoke check verifies that separately. This is not a full screen-reader audit or production acceptance.
+
+## Follow device appearance
+
+`interfaceMode` stores `light`, `dark`, or `system`. Light remains the default. System follows the device's `prefers-color-scheme` at startup and on changes without writing new profile values. A single root subscription is removed on unmount. Browsers without media-query support render light.
+
+Header and onboarding share an accessible three-option menu; Edit Profile offers the same preferences. Providers, banners, swatches, and aura contrast share the effective light/dark mode, while storage keeps the original preference. Explicit Light/Dark overrides ignore device changes. Existing save rollback and onboarding serialization apply to System too. The existing text column accepts the third value without a migration.

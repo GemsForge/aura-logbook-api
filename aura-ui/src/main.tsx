@@ -1,4 +1,5 @@
 // src/main.tsx (or index.tsx)
+import { useSystemInterfaceMode } from "./hooks/useSystemInterfaceMode";
 import { StrictMode, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
@@ -37,6 +38,7 @@ function ModeBridge({ mode, children }: { mode: InterfaceMode; children: ReactNo
 }
 
 function ThemedApp() {
+  useSystemInterfaceMode();
   const { data: referenceData, isLoading: referenceDataLoading, isError: referenceDataError, refetch } = useGetReferenceDataQuery();
   const { isLoading } = useCurrentUserQuery();
   const user = useAppSelector(selectCurrentUser);

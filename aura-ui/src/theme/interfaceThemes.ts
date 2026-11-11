@@ -3,6 +3,7 @@ import {
   interfaceThemes,
   interfaceModes,
   resolveInterfaceMode,
+  resolveEffectiveInterfaceMode,
   type InterfaceMode,
   resolveInterfaceTheme,
   type InterfaceTheme,
@@ -126,7 +127,7 @@ export const interfaceThemePalettes = Object.fromEntries(interfaceThemes.map((th
 
 /** Resolves an appearance without modifying recorded aura color or the selected family. */
 export function getInterfaceThemeTokens(theme: string, mode?: InterfaceMode): InterfaceThemeTokens {
-  return interfaceThemePalettes[resolveInterfaceTheme(theme)][mode ?? resolveInterfaceMode(undefined, theme)];
+  return interfaceThemePalettes[resolveInterfaceTheme(theme)][mode ?? resolveEffectiveInterfaceMode(undefined)];
 }
 
 /** Only the selected variant loads initially; callers use the legacy image after an error. */
