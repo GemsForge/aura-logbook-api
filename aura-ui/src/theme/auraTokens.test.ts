@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrast, deriveAuraTokens, hexToLinear, linearToHex } from "./auraTokens";
+import { breathSeconds, contrast, deriveAuraTokens, hexToLinear, linearToHex } from "./auraTokens";
 import { interfaceThemeTokens, interfaceThemes } from "./interfaceThemes";
 
 describe("auraTokens", () => {
@@ -23,5 +23,13 @@ describe("auraTokens", () => {
         expect(contrast(t.accent, canvas), `accent ${theme} ${hue}/${chroma}`).toBeGreaterThanOrEqual(3);
       }
     }
+  });
+
+  it("breathes faster for a strong aura and slower for a muted one", () => {
+    expect(breathSeconds(1)).toBe(4);
+    expect(breathSeconds(0)).toBe(7);
+    expect(breathSeconds(0.5)).toBe(5.5);
+    expect(breathSeconds(Number.NaN)).toBe(7);
+    expect(breathSeconds(3)).toBe(4);
   });
 });

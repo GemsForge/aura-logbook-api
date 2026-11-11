@@ -296,7 +296,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
             <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start", mt: 0.75 }}>
               {/* #345: the combination's own color, shown with its reflection. Decorative; the text carries the meaning. */}
               {interpretation.hue != null && (
-                <Box aria-hidden="true" data-testid="combination-swatch" sx={{ width: 28, height: 28, flexShrink: 0, mt: 0.25, borderRadius: "50%", background: `radial-gradient(circle at 33% 28%, rgba(255,255,255,.9), oklch(0.72 0.14 ${interpretation.hue}) 70%)` }} />
+                <Box aria-hidden="true" data-testid="combination-swatch" sx={{ width: 28, height: 28, flexShrink: 0, mt: 0.25, borderRadius: "50%", animation: "aura-shimmer 1.2s ease-out 1", background: `radial-gradient(circle at 33% 28%, rgba(255,255,255,.9), oklch(0.72 0.14 ${interpretation.hue}) 70%)` }} />
               )}
               <Typography level="body-md" sx={{ whiteSpace: "pre-wrap" }}>{interpretation.interpretation}</Typography>
             </Box>
