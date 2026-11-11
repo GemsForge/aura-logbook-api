@@ -34,7 +34,6 @@ public class AuthSecurityTests
             .Select(a => a.Template ?? string.Empty);
 
     [Theory]
-    [InlineData("reset-password")]
     [InlineData("test")]
     [InlineData("all")]
     public void Removed_auth_routes_are_not_mapped(string template)
@@ -54,7 +53,7 @@ public class AuthSecurityTests
     public void Remaining_auth_routes_are_the_expected_set()
     {
         Assert.Equal(
-            new[] { "login", "me", "register", "update" },
+            new[] { "forgot-password", "login", "me", "register", "reset-password", "update" },
             AuthRouteTemplates().OrderBy(t => t).ToArray());
     }
 

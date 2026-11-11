@@ -62,6 +62,21 @@ choose and test a consistent production storage arrangement before deployment.
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.
 
+## Password recovery
+
+Password recovery is enabled only in Development, where `IEmailSender` is
+implemented by a log-based sender. Start the API and UI locally, submit the
+forgot-password form, then copy the reset link from the API development log.
+The link expires after 30 minutes by default and can be used once. The API
+stores only the token hash. The request endpoint returns the same confirmation
+for registered and unregistered email addresses; excess requests are throttled
+per email and per client IP.
+
+Both recovery endpoints return 404 outside Development even if
+`PasswordReset:Enabled` is set. Do not enable the feature in a deployed
+environment until a production email sender and the user-storage arrangement
+have been selected and reviewed.
+
 FIT/Staging deployments should provide their own `Database:ConnectionString`
 through deployment configuration. The database health diagnostic is available
 at `GET /health/database` and reports the resolved environment and applied

@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using AuraLogbook.Api.Configuration;
 using AuraLogbook.Api.Services.Spotify;
+using AuraLogbook.Api.Services.Email;
+using AuraLogbook.Api.Services.PasswordReset;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -110,6 +112,19 @@ builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
 builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();
 builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 
+// Password recovery (#329). Only a log-based sender exists, so the feature is forced off
+// outside Development regardless of configuration until a real IEmailSender is chosen.
+var resetSection = builder.Configuration.GetSection(PasswordResetOptions.SectionName);
+var resetOptions = resetSection.Get<PasswordResetOptions>() ?? new PasswordResetOptions();
+builder.Services.Configure<PasswordResetOptions>(resetSection);
+builder.Services.PostConfigure<PasswordResetOptions>(o => o.Enabled &= builder.Environment.IsDevelopment());
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IEmailSender, DevelopmentLogEmailSender>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, SqlitePasswordResetTokenRepository>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+builder.Services.AddPasswordResetRateLimit(resetOptions);
+
 builder.Services
     .AddHttpClient<IWeatherService, WeatherService>()
     .SetHandlerLifetime(TimeSpan.FromMinutes(5));
@@ -139,6 +154,7 @@ if (HttpsRedirectionPolicy.ShouldApply(app.Environment.IsDevelopment(), app.Urls
     app.UseHttpsRedirection();
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization(); // Required for JWT later
 

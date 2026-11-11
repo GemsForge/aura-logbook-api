@@ -1,6 +1,9 @@
 using AuraLogbook.Api.Models; // InterfaceThemeValues resolves stored theme preferences.
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Services;
+using AuraLogbook.Api.Services.PasswordReset;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,7 +17,9 @@ namespace AuraLogbook.Api.Controllers;
 /// <remarks>
 /// Every user payload returned here is a <see cref="UserProfileDto"/>; the persistence model
 /// <see cref="AuraLogbook.Api.Models.User"/> is never serialized, so password hashes cannot leak.
-/// Password reset was removed (#327) until a verified, token-based recovery flow exists.
+/// Password recovery (#329) uses hashed, single-use, expiring tokens delivered by email; the
+/// email-only reset removed in #327 must not return. Recovery endpoints 404 unless
+/// <see cref="PasswordResetOptions.Enabled"/> is set.
 /// </remarks>
 [Route("api/[controller]")]
 [ApiController]
@@ -22,11 +27,53 @@ public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly JwtTokenService _jwtService;
+    private readonly IPasswordResetService? _passwordReset;
+    private readonly PasswordResetOptions _resetOptions;
 
-    public AuthController(IUserService userService, JwtTokenService jwtService)
+    /// <summary>Generic body returned by forgot-password regardless of whether the account exists.</summary>
+    public const string ForgotPasswordMessage = "If an account exists for that email, a reset link has been sent.";
+
+    /// <summary>Single message for every unusable token (unknown, altered, expired, or already used).</summary>
+    public const string InvalidResetTokenMessage = "This reset link is invalid or has expired. Please request a new one.";
+
+    public AuthController(IUserService userService, JwtTokenService jwtService,
+        IPasswordResetService? passwordReset = null, IOptions<PasswordResetOptions>? resetOptions = null)
     {
         _userService = userService;
         _jwtService = jwtService;
+        _passwordReset = passwordReset;
+        _resetOptions = resetOptions?.Value ?? new PasswordResetOptions();
+    }
+
+    /// <summary>
+    /// Starts account recovery. Returns 200 with <see cref="ForgotPasswordMessage"/> for known and
+    /// unknown emails alike; throttled per IP (429) and silently per email.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting(PasswordResetRateLimit.PolicyName)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!_resetOptions.Enabled || _passwordReset is null)
+            return NotFound();
+
+        await _passwordReset.RequestResetAsync(request.Email, cancellationToken);
+        return Ok(new { message = ForgotPasswordMessage });
+    }
+
+    /// <summary>Redeems a reset token once and sets a new password that satisfies <see cref="PasswordRules"/>.</summary>
+    [HttpPost("reset-password")]
+    [EnableRateLimiting(PasswordResetRateLimit.PolicyName)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!_resetOptions.Enabled || _passwordReset is null)
+            return NotFound();
+
+        return await _passwordReset.ResetPasswordAsync(request.Token, request.NewPassword, cancellationToken) switch
+        {
+            PasswordResetResult.Success => Ok(new { message = "Your password has been reset. You can now sign in." }),
+            PasswordResetResult.InvalidPassword => BadRequest(PasswordRules.LengthMessage),
+            _ => BadRequest(InvalidResetTokenMessage),
+        };
     }
 
     [HttpPost("login")]

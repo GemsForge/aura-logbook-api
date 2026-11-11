@@ -11,8 +11,9 @@ import api from "./api";
 const API_BASE = "/Auth";
 
 /**
- * REST client for /api/Auth. Password reset, the diagnostic `test` route, and the all-users
- * listing were removed with #327 and must not be reintroduced without a verified recovery flow.
+ * REST client for /api/Auth. The diagnostic `test` route and all-users listing were removed with
+ * #327. Password recovery (#329) is token-based: `forgotPassword` emails a single-use link and
+ * `resetPassword` redeems it; the API returns 404 for both when recovery is disabled.
  */
 export const AuthApi = {
   /**
@@ -36,6 +37,22 @@ export const AuthApi = {
    */
   updateUser: async (payload: UpdateUserRequest): Promise<UserProfile> => {
     const res = await api.put(`${API_BASE}/update`, payload);
+    return res.data;
+  },
+
+  /**
+   * Request a reset link. The API answers identically whether or not the account exists.
+   */
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const res = await api.post(`${API_BASE}/forgot-password`, { email });
+    return res.data;
+  },
+
+  /**
+   * Redeem an emailed reset token with a new password (8–72 characters).
+   */
+  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+    const res = await api.post(`${API_BASE}/reset-password`, { token, newPassword });
     return res.data;
   },
 

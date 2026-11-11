@@ -18,6 +18,7 @@ import {
   type LoginFormData,
 } from "../features/auth/models/LoginSchema";
 import { useToast } from "../hooks/useToast";
+import { passwordResetEnabled } from "../features/auth/models/PasswordResetSchema";
 
 interface LoginFormProps {
   showTitle?: boolean;
@@ -111,7 +112,12 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           </Button>
         </form>
 
-        {/* No password-reset entry point until a verified recovery flow exists (#327). */}
+        {/* Token-based recovery (#329); hidden wherever the API has no email sender. */}
+        {passwordResetEnabled && (
+          <Typography level="body-sm" sx={{ mt: 2 }}>
+            <Link href="/forgot-password" underline="hover">Forgot password?</Link>
+          </Typography>
+        )}
 
         <Typography level="body-sm" sx={{ mt: 2 }}>
           Don’t have an account?{" "}
