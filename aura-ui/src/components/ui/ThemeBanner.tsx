@@ -11,6 +11,7 @@ interface ThemeBannerProps {
 }
 
 /**
+ * Mode-specific art fades into its matching canvas with a readable text scrim.
  * Compact themed page introduction using the selected theme art and a bounded text scrim.
  * Kept short (one title line plus one description line) so page content starts above the fold.
  */
@@ -36,7 +37,7 @@ export function ThemeBanner({ title, description, illustration, children, art }:
         borderRadius: { xs: 2.5, md: 3 },
         color: "text.primary",
         backgroundColor: "background.paper",
-        backgroundImage: "linear-gradient(90deg, var(--al-theme-banner-scrim, rgba(23, 15, 38, .92)) 0%, transparent 100%), var(--al-theme-banner, none)",
+        backgroundImage: "linear-gradient(90deg, var(--al-theme-banner-scrim, rgba(23, 15, 38, .92)) 0%, var(--al-theme-banner-scrim, rgba(23, 15, 38, .92)) 55%, transparent 100%), var(--al-theme-banner, none)",
         backgroundPosition: "center, center 54%",
         backgroundSize: "cover",
         boxShadow: "0 12px 38px var(--al-theme-glow, transparent)",

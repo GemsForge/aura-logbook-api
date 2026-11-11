@@ -1,11 +1,14 @@
 import {
   interfaceThemes,
+  interfaceModes,
+  resolveInterfaceMode,
+  type InterfaceMode,
   resolveInterfaceTheme,
   type InterfaceTheme,
 } from "@/features/auth/models/InterfaceTheme";
 
-export { interfaceThemes, resolveInterfaceTheme };
-export type { InterfaceTheme };
+export { interfaceThemes, interfaceModes, resolveInterfaceTheme, resolveInterfaceMode };
+export type { InterfaceTheme, InterfaceMode };
 
 /** Semantic colors used by both component libraries and global page surfaces. */
 export interface InterfaceThemeTokens {
@@ -67,17 +70,67 @@ export const interfaceThemeTokens: Record<InterfaceTheme, InterfaceThemeTokens> 
     primaryContrast: "#17213B", accent: "#F1D7B5", focus: "#F5D28B", danger: "#FFB4AB",
     glow: "rgba(104, 143, 225, 0.20)", bannerScrim: "rgba(14, 21, 41, 0.92)",
   },
-  Ivory: {
+
+};
+
+const lightModeOverrides: Record<InterfaceTheme, Partial<InterfaceThemeTokens>> = {
+  Aurora: {
     mode: "light", canvas: "#FBF6EC", surface: "#FFFCF7", surfaceRaised: "#F0E7D9",
     ink: "#352D2C", inkMuted: "#665D56", border: "#CFC1AF", controlBorder: "#8D8177", primary: "#7E5D7B",
     primaryContrast: "#FFFFFF", accent: "#A36654", focus: "#4C3451", danger: "#A3271E",
     glow: "rgba(162, 119, 198, 0.13)", bannerScrim: "rgba(251, 246, 236, 0.92)",
   },
+  Earth: {
+    canvas: "#F4F5EF", surface: "#FCFDF8", surfaceRaised: "#E7EDE2", ink: "#26342B",
+    inkMuted: "#536257", border: "#C8D3C6", primary: "#486649", primaryContrast: "#FFFFFF",
+    accent: "#835B32", focus: "#314A33", glow: "rgba(87, 126, 88, 0.13)",
+    bannerScrim: "rgba(244, 245, 239, 0.94)",
+    controlBorder: "#758375", danger: "#A3271E",
+  },
+  Ocean: {
+    canvas: "#EFF7F8", surface: "#FCFFFF", surfaceRaised: "#DFF0F2", ink: "#16313B",
+    inkMuted: "#4E6870", border: "#BCD3D9", primary: "#266B7A", primaryContrast: "#FFFFFF",
+    accent: "#9A543C", focus: "#194A58", glow: "rgba(55, 142, 158, 0.13)",
+    bannerScrim: "rgba(239, 247, 248, 0.94)",
+    controlBorder: "#6C858D", danger: "#A3271E",
+  },
+  Sunset: {
+    canvas: "#FFF4ED", surface: "#FFFCF8", surfaceRaised: "#F9E5D9", ink: "#3B2630",
+    inkMuted: "#735A60", border: "#E2C4B9", primary: "#985036", primaryContrast: "#FFFFFF",
+    accent: "#984B40", focus: "#713B31", glow: "rgba(197, 111, 73, 0.14)",
+    bannerScrim: "rgba(255, 244, 237, 0.94)",
+    controlBorder: "#9B7C75", danger: "#A3271E",
+  },
+  Amethyst: {
+    canvas: "#F7F2FA", surface: "#FFFCFF", surfaceRaised: "#EDE3F4", ink: "#30243B",
+    inkMuted: "#685870", border: "#D8C8E1", primary: "#70458F", primaryContrast: "#FFFFFF",
+    accent: "#A14D70", focus: "#51326D", glow: "rgba(137, 92, 170, 0.14)",
+    bannerScrim: "rgba(247, 242, 250, 0.94)",
+    controlBorder: "#88728F", danger: "#A3271E",
+  },
+  Midnight: {
+    canvas: "#F1F4FB", surface: "#FBFCFF", surfaceRaised: "#E1E8F4", ink: "#1B2539",
+    inkMuted: "#53617A", border: "#C5D0E2", primary: "#405689", primaryContrast: "#FFFFFF",
+    accent: "#8C5735", focus: "#2A3C64", glow: "rgba(75, 107, 167, 0.14)",
+    bannerScrim: "rgba(241, 244, 251, 0.94)",
+    controlBorder: "#738198", danger: "#A3271E",
+  },
 };
 
+/** Mode-keyed palettes retain theme identity while brightness changes. */
+export const interfaceThemePalettes = Object.fromEntries(interfaceThemes.map((theme) => [theme, {
+  dark: interfaceThemeTokens[theme],
+  light: { ...interfaceThemeTokens[theme], ...lightModeOverrides[theme], mode: "light" },
+}])) as Record<InterfaceTheme, Record<InterfaceMode, InterfaceThemeTokens>>;
+
+/** Resolves an appearance without modifying recorded aura color or the selected family. */
+export function getInterfaceThemeTokens(theme: string, mode?: InterfaceMode): InterfaceThemeTokens {
+  return interfaceThemePalettes[resolveInterfaceTheme(theme)][mode ?? resolveInterfaceMode(undefined, theme)];
+}
+
 /** Creates CSS custom properties for the shared shell and its theme banner. */
-export function getInterfaceThemeCssVariables(theme: InterfaceTheme): Record<string, string> {
-  const tokens = interfaceThemeTokens[resolveInterfaceTheme(theme)];
+export function getInterfaceThemeCssVariables(theme: InterfaceTheme, mode: InterfaceMode = "dark"): Record<string, string> {
+  const tokens = getInterfaceThemeTokens(theme, mode);
   const slug = theme.toLowerCase();
   return {
     "--al-theme-canvas": tokens.canvas,
@@ -94,6 +147,6 @@ export function getInterfaceThemeCssVariables(theme: InterfaceTheme): Record<str
     "--al-theme-danger": tokens.danger,
     "--al-theme-glow": tokens.glow,
     "--al-theme-banner-scrim": tokens.bannerScrim,
-    "--al-theme-banner": `url("/theme-assets/backgrounds/banner-${slug}.png")`,
+    "--al-theme-banner": `url("/theme-assets/backgrounds/banner-${slug}-${mode}.png"), url("/theme-assets/backgrounds/banner-${slug}.png")`,
   };
 }

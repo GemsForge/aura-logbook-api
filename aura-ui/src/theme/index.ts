@@ -3,7 +3,8 @@ import { extendTheme as extendJoyTheme } from "@mui/joy/styles";
 import { prismGarden } from "./prismGarden";
 import { auraPalettes, getAuraShade, normalizeAuraIntensity } from "./auraTheme";
 import {
-  interfaceThemeTokens,
+  getInterfaceThemeTokens,
+  type InterfaceMode,
   getInterfaceThemeCssVariables,
   resolveInterfaceTheme,
   type InterfaceTheme,
@@ -29,6 +30,9 @@ export function installThemeTokenVariables(tokens: ThemeToken[], auras: AuraColo
 export {
   interfaceThemes,
   interfaceThemeTokens,
+  getInterfaceThemeTokens,
+  resolveInterfaceMode,
+  type InterfaceMode,
   getInterfaceThemeCssVariables,
   resolveInterfaceTheme,
   type InterfaceTheme,
@@ -45,17 +49,20 @@ export function getAuraBackground(color: unknown, intensity: unknown = 50): stri
  * Creates the Material UI adapter for the selected interface theme.
  * Recorded aura color remains entry data and is styled by its own aura palette.
  * @param selectedTheme Saved interface preference; missing or invalid values use Aurora.
+ * @param selectedMode Independent screen brightness; legacy Ivory falls back to light.
  * @returns A Material UI theme ready for `ThemeProvider`.
  */
 export function getAuraTheme(
   auraColor: string = "",
   auraIntensity: number = 50,
   selectedTheme: InterfaceTheme | string = "Aurora",
+  selectedMode?: InterfaceMode,
 ): Theme {
   const normalizedTheme = resolveInterfaceTheme(selectedTheme);
-  const tokens = interfaceThemeTokens[normalizedTheme];
+  // The caller supplies mode independently; legacy Ivory resolves to Aurora light.
+  const tokens = getInterfaceThemeTokens(selectedTheme, selectedMode);
   const colorScheme = tokens.mode;
-  const cssVariables = getInterfaceThemeCssVariables(normalizedTheme);
+  const cssVariables = getInterfaceThemeCssVariables(normalizedTheme, tokens.mode);
   const auraHue = auraColor;
   const auraAccent = auraPalettes[auraHue][getAuraShade(auraIntensity)].main!;
 
@@ -137,15 +144,17 @@ export function getAuraTheme(
 /**
  * Creates the Joy UI adapter using the same semantic colors as Material UI.
  * @param selectedTheme Saved interface preference; missing or invalid values use Aurora.
+ * @param selectedMode Independent screen brightness; legacy callers may omit it.
  * @returns A Joy UI theme ready for `CssVarsProvider`.
  */
 export function getAuraJoyTheme(
   selectedTheme: InterfaceTheme | string = "Aurora",
   _legacyAuraIntensity?: number,
   explicitTheme?: InterfaceTheme | string,
+  selectedMode?: InterfaceMode,
 ) {
   // The optional trailing argument preserves compatibility with older callers while the app shell uses the theme-only form.
-  const tokens = interfaceThemeTokens[resolveInterfaceTheme(explicitTheme ?? selectedTheme)];
+  const tokens = getInterfaceThemeTokens(explicitTheme ?? selectedTheme, selectedMode);
   const primary = {
     50: lighten(tokens.primary, 0.88),
     100: lighten(tokens.primary, 0.76),

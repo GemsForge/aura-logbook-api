@@ -1,6 +1,6 @@
 {
   "library": "Aura Logbook Visual Asset Library",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "visual_direction": "Reference-led luminous lotus petals, fine gold-pink-violet gradient linework, deep night atmosphere, refined illustrated landscapes.",
   "format_note": "Generated artwork is high-resolution transparent or full-bleed PNG; feature marks, decorative accents, chakra symbols, and charts remain editable SVG with matching PNG exports.",
   "pathway_rule": "Astrology & Energy and chakra graphics are pathway restricted. Faith & Religion and Mindful artwork is also pathway restricted. Shared defaults include no chakra symbols or religious emblems.",
@@ -565,6 +565,201 @@
         "PNG"
       ],
       "intended_use": "Pathway-only artwork, visible only when mindful is selected."
+    },
+    {
+      "filename": "backgrounds/banner-aurora-light.png",
+      "name": "Aurora Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-aurora.png",
+      "intended_use": "Light-mode interface banner for the named theme; independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-earth-light.png",
+      "name": "Earth Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-earth.png",
+      "intended_use": "Light-mode interface banner for the named theme; independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-ocean-light.png",
+      "name": "Ocean Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-ocean.png",
+      "intended_use": "Light-mode interface banner for the named theme; independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-sunset-light.png",
+      "name": "Sunset Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-sunset.png",
+      "intended_use": "Light-mode interface banner for the named theme; independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-amethyst-light.png",
+      "name": "Amethyst Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-amethyst.png",
+      "intended_use": "Light-mode interface banner for the named theme; independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-midnight-light.png",
+      "name": "Midnight Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-midnight.png",
+      "intended_use": "Light-mode interface banner for the named theme; independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-ivory-light.png",
+      "name": "Ivory Light",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "light",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-ivory.png",
+      "intended_use": "Legacy Ivory light banner; retained for existing references during migration to Aurora light."
+    },
+    {
+      "filename": "backgrounds/banner-aurora-dark.png",
+      "name": "Aurora Dark",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "dark",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-aurora.png",
+      "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-earth-dark.png",
+      "name": "Earth Dark",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "dark",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-earth.png",
+      "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-ocean-dark.png",
+      "name": "Ocean Dark",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "dark",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-ocean.png",
+      "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-sunset-dark.png",
+      "name": "Sunset Dark",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "dark",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-sunset.png",
+      "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-amethyst-dark.png",
+      "name": "Amethyst Dark",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "dark",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-amethyst.png",
+      "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
+    },
+    {
+      "filename": "backgrounds/banner-midnight-dark.png",
+      "name": "Midnight Dark",
+      "collection": "backgrounds",
+      "pathway_visibility": "shared",
+      "kind": "theme-banner",
+      "format": [
+        "PNG"
+      ],
+      "mode": "dark",
+      "width": 1774,
+      "height": 887,
+      "reference": "backgrounds/banner-midnight.png",
+      "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
     }
   ]
 }

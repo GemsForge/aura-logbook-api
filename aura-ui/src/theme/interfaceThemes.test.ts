@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { interfaceThemes, interfaceThemeTokens } from "./interfaceThemes";
+import { interfaceThemes, interfaceModes, getInterfaceThemeTokens } from "./interfaceThemes";
 
 /** WCAG 2.1 relative luminance of a #RRGGBB color. */
 function luminance(hex: string): number {
@@ -20,8 +20,8 @@ function contrast(a: string, b: string): number {
  * Guards the #318 accessibility criterion: every theme keeps text at 4.5:1 and control
  * outlines, focus rings, and accents at 3:1 on all three surfaces.
  */
-describe.each(interfaceThemes)("%s theme contrast", (theme) => {
-  const t = interfaceThemeTokens[theme];
+describe.each(interfaceThemes.flatMap((theme) => interfaceModes.map((mode) => [theme, mode] as const)))("%s %s contrast", (theme, mode) => {
+  const t = getInterfaceThemeTokens(theme, mode);
   const surfaces = [t.canvas, t.surface, t.surfaceRaised];
 
   it.each(["ink", "inkMuted", "primary", "danger"] as const)("%s text reaches 4.5:1 on every surface", (token) => {
