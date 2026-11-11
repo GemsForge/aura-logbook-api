@@ -1,23 +1,15 @@
-export const auraFeatures=
-    [
-      {
-        title: "🎨 Choose Your Aura",
-        description:
-          "Color your mood with aura energy—from radiant yellows of creativity to grounding reds of safety.",
-      },
-      {
-        title: "📊 View Energy Insights",
-        description:
-          "Uncover mood patterns, dominant auras, and chakra imbalances over time.",
-      },
-      {
-        title: "🧘 Reflect & Align",
-        description:
-          "Receive chakra-based prompts to help you journal deeply and restore inner balance.",
-      },
-      {
-        title: "🔒 Private by Design",
-        description:
-          "Your emotional data stays yours—secure, offline-friendly, and insight-driven.",
-      },
-    ];
+/** Shared public feature copy avoids pathway-specific symbolism and health claims. */
+export const auraFeatures = [
+  {
+    title: "Choose a color",
+    description: "Pick the shade that fits today.",
+  },
+  {
+    title: "Notice patterns",
+    description: "See how your moods move over time, with room for your own read.",
+  },
+  {
+    title: "Reflect your way",
+    description: "Gentle prompts, never a quiz.",
+  },
+];

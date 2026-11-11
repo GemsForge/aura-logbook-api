@@ -8,6 +8,8 @@
         public string? ZodiacSign { get; set; }
         public required DateOnly Birthday { get; set; }
         public required string AuraColor { get; set; }
+        /// <summary>Saved interface appearance, normalized to a supported theme.</summary>
+        public required string InterfaceTheme { get; set; }
         public required int AuraIntensity { get; set; }
         public required string Avatar { get; set; }
         public required string Motto { get; set; }

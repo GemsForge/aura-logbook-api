@@ -1,6 +1,7 @@
 import { AuraColor } from "@/features/mood/models/aura";
 import * as yup from "yup";
 import { SpiritualPathway } from "./SpiritualPathway";
+import { interfaceThemes, type InterfaceTheme } from "./InterfaceTheme";
 
 const auraColors = Object.values(AuraColor) as AuraColor[];
 
@@ -17,6 +18,7 @@ export interface EditProfileFormData {
   auraIntensity?: number | null;
   motto?: string;
   spiritualPathway: SpiritualPathway;
+  interfaceTheme: InterfaceTheme;
   isChangingPassword: boolean;
 }
 
@@ -38,6 +40,11 @@ export const editProfileSchema = yup
         "Select a valid spiritual pathway"
       )
       .required("Spiritual pathway is required"),
+
+    interfaceTheme: yup
+      .mixed<InterfaceTheme>()
+      .oneOf([...interfaceThemes], "Select a valid interface theme")
+      .required("Select an interface theme"),
 
     avatar: yup.string().notRequired(),
 

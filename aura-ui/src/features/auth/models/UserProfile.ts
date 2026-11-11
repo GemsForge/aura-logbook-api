@@ -1,5 +1,6 @@
 import type { AuraColor } from "@/features/mood/models/aura";
 import type { SpiritualPathway } from "./SpiritualPathway";
+import type { InterfaceTheme } from "./InterfaceTheme";
 
 export interface UserProfile {
   id: number;
@@ -12,6 +13,8 @@ export interface UserProfile {
   auraIntensity?: number;
   motto?: string;
   selectedPathway: SpiritualPathway;
+  /** Saved app appearance, independent of recorded aura color. */
+  interfaceTheme?: InterfaceTheme;
 
   lat?: number;
   lon?: number;

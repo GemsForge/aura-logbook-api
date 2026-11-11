@@ -4,10 +4,11 @@ The History cards support private photo attachments for saved mood entries. The 
 
 ## User flow
 
-1. Save a mood entry.
-2. Open **Mood History** and choose **Add photo** on that entry.
-3. Choose an image. The browser downsamples large photos to a maximum 2400-pixel edge and compresses them as JPEG before sending them. The card displays its private preview and filename.
-4. Use the remove control on a preview to delete that attachment.
+1. While logging a mood, choose one or more local photos before saving. The browser downsamples large photos to a maximum 2400-pixel edge and compresses them as JPEG before sending them.
+2. Review each private preview and filename; remove any selected photo before saving if needed.
+3. Save the mood entry first. The UI then uploads each prepared image to the authenticated private-media endpoint using the new mood entry ID.
+4. If some uploads fail, the mood and reflection stay saved. Choose **Retry failed photos** to retry only the remaining images without creating another mood entry.
+5. The History card displays its private previews and filenames. Use its existing **Add photo** and remove controls to manage images later.
 
 In **Gallery**, choose an existing mood entry before uploading one or more photos. The gallery shows private images in a responsive grid. Open a photo to see its entry mood and date along the bottom, with an optional reflection clamped to two lines. The lightbox delete action removes the attachment from that entry.
 

@@ -41,6 +41,8 @@ describe("MoodEntryFormFields", () => {
 
     expect(document.getElementById("mood-form")).toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
+    // The note is optional and closed until asked for.
+    await user.click(screen.getByRole("button", { name: "Add a note" }));
     await user.type(screen.getByRole("textbox"), "  A good day  ");
     await user.click(screen.getByRole("button", { name: "Submit Entry" }));
 
@@ -49,7 +51,7 @@ describe("MoodEntryFormFields", () => {
       date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
       moods: ["Empowered"],
       comment: "A good day",
-    });
+    }, []);
   });
 
   it("renders a pathway interpretation when two authored moods are selected", async () => {

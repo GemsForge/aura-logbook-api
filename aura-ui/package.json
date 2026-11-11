@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:e2e:dashboard": "playwright test --config=playwright.config.ts",
     "test:startup": "node --test scripts/startup-script-check.mjs",
     "test:coverage": "vitest run --coverage"
   },
@@ -39,6 +40,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@playwright/test": "^1.65.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

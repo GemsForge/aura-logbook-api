@@ -2,13 +2,12 @@ import {
   SpiritualPathway,
   SpiritualPathwayDescriptions,
 } from "@/features/auth/models";
-import {
-  Box,
-  FormHelperText,
-  Switch,
-  Typography,
-} from "@mui/material";
+import Box from "@mui/joy/Box";
+import FormHelperText from "@mui/joy/FormHelperText";
+import Radio from "@mui/joy/Radio";
+import RadioGroup from "@mui/joy/RadioGroup";
 import Sheet from "@mui/joy/Sheet";
+import Typography from "@mui/joy/Typography";
 import type { Control, FieldValues, Path } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -34,63 +33,75 @@ const PATHWAY_TITLES: Record<string, string> = {
   [SpiritualPathway.Faith]: "Faith & Religion",
 };
 
+/** Provides compact, keyboard-accessible pathway choices and the selected description. */
 export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
   control,
   name,
   errorMessage,
 }: MyPathwaySelectorProps<TForm>) {
   return (
-    <Sheet variant="outlined" sx={{ mt: 2, p: 2 }}>
-      <Typography variant="h6">My Pathway</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Choose the primary journey that guides your reflections.
-      </Typography>
-        <Controller
-          name={(name ?? ("spiritualPathway" as Path<TForm>)) as Path<TForm>}
-          control={control}
-          render={({ field }) => (
-            <>
-              {PATHWAY_ORDER.map((pathway, index) => {
-                const isSelected = field.value === pathway;
-                return (
-                  <Box
-                    key={pathway}
-                    display="flex"
-                    alignItems="center"
-                    py={1}
-                    gap={2}
-                    borderBottom={
-                      index === PATHWAY_ORDER.length - 1 ? "none" : "1px solid"
-                    }
-                    borderColor="divider">
-                    <Box flexGrow={1}>
-                      <Typography variant="subtitle1">
-                        {PATHWAY_TITLES[pathway]}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {SpiritualPathwayDescriptions[pathway]}
-                      </Typography>
-                    </Box>
-                    <Switch
-                      checked={isSelected}
-                      onChange={() => field.onChange(pathway)}
-                      slotProps={{
-                        input: {
-                          "aria-label": `Select ${PATHWAY_TITLES[pathway]}`,
-                        },
-                      }}
-                    />
-                  </Box>
-                );
-              })}
-              {errorMessage && (
-                <FormHelperText error sx={{ mt: 1 }}>
-                  {errorMessage}
-                </FormHelperText>
-              )}
-            </>
+    <Controller
+      name={(name ?? ("spiritualPathway" as Path<TForm>)) as Path<TForm>}
+      control={control}
+      render={({ field }) => (
+        <Box>
+          <Typography level="title-sm" id="pathway-label" sx={{ mb: 0.75 }}>
+            My pathway
+          </Typography>
+
+          {/* Radio values are always strings in the DOM. We compare via String()
+              so this works whether SpiritualPathway is a string or numeric enum. */}
+          <RadioGroup
+            orientation="horizontal"
+            aria-labelledby="pathway-label"
+            value={String(field.value)}
+            onChange={(e) => {
+              const next = PATHWAY_ORDER.find(
+                (p) => String(p) === e.target.value,
+              );
+              if (next !== undefined) field.onChange(next);
+            }}
+            sx={{ gap: 1, flexWrap: "wrap" }}>
+            {PATHWAY_ORDER.map((pathway) => (
+              <Sheet
+                key={pathway}
+                variant="outlined"
+                sx={{ borderRadius: "md", px: 1.5, py: 1, flex: "1 1 9rem" }}>
+                <Radio
+                  overlay
+                  disableIcon
+                  value={String(pathway)}
+                  label={PATHWAY_TITLES[pathway]}
+                  slotProps={{
+                    // Highlight the chosen chip with a thicker primary border
+                    action: ({ checked }) => ({
+                      sx: (theme) => ({
+                        ...(checked && {
+                          "--variant-borderWidth": "2px",
+                          "&&": {
+                            borderColor: theme.vars.palette.primary[400],
+                          },
+                        }),
+                      }),
+                    }),
+                  }}
+                />
+              </Sheet>
+            ))}
+          </RadioGroup>
+
+          {/* One caption that follows the selection, replacing three permanent descriptions */}
+          <Typography level="body-xs" sx={{ mt: 0.75 }}>
+            {SpiritualPathwayDescriptions[field.value as SpiritualPathway]}
+          </Typography>
+
+          {errorMessage && (
+            <FormHelperText sx={{ mt: 0.5, color: "danger.plainColor" }}>
+              {errorMessage}
+            </FormHelperText>
           )}
-        />
-    </Sheet>
+        </Box>
+      )}
+    />
   );
 }

@@ -13,6 +13,7 @@ import MoodUpdateModal from "../MoodUpdateModal";
 import { MoodCard } from "./MoodCard";
 import { downloadJournalExport } from "@/features/mood/utils/journalExport";
 import MoodCalendar from "./MoodCalendar";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 
 /** Presents API-backed journal entries and calendar filters in a compact, scannable history view. */
 export default function MoodHistoryPage() {
@@ -70,22 +71,19 @@ export default function MoodHistoryPage() {
     : logs;
 
   return (
-    <Box maxWidth={1000} mx="auto" mt={1}>
-      <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Your story, in small moments</Typography>
-      <Typography component="h1" level="h1" className="aura-page-heading" mb={2}>
-        Mood History
-      </Typography>
-      <Typography level="body-lg" color="neutral" sx={{ mb: 2.5 }}>A collection of who you’ve been, and how you’re becoming.</Typography>
+    <Box maxWidth={1000} mx="auto">
+      <ThemeBanner title="Mood History" description="A collection of who you’ve been, and how you’re becoming." illustration="calendar" />
 
       {/* ─── date filter UI ─────────────────────────────────────────── */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box className="aura-panel" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1.25, mb: 2, p: 1.5, "& > *": { minWidth: 0 }, "& .MuiTextField-root": { flex: "1 1 180px" } }}>
+        <Box className="aura-panel" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, mb: 2, p: 1.25, "& > *": { minWidth: 0 }, "& .MuiTextField-root": { flex: "1 1 136px" } }}>
           <DatePicker
             label="Start date"
             value={startDate}
             onChange={setStartDate}
             disableFuture
             format="YYYY-MM-DD"
+            slotProps={{ textField: { size: "small" } }}
           />
           <DatePicker
             label="End date"
@@ -94,6 +92,7 @@ export default function MoodHistoryPage() {
             disableFuture
             minDate={startDate ?? undefined}
             format="YYYY-MM-DD"
+            slotProps={{ textField: { size: "small" } }}
           />
           <Button
             variant="contained"

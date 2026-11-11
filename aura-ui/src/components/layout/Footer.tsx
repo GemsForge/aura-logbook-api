@@ -13,7 +13,7 @@ const Footer = () => {
         backgroundColor: "transparent",
       }}>
       <Typography level="body-sm" color="neutral">
-        &copy; {new Date().getFullYear()} Aura Logbook · A quiet place to notice what matters.
+        &copy; {new Date().getFullYear()} Aura Logbook
       </Typography>
     </Box>
   );

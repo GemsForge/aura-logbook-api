@@ -47,9 +47,9 @@ public class MoodService : IMoodService
     }
 
     /// <summary>
-    /// Creates a new mood entry from client request.
+    /// Creates a mood entry and returns its identifier for private media uploads.
     /// </summary>
-    public async Task<(bool Success, string Message)> CreateMoodAsync(int userId, MoodEntryRequest dto)
+    public async Task<(bool Success, string Message, int EntryId)> CreateMoodAsync(int userId, MoodEntryRequest dto)
     {
         var moodEntry = new MoodEntry
         {
@@ -60,8 +60,8 @@ public class MoodService : IMoodService
             CreatedAt = DateTime.UtcNow
         };
 
-        await _moodRepo.CreateAsync(moodEntry);
-        return (true, "Mood entry recorded.");
+        var entryId = await _moodRepo.CreateAsync(moodEntry);
+        return (true, "Mood entry recorded.", entryId);
     }
 
     /// <summary>

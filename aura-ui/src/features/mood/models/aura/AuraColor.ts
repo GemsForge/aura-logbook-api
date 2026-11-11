@@ -1,5 +1,4 @@
-import { Chakra, ChakraInfo } from "./Chakra";
-
+/** Aura color choices are user-selected reflection metadata, not assessments. */
 export const AuraColor = {
   Red: "red",
   Orange: "orange",
@@ -19,7 +18,8 @@ export interface AuraColorDefinition {
   key: AuraColor;
   displayName: string;
   baseHex: string;
-  chakraKey: string | null;
+  /** Legacy API metadata; keep this out of shared and default-screen content. */
+  chakraKey?: string | null;
   description: string;
   isNeutral: boolean;
   isActive: boolean;
@@ -29,72 +29,52 @@ export interface AuraColorInfoItem {
   color: AuraColor;
   name: string;
   meaning: string;
-  chakra: Chakra;
-  chakraMeaning: string;
 }
 
 export const AuraColorInfo: Record<AuraColor, AuraColorInfoItem> = {
   [AuraColor.Red]: {
     color: AuraColor.Red,
     name: "Red",
-    meaning: "Rooted, grounded energy for safety and survival.",
-    chakra: Chakra.Root,
-    chakraMeaning: ChakraInfo[Chakra.Root].meaning,
+    meaning: "A reflective note of steadiness and grounding.",
   },
   [AuraColor.Orange]: {
     color: AuraColor.Orange,
     name: "Orange",
-    meaning: "Creative flow and emotional warmth.",
-    chakra: Chakra.Sacral,
-    chakraMeaning: ChakraInfo[Chakra.Sacral].meaning,
+    meaning: "A reflective note of creativity and warmth.",
   },
   [AuraColor.Yellow]: {
     color: AuraColor.Yellow,
     name: "Yellow",
-    meaning: "Personal power, confidence, and optimism.",
-    chakra: Chakra.SolarPlexus,
-    chakraMeaning: ChakraInfo[Chakra.SolarPlexus].meaning,
+    meaning: "A reflective note of confidence and optimism.",
   },
   [AuraColor.Green]: {
     color: AuraColor.Green,
     name: "Green",
-    meaning: "Compassion, growth, and harmony.",
-    chakra: Chakra.Heart,
-    chakraMeaning: ChakraInfo[Chakra.Heart].meaning,
+    meaning: "A reflective note of growth and harmony.",
   },
   [AuraColor.Blue]: {
     color: AuraColor.Blue,
     name: "Blue",
-    meaning: "Expression, truth, and clear communication.",
-    chakra: Chakra.Throat,
-    chakraMeaning: ChakraInfo[Chakra.Throat].meaning,
+    meaning: "A reflective note of expression and clarity.",
   },
   [AuraColor.Indigo]: {
     color: AuraColor.Indigo,
     name: "Indigo",
-    meaning: "Intuition, insight, and inner wisdom.",
-    chakra: Chakra.ThirdEye,
-    chakraMeaning: ChakraInfo[Chakra.ThirdEye].meaning,
+    meaning: "A reflective note of insight and intuition.",
   },
   [AuraColor.Violet]: {
     color: AuraColor.Violet,
     name: "Violet",
-    meaning: "Spirituality, higher purpose, and connection to the divine.",
-    chakra: Chakra.Crown,
-    chakraMeaning: ChakraInfo[Chakra.Crown].meaning,
+    meaning: "A reflective note of imagination and possibility.",
   },
   [AuraColor.Gray]: {
     color: AuraColor.Gray,
     name: "Gray",
-    meaning: "Neutrality; grounding when in‐between states.",
-    chakra: Chakra.Root,
-    chakraMeaning: ChakraInfo[Chakra.Root].meaning,
+    meaning: "A reflective note for moments between states.",
   },
   [AuraColor.Pink]: {
     color: AuraColor.Pink,
     name: "Pink",
-    meaning: "Unconditional love, warmth, and heart‐centered joy.",
-    chakra: Chakra.Heart,
-    chakraMeaning: ChakraInfo[Chakra.Heart].meaning,
+    meaning: "A reflective note of care and tenderness.",
   },
 };

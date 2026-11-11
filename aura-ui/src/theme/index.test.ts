@@ -1,50 +1,37 @@
-// src/theme/index.test.ts
-import { red, blue } from "@mui/material/colors";
-import { getAuraBackground, getAuraJoyTheme, getAuraTheme, prismGarden } from "./index";
-import type { AuraColor } from "../features/mood/models/aura";
+import { getAuraJoyTheme, getAuraTheme } from "./index";
+import { interfaceThemes, interfaceThemeTokens } from "./interfaceThemes";
 
-describe("getAuraTheme", () => {
-  it.each<[AuraColor, number, string]>([
-    ["red", 50, red[500]],
-    ["red", 10, red[200]],
-    ["blue", 100, blue[900]],
-    ["red", 500, red[500]],
-    ["red", 700, red[700]],
-    ["blue", 300, blue[300]],
-    ["blue", 999, blue[500]], // invalid intensity → fallback to 500
-  ])("returns %s[%i] for %s with intensity %i", (hue, shade, expected) => {
-    const theme = getAuraTheme(hue, shade);
-    expect(theme.palette.primary.main).toBe(expected);
-  });
-});
+describe("interface theme adapters", () => {
+  it.each(interfaceThemes)("applies the %s token set to Material and Joy", (name) => {
+    const tokens = interfaceThemeTokens[name];
+    const material = getAuraTheme("rose", 35, name);
+    const joy = getAuraJoyTheme(name);
 
-describe("Prism Garden foundation", () => {
-  it("changes the ambient glow with the aura hue and intensity while keeping readable text", () => {
-    expect(getAuraBackground("red", 50)).not.toBe(getAuraBackground("blue", 50));
-    expect(getAuraBackground("blue", 10)).not.toBe(getAuraBackground("blue", 100));
-    expect(getAuraBackground("unknown", 50)).toBe(getAuraBackground("blue", 50));
-    expect(getAuraTheme("yellow", 10).palette.text.primary).toBe(prismGarden.color.ink);
-    expect(getAuraJoyTheme("yellow", 10).colorSchemes.light.palette.primary.solidColor).toBeDefined();
-  });
-  it("keeps the warm shell palette independent from the selected aura color", () => {
-    const redTheme = getAuraTheme("red", 50);
-    const blueTheme = getAuraTheme("blue", 50);
-
-    expect(redTheme.palette.primary.main).not.toBe(blueTheme.palette.primary.main);
-    expect(redTheme.palette.background.default).toBe(prismGarden.color.canvas);
-    expect(blueTheme.palette.background.default).toBe(prismGarden.color.canvas);
-    expect(redTheme.palette.text.primary).toBe(prismGarden.color.ink);
+    expect(material.palette.mode).toBe(tokens.mode);
+    expect(material.palette.primary.main).toBe(tokens.primary);
+    expect(material.palette.background.default).toBe(tokens.canvas);
+    expect(material.palette.background.paper).toBe(tokens.surface);
+    expect(joy.colorSchemes[tokens.mode].palette.background.body).toBe(tokens.canvas);
+    expect(joy.colorSchemes[tokens.mode].palette.focusVisible).toBe(tokens.focus);
   });
 
-  it("shares Prism Garden surfaces and focus treatment with Joy components", () => {
-    const theme = getAuraJoyTheme("blue", 50);
+  it("keeps the interface theme independent from recorded aura color", () => {
+    const rose = getAuraTheme("rose", 35, "Ocean");
+    const blue = getAuraTheme("blue", 90, "Ocean");
 
-    expect(theme.colorSchemes.light.palette.background.body).toBe(
-      prismGarden.color.canvas,
-    );
-    expect(theme.colorSchemes.light.palette.focusVisible).toBe(
-      prismGarden.color.focus,
-    );
-    expect(theme.fontFamily.display).toContain("Iowan Old Style");
+    expect(rose.palette.primary.main).toBe(interfaceThemeTokens.Ocean.primary);
+    expect(blue.palette.primary.main).toBe(interfaceThemeTokens.Ocean.primary);
+    expect(rose.palette.background.default).toBe(blue.palette.background.default);
+    expect(rose.palette.text.primary).toBe(blue.palette.text.primary);
+    expect(JSON.stringify(rose.components?.MuiCssBaseline?.styleOverrides))
+      .not.toBe(JSON.stringify(blue.components?.MuiCssBaseline?.styleOverrides));
+  });
+
+  it("defaults missing and unsupported saved preferences to Aurora", () => {
+    expect(getAuraTheme().palette.background.default).toBe(interfaceThemeTokens.Aurora.canvas);
+    expect(getAuraTheme("blue", 50, "not-a-theme").palette.primary.main)
+      .toBe(interfaceThemeTokens.Aurora.primary);
+    expect(getAuraJoyTheme("not-a-theme").colorSchemes.dark.palette.background.body)
+      .toBe(interfaceThemeTokens.Aurora.canvas);
   });
 });

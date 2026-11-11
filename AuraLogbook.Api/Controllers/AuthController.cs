@@ -1,3 +1,4 @@
+using AuraLogbook.Api.Models; // InterfaceThemeValues resolves stored theme preferences.
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -102,6 +103,7 @@ public class AuthController : ControllerBase
             ZodiacSign = user.ZodiacSign,
             AuraColor = user.AuraColor,
             AuraIntensity = user.AuraIntensity,
+            InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
             Avatar = user.Avatar ?? string.Empty,
             Motto = user.Motto ?? string.Empty,
             SelectedPathway = user.SelectedPathway

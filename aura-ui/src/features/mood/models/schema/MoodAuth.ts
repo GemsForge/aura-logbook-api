@@ -17,6 +17,12 @@ export interface MoodEntryRequest {
   weather?: WeatherDto;
 }
 
+/** Identifies a saved mood so private photo uploads can be attached without resubmitting the entry. */
+export interface MoodEntryCreatedResponse {
+  id: number;
+  message: string;
+}
+
 /**
  * Represents the frequency of a mood, either as a raw count or percentage (but not both).
  */

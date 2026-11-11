@@ -41,19 +41,24 @@ public class MoodController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(MoodEntryCreatedResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> LogMood([FromBody] MoodEntryRequest moodRequest)
     {
         var userId = GetUserIdFromToken();
         var result = await _moodService.CreateMoodAsync(userId, moodRequest);
-        return result.Success ? Ok(result.Message) : BadRequest(result.Message);
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        var response = new MoodEntryCreatedResponse(result.EntryId, result.Message);
+        return CreatedAtAction(nameof(GetMoodById), new { id = result.EntryId }, response);
     }
 
-    // READ: Get specific mood entry by ID
+    /// <summary>Returns one mood entry only when it belongs to the authenticated user.</summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetMoodById(int id)
     {
         var userId = GetUserIdFromToken();
-        var mood = await _moodService.GetEntriesForUserAsync(userId);
+        var mood = await _moodService.GetEntryForUserAsync(userId, id);
         return mood is null ? NotFound("Mood entry not found.") : Ok(mood);
     }
 

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { useLocation } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import NavBar from "./NavBar";
@@ -10,7 +10,7 @@ function CurrentPath() {
 }
 
 describe("NavBar", () => {
-  it("shows public destinations when signed out and navigates to registration", () => {
+  it("shows public account actions without a redundant Home link", () => {
     renderWithProviders(
       <>
         <NavBar />
@@ -18,13 +18,24 @@ describe("NavBar", () => {
       </>
     );
 
-    expect(screen.getByRole("link", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Aura Logbook home" })).toHaveAttribute("href", "/home");
+    expect(screen.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Create account" })).toBeInTheDocument();
     expect(screen.getByTestId("prism-mark")).toHaveAttribute("aria-hidden", "true");
 
     fireEvent.click(screen.getByRole("link", { name: "Create account" }));
     expect(screen.getByLabelText("Current path")).toHaveTextContent("/register");
+  });
+
+  it("keeps Home out of the signed-out mobile menu", () => {
+    renderWithProviders(<NavBar />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open navigation" }));
+    const mobileNavigation = within(screen.getByRole("navigation", { name: "Mobile navigation" }));
+    expect(mobileNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
+    expect(mobileNavigation.getByRole("link", { name: "Login" })).toBeInTheDocument();
+    expect(mobileNavigation.getByRole("link", { name: "Create account" })).toBeInTheDocument();
   });
 
   it("shows authenticated destinations and logs out to home", () => {
@@ -40,6 +51,10 @@ describe("NavBar", () => {
       "href",
       "/dashboard",
     );
+    const mainNavigation = within(screen.getByRole("navigation", { name: "Main navigation" }));
+    expect(mainNavigation.getByRole("link", { name: "Today" })).toHaveAttribute("href", "/dashboard");
+    expect(mainNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "Open profile menu" }));
     expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Login" })).not.toBeInTheDocument();
@@ -47,5 +62,16 @@ describe("NavBar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Log out" }));
     expect(screen.getByLabelText("Current path")).toHaveTextContent("/home");
     expect(store.getState().auth.isAuthenticated).toBe(false);
+  });
+
+  it("keeps Home out of the signed-in mobile menu", () => {
+    renderWithProviders(<NavBar />, {
+      preloadedState: createAuthenticatedState(),
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Open navigation" }));
+    const mobileNavigation = within(screen.getByRole("navigation", { name: "Mobile navigation" }));
+    expect(mobileNavigation.getByRole("link", { name: "Today" })).toHaveAttribute("href", "/dashboard");
+    expect(mobileNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
   });
 });

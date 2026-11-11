@@ -9,6 +9,7 @@ import MoodHistory from "./components/history/MoodHistory";
 import MoodEntryForm from "./components/MoodEntryForm";
 import HomePage from "./pages/Home";
 import MediaGallery from "./pages/MediaGallery";
+import Insights from "./pages/Insights";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
           { path: "log-mood", element: <MoodEntryForm /> },
           { path: "history", element: <MoodHistory /> },
           { path: "gallery", element: <MediaGallery /> },
+          { path: "insights", element: <Insights /> },
         ],
       },
     ],

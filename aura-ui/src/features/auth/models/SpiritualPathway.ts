@@ -9,10 +9,27 @@ export const SpiritualPathway = {
 // Add descriptions for tooltips/help text
 export const SpiritualPathwayDescriptions: Record<SpiritualPathway, string> = {
   Mindfulness: "Calm, clarity, and self-awareness.",
-  // "Focus on self-awareness, calm, and clarity with non-spiritual, mindful practices. Great for those who prefer meditation, journaling, and science-based mental health insights.",
   Energy: "For those drawn to star signs and energy.",
-  // "Explore your energy, intuition, and personal insights with guidance from astrology and chakra traditions. Perfect for those drawn to zodiac cycles, spiritual affirmations, and energy color reflection.",
-  Faith:
-    "For a journey guided by scripture and prayer.",
-  // "Experience Christian faith-based reflection with scripture-inspired prompts, prayers, gratitude journaling, and daily Bible verses. Designed for those seeking spiritual growth rooted in Christian tradition.",
+  Faith: "For reflection shaped by personal beliefs, meaningful traditions, values, community, or sacred texts.",
 };
+
+/**
+ * Resolves a stored pathway value (enum key or display label, any case) to its enum key.
+ * Returns undefined for unknown values so callers choose their own fallback.
+ */
+export function normalizeSpiritualPathway(value?: string | null): SpiritualPathway | undefined {
+  switch (value?.trim().toLowerCase()) {
+    case "mindfulness":
+    case "mindful living":
+      return "Mindfulness";
+    case "energy":
+    case "astrology & energy":
+      return "Energy";
+    case "faith":
+    case "faith & religion":
+    case "christian faith":
+      return "Faith";
+    default:
+      return undefined;
+  }
+}

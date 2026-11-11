@@ -4,6 +4,7 @@ import type {
   MoodDashboardSummary,
   MoodEntry,
   MoodEntryRequest,
+  MoodEntryCreatedResponse,
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
@@ -59,7 +60,7 @@ export const moodApi = createApi({
     }),
 
     // POST /Mood
-    logMood: build.mutation<string, MoodEntryRequest>({
+    logMood: build.mutation<MoodEntryCreatedResponse, MoodEntryRequest>({
       query: (body) => ({
         url: "/",
         method: "POST",

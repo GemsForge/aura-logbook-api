@@ -93,6 +93,8 @@ public class UserService : IUserService
         }
 
         existingUser.SelectedPathway = request.SelectedPathway;
+        if (request.InterfaceTheme is not null)
+            existingUser.InterfaceTheme = InterfaceThemeValues.Resolve(request.InterfaceTheme);
 
         var updated = await _userRepo.UpdateAsync(existingUser);
         return updated ? (true, "User updated.") : (false, "Failed to update user.");

@@ -8,15 +8,20 @@ import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
+import { PasswordField } from "@/components/ui/PasswordField";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { AuthApi } from "../api/AuthApi";
-import { registerSchema, type RegisterFormValues } from "../features/auth/models/RegisterSchema";
+import {
+  registerSchema,
+  type RegisterFormValues,
+} from "../features/auth/models/RegisterSchema";
 import { useToast } from "../hooks/useToast";
 
+/** Collects account details and creates a new private Aura Logbook account. */
 export default function RegisterForm() {
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -44,13 +49,20 @@ export default function RegisterForm() {
     setLoading(true);
     try {
       await AuthApi.register(payload);
-      showToast("Account successfully created!", "success");
+      // Toast echoes the button's language ("Start my logbook") so the flow reads as one voice.
+      showToast("Your logbook is ready. Log in to begin.", "success");
       navigate("/login");
     } catch (err: unknown) {
-      const response = typeof err === "object" && err !== null && "response" in err
-        ? (err as { response?: { data?: unknown } }).response
-        : undefined;
-      const message = typeof response?.data === "string" ? response.data : "Registration failed";
+      const response =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: unknown } }).response
+          : undefined;
+      // Distinguish a server that cannot be reached from an API rejection.
+      const message = !response
+        ? "We couldn't reach the server. Please try again."
+        : typeof response.data === "string"
+          ? response.data
+          : "Registration failed";
       showToast(message, "error");
     } finally {
       setLoading(false);
@@ -69,67 +81,64 @@ export default function RegisterForm() {
         boxSizing: "border-box",
         px: { xs: 0, sm: 2 },
         py: 2,
-      }}
-    >
+      }}>
       <Sheet
         variant="outlined"
         className="aura-panel"
         sx={{
-          p: { xs: 2, sm: 4 },
+          p: { xs: 2, sm: 3 }, // tighter than before (was sm: 4)
           width: "100%",
-          maxWidth: 720,
+          maxWidth: 640, // narrower card suits a two-column form (was 720)
           minWidth: 0,
           boxSizing: "border-box",
           borderRadius: "lg",
           boxShadow: "lg",
           backgroundColor: "background.surface",
-        }}
-      >
-        <Box sx={{ mb: 3 }}>
-          <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 2 }}>A little space that’s all yours</Typography>
-          <Typography level="h1" className="aura-page-heading">Begin your logbook</Typography>
-          <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>Make space for the moments that matter.</Typography>
+        }}>
+        <Box sx={{ mb: 2 }}>
+          {/* Eyebrow removed: it repeated what the heading and subline already say. */}
+          {/* Heading stays an h1 for accessibility; fontSize is set directly so it can't balloon. */}
+          <Typography
+            level="h1"
+            className="aura-page-heading"
+            sx={{ fontSize: "clamp(1.5rem, 1.2rem + 1vw, 2rem)" }}>
+            Begin your logbook
+          </Typography>
+          <Typography level="body-sm" color="neutral" sx={{ mt: 0.5 }}>
+            Make space for the moments that matter.
+          </Typography>
         </Box>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+
+        {/* CSS grid: two columns on sm+, one on phones. `gap` replaces margin="normal". */}
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            gap: 1.5,
+          }}>
           <TextField
-            fullWidth
             label="Email"
-            margin="normal"
+            autoComplete="email"
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
           />
           <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            margin="normal"
-            {...register("password")}
-            error={!!errors.password}
-            helperText={errors.password?.message}
-          />
-          <TextField
-            fullWidth
-            label="Confirm Password"
-            type="password"
-            margin="normal"
-            {...register("confirmPassword")}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
-          />
-          <TextField
-            fullWidth
-            label="Display Name"
-            margin="normal"
+            label="Display name"
+            autoComplete="nickname"
             {...register("displayName")}
             error={!!errors.displayName}
             helperText={errors.displayName?.message}
           />
-
-          {/* Spiritual Pathways Field */}
-          <MyPathwaySelector
-            control={control}
-            errorMessage={errors.spiritualPathway?.message}
+          <PasswordField
+            label="Password"
+            autoComplete="new-password"
+            {...register("password")}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
 
           <Controller
@@ -139,30 +148,45 @@ export default function RegisterForm() {
               <DatePicker
                 label="Birthday"
                 value={field.value ? dayjs(field.value) : null}
-                onChange={(newDate) => field.onChange(newDate?.isValid() ? newDate.format("YYYY-MM-DD") : "")}
-                slotProps={{ textField: {
-                  onBlur: field.onBlur,
-                  error: !!errors.birthday,
-                  helperText: errors.birthday?.message,
-                } }}
+                onChange={(newDate) =>
+                  field.onChange(
+                    newDate?.isValid() ? newDate.format("YYYY-MM-DD") : "",
+                  )
+                }
+                slotProps={{
+                  textField: {
+                    fullWidth: true, // fixes the orphaned half-width box
+                    onBlur: field.onBlur,
+                    error: !!errors.birthday,
+                    helperText: errors.birthday?.message,
+                  },
+                }}
                 format="MM-DD-YYYY"
               />
             )}
           />
 
+          {/* Spans both columns. Chips live inside MyPathwaySelector. */}
+          <Box sx={{ gridColumn: "1 / -1" }}>
+            <MyPathwaySelector
+              control={control}
+              errorMessage={errors.spiritualPathway?.message}
+            />
+          </Box>
+
           <Button
             type="submit"
-            fullWidth
             variant="contained"
-            sx={{ mt: 2, minHeight: 48 }}
+            sx={{ gridColumn: "1 / -1", minHeight: 48, mt: 0.5 }}
             disabled={loading}>
-            {loading ? <CircularProgress size="md" /> : "Register"}
+            {loading ? <CircularProgress size="md" /> : "Start my logbook"}
           </Button>
-        </form>
-        <Typography level="body-sm" sx={{ mt: 2 }}>
+        </Box>
+
+        <Typography level="body-sm" sx={{ mt: 1.5 }}>
           Already have an account?{" "}
           <Link href="/login" underline="hover">
-            Login
+            Log in
           </Link>
         </Typography>
       </Sheet>

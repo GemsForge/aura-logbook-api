@@ -1,157 +1,229 @@
-// src/theme/index.ts
-import { alpha, createTheme, type Theme } from "@mui/material/styles";
+import { alpha, createTheme, darken, lighten, type Theme } from "@mui/material/styles";
 import { extendTheme as extendJoyTheme } from "@mui/joy/styles";
-import { AuraColor } from "../features/mood/models/aura";
-export { prismGarden } from "./prismGarden";
+import { AuraColor } from "@/features/mood/models/aura";
 import { prismGarden } from "./prismGarden";
-import { getAuraShade, normalizeAuraIntensity, resolveAuraColor, auraPalettes } from "./auraTheme";
+import { auraPalettes, getAuraShade, normalizeAuraIntensity, resolveAuraColor } from "./auraTheme";
+import {
+  interfaceThemeTokens,
+  getInterfaceThemeCssVariables,
+  resolveInterfaceTheme,
+  type InterfaceTheme,
+} from "./interfaceThemes";
 
-/** Layers shades of the selected aura over a stable canvas without introducing a competing hue. */
+export { prismGarden } from "./prismGarden";
+export {
+  interfaceThemes,
+  interfaceThemeTokens,
+  getInterfaceThemeCssVariables,
+  resolveInterfaceTheme,
+  type InterfaceTheme,
+} from "./interfaceThemes";
+
+/** Builds an aura-tinted wash for reflection surfaces while the app shell follows its interface theme. */
 export function getAuraBackground(color: unknown, intensity: unknown = 50): string {
   const hue = resolveAuraColor(color);
-  const strength = 0.12 + normalizeAuraIntensity(intensity) / 500;
-  return `radial-gradient(ellipse at 8% 12%, ${alpha(auraPalettes[hue][400].main!, strength)} 0%, transparent 55%), radial-gradient(ellipse at 92% 40%, ${alpha(auraPalettes[hue][200].main!, strength * 0.7)} 0%, transparent 58%), radial-gradient(ellipse at 45% 95%, ${alpha(auraPalettes[hue][300].main!, strength * 0.6)} 0%, transparent 60%)`;
+  const strength = 0.08 + normalizeAuraIntensity(intensity) / 700;
+  return `radial-gradient(ellipse at 8% 10%, ${alpha(auraPalettes[hue][400].main!, strength)} 0%, transparent 55%), radial-gradient(ellipse at 92% 50%, ${alpha(auraPalettes[hue][200].main!, strength * 0.7)} 0%, transparent 58%)`;
 }
-
-/** Converts the product's 0-100 aura intensity scale to a stable MUI shade. */
-function resolveAuraShade(intensity: number): number {
-  return getAuraShade(intensity);
-}
-import { blue, green, grey, indigo, orange, pink, purple, red, yellow } from "@mui/material/colors";
 
 /**
- * Returns a MUI theme tailored to the user’s selected aura color and intensity.
- * @param color     The aura hue (must match a key in auraShades).
- * @param intensity User-selected intensity from 0 to 100; legacy shade values are normalized.
+ * Creates the Material UI adapter for the selected interface theme.
+ * Recorded aura color remains entry data and is styled by its own aura palette.
+ * @param selectedTheme Saved interface preference; missing or invalid values use Aurora.
+ * @returns A Material UI theme ready for `ThemeProvider`.
  */
 export function getAuraTheme(
-    color: AuraColor,
-    intensity: number = 500
-  ): Theme {
-    // Map each aura to its full set of MUI color shades
-    const auraShades: Record<AuraColor, Record<number, string>> = {
-      red: red,
-      orange: orange,
-      yellow: yellow,
-      green: green,
-      blue: blue,
-      indigo: indigo,
-      violet: purple,
-      gray: grey,
-      pink: pink,
-    };
-  
-    // Select the requested shade, defaulting to 500 if unavailable
-    const shades = auraShades[resolveAuraColor(color)];
-    const mainColor = shades[resolveAuraShade(intensity)] || shades[500];
-  
-    return createTheme({
-      palette: {
-        primary: { main: mainColor },
-        background: {
-          default: prismGarden.color.canvas,
-          paper: alpha(prismGarden.color.surface, 0.94),
-        },
-        text: { primary: prismGarden.color.ink, secondary: prismGarden.color.inkMuted },
-      },
-      typography: {
-        fontFamily: prismGarden.font.body,
-        h1: { fontFamily: prismGarden.font.display },
-        h2: { fontFamily: prismGarden.font.display },
-        h3: { fontFamily: prismGarden.font.display },
-        h4: { fontFamily: prismGarden.font.display },
-        h5: { fontFamily: prismGarden.font.display },
-        h6: { fontFamily: prismGarden.font.display },
-      },
-      components: {
-        MuiCssBaseline: { styleOverrides: {
-          body: {
-            backgroundImage: getAuraBackground(color, intensity), backgroundAttachment: "fixed",
-            "--aura-accent": mainColor,
-            "--aura-glow": alpha(shades[400], 0.25),
-            "--aura-wash": alpha(shades[300], 0.16),
-            "--aura-line": alpha(shades[600], 0.24),
-            "--aura-panel": alpha(prismGarden.color.surface, 0.76),
-            "--aura-dark": `linear-gradient(135deg, ${alpha(shades[500], 0.28)}, transparent 85%), #222C27`,
-          },
-        } },
-        MuiButton: { styleOverrides: { root: { borderRadius: "999px", textTransform: "none" } } },
-        MuiOutlinedInput: { styleOverrides: { root: { borderRadius: prismGarden.radius.control, backgroundColor: alpha(prismGarden.color.surface, 0.74) } } },
-        MuiDialog: { styleOverrides: { paper: { borderRadius: 28, border: "1px solid rgba(255,255,255,.8)", boxShadow: prismGarden.shadow.raised } } },
-      },
-    });
-  }
+  auraColor: AuraColor | string = AuraColor.Blue,
+  auraIntensity: number = 50,
+  selectedTheme: InterfaceTheme | string = "Aurora",
+): Theme {
+  const normalizedTheme = resolveInterfaceTheme(selectedTheme);
+  const tokens = interfaceThemeTokens[normalizedTheme];
+  const colorScheme = tokens.mode;
+  const cssVariables = getInterfaceThemeCssVariables(normalizedTheme);
+  const auraHue = resolveAuraColor(auraColor);
+  const auraAccent = auraPalettes[auraHue][getAuraShade(auraIntensity)].main!;
 
-export function getAuraJoyTheme(color: AuraColor, intensity: number = 500) {
-  const palettes: Record<AuraColor, Record<number, string>> = {
-    red,
-    orange,
-    yellow,
-    green,
-    blue,
-    indigo,
-    violet: purple,
-    gray: grey,
-    pink,
-  };
-  const shades = palettes[resolveAuraColor(color)];
-  const selected = shades[resolveAuraShade(intensity)] ?? shades[500];
-
-  return extendJoyTheme({
+  return createTheme({
+    palette: {
+      mode: colorScheme,
+      primary: { main: tokens.primary, contrastText: tokens.primaryContrast },
+      // primaryContrast is the on-color token: dark on the light accents of dark themes, white on Ivory.
+      secondary: { main: tokens.accent, contrastText: tokens.primaryContrast },
+      // Error text uses the per-theme danger token so it stays readable on every surface.
+      error: { main: tokens.danger },
+      background: { default: tokens.canvas, paper: tokens.surface },
+      text: { primary: tokens.ink, secondary: tokens.inkMuted },
+      divider: tokens.border,
+    },
+    typography: {
+      fontFamily: prismGarden.font.body,
+      h1: { fontFamily: prismGarden.font.display, fontWeight: 500 },
+      h2: { fontFamily: prismGarden.font.display, fontWeight: 500 },
+      h3: { fontFamily: prismGarden.font.display, fontWeight: 500 },
+      h4: { fontFamily: prismGarden.font.display, fontWeight: 500 },
+      h5: { fontFamily: prismGarden.font.display, fontWeight: 500 },
+      h6: { fontFamily: prismGarden.font.display, fontWeight: 500 },
+      button: { textTransform: "none", fontWeight: 600 },
+    },
+    shape: { borderRadius: 10 },
     components: {
-      JoyButton: { styleOverrides: { root: { borderRadius: "999px", minHeight: 42, paddingInline: 20, fontWeight: 600, transition: "transform .18s ease, box-shadow .18s ease", "&:hover": { transform: "translateY(-1px)" } } } },
-      JoySheet: { styleOverrides: { root: { borderColor: "var(--aura-line, #D8DDD4)" } } },
-      JoyInput: { styleOverrides: { root: { minHeight: 48, backgroundColor: "rgba(255,254,250,.72)", boxShadow: "none" } } },
-      JoySelect: { styleOverrides: { root: { minHeight: 48 } } },
-      JoyFormLabel: { styleOverrides: { root: { fontSize: "0.8rem", fontWeight: 600 } } },
-    },
-    fontFamily: {
-      body: prismGarden.font.body,
-      display: prismGarden.font.display,
-    },
-    radius: { sm: prismGarden.radius.control, md: prismGarden.radius.card, lg: prismGarden.radius.shell, xl: "2rem" },
-    shadow: {
-      sm: prismGarden.shadow.soft,
-      md: prismGarden.shadow.raised,
-      lg: prismGarden.shadow.raised,
-    },
-    colorSchemes: {
-      light: {
-        palette: {
-          background: {
-            body: prismGarden.color.canvas,
-            surface: alpha(prismGarden.color.surface, 0.8),
-            popup: prismGarden.color.surface,
+      MuiCssBaseline: {
+        styleOverrides: {
+          ":root": {
+            ...cssVariables,
+            colorScheme,
+            "--aura-accent": auraAccent,
+            "--aura-glow": alpha(auraAccent, 0.24),
+            "--aura-wash": alpha(auraAccent, 0.14),
+            "--aura-line": alpha(auraAccent, 0.30),
+            "--aura-panel": tokens.surface,
+            "--aura-dark": `linear-gradient(135deg, ${alpha(auraAccent, 0.22)}, transparent 85%), ${tokens.surfaceRaised}`,
           },
-          neutral: {
-            50: prismGarden.color.surface,
-            100: prismGarden.color.surfaceSoft,
-            200: prismGarden.color.stone,
-            300: prismGarden.color.line,
-            500: prismGarden.color.inkMuted,
-            700: prismGarden.color.ink,
-            900: prismGarden.color.ink,
+          body: {
+            backgroundColor: tokens.canvas,
+            backgroundImage: `radial-gradient(circle at 8% 2%, ${tokens.glow}, transparent 28rem)`,
+            color: tokens.ink,
           },
-          focusVisible: prismGarden.color.focus,
-          primary: {
-            50: shades[50],
-            100: shades[100],
-            200: shades[200],
-            300: shades[300],
-            400: shades[400],
-            500: shades[500],
-            600: shades[600],
-            700: shades[700],
-            800: shades[800],
-            900: shades[900],
-            solidBg: selected,
-            solidColor: getAuraTheme(color, intensity).palette.getContrastText(selected),
-            solidHoverBg: shades[Math.min(resolveAuraShade(intensity) + 100, 900)],
-            solidActiveBg: shades[Math.min(resolveAuraShade(intensity) + 200, 900)],
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+            backgroundColor: tokens.surface,
+            borderColor: tokens.border,
+          },
+        },
+      },
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            "&:focus-visible": { outline: `3px solid ${tokens.focus}`, outlineOffset: 3 },
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: { root: { minHeight: 44, borderRadius: prismGarden.radius.control } },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            minHeight: 44,
+            backgroundColor: tokens.surfaceRaised,
+            "& fieldset": { borderColor: tokens.controlBorder },
           },
         },
       },
     },
   });
 }
-  
+
+/**
+ * Creates the Joy UI adapter using the same semantic colors as Material UI.
+ * @param selectedTheme Saved interface preference; missing or invalid values use Aurora.
+ * @returns A Joy UI theme ready for `CssVarsProvider`.
+ */
+export function getAuraJoyTheme(
+  selectedTheme: InterfaceTheme | string = "Aurora",
+  _legacyAuraIntensity?: number,
+  explicitTheme?: InterfaceTheme | string,
+) {
+  // The optional trailing argument preserves compatibility with older callers while the app shell uses the theme-only form.
+  const tokens = interfaceThemeTokens[resolveInterfaceTheme(explicitTheme ?? selectedTheme)];
+  const primary = {
+    50: lighten(tokens.primary, 0.88),
+    100: lighten(tokens.primary, 0.76),
+    200: lighten(tokens.primary, 0.62),
+    300: lighten(tokens.primary, 0.46),
+    400: lighten(tokens.primary, 0.24),
+    500: tokens.primary,
+    600: darken(tokens.primary, 0.12),
+    700: darken(tokens.primary, 0.25),
+    800: darken(tokens.primary, 0.4),
+    900: darken(tokens.primary, 0.56),
+  };
+  const palette = {
+    background: {
+      body: tokens.canvas,
+      surface: tokens.surface,
+      popup: tokens.surfaceRaised,
+      level1: tokens.surfaceRaised,
+      level2: tokens.border,
+      level3: tokens.border,
+      tooltip: tokens.ink,
+    },
+    text: {
+      primary: tokens.ink,
+      secondary: tokens.inkMuted,
+      tertiary: tokens.inkMuted,
+      icon: tokens.inkMuted,
+    },
+    divider: tokens.border,
+    focusVisible: tokens.focus,
+    primary: {
+      ...primary,
+      solidBg: tokens.primary,
+      solidColor: tokens.primaryContrast,
+      solidHoverBg: darken(tokens.primary, 0.08),
+      solidActiveBg: darken(tokens.primary, 0.16),
+      softBg: tokens.surfaceRaised,
+      softColor: tokens.ink,
+      outlinedColor: tokens.primary,
+      outlinedBorder: tokens.primary,
+      // Joy's default hover fill is a mid purple that drops primary text to ~2.4:1. Hover on the
+      // raised surface instead, where primary text keeps its readable contrast.
+      outlinedHoverBg: tokens.surfaceRaised,
+      outlinedActiveBg: tokens.surfaceRaised,
+      plainHoverBg: tokens.surfaceRaised,
+      plainActiveBg: tokens.surfaceRaised,
+    },
+    // Joy's default danger text is tuned for white pages; use the per-theme readable token.
+    danger: {
+      // Joy Typography colors text from mainChannel ("R G B"), not plainColor.
+      mainChannel: [1, 3, 5].map((i) => parseInt(tokens.danger.slice(i, i + 2), 16)).join(" "),
+      plainColor: tokens.danger,
+      outlinedColor: tokens.danger,
+      outlinedBorder: tokens.danger,
+    },
+    neutral: {
+      50: tokens.surface,
+      100: tokens.surfaceRaised,
+      200: tokens.border,
+      300: tokens.border,
+      400: tokens.inkMuted,
+      500: tokens.inkMuted,
+      600: tokens.ink,
+      700: tokens.ink,
+      800: tokens.ink,
+      900: tokens.ink,
+      plainColor: tokens.ink,
+      outlinedColor: tokens.ink,
+      outlinedBorder: tokens.controlBorder,
+      // Soft neutral controls (e.g. quick mood buttons) must sit on a themed fill, or Joy's
+      // light default leaves light ink on a light button in the dark themes.
+      softBg: tokens.surfaceRaised,
+      softHoverBg: tokens.border,
+      softActiveBg: tokens.border,
+      softColor: tokens.ink,
+      solidColor: tokens.ink,
+      solidBg: tokens.surfaceRaised,
+    },
+  };
+
+  return extendJoyTheme({
+    fontFamily: { body: prismGarden.font.body, display: prismGarden.font.display },
+    radius: {
+      xs: "0.375rem", sm: "0.5rem", md: prismGarden.radius.control,
+      lg: prismGarden.radius.card, xl: prismGarden.radius.shell,
+    },
+    shadow: {
+      xs: "0 1px 2px rgba(0, 0, 0, 0.16)",
+      sm: `0 8px 28px ${tokens.glow}`,
+      md: `0 12px 36px ${tokens.glow}`,
+      lg: `0 18px 48px ${tokens.glow}`,
+      xl: `0 24px 64px ${tokens.glow}`,
+    },
+    colorSchemes: { light: { palette }, dark: { palette } },
+  });
+}

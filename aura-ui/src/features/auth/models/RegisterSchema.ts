@@ -1,27 +1,34 @@
-// src/features/auth/models/RegisterSchema.ts
+// Registration constraints shared by the form and password guidance.
 import * as yup from "yup";
 import { SpiritualPathway } from "./SpiritualPathway";
+
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 72;
 
 export const registerSchema = yup.object({
   email: yup
     .string()
+    .trim()
+    .lowercase()
     .email("Enter a valid email")
     .required("Email is required"),
   // Mirrors the API's PasswordRules (8–72; 72 is bcrypt's input limit).
   password: yup
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(72, "Password must be 72 characters or fewer")
+    .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
+    .max(PASSWORD_MAX_LENGTH, `Password must be ${PASSWORD_MAX_LENGTH} characters or fewer`)
     .required("Password is required"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Confirm your password"),
   displayName: yup
     .string()
+    .trim()
     .max(30, "Display name must be 30 characters or fewer")
     .required("Display name is required"),
-  birthday: yup.string().required("Birthday is required"),
+  birthday: yup
+    .string()
+    .required("Birthday is required")
+    .test("not-in-future", "Birthday cannot be in the future", (value) =>
+      !value || new Date(value) <= new Date(new Date().toDateString()),
+    ),
   spiritualPathway: yup
     .mixed<SpiritualPathway>()
     .oneOf(Object.values(SpiritualPathway), "Select a pathway")

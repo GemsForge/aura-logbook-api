@@ -145,13 +145,15 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         public string? Avatar { get; set; }
         public string? Motto { get; set; }
         public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+        /// <summary>Interface theme preference; missing in legacy files and resolved to Aurora on read.</summary>
+        public string? InterfaceTheme { get; set; }
 
         /// <summary>Copies a domain user into its storage shape.</summary>
         public static StoredUser FromUser(User u) => new()
         {
             Id = u.Id, Email = u.Email, PasswordHash = u.PasswordHash, CreatedAt = u.CreatedAt, UpdatedAt = u.UpdatedAt,
             DisplayName = u.DisplayName, Birthday = u.Birthday, ZodiacSign = u.ZodiacSign, AuraColor = u.AuraColor,
-            AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway,
+            AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway, InterfaceTheme = u.InterfaceTheme,
         };
 
         /// <summary>Copies a stored record back into the domain user.</summary>
@@ -159,7 +161,7 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         {
             Id = s.Id, Email = s.Email, PasswordHash = s.PasswordHash, CreatedAt = s.CreatedAt, UpdatedAt = s.UpdatedAt,
             DisplayName = s.DisplayName, Birthday = s.Birthday, ZodiacSign = s.ZodiacSign, AuraColor = s.AuraColor,
-            AuraIntensity = s.AuraIntensity, Avatar = s.Avatar, Motto = s.Motto, SelectedPathway = s.SelectedPathway,
+            AuraIntensity = s.AuraIntensity, Avatar = s.Avatar, Motto = s.Motto, SelectedPathway = s.SelectedPathway, InterfaceTheme = InterfaceThemeValues.Resolve(s.InterfaceTheme),
         };
     }
 }
