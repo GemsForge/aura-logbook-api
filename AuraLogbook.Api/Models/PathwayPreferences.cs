@@ -32,6 +32,8 @@ public sealed class PathwayPreferences
     /// <summary>Returns a user-facing message when these preferences do not fit <paramref name="pathway"/>, else null.</summary>
     public string? Validate(SpiritualPathway pathway)
     {
+        // JSON "focus": null overrides the initializer; normalize so storage never sees null.
+        Focus ??= [];
         if (!AllowedFocus.TryGetValue(pathway, out var allowed))
             return "Choose a supported pathway.";
         if (Focus.Any(f => !allowed.Contains(f)))

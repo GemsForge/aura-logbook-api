@@ -199,6 +199,10 @@ public class UserService : IUserService
     /// <summary>Returns a user-facing validation message, or null when the request is valid.</summary>
     private static string? ValidateOnboarding(OnboardingRequest request)
     {
+        // JSON null overrides the "= []" initializer; treat a null list as a skipped quiz.
+        request.Answers ??= [];
+        if (request.Answers.Any(a => a is null))
+            return "Quiz answers cannot be empty.";
         // Enum binding accepts any integer, so unknown pathways are rejected here.
         if (!Enum.IsDefined(request.SelectedPathway))
             return "Choose a supported pathway.";

@@ -383,6 +383,41 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal("three-breaths", saved.PathwayPreferences.CheckInOpener);
     }
 
+    /// <summary>#341: JSON nulls for answers or focus are treated as empty instead of crashing.</summary>
+    [Fact]
+    public async Task Null_answers_and_focus_are_treated_as_empty()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = "nulls@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync("nulls@example.com"))!;
+
+        var result = await service.CompleteOnboardingAsync(user.Id, new OnboardingRequest
+        {
+            Answers = null!,
+            PathwayPreferences = new PathwayPreferences { Focus = null!, CheckInOpener = "none" },
+        });
+
+        Assert.True(result.Success, result.Message);
+        var saved = (await service.GetByIdAsync(user.Id))!;
+        Assert.Empty(saved.OnboardingAnswers);
+        Assert.Empty(saved.PathwayPreferences!.Focus);
+        Assert.Equal("none", saved.PathwayPreferences.CheckInOpener);
+    }
+
+    /// <summary>#341: a null entry inside the answers list is rejected with a message, not a crash.</summary>
+    [Fact]
+    public async Task Null_answer_entry_is_rejected()
+    {
+        var service = new UserService(new SqliteUserRepository(_factory));
+        await service.RegisterAsync(new RegisterUserRequest { Email = "null-entry@example.com", Password = "StrongPassword123!" });
+        var user = (await service.GetByEmailAsync("null-entry@example.com"))!;
+
+        var result = await service.CompleteOnboardingAsync(user.Id, new OnboardingRequest { Answers = [null!] });
+
+        Assert.False(result.Success);
+        Assert.Null((await service.GetByIdAsync(user.Id))!.OnboardingCompletedAt);
+    }
+
     /// <summary>#341: users that existed before migration 019 are treated as already onboarded.</summary>
     [Fact]
     public void Migration_019_marks_existing_users_onboarded()
