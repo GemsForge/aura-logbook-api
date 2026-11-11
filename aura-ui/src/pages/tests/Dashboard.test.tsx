@@ -85,6 +85,7 @@ vi.mock("../../store/moodApi", () => ({
 
 // This mocks the zodiacApi hook used in the Dashboard
 vi.mock("../../store/auraApi", () => ({
+  useGetAuraSeasonsQuery: () => ({ data: { current: null, history: [] }, isLoading: false, isError: false, refetch: vi.fn() }),
   // #344: the dashboard header shows "Why this color?" from the derived aura.
   useGetCurrentAuraQuery: () => ({ data: { hue: null, chroma: 0.04, lightness: 0.72, strength: 0, intensity: 0, contributors: [] } }),
   useGetZodiacInsightQuery: (_arg: unknown, options?: { skip?: boolean }) => options?.skip ? ({
