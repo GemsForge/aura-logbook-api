@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services.Aura;
@@ -62,7 +63,10 @@ public sealed class AuraController(IFileUserRepository users, IFileMoodRepositor
         if (user.AuraRevealsEnabled && held is not null && latest?.SeasonKey != held)
             await seasons.StartAsync(userId, held, today);
 
-        var pathway = user.SelectedPathway;
+        // Parse via ToString so this works whether SelectedPathway is the enum or the string key
+        // ("mindfulness" etc.) introduced by #354; unknown values fall back to Mindful Living.
+        var pathway = Enum.TryParse<SpiritualPathway>(user.SelectedPathway.ToString(), ignoreCase: true, out var parsed)
+            ? parsed : SpiritualPathway.Mindfulness;
         var history = user.AuraRevealsEnabled ? await seasons.GetHistoryAsync(userId) : [];
         var currentKey = held ?? latest?.SeasonKey;
         var current = user.AuraRevealsEnabled && currentKey is not null ? AuraSeasons.All[currentKey] : null;
