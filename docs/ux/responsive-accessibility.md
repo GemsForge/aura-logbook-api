@@ -63,6 +63,12 @@ Empty, loading, and error states must be distinct. “No entries yet” is not a
 - Long user-authored comments must wrap without clipping or forcing horizontal page scroll.
 - Give empty results, loading, and request failure separate messages. Preserve the current filter context when the user edits or returns from an entry.
 
+### Edit Profile
+
+- Below `sm` the Edit Profile dialog is full screen; Cancel and Save stay in a sticky footer.
+- Fields are grouped into Profile, Appearance, Aura, Weather, and Account and security: accordions below `md` (Profile and Appearance open), a vertical section nav at `md` and up. Hidden sections stay mounted so validation still runs, and a failed save reveals the section holding the first error.
+- Interface theme chips keep a 44px target, a visible focus ring, and the selected theme name in text; screen mode is a Light/Dark segmented toggle.
+
 ### Text, contrast, focus, and input
 
 - Target WCAG 2.2 Level AA for implemented web screens; this document is a target, not a conformance certification.

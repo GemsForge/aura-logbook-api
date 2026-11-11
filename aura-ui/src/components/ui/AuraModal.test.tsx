@@ -42,4 +42,24 @@ describe("AuraModal", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it("fills the screen below the requested breakpoint", () => {
+    // jsdom has no layout; force every media query to match to simulate a phone.
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: true, media: query, onchange: null,
+      addListener: vi.fn(), removeListener: vi.fn(),
+      addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <AuraModal open onClose={vi.fn()} title="Phone" fullScreenBelow="sm">
+          Content
+        </AuraModal>,
+      );
+      expect(document.querySelector(".MuiDialog-paperFullScreen")).not.toBeNull();
+    } finally {
+      window.matchMedia = original;
+    }
+  });
 });

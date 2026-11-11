@@ -152,7 +152,7 @@ export default function EditProfileModal({
   const colorKey = watch("auraColor");
   const intensity = watch("auraIntensity");
   const currentAuraBg = getAuraColorPreview(colorKey, intensity, auraOptions);
-  // SHOULD I GET RID OF THIS DISPLAY NAME?
+  // Initials fall back to the live display name when no avatar is chosen.
   const displayName = watch("displayName") || user?.displayName || "";
   const defaultInitials = displayName
     .split(" ")
@@ -171,7 +171,9 @@ export default function EditProfileModal({
       }}
       title={<span>Edit Profile</span>}
       size="lg"
-      contentSx={{ p: 0, backgroundColor: "background.default", backgroundImage: "none" }}
+      fullScreenBelow="sm"
+      // overflowX clips off-canvas native inputs (MUI Switch) so phones never scroll sideways.
+      contentSx={{ p: 0, overflowX: "hidden", backgroundColor: "background.default", backgroundImage: "none" }}
     >
         <EditProfileForm
           form={form}

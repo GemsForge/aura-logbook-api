@@ -1,7 +1,10 @@
+import { useState } from "react";
 import {
   Box,
   Checkbox,
+  FormControl,
   FormControlLabel,
+  FormHelperText,
   Switch,
   Avatar as MuiAvatar,
   Typography,
@@ -10,7 +13,8 @@ import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
-import { Controller, type UseFormReturn } from "react-hook-form";
+import { Controller, type FieldErrors, type UseFormReturn } from "react-hook-form";
+import { ProfileSections, type ProfileSection } from "./ProfileSections";
 import type { GraphicAsset } from "@/store/referenceDataApi";
 import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { AuraSelector } from "../AuraSelectorField";
@@ -38,6 +42,16 @@ interface EditProfileFormProps {
   onThemePreviewChange: (theme: InterfaceTheme) => void;
 }
 
+/** Maps each validated field to the section that renders it, for revealing errors on submit. */
+const fieldSection: Partial<Record<keyof EditProfileFormData, string>> = {
+  displayName: "profile", birthday: "profile", spiritualPathway: "profile", motto: "profile",
+  interfaceTheme: "appearance", interfaceMode: "appearance",
+  auraColor: "aura", auraIntensity: "aura", auraRevealsEnabled: "aura",
+  weatherLocationMode: "weather", weatherCity: "weather", weatherRegion: "weather", weatherCountry: "weather", temperatureUnit: "weather",
+  email: "account", password: "account", confirmPassword: "account", isChangingPassword: "account",
+};
+
+/** Edit Profile form: compact identity header, responsive sections, and a sticky save bar. */
 export function EditProfileForm({
   form,
   isChangingPassword,
@@ -56,211 +70,159 @@ export function EditProfileForm({
     register,
     control,
     setValue,
+    watch,
     handleSubmit,
     formState: { errors },
   } = form;
 
-  return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit(onSubmit)}
-      sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "0.82fr 1.4fr" }, gap: { xs: 2, md: 3 }, p: { xs: 2, sm: 3 }, backgroundColor: "transparent" }}>
-      {/* The modal opens with identity and avatar controls so the form feels like profile editing, not a settings dump. */}
-      <Controller
-        name="avatar"
-        control={control}
-        render={({ field }) => {
-          const val = field.value || "";
-          const isImage = avatars.some((asset) => asset.path === val);
+  // Bumped on each failed submit so ProfileSections reveals the section holding the first error.
+  const [reveal, setReveal] = useState<{ id: string; nonce: number }>();
 
-          return (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                p: 2,
-                borderRadius: "16px",
-                background: "var(--aura-dark, #222C27)",
-                color: "var(--al-theme-ink, #FFFEFA)",
-                border: "1px solid var(--aura-line)",
-                alignSelf: "start",
-                flexDirection: { xs: "row", md: "column" },
-                gridColumn: { xs: "1", md: "1" },
-              }}>
-              <MuiAvatar
-                src={isImage ? val : undefined}
-                sx={{
-                  width: 72,
-                  height: 72,
-                  bgcolor: !isImage ? currentAuraBg : undefined,
-                }}>
-                {!isImage ? val : null}
-              </MuiAvatar>
-              <Box sx={{ textAlign: { md: "center" } }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "inherit" }}>Your profile image</Typography>
-                <Typography variant="body2" sx={{ color: "inherit", opacity: .7, mb: 1.5 }}>Choose the image that represents your space.</Typography>
-                <Button variant="soft" color="neutral" size="small" onClick={() => onAvatarPickerOpenChange(true)}>Change avatar</Button>
-              </Box>
-              {errors.avatar && (
-                <Typography color="error">{errors.avatar.message}</Typography>
-              )}
-              <Box sx={{ mt: 1.5, pt: 1.5, borderTop: "1px solid var(--al-theme-border)", display: { xs: "none", md: "block" } }}>
-                <Typography variant="caption" sx={{ color: "inherit", opacity: .7, display: "block" }}>Current aura</Typography>
-                <Box sx={{ height: 36, mt: 0.75, borderRadius: 2, background: currentAuraBg, border: "1px solid rgba(53,45,44,.12)" }} />
-              </Box>
-              <AvatarPickerModal
-                open={avatarPickerOpen}
-                onClose={() => onAvatarPickerOpenChange(false)}
-                avatars={avatars}
-                userInitials={defaultInitials}
-                auraBg={currentAuraBg}
-                onSelect={(val) => {
-                  setValue("avatar", val, { shouldValidate: true });
-                  onAvatarPickerOpenChange(false);
-                }}
-              />
-            </Box>
-          );
-        }}
-      />
+  const avatarValue = watch("avatar") || "";
+  const avatarIsImage = avatars.some((asset) => asset.path === avatarValue);
 
-      <Box sx={{ gridColumn: { xs: "1", md: "2" }, display: "flex", flexDirection: "column", gap: 2 }}>
-      <Box>
-        <Typography variant="overline" sx={{ letterSpacing: "0.16em", color: "text.secondary" }}>About you</Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>A few details help make your logbook feel personal.</Typography>
-      </Box>
-
-      {/* Display Name */}
-      <TextField
-        label="Display Name"
-        {...register("displayName")}
-        error={!!errors.displayName}
-        helperText={errors.displayName?.message}
-        fullWidth
-      />
-
-      {/* Email */}
-      <TextField
-        label="Email"
-        type="email"
-        {...register("email")}
-        error={!!errors.email}
-        helperText={errors.email?.message}
-        fullWidth
-      />
-
-      {/* Birthday */}
-      <Controller
-        name="birthday"
-        control={control}
-        render={({ field }) => (
-          <DatePicker
-            label="Birthday"
-            // An empty birthday (allowed since #341) shows a blank picker, not "Invalid Date".
-            value={field.value ? dayjs(field.value) : null}
-            onChange={(newDate) => newDate && field.onChange(newDate)}
-            format="MM-DD-YYYY"
-          />
-        )}
-      />
-
-      {/* Spiritual Pathways Field */}
-      <MyPathwaySelector
-        control={control}
-        errorMessage={errors.spiritualPathway?.message}
-      />
-
-      <Controller
-        name="interfaceTheme"
-        control={control}
-        render={({ field }) => (
-          <InterfaceThemeField
-            value={field.value}
-            mode={form.watch("interfaceMode")}
-            onChange={(theme) => {
-              field.onChange(theme);
-              onThemePreviewChange(theme);
-            }}
-          />
-        )}
-      />
-
-      <Controller name="interfaceMode" control={control} render={({ field }) => (
-        <InterfaceModeField value={field.value} onChange={(mode) => { field.onChange(mode); onModePreviewChange(mode); }} />
-      )} />
-
-      {/* #344: aura reveals can be turned off; accents then fall back to the interface theme. */}
-      <Controller
-        name="auraRevealsEnabled"
-        control={control}
-        render={({ field }) => (
-          <FormControlLabel
-            control={<Switch checked={field.value !== false} onChange={(e) => field.onChange(e.target.checked)} />}
-            label="Aura reveals: tint my space with my aura and show what shaped it"
-          />
-        )}
-      />
-
-      <WeatherLocationField control={control} setValue={setValue} errors={errors} />
-
-      <MottoField control={control} name="motto" />
-
-      <Box sx={{ pt: 1 }}>
-        <Typography variant="overline" sx={{ letterSpacing: "0.16em", color: "text.secondary" }}>Your aura</Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>Choose the color to record with your reflections. The interface theme is a separate preference.</Typography>
-      </Box>
-
-      {/* Aura Color Selector */}
-      <AuraSelector
-        control={control}
-        colorField="auraColor"
-        intensityField="auraIntensity"
-      />
-
-      {/* Change Password Checkbox */}
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={isChangingPassword}
-            onChange={() => onIsChangingPasswordChange(!isChangingPassword)}
-          />
-        }
-        label="Change password?"
-        sx={{ alignSelf: "flex-start" }}
-      />
-
-      {isChangingPassword && (
+  const sections: ProfileSection[] = [
+    {
+      id: "profile",
+      title: "Profile",
+      content: (
         <>
-          <TextField
-            fullWidth
-            label="New Password"
-            type="password"
-            margin="normal"
-            {...register("password")}
-            error={!!errors.password}
-            helperText={errors.password?.message}
+          <TextField label="Display Name" {...register("displayName")} error={!!errors.displayName} helperText={errors.displayName?.message} fullWidth />
+          <Controller
+            name="birthday"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                label="Birthday"
+                // An empty birthday (allowed since #341) shows a blank picker, not "Invalid Date".
+                value={field.value ? dayjs(field.value) : null}
+                onChange={(newDate) => newDate && field.onChange(newDate)}
+                format="MM-DD-YYYY"
+                slotProps={{ textField: { fullWidth: true } }}
+              />
+            )}
           />
-          <TextField
-            fullWidth
-            label="Confirm Password"
-            type="password"
-            margin="normal"
-            {...register("confirmPassword")}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
+          <MyPathwaySelector control={control} errorMessage={errors.spiritualPathway?.message} />
+          <MottoField control={control} name="motto" />
+        </>
+      ),
+    },
+    {
+      id: "appearance",
+      title: "Appearance",
+      content: (
+        <>
+          <Controller name="interfaceMode" control={control} render={({ field }) => (
+            <InterfaceModeField value={field.value} onChange={(mode) => { field.onChange(mode); onModePreviewChange(mode); }} />
+          )} />
+          <Controller
+            name="interfaceTheme"
+            control={control}
+            render={({ field }) => (
+              <InterfaceThemeField
+                value={field.value}
+                mode={watch("interfaceMode")}
+                onChange={(theme) => { field.onChange(theme); onThemePreviewChange(theme); }}
+              />
+            )}
           />
         </>
-      )}
+      ),
+    },
+    {
+      id: "aura",
+      title: "Aura",
+      content: (
+        <>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Choose the color to record with your reflections. The interface theme is a separate preference.
+          </Typography>
+          <Box aria-hidden="true" sx={{ height: 28, borderRadius: 2, background: currentAuraBg, border: "1px solid var(--aura-line)" }} />
+          <AuraSelector control={control} colorField="auraColor" intensityField="auraIntensity" />
+          {/* #344: aura reveals can be turned off; accents then fall back to the interface theme. */}
+          <Controller
+            name="auraRevealsEnabled"
+            control={control}
+            render={({ field }) => (
+              <FormControl>
+                <FormControlLabel
+                  control={<Switch checked={field.value !== false} onChange={(e) => field.onChange(e.target.checked)} />}
+                  label="Aura reveals"
+                  aria-describedby="aura-reveals-help"
+                />
+                <FormHelperText id="aura-reveals-help" sx={{ mx: 0 }}>Tint your space with your aura and show what shaped it.</FormHelperText>
+              </FormControl>
+            )}
+          />
+        </>
+      ),
+    },
+    {
+      id: "weather",
+      title: "Weather",
+      content: <WeatherLocationField control={control} setValue={setValue} errors={errors} />,
+    },
+    {
+      id: "account",
+      title: "Account and security",
+      content: (
+        <>
+          <TextField label="Email" type="email" {...register("email")} error={!!errors.email} helperText={errors.email?.message} fullWidth />
+          <FormControlLabel
+            control={<Checkbox checked={isChangingPassword} onChange={() => onIsChangingPasswordChange(!isChangingPassword)} />}
+            label="Change password?"
+            sx={{ alignSelf: "flex-start" }}
+          />
+          {isChangingPassword && (
+            <>
+              <TextField fullWidth label="New Password" type="password" {...register("password")} error={!!errors.password} helperText={errors.password?.message} />
+              <TextField fullWidth label="Confirm Password" type="password" {...register("confirmPassword")} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />
+            </>
+          )}
+        </>
+      ),
+    },
+  ];
+
+  const onInvalid = (invalid: FieldErrors<EditProfileFormData>) => {
+    const firstField = Object.keys(invalid)[0] as keyof EditProfileFormData | undefined;
+    const sectionId = firstField ? fieldSection[firstField] : undefined;
+    if (sectionId) setReveal((prev) => ({ id: sectionId, nonce: (prev?.nonce ?? 0) + 1 }));
+  };
+
+  return (
+    <Box component="form" onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate sx={{ display: "flex", flexDirection: "column", minWidth: 0, minHeight: "100%" }}>
+      {/* Compact identity row replaces the tall avatar card so fields start near the top on phones. */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: { xs: 2, sm: 3 }, py: 2, minWidth: 0 }}>
+        <MuiAvatar src={avatarIsImage ? avatarValue : undefined} sx={{ width: 48, height: 48, bgcolor: !avatarIsImage ? currentAuraBg : undefined }}>
+          {!avatarIsImage ? avatarValue || defaultInitials : null}
+        </MuiAvatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>{watch("displayName") || "Your profile"}</Typography>
+          <Button variant="plain" size="small" onClick={() => onAvatarPickerOpenChange(true)} sx={{ px: 0, minHeight: 0 }}>Change avatar</Button>
+        </Box>
+        {errors.avatar && <Typography color="error" variant="body2">{errors.avatar.message}</Typography>}
+        <AvatarPickerModal
+          open={avatarPickerOpen}
+          onClose={() => onAvatarPickerOpenChange(false)}
+          avatars={avatars}
+          userInitials={defaultInitials}
+          auraBg={currentAuraBg}
+          onSelect={(val) => {
+            setValue("avatar", val, { shouldValidate: true });
+            onAvatarPickerOpenChange(false);
+          }}
+        />
       </Box>
 
-      <Box sx={{ gridColumn: "1 / -1", display: "flex", justifyContent: "space-between", gap: 1.5, mt: 1, pt: 2, borderTop: "1px solid var(--aura-line)" }}>
-        <Button variant="plain" color="neutral" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button variant="contained" type="submit" sx={{ minWidth: 150 }}>
-          Save Changes
-        </Button>
+      <Box sx={{ flex: 1, minWidth: 0, px: { xs: 0, md: 1 } }}>
+        <ProfileSections sections={sections} defaultExpanded={["profile", "appearance"]} reveal={reveal} />
+      </Box>
+
+      {/* Sticky so Save stays reachable without scrolling to the end of a long form. */}
+      <Box sx={{ position: "sticky", bottom: 0, zIndex: 1, display: "flex", justifyContent: "space-between", gap: 1.5, px: { xs: 2, sm: 3 }, py: 1.5, bgcolor: "background.default", borderTop: "1px solid var(--aura-line)" }}>
+        <Button variant="plain" color="neutral" onClick={onCancel}>Cancel</Button>
+        <Button variant="contained" type="submit" sx={{ minWidth: 140 }}>Save Changes</Button>
       </Box>
     </Box>
   );

@@ -3,8 +3,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  useMediaQuery,
   type DialogProps,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 export type AuraModalVariant = "standard" | "outlined" | "soft";
@@ -27,6 +29,11 @@ export interface AuraModalProps {
   contentSx?: DialogProps["sx"];
   actionsSx?: DialogProps["sx"];
   disableEscapeKeyDown?: boolean;
+  /**
+   * When set, the dialog fills the viewport below this breakpoint so long forms
+   * get the full phone width instead of the default dialog margins. Off by default.
+   */
+  fullScreenBelow?: "sm" | "md";
 }
 
 const maxWidths: Record<AuraModalSize, "xs" | "sm" | "md" | "lg" | "xl"> = {
@@ -60,7 +67,13 @@ export function AuraModal({
   contentSx,
   actionsSx,
   disableEscapeKeyDown = false,
+  fullScreenBelow,
 }: AuraModalProps) {
+  const theme = useTheme();
+  // Hooks must run unconditionally; an impossible query keeps the default (not full screen).
+  const isFullScreen = useMediaQuery(
+    fullScreenBelow ? theme.breakpoints.down(fullScreenBelow) : "(max-width:0px)"
+  );
   const titleId = ariaLabelledBy ?? "aura-modal-title";
 
   return (
@@ -70,6 +83,7 @@ export function AuraModal({
       aria-labelledby={titleId}
       maxWidth={maxWidths[size]}
       fullWidth={fullWidth}
+      fullScreen={isFullScreen}
       scroll="paper"
       disableEscapeKeyDown={disableEscapeKeyDown}
       sx={{

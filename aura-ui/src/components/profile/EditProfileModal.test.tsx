@@ -97,6 +97,8 @@ describe("EditProfileModal", () => {
 
     renderWithProviders(<EditProfileModal open onClose={onClose} />);
 
+    // Fields are grouped into sections; jsdom matches no media query, so the desktop tab nav renders.
+    await user.click(await screen.findByRole("tab", { name: "Aura" }));
     await user.click(await screen.findByRole("combobox", { name: "Aura Color" }));
     await user.click(screen.getByRole("option", { name: /green/i }));
 
@@ -133,9 +135,26 @@ describe("EditProfileModal", () => {
 
     const { store } = renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
 
+    await user.click(await screen.findByRole("tab", { name: "Appearance" }));
     await user.click(await screen.findByRole("radio", { name: /Ocean/i }));
 
     expect(store.getState().ui.interfaceThemePreview).toBe("Ocean");
+    expect(mockUpdateUser).not.toHaveBeenCalled();
+  });
+
+  it("reveals the section holding the first validation error on save", async () => {
+    const user = userEvent.setup();
+    mockGetCurrentUser.mockReturnValue({
+      data: { ...baseUser, avatar: "", auraColor: "blue", auraIntensity: 50, email: "not-an-email" },
+      isFetching: false,
+    });
+
+    renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: "Save Changes" }));
+
+    expect(await screen.findByRole("tab", { name: "Account and security" })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByText("Enter a valid email")).toBeVisible();
     expect(mockUpdateUser).not.toHaveBeenCalled();
   });
 });
