@@ -38,7 +38,10 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
         var moodRows = (await connection.QueryAsync<MoodRow>(
             "SELECT MoodKey AS Key, DisplayName, Description, Icon, SortOrder FROM MoodDefinitions WHERE IsActive = 1 ORDER BY SortOrder, MoodKey")).ToList();
         var moodMappings = await connection.QueryAsync<MoodAuraMappingRow>(
-            "SELECT MoodKey AS MoodKey, AuraColorKey AS AuraColorKey FROM MoodAuraMappings ORDER BY MoodKey, AuraColorKey");
+            "SELECT mapping.MoodKey, mapping.AuraColorKey FROM MoodAuraMappings mapping " +
+            "INNER JOIN MoodDefinitions mood ON mood.MoodKey = mapping.MoodKey AND mood.IsActive = 1 " +
+            "INNER JOIN AuraColorDefinitions aura ON aura.AuraColorKey = mapping.AuraColorKey AND aura.IsActive = 1 " +
+            "ORDER BY mapping.MoodKey, mapping.AuraColorKey");
         var mappingsByMood = moodMappings.GroupBy(row => row.MoodKey)
             .ToDictionary(group => group.Key, group => (IReadOnlyList<string>)group.Select(row => row.AuraColorKey).ToList());
         var moods = moodRows.Select(row => new MoodDefinitionDto
