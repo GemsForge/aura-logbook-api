@@ -63,6 +63,23 @@ public sealed class PasswordResetService : IPasswordResetService
 
         var rawToken = Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
         var now = _clock.GetUtcNow().UtcDateTime;
+        var link = $"{_options.ResetUrlBase}?token={Uri.EscapeDataString(rawToken)}";
+        try
+        {
+            await _email.SendAsync(user.Email, "Reset your Aura Logbook password",
+                $"Use this link within {_options.TokenLifetimeMinutes} minutes to choose a new password:\n{link}\n\nIf you did not ask for this, you can ignore this email.",
+                cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Provider outage (#335): keep the generic response and log only the exception type,
+            // never the message, token, or link (provider errors can echo the body).
+            _logger.LogError("Password reset email could not be sent ({ErrorType})", ex.GetType().Name);
+            return;
+        }
+
+        // Persist only after the email was accepted (#335): issuing replaces any earlier unused
+        // token, so storing first would let a failed send kill a link the user already holds.
         await _tokens.IssueAsync(new PasswordResetToken
         {
             UserId = user.Id,
@@ -70,11 +87,6 @@ public sealed class PasswordResetService : IPasswordResetService
             CreatedAt = now,
             ExpiresAt = now.AddMinutes(_options.TokenLifetimeMinutes),
         });
-
-        var link = $"{_options.ResetUrlBase}?token={Uri.EscapeDataString(rawToken)}";
-        await _email.SendAsync(user.Email, "Reset your Aura Logbook password",
-            $"Use this link within {_options.TokenLifetimeMinutes} minutes to choose a new password:\n{link}\n\nIf you did not ask for this, you can ignore this email.",
-            cancellationToken);
     }
 
     /// <inheritdoc />

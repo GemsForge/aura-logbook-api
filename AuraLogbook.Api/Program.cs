@@ -112,15 +112,16 @@ builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
 builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();
 builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 
-// Password recovery (#329). Only a log-based sender exists, so the feature is forced off
-// outside Development regardless of configuration until a real IEmailSender is chosen.
+// Password recovery (#329, #335). Development logs mail; other environments use SMTP when
+// Email:Smtp is configured. Recovery is on only when enabled, a sender exists, and ResetUrlBase is valid.
+var emailSenderAvailable = builder.Services.AddAuraEmailSender(builder.Configuration, builder.Environment);
 var resetSection = builder.Configuration.GetSection(PasswordResetOptions.SectionName);
 var resetOptions = resetSection.Get<PasswordResetOptions>() ?? new PasswordResetOptions();
 builder.Services.Configure<PasswordResetOptions>(resetSection);
-builder.Services.PostConfigure<PasswordResetOptions>(o => o.Enabled &= builder.Environment.IsDevelopment());
+builder.Services.PostConfigure<PasswordResetOptions>(o =>
+    o.Enabled = PasswordResetOptions.IsEffectivelyEnabled(o.Enabled, emailSenderAvailable, o.ResetUrlBase));
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddSingleton<IEmailSender, DevelopmentLogEmailSender>();
 builder.Services.AddScoped<IPasswordResetTokenRepository, SqlitePasswordResetTokenRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddPasswordResetRateLimit(resetOptions);
