@@ -1,0 +1,214 @@
+# Onboarding & Derived Aura — Draft Spec
+
+Status: draft for story planning. Aura interpretation stays optional and non-diagnostic:
+copy says "often linked with…", never "you are…".
+
+## Flow
+
+Welcome → Create your space → Pathway quiz (words) → Birthday (optional) → Color moment (no words) → Reveal (pathway + aura) → Pathway page → Reminder
+
+### Pathway pages (after Reveal, one per pathway, skippable)
+
+What sets the pathways apart starts here:
+
+| Pathway | Page | Captures |
+|---|---|---|
+| Astrology & Energy | **Your sky**: sun sign, element and the aura base hue from the birthday | Nudge topics: moon phases, my sign, chakras, crystals |
+| Faith & Religion | **Your heart's season**: the current church season and its color, worded as a season of the heart | Daily encouragement: a verse, a short prayer, a reflection question |
+| Mindful Living | **What would you like to tend?** | 1–2 intentions (calm, rest, clarity, gratitude, self-kindness, focus) and a check-in opener (nothing, 3 breaths, 1 minute) |
+
+Astrology & Energy without a birthday shows the sign step inline ("Add your birthday to see your sky") instead of the sign rows.
+
+- Registration keeps email, password, display name. Birthday moves to the end of the quiz as an optional card.
+- **Color moment is an input, not a selection.** Alex sees 8 unlabeled swatches: "Which one feels like right now?"
+  The tap adds weight to the blend; Alex never names or sets their aura. Skippable.
+- Theme stays user-controlled in Settings. Aura colors accents, tints and buttons only through text-safe tones.
+
+## 1. Goals quiz
+
+One question per screen, three cards, answer order shuffled. **Skip** at any point → Mindful Living.
+Pathways: **M** Mindful Living, **E** Astrology & Energy, **F** Faith & Religion.
+
+| # | Question | M | E | F |
+|---|---|---|---|---|
+| 1 | When a hard day hits, what helps most? | Slowing down and breathing through it | Knowing there's a bigger cycle or season at play | Praying, or handing it over to God |
+| 2 | What would you like to work on? | Feeling calmer day to day | Understanding my energy and moods | Feeling closer to my Creator |
+| 3 | When you reflect, you usually… | Notice what's happening in my body and mind | Wonder what the moon, stars or my aura are saying | Look for meaning or a message meant for me |
+| 4 | A good check-in would leave you feeling… | Clear and grounded | In tune and aligned | Held and guided |
+| 5 | What kind of daily nudge would you welcome? | A short mindful prompt | A cosmic or energy insight | A verse or a prayer |
+
+Final optional card: "Want insights tied to your sign? Add your birthday." (Shown to all; used only by E.)
+
+## 2. Pathway scoring
+
+- Each answer = 1 point to its pathway. Unanswered questions score nothing.
+- Top score wins. **Tie for first** → reveal shows both tied pathways; Alex taps one.
+  Three-way tie (e.g., 1/1/1 after skips) → show all three.
+- Zero answers / Skip → Mindful Living.
+- Reveal copy: "You seem drawn to **{pathway}**" + "a little {runner-up} too" when runner-up > 0.
+- Changeable anytime in Settings.
+
+## 3. Hue anchors (OKLCH hue degrees)
+
+| Anchor | Hue | Anchor | Hue |
+|---|---|---|---|
+| Red | 29 | Teal | 190 |
+| Orange | 55 | Blue | 250 |
+| Gold | 85 | Indigo | 275 |
+| Green | 145 | Violet | 305 |
+| | | Rose | 350 |
+
+## 4. Quiz answer → hue weights
+
+Each answer contributes one or two hues (weights sum to 1.0).
+
+| # | M answer | E answer | F answer |
+|---|---|---|---|
+| 1 | Blue .6, Teal .4 | Violet .6, Indigo .4 | Gold .7, Rose .3 |
+| 2 | Teal .6, Green .4 | Violet .5, Orange .5 | Gold .6, Violet .4 |
+| 3 | Green .6, Blue .4 | Indigo .6, Violet .4 | Gold .5, Blue .5 |
+| 4 | Blue .5, Green .5 | Violet .5, Teal .5 | Rose .5, Gold .5 |
+| 5 | Teal .7, Blue .3 | Indigo .5, Orange .5 | Gold .6, Rose .4 |
+
+Color moment swatches (one tap, weight 1.5): Red, Orange, Gold, Green, Teal, Blue, Violet, Rose.
+
+## 5. Mood → hue weights (ongoing check-ins)
+
+Chroma factor scales how saturated the contribution is; low-energy moods mute the aura.
+
+| Mood | Hue | Chroma factor |
+|---|---|---|
+| Empowered | Orange 40 | 1.0 |
+| Centered | Blue 250 | 0.8 |
+| Harmonious | Green 145 | 0.9 |
+| Flowing | Teal 190 | 0.9 |
+| Weary | Indigo 275 | 0.4 |
+| Tense | Red 25 | 0.7 |
+| Frustrated | Red 29 | 0.9 |
+| Restless | Orange 60 | 0.7 |
+| Disconnected | Blue 260 | 0.3 |
+| Heavy | Indigo 280 | 0.4 |
+| Charged | Rose 350 | 1.0 |
+| Scattered | Gold 95 | 0.5 |
+| Abundant | Gold 85 | 1.0 |
+| Visionary | Violet 305 | 1.0 |
+| Neutral | — (no hue) | lowers overall chroma only |
+
+## 6. Pathway base layer
+
+| Pathway | Base | Weight |
+|---|---|---|
+| Mindful Living | none (pure mood blend) | 0 |
+| Astrology & Energy (birthday given) | Element: Fire → Orange 40 · Earth → Green 130 · Air → Gold 95 · Water → Teal-Blue 220 | 0.3 of total |
+| Faith & Religion | Season of the year: Advent/Lent → Violet 305 · Christmas/Easter → Gold 85 · Pentecost → Red 29 · Ordinary time → Green 145 | 0.25 of total |
+
+## 7. Blending in OKLCH
+
+Hue is circular, so blend as vectors, not averages:
+
+```
+for each input i: x += w_i * c_i * cos(h_i);  y += w_i * c_i * sin(h_i);  W += w_i
+hue      = atan2(y, x)
+strength = sqrt(x² + y²) / W          // 0..1; opposing hues cancel → muted
+chroma   = 0.04 + 0.12 * strength     // keep it gentle
+lightness= 0.72 (aura surface tone)
+```
+
+Inputs over time:
+- **Onboarding seed** (quiz + color moment): starts at full weight, halves every 7 days.
+- **Mood logs**: each mood weight × chroma factor, decay half-life 7 days, window 30 days.
+- **Pathway base**: fixed share applied after the above.
+- `AuraIntensity` (0–100) = `strength` × 100, derived, not entered.
+
+## 8. Text-safe tone derivation
+
+From aura hue `h` and chroma `c`, derive tokens; never put the raw aura on text.
+
+| Token | Use | Light theme | Dark theme |
+|---|---|---|---|
+| `--aura-tint` | backgrounds, calendar cells | L .95, C c×.3 | L .25, C c×.4 |
+| `--aura-surface` | orb, cards | L .72, C c | L .60, C c |
+| `--aura-accent` | button fill | L .55, C c | L .70, C c |
+| `--aura-on-accent` | button text | white or near-black, whichever passes | same rule |
+| `--aura-text` | links, emphasis | start L .45, step L −.03 until ≥ 4.5:1 | start L .80, step +.03 until ≥ 4.5:1 |
+
+Rules: text pairs ≥ 4.5:1 (WCAG AA); UI/non-text ≥ 3:1. Clamp chroma to the sRGB gamut
+before checking. Contrast checks run in unit tests over all 360 hues × both themes.
+
+## 9. Pathway language
+
+| Pathway | Frame | Example reveal |
+|---|---|---|
+| Mindful Living | Current emotional tone (color psychology) | "Your tone lately is **soft blue**, often linked with calm and clarity." |
+| Astrology & Energy | Aura / chakra, optionally sign-linked | "Your aura is leaning **violet**, often linked with intuition. Your Water sign deepens it." |
+| Faith & Religion | A mood or season of the heart (no energy/aura words) | "Your heart's season feels **gold**, often linked with gratitude and hope." |
+
+## 10. Aura seasons (named archetypes)
+
+A season is a named pattern, not an identity. It appears only once a pattern **holds**:
+the same season key is dominant on ≥ 5 of the last 7 days, with ≥ 4 mood logs in that window.
+It stays until a different season holds; between seasons Alex sees "Your aura is shifting…".
+
+Season key = daily aura hue family + strength (from §7).
+
+| Key | Hue family | Strength | Name | Often linked with… |
+|---|---|---|---|---|
+| tide | Blue / Teal | ≥ .5 | **Steady Tide** | calm, consistency, trust |
+| harbor | Blue / Indigo | < .5 | **Quiet Harbor** | rest, retreat, recovery |
+| growth | Green | any | **New Growth** | renewal, balance, beginnings |
+| harvest | Gold | ≥ .5 | **Open Harvest** | gratitude, abundance, warmth |
+| kindling | Orange / Red | ≥ .5 | **Kindling** | drive, courage, momentum |
+| weather | Red / Orange | < .5 | **Shifting Weather** | friction, change in motion |
+| starlit | Violet | any | **Starlit** | vision, intuition, imagination |
+| bloom | Rose | any | **Bloom** | spark, connection, aliveness |
+| stillwater | any | < .25 | **Still Water** | a mixed or muted stretch |
+
+Pathway framing (same key, different voice):
+- Mindful Living: "You've been in a **Steady Tide** stretch: a tone often linked with calm."
+- Astrology & Energy: "Your aura has settled into a **Steady Tide** season."
+- Faith & Religion: "Your heart has been in a **Steady Tide** season, often linked with trust."
+
+Each season ships with: one reflection prompt per pathway and one gentle next step.
+Season history is shown on the calendar as ribbons spanning the days it held.
+
+## 11. Mood-combination hue nuance
+
+Builds on `MoodCombinationInterpretations` (migration 018). When a check-in's selected moods
+match a `MoodSetKey`, the combination replaces the individual mood hues for that entry:
+
+- New reference table `MoodCombinationHues (MoodSetKey PK, Hue, ChromaFactor, Weight)` —
+  pathway-independent, so one hue per combination; interpretation text stays per pathway.
+- Default when no hue row exists: blend the individual moods (§5), so unseeded combos still work.
+- The check-in confirmation shows the combination's **hue swatch + its existing pathway
+  interpretation together**, e.g. Tense + Visionary → electric violet-red (≈ 330, chroma 1.0)
+  with the pathway's reflective insight.
+- Weight 1.25 vs single moods, so meaningful pairs nudge the aura a bit more.
+- "Why this color?" lists them: "Tense + Visionary on Tuesday".
+
+## 12. Animated orb
+
+The orb is the living aura: Welcome, quiz (blends as answers come in), reveal, home.
+
+- **Drift:** 2–3 radial gradients orbit slowly, hues ±15° around the aura hue (12–20 s loop).
+- **Breathe:** scale 0.97 ↔ 1.03 and lightness ±.03; period follows strength
+  (strong aura ≈ 4 s, muted ≈ 7 s — calmer when quieter).
+- **Season change:** 1.5 s cross-fade between old and new hue on reveal.
+- **Combination moment:** brief shimmer in the combination hue after check-in.
+- Implementation: CSS custom properties driven from the aura snapshot; canvas only if needed.
+- **`prefers-reduced-motion`:** static gradient, no breathing, instant transitions.
+- Decorative: `aria-hidden`; the reveal text carries the meaning.
+
+## Guardrails
+
+- **Why this color?** sheet: plain list of what fed it ("Your quiz answers", "5 check-ins this week, mostly Centered", "Your Water sign").
+- **Aura reveals** toggle in Settings (off → neutral theme accents, no reveal copy).
+- Color meanings are our own copy; no third-party color-test mappings.
+
+## Data impact
+
+- `RegisterUserRequest`: Birthday and SelectedPathway become optional; AuraColor/AuraIntensity removed as inputs.
+- User: `OnboardingCompletedAt`, `AuraRevealsEnabled`.
+- New: onboarding answers (question, chosen pathway), color-moment hue, computed aura snapshot (hue, chroma, strength, computedAt).
+- New: `AuraSeasons` reference (key, name, prompts per pathway, next step), user season history
+  (key, startedOn, endedOn), `MoodCombinationHues` keyed by `MoodSetKey`.
+- Hue tables live in reference data so weights can be tuned without a UI deploy.
