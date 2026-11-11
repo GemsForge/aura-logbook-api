@@ -128,10 +128,19 @@ export function getInterfaceThemeTokens(theme: string, mode?: InterfaceMode): In
   return interfaceThemePalettes[resolveInterfaceTheme(theme)][mode ?? resolveInterfaceMode(undefined, theme)];
 }
 
+/** Only the selected variant loads initially; callers use the legacy image after an error. */
+export function getInterfaceThemeBanner(theme: InterfaceTheme, mode: InterfaceMode) {
+  const slug = resolveInterfaceTheme(theme).toLowerCase();
+  return {
+    src: `/theme-assets/backgrounds/banner-${slug}-${mode}.png`,
+    fallback: `/theme-assets/backgrounds/banner-${slug}.png`,
+  };
+}
+
 /** Creates CSS custom properties for the shared shell and its theme banner. */
 export function getInterfaceThemeCssVariables(theme: InterfaceTheme, mode: InterfaceMode = "dark"): Record<string, string> {
   const tokens = getInterfaceThemeTokens(theme, mode);
-  const slug = theme.toLowerCase();
+  const banner = getInterfaceThemeBanner(theme, mode);
   return {
     "--al-theme-canvas": tokens.canvas,
     "--al-theme-surface": tokens.surface,
@@ -147,6 +156,6 @@ export function getInterfaceThemeCssVariables(theme: InterfaceTheme, mode: Inter
     "--al-theme-danger": tokens.danger,
     "--al-theme-glow": tokens.glow,
     "--al-theme-banner-scrim": tokens.bannerScrim,
-    "--al-theme-banner": `url("/theme-assets/backgrounds/banner-${slug}-${mode}.png"), url("/theme-assets/backgrounds/banner-${slug}.png")`,
+    "--al-theme-banner": `url("${banner.src}")`,
   };
 }

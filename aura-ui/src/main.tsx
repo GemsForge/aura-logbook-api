@@ -13,7 +13,6 @@ import {
   getAuraJoyTheme,
   getAuraTheme,
   type InterfaceMode,
-  resolveInterfaceTheme,
 } from "./theme";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -23,7 +22,7 @@ import { useCurrentUserQuery } from "./store/hooks/useCurrentUserQuery";
 import "./index.css";
 import { useAppSelector } from "./store/hooks";
 import { selectCurrentUser } from "./store/slices/authSlice";
-import { selectInterfaceThemePreview, selectInterfaceMode } from "./store/slices/uiSlice";
+import { selectInterfaceTheme, selectInterfaceMode } from "./store/slices/uiSlice";
 import { normalizeAuraIntensity } from "./theme/auraTheme";
 import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
 import { useGetReferenceDataQuery } from "./store/referenceDataApi";
@@ -41,13 +40,12 @@ function ThemedApp() {
   const { data: referenceData, isLoading: referenceDataLoading, isError: referenceDataError, refetch } = useGetReferenceDataQuery();
   const { isLoading } = useCurrentUserQuery();
   const user = useAppSelector(selectCurrentUser);
-  const interfaceThemePreview = useAppSelector(selectInterfaceThemePreview);
+  const interfaceTheme = useAppSelector(selectInterfaceTheme);
   
   // Profile mutations update Redux immediately, making saved preferences visible across both themes.
   const auraColor = user?.auraColor ?? referenceData?.auras[0]?.key ?? "blue";
   const auraIntensity = normalizeAuraIntensity(user?.auraIntensity);
-  // An unsaved profile choice previews across the app, then falls back to the saved account setting.
-  const interfaceTheme = resolveInterfaceTheme(interfaceThemePreview ?? user?.interfaceTheme);
+  // Providers and banners share the same independent family and brightness selectors.
   const interfaceMode = useAppSelector(selectInterfaceMode);
 
   useLayoutEffect(() => {

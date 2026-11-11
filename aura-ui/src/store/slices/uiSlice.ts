@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
-import { resolveInterfaceMode, type InterfaceMode, type InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
+import { resolveInterfaceTheme, resolveInterfaceMode, type InterfaceMode, type InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
 
 export const GUEST_MODE_STORAGE_KEY = "aura-interface-mode";
 /** Browser storage can be unavailable; the guest session still starts safely in dark mode. */
@@ -41,6 +41,9 @@ export const { openProfileModal, closeProfileModal, setInterfaceThemePreview, se
 export const selectIsProfileModalOpen = (state: RootState) => state.ui.isProfileModalOpen;
 /** Unsaved profile family, independent of brightness. */
 export const selectInterfaceThemePreview = (state: RootState) => state.ui.interfaceThemePreview;
+/** Shared family resolution keeps the providers and decorative artwork on the same preview. */
+export const selectInterfaceTheme = (state: RootState): InterfaceTheme =>
+  resolveInterfaceTheme(state.ui.interfaceThemePreview ?? state.auth.profile?.interfaceTheme);
 /** Resolves the active brightness for both providers and the one-click toggle. */
 export const selectInterfaceMode = (state: RootState): InterfaceMode => state.ui.interfaceModePreview ?? state.ui.pendingInterfaceMode ??
   (state.auth.profile ? resolveInterfaceMode(state.auth.profile.interfaceMode, state.auth.profile.interfaceTheme) : state.ui.guestInterfaceMode ?? "dark");

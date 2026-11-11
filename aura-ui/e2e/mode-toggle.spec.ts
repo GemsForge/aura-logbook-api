@@ -149,3 +149,34 @@ test("mode switching waits for onboarding completion", async ({ page }) => {
   await expect(page).toHaveURL(/dashboard$/);
   expect(service.profile()).toMatchObject({ selectedPathway: "Mindfulness", interfaceMode: "dark" });
 });
+
+/** A real banner must not fetch the legacy full-size image unless its selected variant fails. */
+test("banner downloads only the active variant across mode changes", async ({ page }) => {
+  await api(page);
+  const images: string[] = [];
+  page.on("request", (request) => { const path = new URL(request.url()).pathname; if (path.includes("/backgrounds/banner-")) images.push(path); });
+  await page.goto("/history");
+  await expect(page.locator('img[src="/theme-assets/backgrounds/banner-ocean-dark.png"]')).toHaveJSProperty("naturalWidth", 1774);
+  await page.waitForLoadState("networkidle");
+  expect(images).toEqual(["/theme-assets/backgrounds/banner-ocean-dark.png"]);
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await expect(page.locator('img[src="/theme-assets/backgrounds/banner-ocean-light.png"]')).toHaveJSProperty("naturalWidth", 1774);
+  await page.waitForLoadState("networkidle");
+  expect(images).toEqual(["/theme-assets/backgrounds/banner-ocean-dark.png", "/theme-assets/backgrounds/banner-ocean-light.png"]);
+});
+for (const missingOriginal of [false, true]) {
+  test(`banner requests fallback only after variant failure${missingOriginal ? " and stops if both fail" : ""}`, async ({ page }) => {
+    await api(page);
+    const images: string[] = [];
+    page.on("request", (request) => { const path = new URL(request.url()).pathname; if (path.includes("/backgrounds/banner-")) images.push(path); });
+    await page.route("**/backgrounds/banner-ocean-dark.png", (route) => route.fulfill({ status: 404, body: "Missing variant" }));
+    if (missingOriginal) await page.route("**/backgrounds/banner-ocean.png", (route) => route.fulfill({ status: 404, body: "Missing original" }));
+    await page.goto("/history");
+    const fallback = page.locator('img[src="/theme-assets/backgrounds/banner-ocean.png"]');
+    if (missingOriginal) await expect(fallback).toBeHidden();
+    else await expect(fallback).toHaveJSProperty("naturalWidth", 1774);
+    await page.waitForLoadState("networkidle");
+    expect(images).toEqual(["/theme-assets/backgrounds/banner-ocean-dark.png", "/theme-assets/backgrounds/banner-ocean.png"]);
+    await expect(page.getByRole("heading", { name: "Mood History", exact: true })).toBeVisible();
+  });
+}

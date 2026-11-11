@@ -45,4 +45,4 @@ The original `banner-<theme>.png` files remain the existing references. The app 
 
 See [LIGHT-BANNER-PROMPTS.md](LIGHT-BANNER-PROMPTS.md) for the exact prompt set and generation method. The browsable preview includes the new companions.
 
-Active variants use `banner-<theme>-light.png` and `banner-<theme>-dark.png`; original `banner-<theme>.png` names are fallback layers. The manifest contains 60 indexed assets, including the six explicit dark aliases.
+Active variants use `banner-<theme>-light.png` and `banner-<theme>-dark.png`; original `banner-<theme>.png` names are requested only after a variant fails to load. The manifest contains 60 indexed assets, including the six explicit dark aliases.
