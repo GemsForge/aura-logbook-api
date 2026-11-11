@@ -1,4 +1,4 @@
-const publicAuthEndpoint = /\/auth\/(?:login|register)\/?$/i;
+const publicAuthEndpoint = /\/auth\/(?:login|register|forgot-password|reset-password)\/?$/i;
 
 export function shouldClearAuthenticationState(
   status: number | undefined,

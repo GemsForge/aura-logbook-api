@@ -54,8 +54,7 @@ describe("AuthApi", () => {
   });
 
   // #327: these routes were removed from the API, so the client must not expose them.
-  it("does not expose removed password-reset or diagnostic endpoints", () => {
-    expect(AuthApi).not.toHaveProperty("resetPassword");
+  it("does not expose removed diagnostic endpoints (token reset replaced email-only reset in #329)", () => {
     expect(AuthApi).not.toHaveProperty("testConnection");
     expect(AuthApi).not.toHaveProperty("getAllUsers");
   });

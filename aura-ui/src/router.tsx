@@ -10,6 +10,9 @@ import MoodEntryForm from "./components/MoodEntryForm";
 import HomePage from "./pages/Home";
 import MediaGallery from "./pages/MediaGallery";
 import Insights from "./pages/Insights";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import { passwordResetEnabled } from "./features/auth/models/PasswordResetSchema";
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +23,13 @@ export const router = createBrowserRouter([
       { path: "home", element: <HomePage /> },
       { path: "login", element: <LoginForm /> },
       { path: "register", element: <RegisterForm /> },
+      // Account recovery (#329) is only routed while the API can deliver reset email.
+      ...(passwordResetEnabled
+        ? [
+            { path: "forgot-password", element: <ForgotPassword /> },
+            { path: "reset-password", element: <ResetPassword /> },
+          ]
+        : []),
       { path: "*", element: <NotFound /> },
 
       // 👇 Protected children nested inside ProtectedRoute

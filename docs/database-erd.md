@@ -11,6 +11,7 @@ erDiagram
     MoodEntries ||--o{ MoodMediaAttachments : has_private_media
     Users ||--o{ ReflectionResponses : writes
     Users ||--o{ WeeklyAuraSummaries : owns
+    Users ||--o{ PasswordResetTokens : can_reset_with
 
     MoodEntries ||--o{ MoodEntryMoods : has
     MoodDefinitions ||--o{ MoodEntryMoods : classifies
@@ -170,6 +171,15 @@ erDiagram
         string ReflectiveSummary
         datetime GeneratedAt
     }
+
+    PasswordResetTokens {
+        int Id PK
+        int UserId
+        string TokenHash UK
+        datetime CreatedAt
+        datetime ExpiresAt
+        datetime UsedAt
+    }
 ```
 
 ## Current boundaries
@@ -180,5 +190,6 @@ erDiagram
 - Reflection responses are owned by a user and tied to both a prompt and one of that user's mood entries. The API enforces that ownership relationship.
 - Weekly summaries are unique by the composite `(UserId, WeekStartDate)` key.
 - `MoodMediaAttachments` stores owner-scoped metadata in SQLite; file bytes stay in private filesystem storage. The mood-entry relationship is enforced by the API rather than a SQL foreign key because Production currently uses file-based mood storage.
+- `PasswordResetTokens` stores only a SHA-256 token hash, with expiry and single-use state. It intentionally has no SQL foreign key because Production users currently live in files; the recovery endpoints remain disabled outside Development until a real email sender is configured.
 - Weekly aura summary and weather snapshot tables exist in migrations, but their complete generation, persistence, and UI journeys must be verified separately before being described as shipped features.
 - Migration history is authoritative. Do not edit an already-applied migration to make this diagram match; add a reviewed forward migration and update the diagram.
