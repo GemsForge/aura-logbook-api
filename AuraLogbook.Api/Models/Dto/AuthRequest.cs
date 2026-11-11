@@ -1,7 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AuraLogbook.Api.Models.Dto
 {
+    /// <summary>
+    /// Login credentials. Keeps the legacy 6-character minimum on purpose so existing accounts
+    /// with 6- or 7-character passwords can still sign in; new passwords use <see cref="PasswordRules"/>.
+    /// </summary>
     public class AuthRequest
     {
         [Required]

@@ -18,7 +18,6 @@ import {
   type LoginFormData,
 } from "../features/auth/models/LoginSchema";
 import { useToast } from "../hooks/useToast";
-import { ForgotPasswordModal } from "@/components/profile/EditProfile/ForgetPasswordModal";
 
 interface LoginFormProps {
   showTitle?: boolean;
@@ -28,7 +27,6 @@ export function LoginForm({ showTitle }: LoginFormProps) {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const {
     register,
@@ -113,13 +111,7 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           </Button>
         </form>
 
-        <Button
-          variant="text"
-          size="small"
-          onClick={() => setForgotPasswordOpen(true)}
-          sx={{ mt: 1, textTransform: "none", color: "neutral.600" }}>
-          Forgot password?
-        </Button>
+        {/* No password-reset entry point until a verified recovery flow exists (#327). */}
 
         <Typography level="body-sm" sx={{ mt: 2 }}>
           Don’t have an account?{" "}
@@ -128,10 +120,6 @@ export function LoginForm({ showTitle }: LoginFormProps) {
           </Link>
         </Typography>
       </Sheet>
-      <ForgotPasswordModal
-        open={forgotPasswordOpen}
-        onClose={() => setForgotPasswordOpen(false)}
-      />
     </Box>
   );
 }

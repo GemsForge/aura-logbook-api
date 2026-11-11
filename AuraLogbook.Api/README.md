@@ -39,7 +39,7 @@ Controllers use the `/api` prefix. Key routes include:
 
 | Area | Routes | Authentication |
 | --- | --- | --- |
-| Auth | `POST /api/Auth/register`, `POST /api/Auth/login`, `GET /api/Auth/me`, `PUT /api/Auth/update`, `GET /api/Auth/all` | Register and login are public; the other listed routes require a bearer token. |
+| Auth | `POST /api/Auth/register`, `POST /api/Auth/login`, `GET /api/Auth/me`, `PUT /api/Auth/update` | Register and login are public; the other listed routes require a bearer token. New passwords (register, update) must be 8–72 characters. User payloads use `UserProfileDto` and never include `PasswordHash`. Password reset is unavailable until a verified recovery flow exists (#327). |
 | Mood | `GET/POST /api/Mood`, `GET/PUT/DELETE /api/Mood/{id}`, `GET /api/Mood/dashboard/summary`, `GET /api/Mood/dashboard/moods-by-date`, `GET /api/Mood/dashboard/mood-breakdown` | Bearer token required. |
 | Mood media | `GET/POST /api/Mood/{id}/attachments`, `GET/DELETE /api/Mood/{id}/attachments/{attachmentId}`, `GET /api/Mood/{id}/attachments/{attachmentId}/content` | Bearer token required; uploads are owner-checked JPEG, PNG, or WebP images. |
 | Insights | `GET /api/insights/zodiac` | Expects a token-derived user ID claim. |

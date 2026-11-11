@@ -51,8 +51,10 @@ export const editProfileSchema = yup
       .when("isChangingPassword", {
         is: true,
         then: (schema) =>
+          // Mirrors the API's PasswordRules (8–72) for authenticated password changes.
           schema
-            .min(6, "Password must be at least 6 characters")
+            .min(8, "Password must be at least 8 characters")
+            .max(72, "Password must be 72 characters or fewer")
             .required("Password is required"),
         otherwise: (schema) => schema.notRequired(),
       }),
