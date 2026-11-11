@@ -36,6 +36,24 @@ public sealed class RelationalRepositoryTests : IDisposable
         SeedReferenceData();
     }
 
+    /// <summary>All SQLite read paths return the saved independent mode, including a fresh repository after update.</summary>
+    [Fact]
+    public async Task Interface_mode_survives_sqlite_create_update_and_every_profile_read()
+    {
+        var repository = new SqliteUserRepository(_factory);
+        var user = new User { Email = "mode-roundtrip@example.test", PasswordHash = "hash", AuraColor = "blue", AuraIntensity = 72, InterfaceTheme = "Ocean", InterfaceMode = "light" };
+        user.Id = await repository.CreateAsync(user);
+        Assert.Equal("light", (await repository.GetByIdAsync(user.Id))?.InterfaceMode);
+        Assert.Equal("light", (await repository.GetByEmailAsync(user.Email))?.InterfaceMode);
+        Assert.Equal("light", (await repository.GetAllAsync()).Single(item => item.Id == user.Id).InterfaceMode);
+        Assert.Equal("light", (await repository.SearchAsync("mode-roundtrip")).Single().InterfaceMode);
+        user.InterfaceMode = "dark";
+        Assert.True(await repository.UpdateAsync(user));
+        var reloaded = (await new SqliteUserRepository(_factory).GetByIdAsync(user.Id))!;
+        Assert.Equal("dark", reloaded.InterfaceMode); Assert.Equal("Ocean", reloaded.InterfaceTheme);
+        Assert.Equal("blue", reloaded.AuraColor); Assert.Equal(72, reloaded.AuraIntensity);
+    }
+
     /// <summary>
     /// #327: seeded users must still authenticate after <c>[JsonIgnore]</c> was added to
     /// <see cref="User.PasswordHash"/>, because the seeder reads its own record type.

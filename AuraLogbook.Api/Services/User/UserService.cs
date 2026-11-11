@@ -1,4 +1,4 @@
-﻿using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services.ReferenceData;
@@ -106,8 +106,16 @@ public class UserService : IUserService
         }
 
         existingUser.SelectedPathway = request.SelectedPathway;
+        // Normalize a legacy appearance once; subsequent family changes preserve the current mode.
+        existingUser.InterfaceMode = InterfaceModeValues.Resolve(existingUser.InterfaceMode, existingUser.InterfaceTheme);
+        existingUser.InterfaceTheme = InterfaceThemeValues.Resolve(existingUser.InterfaceTheme);
         if (request.InterfaceTheme is not null)
+        {
             existingUser.InterfaceTheme = InterfaceThemeValues.Resolve(request.InterfaceTheme);
+            if (request.InterfaceTheme == "Ivory") existingUser.InterfaceMode = "light";
+        }
+        if (request.InterfaceMode is not null)
+            existingUser.InterfaceMode = InterfaceModeValues.Resolve(request.InterfaceMode);
 
         // #331: only a typed place is kept. Turning location off, or switching to device
         // location, clears any saved place so nothing location-like lingers on the profile.

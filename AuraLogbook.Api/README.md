@@ -73,3 +73,7 @@ dotnet test AuraLogbook.sln
 ```
 
 For project prerequisites, frontend commands, and the combined development workflow, see the [root README](../README.md). Major dependencies and tools are inventoried in [DEPENDENCIES.md](../DEPENDENCIES.md).
+
+## Interface screen mode
+
+The account’s `interfaceMode` (`light` or `dark`) is separate from `interfaceTheme` and aura data. Omitted mode updates preserve the saved value. SQLite migration 022 and legacy JSON normalization convert Ivory to Aurora light. See [Interface theme and screen mode](../docs/ux/interface-screen-mode.md) for the controls, browser storage, palette and verification contracts.
