@@ -49,7 +49,23 @@ const parseArgs = (args) => {
   if (!options.repo || !/^[^/]+\/[^/]+$/.test(options.repo)) throw new Error("Set GITHUB_REPOSITORY or supply --repo OWNER/REPOSITORY.");
   return options;
 };
-const runGh = (args) => JSON.parse(execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }));
+/**
+ * Runs the GitHub CLI. `gh api` prints JSON, but `gh workflow run` prints a plain-text run URL,
+ * so callers pass `{ json: false }` for commands whose output is not JSON.
+ * @param {string[]} args gh arguments.
+ * @param {{ json?: boolean }} [options] Whether to parse stdout as JSON (default true).
+ * @returns {unknown} Parsed JSON, or trimmed stdout text when `json` is false.
+ */
+const runGh = (args, { json = true } = {}) => {
+  const output = execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  return json ? JSON.parse(output) : output.trim();
+};
+
+/**
+ * Creates the issue, then dispatches the metadata workflow. If the dispatch fails, the error names
+ * the issue that was already created so the caller does not create a duplicate by retrying.
+ * @returns {{ issueNumber: number, issueURL: string, workflow: string, workflowRun: string }}
+ */
 export function createStory(options, run = runGh) {
   const labels = inferLabels(options.title, options.labels);
   const issueArgs = ["api", `repos/${options.repo}/issues`, "--method", "POST", "-f", `title=${options.title}`];
@@ -63,8 +79,13 @@ export function createStory(options, run = runGh) {
   if (options.parentIssue) workflowArgs.push("-f", `parent_issue=${options.parentIssue}`);
   if (options.blockedBy.length) workflowArgs.push("-f", `blocked_by=${options.blockedBy.join(",")}`);
   if (options.blocking.length) workflowArgs.push("-f", `blocking=${options.blocking.join(",")}`);
-  run(workflowArgs);
-  return { issueNumber: issue.number, issueURL: issue.html_url, workflow: metadataWorkflow };
+  let workflowRun;
+  try {
+    workflowRun = run(workflowArgs, { json: false });
+  } catch (error) {
+    throw new Error(`Created issue #${issue.number} (${issue.html_url}) but could not dispatch ${metadataWorkflow}: ${error.message}. Do not re-create the issue; re-run the workflow for it instead.`);
+  }
+  return { issueNumber: issue.number, issueURL: issue.html_url, workflow: metadataWorkflow, workflowRun };
 }
 if (process.argv[1]?.endsWith("create-github-story.mjs")) {
   try { const options = parseArgs(process.argv.slice(2)); if (options.help) console.log(usage); else console.log(JSON.stringify(createStory(options), null, 2)); }
