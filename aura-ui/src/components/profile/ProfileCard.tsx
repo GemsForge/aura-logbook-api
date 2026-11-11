@@ -131,7 +131,8 @@ export default function ProfileCard() {
               <Typography variant="subtitle2" fontWeight={600}>
                 My Pathway
               </Typography>
-              <Typography variant="body1">{user.selectedPathway}</Typography>
+              {/* Pathway keys are stable API identifiers; display the current definition label. */}
+              <Typography variant="body1">{pathway?.displayName ?? user.selectedPathway}</Typography>
               <Typography variant="body2" color="text.secondary">
                 {SpiritualPathwayDescriptions[user.selectedPathway]}
               </Typography>
