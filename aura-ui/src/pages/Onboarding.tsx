@@ -222,7 +222,7 @@ export default function Onboarding() {
           : <Box sx={{ width: 44 }} />}
       </Box>
 
-      <Box sx={{ flexGrow: 1, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, gap: { xs: 2, md: 12 }, alignItems: { xs: "start", md: "center" }, alignContent: { xs: "start", md: "center" }, py: { xs: 1, md: 6 } }}>
+      <Box sx={{ flexGrow: 1, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, gap: { xs: 4, md: 12 }, alignItems: { xs: "start", md: "center" }, alignContent: { xs: "start", md: "center" }, py: { xs: 1, md: 6 } }}>
         <Box sx={{ minWidth: 0, display: "flex", flexDirection: heroStep ? "column" : { xs: "row", md: "column" }, alignItems: heroStep ? { xs: "center", md: "flex-start" } : { xs: "flex-start", md: "flex-start" }, gap: { xs: 1.5, md: 0 }, textAlign: heroStep ? { xs: "center", md: "left" } : "left" }}>
           <Box aria-hidden="true" className="aura-orb" sx={orbStyle as unknown as CSSProperties} />
           <Box sx={{ minWidth: 0 }}>
