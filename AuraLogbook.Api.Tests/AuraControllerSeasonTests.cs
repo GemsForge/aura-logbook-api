@@ -55,7 +55,7 @@ public sealed class AuraControllerSeasonTests
             new AuraSeasonSpan("tide", Today, null)]);
         seasons.Setup(repository => repository.StartAsync(41, "tide", Today)).Returns(Task.CompletedTask);
         var users = new Mock<IFileUserRepository>();
-        users.Setup(repository => repository.GetByIdAsync(41)).ReturnsAsync(new User { Id = 41, Email = "test@example.com", SelectedPathway = SpiritualPathway.Faith });
+        users.Setup(repository => repository.GetByIdAsync(41)).ReturnsAsync(FaithUser());
         var moods = new Mock<IFileMoodRepository>();
         moods.Setup(repository => repository.GetAllByUserAsync(41)).ReturnsAsync(FiveCenteredDays());
         var combinations = new Mock<IMoodCombinationRepository>();
@@ -98,5 +98,17 @@ public sealed class AuraControllerSeasonTests
 
         Assert.Equal("harbor", result.Current?.Key);
         Assert.Single(result.History);
+    }
+
+    /// <summary>
+    /// A Faith user whether <c>User.SelectedPathway</c> is the enum or the string key from #354,
+    /// so this test compiles before and after that change.
+    /// </summary>
+    private static User FaithUser()
+    {
+        var user = new User { Id = 41, Email = "test@example.com" };
+        var property = typeof(User).GetProperty(nameof(User.SelectedPathway))!;
+        property.SetValue(user, property.PropertyType == typeof(string) ? "faith" : SpiritualPathway.Faith);
+        return user;
     }
 }
