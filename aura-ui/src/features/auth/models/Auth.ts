@@ -56,6 +56,8 @@ export interface UpdateUserRequest {
   birthday?: string;
   avatar?: string; // base64 or image URL
   selectedPathway: SpiritualPathway;
+  /** Optional aura reveals toggle (#344); omit to keep the saved value. */
+  auraRevealsEnabled?: boolean;
   /** Optional for compatibility with clients that predate interface themes. */
   interfaceTheme?: InterfaceTheme;
   /** #331 weather location preference; device coordinates are never part of the profile. */

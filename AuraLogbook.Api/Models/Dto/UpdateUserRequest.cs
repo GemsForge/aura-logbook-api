@@ -39,6 +39,8 @@ namespace AuraLogbook.Api.Models.Dto
         /// <summary>Optional two-letter country code for City mode.</summary>
         [StringLength(2)]
         public string? WeatherCountry { get; set; }
+        /// <summary>Optional aura reveals toggle (#344); omitted preserves the current setting.</summary>
+        public bool? AuraRevealsEnabled { get; set; }
         /// <summary>Optional temperature unit, "F" or "C"; omitted preserves the current unit.</summary>
         public string? TemperatureUnit { get; set; }
         [Required]

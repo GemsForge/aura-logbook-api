@@ -25,6 +25,8 @@ export interface EditProfileFormData {
   weatherRegion?: string;
   weatherCountry?: string;
   temperatureUnit: TemperatureUnit;
+  /** Show aura reveal copy and accents (#344). */
+  auraRevealsEnabled: boolean;
   isChangingPassword: boolean;
 }
 
@@ -64,6 +66,7 @@ export const editProfileSchema = yup
     weatherCountry: yup.string().trim().notRequired()
       .test("country-code", "Use a two-letter country code, like US", (value) => !value || /^[A-Za-z]{2}$/.test(value)),
     temperatureUnit: yup.mixed<TemperatureUnit>().oneOf(["F", "C"]).required(),
+    auraRevealsEnabled: yup.boolean().required(),
 
     avatar: yup.string().notRequired(),
 

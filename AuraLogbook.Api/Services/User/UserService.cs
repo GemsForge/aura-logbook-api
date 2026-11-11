@@ -113,6 +113,8 @@ public class UserService : IUserService
             existingUser.WeatherRegion = mode == WeatherLocationValues.City ? WeatherLocationValues.Clean(request.WeatherRegion) : null;
             existingUser.WeatherCountry = mode == WeatherLocationValues.City ? WeatherLocationValues.Clean(request.WeatherCountry)?.ToUpperInvariant() : null;
         }
+        if (request.AuraRevealsEnabled is { } revealsEnabled)
+            existingUser.AuraRevealsEnabled = revealsEnabled;
         if (request.TemperatureUnit is not null)
             existingUser.TemperatureUnit = WeatherLocationValues.ResolveUnit(request.TemperatureUnit);
 
