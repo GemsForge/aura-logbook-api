@@ -7,11 +7,14 @@ const lightCanvas: Record<string, string> = { Aurora: "#FBF6EC", Earth: "#F4F5EF
 mkdirSync("artifacts/mode-toggle", { recursive: true });
 
 /** Keep the real render/state path; replace only remote services with an owner profile and journal fixtures. */
-async function api(page: Page, family = "Ocean", signedIn = true, onboardingCompleted = true) {
-  let user: Record<string, unknown> = { id: 7, email: "alex@example.test", displayName: "Alex", birthday: null, zodiacSign: "", selectedPathway: "Mindfulness", auraColor: "blue", auraIntensity: 72,
+async function api(page: Page, family = "Ocean", signedIn = true, onboardingCompleted = true, selectedPathway = "Mindfulness") {
+  let user: Record<string, unknown> = { id: 7, email: "alex@example.test", displayName: "Alex", birthday: null, zodiacSign: "", selectedPathway, auraColor: "blue", auraIntensity: 72,
     interfaceTheme: family, interfaceMode: "dark", onboardingCompleted, auraRevealsEnabled: false, weatherLocationMode: "Off", temperatureUnit: "F" };
   const updates: Record<string, unknown>[] = [];
   let fail = false;
+  const completions: Record<string, unknown>[] = [];
+  let modeGate: Promise<void> | undefined;
+  let completionGate: Promise<void> | undefined;
   if (signedIn) await page.addInitScript(() => localStorage.setItem("token", "mode-verification-token"));
   await page.route("http://127.0.0.1:5082/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.toLowerCase();
@@ -20,14 +23,24 @@ async function api(page: Page, family = "Ocean", signedIn = true, onboardingComp
     else if (path.endsWith("/auth/me")) body = user;
     else if (path.endsWith("/auth/update")) {
       const update = route.request().postDataJSON(); updates.push(update);
+      await modeGate;
       if (fail) { await route.fulfill({ status: 500, json: { message: "Temporary failure" } }); return; }
       user = { ...user, ...update }; body = user;
+    } else if (path.endsWith("/auth/me/onboarding")) {
+      const completion = route.request().postDataJSON(); completions.push(completion);
+      await completionGate;
+      user = { ...user, selectedPathway: completion.selectedPathway, onboardingCompleted: true }; body = user;
     } else if (path.includes("/dashboard/summary")) body = { totalEntries: 0, currentStreak: 0 };
     else if (path.includes("/spotify/connection")) body = { configured: false, connected: false };
     else if (path.includes("/spotify/playlists")) body = { items: [] };
     await route.fulfill({ status: 200, json: body });
   });
-  return { updates, profile: () => user, fail: () => { fail = true; } };
+  return {
+    updates, completions, profile: () => user, fail: () => { fail = true; },
+    // Controllable responses prove that the two profile writes never overlap in either order.
+    pauseMode: () => { let release!: () => void; modeGate = new Promise<void>((done) => { release = done; }); return release; },
+    pauseCompletion: () => { let release!: () => void; completionGate = new Promise<void>((done) => { release = done; }); return release; },
+  };
 }
 /** Read the final palette consumed by the real page rather than a selected-swatch marker. */
 async function canvas(page: Page) { return page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--al-theme-canvas").trim()); }
@@ -88,4 +101,51 @@ test("profile family selection keeps mode and retains the separate aura controls
   await page.getByRole("button", { name: "Save Changes" }).click();
   await expect.poll(() => service.profile().interfaceTheme).toBe("Earth");
   expect(service.profile()).toMatchObject({ interfaceMode: "light", auraColor: "blue", auraIntensity: 72 });
+});
+
+for (const failedSave of [false, true]) {
+  test(`onboarding waits for a ${failedSave ? "failed" : "successful"} mode save before Skip`, async ({ page }) => {
+    const service = await api(page, "Ocean", true, false, "Energy");
+    const release = service.pauseMode();
+    if (failedSave) service.fail();
+    await page.goto("/onboarding");
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await expect.poll(() => service.updates.length).toBe(1);
+    const skip = page.getByRole("button", { name: "Skip", exact: true });
+    await expect(skip).toBeDisabled();
+    expect(service.completions).toHaveLength(0);
+    release();
+    await expect(skip).toBeEnabled();
+    await skip.click();
+    await expect(page).toHaveURL(/dashboard$/);
+    expect(service.profile()).toMatchObject({ selectedPathway: "Mindfulness", interfaceMode: failedSave ? "dark" : "light" });
+    expect(service.updates).toHaveLength(1);
+    expect(service.completions).toHaveLength(1);
+  });
+}
+test("onboarding waits for a mode save before Enter my space", async ({ page }) => {
+  const service = await api(page, "Ocean", true, false);
+  const release = service.pauseMode();
+  await page.addInitScript(() => sessionStorage.setItem("aura.onboarding.draft", JSON.stringify({ stepIndex: 9, answers: {}, focus: [], pathway: "Energy" })));
+  await page.goto("/onboarding");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  const finish = page.getByRole("button", { name: "Enter my space" }).filter({ visible: true });
+  await expect(finish).toBeDisabled();
+  expect(service.completions).toHaveLength(0);
+  release();
+  await expect(finish).toBeEnabled(); await finish.click();
+  await expect(page).toHaveURL(/dashboard$/);
+  expect(service.profile()).toMatchObject({ selectedPathway: "Energy", interfaceMode: "light" });
+});
+test("mode switching waits for onboarding completion", async ({ page }) => {
+  const service = await api(page, "Ocean", true, false, "Energy");
+  const release = service.pauseCompletion();
+  await page.goto("/onboarding");
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await expect.poll(() => service.completions.length).toBe(1);
+  await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeDisabled();
+  expect(service.updates).toHaveLength(0);
+  release();
+  await expect(page).toHaveURL(/dashboard$/);
+  expect(service.profile()).toMatchObject({ selectedPathway: "Mindfulness", interfaceMode: "dark" });
 });

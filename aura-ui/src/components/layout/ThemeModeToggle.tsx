@@ -10,7 +10,10 @@ import { persistGuestInterfaceMode, selectInterfaceMode, setGuestInterfaceMode, 
 /** One-click brightness control shared by the header and full-screen onboarding top bar.
  * Sends only required identity fields and mode; failed account saves discard only the pending mode.
  */
-export function ThemeModeToggle() {
+export function ThemeModeToggle({ disabled = false }: {
+  /** Onboarding locks brightness while completion writes its selected pathway. */
+  disabled?: boolean;
+}) {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const mode = useAppSelector(selectInterfaceMode);
@@ -20,7 +23,7 @@ export function ThemeModeToggle() {
   const nextMode = mode === "dark" ? "light" : "dark";
   const label = `Switch to ${nextMode} theme`;
   const toggle = async () => {
-    if (isLoading || pending) return;
+    if (disabled || isLoading || pending) return;
     setError("");
     if (!user) {
       dispatch(setGuestInterfaceMode(nextMode));
@@ -36,7 +39,7 @@ export function ThemeModeToggle() {
     } finally { dispatch(setPendingInterfaceMode(null)); }
   };
   return <Box sx={{ position: "relative", flexShrink: 0 }}>
-    <IconButton aria-label={label} title={label} onClick={() => void toggle()} disabled={isLoading || !!pending}
+    <IconButton aria-label={label} title={label} onClick={() => void toggle()} disabled={disabled || isLoading || !!pending}
       sx={{ minWidth: 44, minHeight: 44, color: "text.primary", "&:focus-visible": { outline: "3px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
       {mode === "dark" ? <LightModeOutlined /> : <DarkModeOutlined />}
     </IconButton>

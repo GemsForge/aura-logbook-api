@@ -1,3 +1,4 @@
+import { useAppSelector } from "@/store/hooks";
 import { ThemeModeToggle } from "@/components/layout/ThemeModeToggle";
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +46,9 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [completeOnboarding, { isLoading }] = useCompleteOnboardingMutation();
+  const pendingMode = useAppSelector((state) => state.ui.pendingInterfaceMode);
+  // A mode update carries the previous pathway; finish only after that write settles.
+  const completionBlocked = isLoading || !!pendingMode;
   const [draft, setDraft] = useState<OnboardingDraft>(() => loadDraft());
   /** True after "Choose a different pathway": the reveal lists every pathway. */
   const [choosing, setChoosing] = useState(false);
@@ -60,6 +64,7 @@ export default function Onboarding() {
   const jump = (kind: (typeof STEPS)[number]["kind"]) => update({ stepIndex: STEPS.findIndex((s) => s.kind === kind) });
 
   const finish = async (skipAll = false) => {
+    if (completionBlocked) return;
     const body = buildOnboardingRequest(skipAll ? { ...draft, answers: {}, pathway: "Mindfulness", focus: [], checkInOpener: undefined } : { ...draft, pathway });
     try {
       await completeOnboarding(body).unwrap();
@@ -205,7 +210,7 @@ export default function Onboarding() {
     eyebrow = "Gentle reminders";
     heading = "You're all set";
     sub = "One nudge a day, no streaks, no guilt. You can turn on reminders any time in Settings.";
-    primary = <Button variant="contained" onClick={() => finish()} disabled={isLoading}>Enter my space</Button>;
+    primary = <Button variant="contained" onClick={() => finish()} disabled={completionBlocked}>Enter my space</Button>;
   }
 
   const progress = step.kind === "question" ? (step.number / 5) * 100 : undefined;
@@ -219,9 +224,9 @@ export default function Onboarding() {
           ? <LinearProgress determinate value={progress} aria-label="Quiz progress" sx={{ flexGrow: 1 }} />
           : <Box sx={{ flexGrow: 1 }} />}
         {/* The full-screen route shares the same mode control as the app header. */}
-        <ThemeModeToggle />
+        <ThemeModeToggle disabled={isLoading} />
         {step.kind !== "reminder"
-          ? <Link component="button" onClick={() => (step.kind === "question" ? finish(true) : go(1))} sx={{ minHeight: 44 }}>Skip</Link>
+          ? <Button variant="text" disabled={completionBlocked} onClick={() => (step.kind === "question" ? finish(true) : go(1))} sx={{ minHeight: 44 }}>Skip</Button>
           : <Box sx={{ width: 44 }} />}
       </Box>
 

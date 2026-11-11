@@ -2,7 +2,7 @@
 
 The six interface families are Aurora, Earth, Ocean, Sunset, Amethyst, and Midnight. Each has light and dark palettes. Screen brightness is independent of theme family, recorded aura color/intensity, and derived aura hue. The header and full-screen onboarding top bar share `ThemeModeToggle`; Edit Profile retains the separate aura, intensity, family and mode controls.
 
-Signed-in mode changes preview immediately, then save `interfaceMode` with only the existing required identity fields through `PUT /api/Auth/update`. A failed save clears the pending mode and exposes a persistent accessible error. The returned profile updates Redux, so the selected family and recorded data survive the change. Profile drafts have their own previews and restore the saved appearance on Cancel.
+Signed-in mode changes preview immediately, then save `interfaceMode` with only the existing required identity fields through `PUT /api/Auth/update`. A failed save clears the pending mode and exposes a persistent accessible error. The returned profile updates Redux, so the selected family and recorded data survive the change. Onboarding completion and mode saves are serialized in both directions: Skip and Enter my space wait for a pending mode save, and the toggle waits for completion. A failed mode save releases completion after rollback. Profile drafts have their own previews and restore the saved appearance on Cancel.
 
 Signed-out mode uses the `aura-interface-mode` browser-storage key, with guarded access when storage is blocked. Redux remains the source for both Material and Joy providers; Joy's internal rendering cache is synchronized to that value. Guest mode is never imported into an account on sign-in. Mode changes introduce no animation.
 
