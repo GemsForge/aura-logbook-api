@@ -2,7 +2,7 @@ import Box from "@mui/joy/Box";
 import Container from "@mui/joy/Container";
 import Link from "@mui/joy/Link";
 import { Footer, NavBar, Sidebar } from ".";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import EditProfileModal from "../profile/EditProfileModal";
@@ -10,13 +10,26 @@ import MobileNavigation from "./MobileNavigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 
-/** Shares compact responsive page chrome while keeping content shrinkable at laptop widths. */
+/**
+ * Shares compact responsive page chrome while keeping content shrinkable at laptop widths.
+ * Onboarding is a focused flow: it renders full-screen without the header, sidebar, footer or
+ * bottom navigation, so nothing competes with (or covers) its own controls.
+ */
 const AppLayout = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
   const isProfileModalOpen = useAppSelector(selectIsProfileModalOpen);
+  const focused = useLocation().pathname.startsWith("/onboarding");
+
+  if (focused) {
+    return (
+      <Box className="prism-page" component="main" id="main-content" sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
+        <Outlet />
+      </Box>
+    );
+  }
 
   return (
     <Box className="prism-page" sx={{ display: "flex", minHeight: "100vh", pb: isAuthenticated ? { xs: "calc(96px + env(safe-area-inset-bottom, 0px))", md: 0 } : 0 }}>
