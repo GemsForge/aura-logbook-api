@@ -53,23 +53,11 @@ describe("AuthApi", () => {
     vi.clearAllMocks();
   });
 
-  it("should test the API connection", async () => {
-    mockedApi.get.mockResolvedValue({ data: testData.userProfile });
-
-    const result = await AuthApi.testConnection();
-
-    expect(mockedApi.get).toHaveBeenCalledWith("/Auth/test");
-    expect(result).toEqual(testData.userProfile);
-  });
-
-  it("should get all users", async () => {
-    const users = [testData.userProfile];
-    mockedApi.get.mockResolvedValue({ data: users });
-
-    const result = await AuthApi.getAllUsers();
-
-    expect(mockedApi.get).toHaveBeenCalledWith("/Auth/all");
-    expect(result).toEqual(users);
+  // #327: these routes were removed from the API, so the client must not expose them.
+  it("does not expose removed password-reset or diagnostic endpoints", () => {
+    expect(AuthApi).not.toHaveProperty("resetPassword");
+    expect(AuthApi).not.toHaveProperty("testConnection");
+    expect(AuthApi).not.toHaveProperty("getAllUsers");
   });
 
   it("should login a user", async () => {

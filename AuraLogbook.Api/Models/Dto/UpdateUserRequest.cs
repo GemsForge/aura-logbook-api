@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AuraLogbook.Api.Models.Dto
 {
@@ -10,8 +10,9 @@ namespace AuraLogbook.Api.Models.Dto
         [EmailAddress]
         public string Email { get; set; } = default!;
 
-        [MinLength(6)]
-        public string? Password { get; set; }  // ✅ Now optional
+        /// <summary>Optional new password; when present it must satisfy <see cref="PasswordRules"/>.</summary>
+        [StringLength(PasswordRules.MaxLength, MinimumLength = PasswordRules.MinLength, ErrorMessage = PasswordRules.LengthMessage)]
+        public string? Password { get; set; }
 
         [MaxLength(30)]
         public string? DisplayName { get; set; }

@@ -29,9 +29,11 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
+    // #327: password reset is disabled until a verified recovery flow exists.
     expect(
-      screen.getByRole("button", { name: /forgot password/i })
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /forgot password/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/forgot password/i)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /sign up/i })).toBeInTheDocument();
   });
 

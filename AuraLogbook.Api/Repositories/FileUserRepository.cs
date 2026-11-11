@@ -1,4 +1,4 @@
-﻿using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Repositories.Base;
 using Microsoft.Extensions.Options;
@@ -7,7 +7,12 @@ using System.Text.Json;
 /// <summary>
 /// Provides file-based storage and retrieval of user data using JSON.
 /// </summary>
-public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
+/// <remarks>
+/// Users are written through <see cref="StoredUser"/> rather than <see cref="User"/> because
+/// <see cref="User.PasswordHash"/> is <c>[JsonIgnore]</c> for API safety; serializing
+/// <see cref="User"/> directly would silently drop every stored hash.
+/// </remarks>
+public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUser>, IFileUserRepository
 {
     private readonly string _filePath;
     public FileUserRepository(IOptions<StorageSettings> options) : base(options.Value.UserFilePath)
@@ -19,7 +24,10 @@ public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
     /// Retrieves all users from the JSON file.
     /// </summary>
     /// <returns>A list of users. Returns an empty list if the file does not exist.</returns>
-    public async Task<List<User>> GetAllAsync() => await ReadFromFileAsync();
+    public async Task<List<User>> GetAllAsync() => (await ReadFromFileAsync()).Select(StoredUser.ToUser).ToList();
+
+    /// <summary>Writes the given users to the JSON file, preserving password hashes.</summary>
+    private Task SaveUsersAsync(List<User> users) => WriteToFileAsync(users.Select(StoredUser.FromUser).ToList());
  
     /// <summary>
     /// Retrieves a user by their email address.
@@ -46,7 +54,7 @@ public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
         var users = await GetAllAsync();
         user.Id = users.Count > 0 ? users.Max(u => u.Id) + 1 : 1;
         users.Add(user);
-        await WriteToFileAsync(users);
+        await SaveUsersAsync(users);
         return user.Id;
     }
 
@@ -62,7 +70,7 @@ public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
         if (index == -1) return false;
 
         users[index] = user;
-        await WriteToFileAsync(users);
+        await SaveUsersAsync(users);
         return true;
     }
 
@@ -78,7 +86,7 @@ public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
 
         if (removed)
         {
-            await WriteToFileAsync(users);
+            await SaveUsersAsync(users);
         }
 
         return removed;
@@ -115,6 +123,45 @@ public class FileUserRepository : FileRepositoryBase<User>, IFileUserRepository
     /// </summary>
     public async Task ClearAsync()
     {
-        await WriteToFileAsync(new List<User>());
+        await SaveUsersAsync(new List<User>());
+    }
+
+    /// <summary>
+    /// On-disk shape of a user. Mirrors <see cref="User"/> property names so existing user files
+    /// load unchanged, and serializes <see cref="PasswordHash"/>, which <see cref="User"/> hides.
+    /// </summary>
+    public sealed class StoredUser
+    {
+        public int Id { get; set; }
+        public string Email { get; set; } = default!;
+        public string PasswordHash { get; set; } = default!;
+        public string CreatedAt { get; set; } = DateTime.UtcNow.ToString();
+        public string UpdatedAt { get; set; } = DateTime.UtcNow.ToString();
+        public string? DisplayName { get; set; }
+        public DateOnly Birthday { get; set; }
+        public string ZodiacSign { get; set; } = string.Empty;
+        public string AuraColor { get; set; } = "blue";
+        public int AuraIntensity { get; set; } = 50;
+        public string? Avatar { get; set; }
+        public string? Motto { get; set; }
+        public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+        /// <summary>Interface theme preference; missing in legacy files and resolved to Aurora on read.</summary>
+        public string? InterfaceTheme { get; set; }
+
+        /// <summary>Copies a domain user into its storage shape.</summary>
+        public static StoredUser FromUser(User u) => new()
+        {
+            Id = u.Id, Email = u.Email, PasswordHash = u.PasswordHash, CreatedAt = u.CreatedAt, UpdatedAt = u.UpdatedAt,
+            DisplayName = u.DisplayName, Birthday = u.Birthday, ZodiacSign = u.ZodiacSign, AuraColor = u.AuraColor,
+            AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway, InterfaceTheme = u.InterfaceTheme,
+        };
+
+        /// <summary>Copies a stored record back into the domain user.</summary>
+        public static User ToUser(StoredUser s) => new()
+        {
+            Id = s.Id, Email = s.Email, PasswordHash = s.PasswordHash, CreatedAt = s.CreatedAt, UpdatedAt = s.UpdatedAt,
+            DisplayName = s.DisplayName, Birthday = s.Birthday, ZodiacSign = s.ZodiacSign, AuraColor = s.AuraColor,
+            AuraIntensity = s.AuraIntensity, Avatar = s.Avatar, Motto = s.Motto, SelectedPathway = s.SelectedPathway, InterfaceTheme = InterfaceThemeValues.Resolve(s.InterfaceTheme),
+        };
     }
 }
