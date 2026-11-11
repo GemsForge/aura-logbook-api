@@ -4,6 +4,8 @@ import Dashboard from "./pages/Dashboard";
 import { LoginForm } from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import OnboardingGate from "./routes/OnboardingGate";
+import Onboarding from "./pages/Onboarding";
 import RegisterForm from "./pages/Register";
 import MoodHistory from "./components/history/MoodHistory";
 import MoodEntryForm from "./components/MoodEntryForm";
@@ -36,11 +38,18 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "log-mood", element: <MoodEntryForm /> },
-          { path: "history", element: <MoodHistory /> },
-          { path: "gallery", element: <MediaGallery /> },
-          { path: "insights", element: <Insights /> },
+          {
+            // #342: pending onboarding redirects here before any other signed-in page.
+            element: <OnboardingGate />,
+            children: [
+              { path: "onboarding", element: <Onboarding /> },
+              { path: "dashboard", element: <Dashboard /> },
+              { path: "log-mood", element: <MoodEntryForm /> },
+              { path: "history", element: <MoodHistory /> },
+              { path: "gallery", element: <MediaGallery /> },
+              { path: "insights", element: <Insights /> },
+            ],
+          },
         ],
       },
     ],

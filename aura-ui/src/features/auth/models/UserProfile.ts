@@ -2,12 +2,14 @@ import type { TemperatureUnit, WeatherLocationMode } from "@/features/weather/we
 import type { AuraColor } from "@/features/mood/models/aura";
 import type { SpiritualPathway } from "./SpiritualPathway";
 import type { InterfaceTheme } from "./InterfaceTheme";
+import type { PathwayPreferences } from "./Auth";
 
 export interface UserProfile {
   id: number;
   email: string;
   displayName: string;
-  birthday: string;
+  /** Null when the user has not shared a birthday (#341). */
+  birthday: string | null;
   avatar?: string; // base64 or image URL
   zodiacSign: string;
   auraColor?: AuraColor;
@@ -22,4 +24,9 @@ export interface UserProfile {
   weatherRegion?: string | null;
   weatherCountry?: string | null;
   temperatureUnit?: TemperatureUnit;
+  /** False while onboarding is pending; the app routes to /onboarding until it is true. */
+  onboardingCompleted?: boolean;
+  /** Whether aura reveal copy and accents are shown. */
+  auraRevealsEnabled?: boolean;
+  pathwayPreferences?: PathwayPreferences | null;
 }
