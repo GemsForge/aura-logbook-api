@@ -1,43 +1,9 @@
-// src/features/mood/models/MoodType.ts
+/** Stable identifier for a mood definition returned by the reference-data API. */
+export type MoodType = string;
 
-/**
- * Union type representing allowed mood values.
- */
-export type MoodType =
-  | "Empowered"      // Joyful: personal power & confidence
-  | "Centered"       // Content: inner balance & compassion
-  | "Harmonious"     // Peaceful: clear expression & calm
-  | "Flowing"        // Motivated: creative flow & inspiration
-  | "Weary"       // Tired: need for rest & stability
-  | "Tense"          // Stressed: survival tension
-  | "Frustrated"     // Frustrated: stuck energy
-  | "Restless"       // Anxious: overactive mind
-  | "Disconnected"   // Lonely: closed-off heart
-  | "Heavy"          // Sad: emotional heaviness
-  | "Charged"        // Angry: fiery drive
-  | "Scattered"      // Overwhelmed: scattered roots
-  | "Abundant"       // Grateful: sense of plenty
-  | "Visionary"      // Hopeful: big-picture optimism
-  | "Neutral";       // Meh: reset & neutrality
-
-
-/**
- * List of mood types as an array (for dropdowns, loops, etc.)
- */
+/** Legacy quick-check-in order; new form choices are sourced from the reference-data API. */
 export const MoodTypes: MoodType[] = [
-  "Empowered",
-  "Centered",
-  "Harmonious",
-  "Flowing",
-  "Weary",
-  "Tense",
-  "Frustrated",
-  "Restless",
-  "Disconnected",
-  "Heavy",
-  "Charged",
-  "Scattered",
-  "Abundant",
-  "Visionary",
-  "Neutral",
+  "Empowered", "Centered", "Harmonious", "Flowing", "Weary", "Tense",
+  "Frustrated", "Restless", "Disconnected", "Heavy", "Charged", "Scattered",
+  "Abundant", "Visionary", "Neutral",
 ];

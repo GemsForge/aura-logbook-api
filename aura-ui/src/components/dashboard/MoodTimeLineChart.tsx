@@ -19,7 +19,7 @@ export type MoodByDate = {
 /**
  * Plots mood-entry counts over time within the width of its parent grid cell.
  * A responsive container is required here because a fixed chart width breaks
- * mobile reflow and 200% zoom layouts.
+ * mobile reflow and 200% zoom layouts. Its accent comes from the active theme tokens.
  */
 export default function MoodTimelineChart({ data }: { data: MoodByDate[] }) {
   return (
@@ -41,7 +41,7 @@ export default function MoodTimelineChart({ data }: { data: MoodByDate[] }) {
             <Line
               type="monotone"
               dataKey="count"
-              stroke="#8884d8"
+              stroke="var(--aura-color-orchid)"
               strokeWidth={2}
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}

@@ -1,4 +1,4 @@
-import type { PresetAvatar } from "@/assets/presetAvatars";
+import type { GraphicAsset } from "@/store/referenceDataApi";
 import {
     Box,
     Grid,
@@ -15,7 +15,7 @@ import { AuraInput as TextField } from "../ui/AuraInput";
 interface AvatarPickerModalProps {
   open: boolean;
   onClose: () => void;
-  avatars: PresetAvatar[];
+  avatars: GraphicAsset[];
   userInitials: string;
   onSelect: (value: string) => void;
   auraBg: string;
@@ -51,12 +51,13 @@ export function AvatarPickerModal({
         {tab === "image" ? (
           <Grid container spacing={2}>
             {avatars.map((img) => (
-              <Grid sx={{ xs: 3 }} key={img.name}>
+              <Grid sx={{ xs: 3 }} key={img.key}>
                 <MuiAvatar
-                  src={img.url}
+                  src={img.path}
+                  alt={img.alternativeText || img.displayName}
                   sx={{ width: 60, height: 60, cursor: "pointer" }}
                   onClick={() => {
-                    onSelect(img.url);
+                    onSelect(img.path);
                     onClose();
                   }}
                 />

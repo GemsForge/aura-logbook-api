@@ -10,9 +10,8 @@ import FormLabel from "@mui/joy/FormLabel";
 import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import { Controller, type Control, type Path, useWatch } from "react-hook-form";
-import { AuraColor } from "@/features/mood/models/aura";
-import { useGetAuraColorsQuery } from "@/store/referenceDataApi";
-import { auraPalettes, getAuraColorPreview } from "@/theme/auraTheme";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
+import { getAuraColorPreview } from "@/theme/auraTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface AuraSelectorProps {
@@ -29,21 +28,12 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
   // watch the two fields
   const colorKey = useWatch({ control, name: colorField });
   const intensity = useWatch({ control, name: intensityField });
-  const previewColor = getAuraColorPreview(colorKey, intensity);
-  const { data: auraDefinitions = [] } = useGetAuraColorsQuery();
-  const supportedColors = new Set<string>(Object.values(AuraColor));
-  const databaseOptions = auraDefinitions.filter((definition) =>
-    supportedColors.has(definition.key)
-  );
-  const colorOptions = databaseOptions.length > 0
-    ? databaseOptions
-    : Object.values(AuraColor).map((key) => ({
-        key,
-        displayName: key.charAt(0).toUpperCase() + key.slice(1),
-        baseHex: auraPalettes[key].primary.main ?? "#2196f3",
-      }));
+  const { data } = useGetReferenceDataQuery();
+  const colorOptions = data?.auras ?? [];
+  const previewColor = getAuraColorPreview(colorKey, intensity, colorOptions);
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      {!data ? <Typography role="alert" color="error">Aura colors are unavailable.</Typography> : null}
       {/* Color picker + swatch */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Box

@@ -9,8 +9,17 @@ import {
   resolveInterfaceTheme,
   type InterfaceTheme,
 } from "./interfaceThemes";
+import type { ThemeToken } from "@/store/referenceDataApi";
 
 export { prismGarden } from "./prismGarden";
+
+/** Installs validated database-managed theme tokens as CSS variables for shared UI surfaces. */
+export function installThemeTokenVariables(tokens: ThemeToken[]): void {
+  for (const { key, value } of tokens) {
+    if (!/^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)*$/.test(key)) continue;
+    document.documentElement.style.setProperty(`--aura-${key.replace(/\./g, "-")}`, value);
+  }
+}
 export {
   interfaceThemes,
   interfaceThemeTokens,

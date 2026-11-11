@@ -3,6 +3,9 @@ import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { configureStore } from "@reduxjs/toolkit";
+import { referenceDataApi } from "../store/referenceDataApi";
+import { testAuraDefinitions, testThemeTokens } from "./referenceDataFixtures";
+export { testAuraDefinitions, testThemeTokens, testReferenceData } from "./referenceDataFixtures";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
 import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy/styles";
@@ -12,7 +15,7 @@ import { ToastProvider } from "../hooks/useToast";
 import { getAuraJoyTheme, getAuraTheme } from "../theme";
 import authReducer from "../store/slices/authSlice";
 import uiReducer from "../store/slices/uiSlice";
-import { AuraColor } from "@/features/mood/models/aura";
+import type { AuraColor } from "@/features/mood/models/aura";
 
 /**
  * Utility function to render a component with Redux and React Router context for testing.
@@ -57,7 +60,7 @@ export function renderWithProviders(
   {
     route = "/",
     preloadedState,
-    auraColor = AuraColor.Blue,
+    auraColor = "blue",
     auraIntensity = 50,
   }: RenderWithProvidersOptions = {}
 ) {
@@ -65,12 +68,14 @@ export function renderWithProviders(
     reducer: {
       auth: authReducer,
       ui: uiReducer,
+      [referenceDataApi.reducerPath]: referenceDataApi.reducer,
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(referenceDataApi.middleware),
     preloadedState,
   });
 
-  const theme = getAuraTheme(auraColor, auraIntensity);
-  const joyTheme = getAuraJoyTheme(auraColor, auraIntensity);
+  const theme = getAuraTheme(auraColor, auraIntensity, testAuraDefinitions, testThemeTokens);
+  const joyTheme = getAuraJoyTheme(auraColor, auraIntensity, testAuraDefinitions, testThemeTokens);
 
   return {
     store,

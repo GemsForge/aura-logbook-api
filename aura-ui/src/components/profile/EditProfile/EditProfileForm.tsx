@@ -11,7 +11,7 @@ import { AuraInput as TextField } from "@/components/ui/AuraInput";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, type UseFormReturn } from "react-hook-form";
-import { presetAvatars } from "@/assets/presetAvatars";
+import type { GraphicAsset } from "@/store/referenceDataApi";
 import { MyPathwaySelector } from "@/components/MyPathwaySelector";
 import { AuraSelector } from "../AuraSelectorField";
 import { AvatarPickerModal } from "../AvatarPickerModal";
@@ -29,6 +29,7 @@ interface EditProfileFormProps {
   onAvatarPickerOpenChange: (value: boolean) => void;
   currentAuraBg: string;
   defaultInitials: string;
+  avatars: GraphicAsset[];
   onSubmit: (data: EditProfileFormData) => Promise<void>;
   onCancel: () => void;
   onThemePreviewChange: (theme: InterfaceTheme) => void;
@@ -42,6 +43,7 @@ export function EditProfileForm({
   onAvatarPickerOpenChange,
   currentAuraBg,
   defaultInitials,
+  avatars,
   onSubmit,
   onCancel,
   onThemePreviewChange,
@@ -65,7 +67,7 @@ export function EditProfileForm({
         control={control}
         render={({ field }) => {
           const val = field.value || "";
-          const isImage = presetAvatars.some((a) => a.url === val);
+          const isImage = avatars.some((asset) => asset.path === val);
 
           return (
             <Box
@@ -106,7 +108,7 @@ export function EditProfileForm({
               <AvatarPickerModal
                 open={avatarPickerOpen}
                 onClose={() => onAvatarPickerOpenChange(false)}
-                avatars={presetAvatars}
+                avatars={avatars}
                 userInitials={defaultInitials}
                 auraBg={currentAuraBg}
                 onSelect={(val) => {

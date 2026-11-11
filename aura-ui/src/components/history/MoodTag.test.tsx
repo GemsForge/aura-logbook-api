@@ -4,10 +4,10 @@ import { renderWithProviders } from "../../test/testUtilities";
 import { MoodTag } from "./MoodTag";
 
 describe("MoodTag", () => {
-  it("renders the mood label with its corresponding icon", () => {
+  it("renders the mood label with its corresponding icon", async () => {
     renderWithProviders(<MoodTag mood="Harmonious" />);
 
-    expect(screen.getByText(/Harmonious/)).toBeInTheDocument();
-    expect(screen.getByText(/🕊️/)).toBeInTheDocument();
+    expect(await screen.findByText(/Harmonious/)).toBeInTheDocument();
+    expect(await screen.findByText(/🕊️/)).toBeInTheDocument();
   });
 });

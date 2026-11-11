@@ -1,35 +1,22 @@
-export type SpiritualPathway = "Mindfulness" | "Energy" | "Faith";
+/** Stable key for a database-backed spiritual pathway definition. */
+export type SpiritualPathway = string;
 
-export const SpiritualPathway = {
-  Mindfulness: "Mindfulness" as SpiritualPathway,
-  Energy: "Energy" as SpiritualPathway,
-  Faith: "Faith" as SpiritualPathway,
+/** Compatibility values for persisted keys; UI choices and copy come from reference data. */
+export const SpiritualPathway = { Mindfulness: "mindfulness", Energy: "energy", Faith: "faith" } as const;
+
+/** Legacy display fallback retained for profile surfaces outside the reference-data transition. */
+export const SpiritualPathwayDescriptions: Record<string, string> = {
+  mindfulness: "Calm, clarity, and self-awareness.",
+  energy: "For those drawn to star signs and energy.",
+  faith: "For reflection shaped by personal beliefs, meaningful traditions, values, community, or sacred texts.",
 };
 
-// Add descriptions for tooltips/help text
-export const SpiritualPathwayDescriptions: Record<SpiritualPathway, string> = {
-  Mindfulness: "Calm, clarity, and self-awareness.",
-  Energy: "For those drawn to star signs and energy.",
-  Faith: "For reflection shaped by personal beliefs, meaningful traditions, values, community, or sacred texts.",
-};
-
-/**
- * Resolves a stored pathway value (enum key or display label, any case) to its enum key.
- * Returns undefined for unknown values so callers choose their own fallback.
- */
+/** Resolves legacy pathway labels while new selections use stable database keys. */
 export function normalizeSpiritualPathway(value?: string | null): SpiritualPathway | undefined {
   switch (value?.trim().toLowerCase()) {
-    case "mindfulness":
-    case "mindful living":
-      return "Mindfulness";
-    case "energy":
-    case "astrology & energy":
-      return "Energy";
-    case "faith":
-    case "faith & religion":
-    case "christian faith":
-      return "Faith";
-    default:
-      return undefined;
+    case "mindfulness": case "mindful living": return "mindfulness";
+    case "energy": case "astrology & energy": return "energy";
+    case "faith": case "faith & religion": case "christian faith": return "faith";
+    default: return undefined;
   }
 }

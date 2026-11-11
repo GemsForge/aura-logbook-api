@@ -1,29 +1,18 @@
-import { AuraMoodMap } from "@/features/mood/models/aura";
 import type { MoodType } from "@/features/mood/models/schema";
-import { auraPalettes } from "@/theme/auraTheme";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
+import { getAccessibleTextColor } from "@/theme/auraTheme";
 import Chip from "@mui/joy/Chip";
-import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
 
+/** Displays a mood with its current database-defined icon and aura mapping. */
 export function MoodTag({ mood }: { mood: MoodType }) {
-  const { auraColor } = AuraMoodMap[mood];
-
-  // pick a light shade (100, 200, 300…)
-  const lightShade = auraPalettes[auraColor][200].main;
-
-  // fallback text color – you can keep this high-contrast
-  const textColor = auraPalettes[auraColor].primary.contrastText ?? "#000";
+  const { data } = useGetReferenceDataQuery();
+  const moodDefinition = data?.moods.find((definition) => definition.key === mood);
+  const aura = data?.auras.find((definition) => definition.key === moodDefinition?.auraColorKeys[0]);
+  const background = aura?.shades?.[100] ?? aura?.baseHex ?? "transparent";
 
   return (
-    <Chip
-      variant="solid"
-      sx={{
-        mr: 1,
-        mb: 1,
-        bgcolor: lightShade,
-        color: textColor,
-      }}
-    >
-      {`${MoodIcons[mood as keyof typeof MoodIcons] ?? ""} ${mood}`}
+    <Chip variant="solid" sx={{ mr: 1, mb: 1, bgcolor: background, color: getAccessibleTextColor(background) }}>
+      {`${moodDefinition?.icon ?? ""} ${mood}`.trim()}
     </Chip>
   );
 }

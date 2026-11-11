@@ -1,12 +1,12 @@
 // src/main.tsx (or index.tsx)
-import { StrictMode, useMemo } from "react";
+import { StrictMode, useLayoutEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 
-import { Box, CircularProgress, CssBaseline } from "@mui/material";
+import { Box, Button, CircularProgress, CssBaseline } from "@mui/material";
 import { ThemeProvider, THEME_ID as MATERIAL_THEME_ID } from "@mui/material/styles";
 import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy/styles";
 import {
@@ -26,9 +26,12 @@ import { selectCurrentUser } from "./store/slices/authSlice";
 import { selectInterfaceThemePreview } from "./store/slices/uiSlice";
 import { normalizeAuraIntensity, resolveAuraColor } from "./theme/auraTheme";
 import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
+import { useGetReferenceDataQuery } from "./store/referenceDataApi";
+import { hasUsableReferenceData } from "./theme/referenceDataValidation";
+import { installThemeTokenVariables } from "./theme";
 
 function ThemedApp() {
- 
+  const { data: referenceData, isLoading: referenceDataLoading, isError: referenceDataError, refetch } = useGetReferenceDataQuery();
   const { isLoading } = useCurrentUserQuery();
   const user = useAppSelector(selectCurrentUser);
   const interfaceThemePreview = useAppSelector(selectInterfaceThemePreview);
@@ -40,6 +43,11 @@ function ThemedApp() {
   const interfaceTheme = resolveInterfaceTheme(interfaceThemePreview ?? user?.interfaceTheme);
   const interfaceMode = interfaceThemeTokens[interfaceTheme].mode;
 
+  useLayoutEffect(() => {
+    if (referenceData) installThemeTokenVariables(referenceData.themeTokens);
+  }, [referenceData]);
+  const referenceDataValid = referenceData ? hasUsableReferenceData(referenceData) : false;
+
   const theme = useMemo(
     () => getAuraTheme(auraColor, auraIntensity, interfaceTheme),
     [auraColor, auraIntensity, interfaceTheme]
@@ -49,10 +57,19 @@ function ThemedApp() {
     [interfaceTheme],
   );
 
-  if (isLoading) {
+  if (referenceDataLoading || isLoading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (referenceDataError || !referenceData || !referenceDataValid) {
+    return (
+      <Box role="alert" sx={{ maxWidth: 560, mx: "auto", mt: 8, p: 3, textAlign: "center" }}>
+        Aura Logbook could not load its current definitions. Please retry.
+        <Button onClick={() => void refetch()} sx={{ display: "block", mx: "auto", mt: 2 }}>Retry</Button>
       </Box>
     );
   }

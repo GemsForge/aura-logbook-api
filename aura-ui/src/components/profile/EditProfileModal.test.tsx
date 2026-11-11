@@ -4,10 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtilities";
 import EditProfileModal from "./EditProfileModal";
 
-const { mockGetCurrentUser, mockUpdateUser, mockUnwrap } = vi.hoisted(() => ({
+const { mockGetCurrentUser, mockUpdateUser, mockUnwrap, mockGetReferenceData } = vi.hoisted(() => ({
   mockGetCurrentUser: vi.fn(),
   mockUpdateUser: vi.fn(),
   mockUnwrap: vi.fn(),
+  mockGetReferenceData: vi.fn(),
 }));
 
 vi.mock("@/store/authApi", async (importOriginal) => {
@@ -19,9 +20,12 @@ vi.mock("@/store/authApi", async (importOriginal) => {
   };
 });
 
-vi.mock("@/store/referenceDataApi", () => ({
-  useGetAuraColorsQuery: () => ({ data: [] }),
-}));
+vi.mock("@/store/referenceDataApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/store/referenceDataApi")>();
+  return { ...actual, useGetReferenceDataQuery: () => mockGetReferenceData() };
+});
+
+import { testReferenceData } from "@/test/referenceDataFixtures";
 
 const baseUser = {
   id: 1,
@@ -37,6 +41,7 @@ describe("EditProfileModal", () => {
     mockGetCurrentUser.mockReset();
     mockUpdateUser.mockReset();
     mockUnwrap.mockReset();
+    mockGetReferenceData.mockReturnValue({ data: testReferenceData, isError: false });
     mockUpdateUser.mockReturnValue({ unwrap: mockUnwrap });
     mockUnwrap.mockResolvedValue({});
   });
