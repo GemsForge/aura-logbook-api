@@ -12,6 +12,7 @@ export const registerSchema = yup.object({
     .lowercase()
     .email("Enter a valid email")
     .required("Email is required"),
+  // Mirrors the API's PasswordRules (8–72; 72 is bcrypt's input limit).
   password: yup
     .string()
     .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)

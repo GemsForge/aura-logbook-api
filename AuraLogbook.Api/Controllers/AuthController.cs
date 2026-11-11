@@ -8,6 +8,14 @@ using System.Security.Claims;
 
 namespace AuraLogbook.Api.Controllers;
 
+/// <summary>
+/// Registration, login, and current-user profile endpoints.
+/// </summary>
+/// <remarks>
+/// Every user payload returned here is a <see cref="UserProfileDto"/>; the persistence model
+/// <see cref="AuraLogbook.Api.Models.User"/> is never serialized, so password hashes cannot leak.
+/// Password reset was removed (#327) until a verified, token-based recovery flow exists.
+/// </remarks>
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
@@ -19,21 +27,6 @@ public class AuthController : ControllerBase
     {
         _userService = userService;
         _jwtService = jwtService;
-    }
-
-    [HttpGet("test")]
-    public async Task<IActionResult> TestConnection()
-    {
-        var user = await _userService.GetByEmailAsync("admin@example.com");
-        return user is null ? NotFound("User not found") : Ok(user);
-    }
-
-    [Authorize]
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllUsers()
-    {
-        var users = await _userService.GetAllUsersAsync();
-        return Ok(users);
     }
 
     [HttpPost("login")]
@@ -54,21 +47,6 @@ public class AuthController : ControllerBase
     {
         var result = await _userService.RegisterAsync(newUser);
         return result.Success ? Ok(result.Message) : BadRequest(result.Message);
-    }
-
-    /// <summary>
-    /// Reset or update a user's password using their login email/username.
-    /// This endpoint accepts an email and a new password. In a production app
-    /// this should be protected by a password-reset token or similar flow.
-    /// </summary>
-    [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword([FromBody] UpdatePasswordRequest req)
-    {
-        var result = await _userService.UpdatePasswordByEmailAsync(req.Email, req.NewPassword);
-        if (!result.Success)
-            return BadRequest(result.Message);
-
-        return Ok(result.Message);
     }
 
     [Authorize]

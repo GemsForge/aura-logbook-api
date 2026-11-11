@@ -2,8 +2,21 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AuraLogbook.Api.Models.Dto
 {
-    public class RegisterUserRequest : AuthRequest
+    /// <summary>
+    /// New-account request. Standalone rather than derived from <see cref="AuthRequest"/> so the
+    /// stricter <see cref="PasswordRules"/> apply here without changing login validation.
+    /// </summary>
+    public class RegisterUserRequest
     {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = default!;
+
+        /// <summary>Plain-text password; must satisfy <see cref="PasswordRules"/>.</summary>
+        [Required]
+        [StringLength(PasswordRules.MaxLength, MinimumLength = PasswordRules.MinLength, ErrorMessage = PasswordRules.LengthMessage)]
+        public string Password { get; set; } = default!;
+
         [MaxLength(30, ErrorMessage = "Display name cannot exceed 30 characters.")]
         public string? DisplayName { get; set; }
         [Required(ErrorMessage = "Date is required.")]

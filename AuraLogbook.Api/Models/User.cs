@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace AuraLogbook.Api.Models;
 
 /// <summary>
@@ -16,8 +18,15 @@ public class User
     public string Email { get; set; } = default!;
 
     /// <summary>
-    /// Gets or sets the hashed password for the user.
+    /// Gets or sets the bcrypt hash of the user's password.
     /// </summary>
+    /// <remarks>
+    /// Excluded from System.Text.Json so it can never appear in an API response, even if a
+    /// <see cref="User"/> is returned by mistake. Dapper and the JSON seeder do not use
+    /// System.Text.Json for this type, and <c>FileUserRepository</c> persists users through its
+    /// own record type, so storage is unaffected.
+    /// </remarks>
+    [JsonIgnore]
     public string PasswordHash { get; set; } = default!;
 
     /// <summary>
