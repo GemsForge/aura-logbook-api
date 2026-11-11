@@ -6,7 +6,8 @@
         public required string Email { get; set; }
         public required string DisplayName { get; set; }
         public string? ZodiacSign { get; set; }
-        public required DateOnly Birthday { get; set; }
+        /// <summary>Null when the user has not shared a birthday.</summary>
+        public DateOnly? Birthday { get; set; }
         public required string AuraColor { get; set; }
         /// <summary>Saved interface appearance, normalized to a supported theme.</summary>
         public required string InterfaceTheme { get; set; }
@@ -21,5 +22,11 @@
         public required string Avatar { get; set; }
         public required string Motto { get; set; }
         public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+        /// <summary>True once onboarding is completed or skipped; the UI routes to onboarding while false.</summary>
+        public bool OnboardingCompleted { get; set; }
+        /// <summary>Whether aura reveal copy and accents are shown.</summary>
+        public bool AuraRevealsEnabled { get; set; } = true;
+        /// <summary>Pathway-page choices from onboarding; null when none were made.</summary>
+        public PathwayPreferences? PathwayPreferences { get; set; }
     }
 }

@@ -16,5 +16,7 @@ namespace AuraLogbook.Api.Services
         Task<(bool Success, string Message)> RegisterAsync(RegisterUserRequest requestuser);
         Task<List<User>> SearchUsersAsync(string query);
         Task<(bool Success, string Message)> UpdateUserAsync(UpdateUserRequest request);
+        /// <summary>Saves the onboarding result for a user and marks onboarding complete (#341).</summary>
+        Task<(bool Success, string Message)> CompleteOnboardingAsync(int userId, OnboardingRequest request);
     }
 }

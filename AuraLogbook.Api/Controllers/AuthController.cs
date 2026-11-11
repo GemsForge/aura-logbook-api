@@ -143,6 +143,29 @@ public class AuthController : ControllerBase
         return Ok(ToProfileDto(user));
     }
 
+    /// <summary>
+    /// Completes onboarding for the signed-in user (#341) and returns the refreshed profile.
+    /// Lives beside <c>GET me</c> so all self-profile routes share one controller.
+    /// </summary>
+    /// <response code="200">Onboarding saved; body is the updated <see cref="UserProfileDto"/>.</response>
+    /// <response code="400">Unknown pathway, invalid answers or hue, or a future birthday.</response>
+    [Authorize]
+    [HttpPut("me/onboarding")]
+    public async Task<IActionResult> CompleteOnboarding([FromBody] OnboardingRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ??
+                          User.FindFirst(JwtRegisteredClaimNames.Sub);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized("Could not extract user ID from token.");
+
+        var result = await _userService.CompleteOnboardingAsync(userId, request);
+        if (!result.Success)
+            return result.Message == "User not found." ? NotFound(result.Message) : BadRequest(result.Message);
+
+        var fresh = await _userService.GetByIdAsync(userId);
+        return fresh is null ? NotFound("User not found.") : Ok(ToProfileDto(fresh));
+    }
+
     private static UserProfileDto ToProfileDto(AuraLogbook.Api.Models.User user)
     {
         return new UserProfileDto
@@ -162,7 +185,10 @@ public class AuthController : ControllerBase
             TemperatureUnit = WeatherLocationValues.ResolveUnit(user.TemperatureUnit),
             Avatar = user.Avatar ?? string.Empty,
             Motto = user.Motto ?? string.Empty,
-            SelectedPathway = user.SelectedPathway
+            SelectedPathway = user.SelectedPathway,
+            OnboardingCompleted = user.OnboardingCompletedAt is not null,
+            AuraRevealsEnabled = user.AuraRevealsEnabled,
+            PathwayPreferences = user.PathwayPreferences
         };
     }
 }

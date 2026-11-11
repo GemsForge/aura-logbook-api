@@ -138,7 +138,7 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         public string CreatedAt { get; set; } = DateTime.UtcNow.ToString();
         public string UpdatedAt { get; set; } = DateTime.UtcNow.ToString();
         public string? DisplayName { get; set; }
-        public DateOnly Birthday { get; set; }
+        public DateOnly? Birthday { get; set; }
         public string ZodiacSign { get; set; } = string.Empty;
         public string AuraColor { get; set; } = "blue";
         public int AuraIntensity { get; set; } = 50;
@@ -153,6 +153,12 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         public string? WeatherRegion { get; set; }
         public string? WeatherCountry { get; set; }
         public string? TemperatureUnit { get; set; }
+        /// <summary>Onboarding state (#341); missing in older files, which are treated as already onboarded.</summary>
+        public string? OnboardingCompletedAt { get; set; }
+        public bool? AuraRevealsEnabled { get; set; }
+        public int? OnboardingColorHue { get; set; }
+        public List<OnboardingAnswer>? OnboardingAnswers { get; set; }
+        public PathwayPreferences? PathwayPreferences { get; set; }
 
         /// <summary>Copies a domain user into its storage shape.</summary>
         public static StoredUser FromUser(User u) => new()
@@ -161,6 +167,7 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
             DisplayName = u.DisplayName, Birthday = u.Birthday, ZodiacSign = u.ZodiacSign, AuraColor = u.AuraColor,
             AuraIntensity = u.AuraIntensity, Avatar = u.Avatar, Motto = u.Motto, SelectedPathway = u.SelectedPathway, InterfaceTheme = u.InterfaceTheme,
             WeatherLocationMode = u.WeatherLocationMode, WeatherCity = u.WeatherCity, WeatherRegion = u.WeatherRegion, WeatherCountry = u.WeatherCountry, TemperatureUnit = u.TemperatureUnit,
+            OnboardingCompletedAt = u.OnboardingCompletedAt, AuraRevealsEnabled = u.AuraRevealsEnabled, OnboardingColorHue = u.OnboardingColorHue, OnboardingAnswers = u.OnboardingAnswers, PathwayPreferences = u.PathwayPreferences,
         };
 
         /// <summary>Copies a stored record back into the domain user.</summary>
@@ -171,6 +178,9 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
             AuraIntensity = s.AuraIntensity, Avatar = s.Avatar, Motto = s.Motto, SelectedPathway = s.SelectedPathway, InterfaceTheme = InterfaceThemeValues.Resolve(s.InterfaceTheme),
             WeatherLocationMode = WeatherLocationValues.ResolveMode(s.WeatherLocationMode), WeatherCity = s.WeatherCity, WeatherRegion = s.WeatherRegion, WeatherCountry = s.WeatherCountry,
             TemperatureUnit = WeatherLocationValues.ResolveUnit(s.TemperatureUnit),
+            // Legacy records predate onboarding: treat them as complete, matching migration 019.
+            OnboardingCompletedAt = s.OnboardingCompletedAt ?? (s.OnboardingAnswers is null ? s.CreatedAt : null),
+            AuraRevealsEnabled = s.AuraRevealsEnabled ?? true, OnboardingColorHue = s.OnboardingColorHue, OnboardingAnswers = s.OnboardingAnswers ?? [], PathwayPreferences = s.PathwayPreferences,
         };
     }
 }

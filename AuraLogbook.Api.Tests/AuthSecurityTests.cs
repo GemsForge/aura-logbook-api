@@ -53,7 +53,8 @@ public class AuthSecurityTests
     public void Remaining_auth_routes_are_the_expected_set()
     {
         Assert.Equal(
-            new[] { "forgot-password", "login", "me", "register", "reset-password", "update" },
+            // "me/onboarding" (#341) is authorized and scoped to the caller's own profile.
+            new[] { "forgot-password", "login", "me", "me/onboarding", "register", "reset-password", "update" },
             AuthRouteTemplates().OrderBy(t => t).ToArray());
     }
 
