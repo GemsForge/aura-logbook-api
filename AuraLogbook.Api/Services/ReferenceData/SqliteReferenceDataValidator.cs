@@ -22,11 +22,28 @@ public sealed class SqliteReferenceDataValidator(IDbConnectionFactory factory) :
 
     public async Task<bool> AreActiveMoodsAsync(IEnumerable<string> keys)
     {
-        var distinctKeys = keys.Where(key => !string.IsNullOrWhiteSpace(key)).Distinct(StringComparer.Ordinal).ToArray();
-        if (distinctKeys.Length == 0) return false;
+        // Blank keys are rejected rather than skipped because callers persist the submitted list as-is.
+        var submitted = keys.ToArray();
+        if (submitted.Length == 0 || submitted.Any(string.IsNullOrWhiteSpace)) return false;
+        var distinctKeys = submitted.Distinct(StringComparer.Ordinal).ToArray();
         using var connection = factory.CreateConnection();
         var activeCount = await connection.ExecuteScalarAsync<int>(
             "SELECT COUNT(DISTINCT MoodKey) FROM MoodDefinitions WHERE IsActive = 1 AND MoodKey IN @keys", new { keys = distinctKeys });
         return activeCount == distinctKeys.Length;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<string>?> ResolveActiveMoodKeysAsync(IReadOnlyList<string> keys)
+    {
+        using var connection = factory.CreateConnection();
+        var active = (await connection.QueryAsync<string>("SELECT MoodKey FROM MoodDefinitions WHERE IsActive = 1"))
+            .ToDictionary(key => key, StringComparer.OrdinalIgnoreCase);
+        var resolved = new List<string>(keys.Count);
+        foreach (var key in keys)
+        {
+            if (string.IsNullOrWhiteSpace(key) || !active.TryGetValue(key.Trim(), out var canonical)) return null;
+            resolved.Add(canonical);
+        }
+        return resolved;
     }
 }

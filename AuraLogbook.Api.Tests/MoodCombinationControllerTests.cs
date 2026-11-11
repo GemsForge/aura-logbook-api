@@ -22,7 +22,7 @@ public sealed class MoodCombinationControllerTests
             Interpretation = "Pathway reflection",
         };
         var repository = new Mock<IMoodCombinationRepository>();
-        var referenceData = new Mock<IReferenceDataValidator>();
+        var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
         referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
         repository.Setup(x => x.GetAsync(
                 It.Is<IReadOnlyCollection<string>>(moods => moods.SequenceEqual(new[] { MoodType.Restless, MoodType.Disconnected })), 1))
@@ -44,7 +44,7 @@ public sealed class MoodCombinationControllerTests
     public async Task GetInterpretation_rejects_invalid_moods_or_pathway(string moods, int pathwayKey)
     {
         var repository = new Mock<IMoodCombinationRepository>(MockBehavior.Strict);
-        var referenceData = new Mock<IReferenceDataValidator>();
+        var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
         referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>()))
             .ReturnsAsync((IEnumerable<string> keys) => keys.All(key => key is not "UnknownMood"));
         var controller = new MoodCombinationController(repository.Object, referenceData.Object);
@@ -59,7 +59,7 @@ public sealed class MoodCombinationControllerTests
     public async Task GetInterpretation_returns_no_content_for_an_unsupported_combination()
     {
         var repository = new Mock<IMoodCombinationRepository>();
-        var referenceData = new Mock<IReferenceDataValidator>();
+        var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
         referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
         repository.Setup(x => x.GetAsync(It.IsAny<IReadOnlyCollection<string>>(), 0))
             .ReturnsAsync((MoodCombinationInterpretation?)null);

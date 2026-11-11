@@ -31,12 +31,14 @@ public sealed class MoodCombinationController(IMoodCombinationRepository reposit
                 return BadRequest("One or more selected moods are unknown.");
             selected.Add(value);
         }
-        if (selected.Count is < 2 or > 3 || selected.Distinct().Count() != selected.Count)
+        if (selected.Count is < 2 or > 3 || selected.Distinct(StringComparer.OrdinalIgnoreCase).Count() != selected.Count)
             return BadRequest("Select two or three distinct moods.");
-        if (!await referenceData.AreActiveMoodsAsync(selected))
+        // Resolve case-insensitively to canonical keys, matching the former enum parse behavior.
+        var canonical = await referenceData.ResolveActiveMoodKeysAsync(selected);
+        if (canonical is null)
             return BadRequest("One or more selected moods are unknown.");
 
-        var result = await repository.GetAsync(selected, pathwayKey);
+        var result = await repository.GetAsync(canonical, pathwayKey);
         return result is null ? NoContent() : Ok(result);
     }
 }

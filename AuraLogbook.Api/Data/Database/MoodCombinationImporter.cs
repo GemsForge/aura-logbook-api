@@ -140,7 +140,8 @@ public static class MoodCombinationImporter
             {
                 if (string.IsNullOrWhiteSpace(moodName) || !KnownMoodKeys.Contains(moodName.Trim(), StringComparer.OrdinalIgnoreCase))
                     throw new InvalidDataException("A mood-combination source contains an unknown mood.");
-                moods.Add(moodName.Trim());
+                // Store the canonical key so set keys match ordinal lookups regardless of source casing.
+                moods.Add(KnownMoodKeys.First(key => string.Equals(key, moodName.Trim(), StringComparison.OrdinalIgnoreCase)));
             }
             if (moods.Distinct().Count() != moods.Count)
                 throw new InvalidDataException("A mood combination cannot repeat a mood.");

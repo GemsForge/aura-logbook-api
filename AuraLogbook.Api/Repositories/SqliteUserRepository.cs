@@ -11,6 +11,8 @@ public sealed class SqliteUserRepository : IFileUserRepository
     private readonly IDbConnectionFactory _factory;
     public SqliteUserRepository(IDbConnectionFactory factory) => _factory = factory;
 
+    // Writes match pathway keys case-insensitively; an unmatched key falls back to mindfulness (0) on insert
+    // and keeps the stored pathway on update instead of writing NULL.
     // The join preserves legacy integer foreign keys in storage and exposes stable keys to API callers.
     private const string UserSelect = "SELECT u.Id, u.Email, u.PasswordHash, u.DisplayName, u.Birthday, u.ZodiacSign, u.AuraColor, u.AuraIntensity, u.Avatar, u.Motto, p.StableKey AS SelectedPathway, u.InterfaceTheme, u.WeatherLocationMode, u.WeatherCity, u.WeatherRegion, u.WeatherCountry, u.TemperatureUnit, u.OnboardingCompletedAt, u.AuraRevealsEnabled, u.OnboardingColorHue, u.OnboardingAnswersJson, u.PathwayPreferencesJson, u.CreatedAt, u.UpdatedAt FROM Users u LEFT JOIN SpiritualPathways p ON p.PathwayKey = u.SelectedPathway";
     public async Task<List<User>> GetAllAsync() { using var c = _factory.CreateConnection(); return (await c.QueryAsync<UserRow>($"{UserSelect} ORDER BY u.Id")).Select(Map).ToList(); }
@@ -20,7 +22,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         using var c = _factory.CreateConnection();
         return await c.ExecuteScalarAsync<int>(
-            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, InterfaceTheme, WeatherLocationMode, WeatherCity, WeatherRegion, WeatherCountry, TemperatureUnit, OnboardingCompletedAt, AuraRevealsEnabled, OnboardingColorHue, OnboardingAnswersJson, PathwayPreferencesJson, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,(SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway),@InterfaceTheme,@WeatherLocationMode,@WeatherCity,@WeatherRegion,@WeatherCountry,@TemperatureUnit,@OnboardingCompletedAt,@AuraRevealsEnabled,@OnboardingColorHue,@OnboardingAnswersJson,@PathwayPreferencesJson,@CreatedAt,@UpdatedAt) RETURNING Id",
+            "INSERT INTO Users (Email, PasswordHash, DisplayName, Birthday, ZodiacSign, AuraColor, AuraIntensity, Avatar, Motto, SelectedPathway, InterfaceTheme, WeatherLocationMode, WeatherCity, WeatherRegion, WeatherCountry, TemperatureUnit, OnboardingCompletedAt, AuraRevealsEnabled, OnboardingColorHue, OnboardingAnswersJson, PathwayPreferencesJson, CreatedAt, UpdatedAt) VALUES (@Email,@PasswordHash,@DisplayName,@Birthday,@ZodiacSign,@AuraColor,@AuraIntensity,@Avatar,@Motto,COALESCE((SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway COLLATE NOCASE),0),@InterfaceTheme,@WeatherLocationMode,@WeatherCity,@WeatherRegion,@WeatherCountry,@TemperatureUnit,@OnboardingCompletedAt,@AuraRevealsEnabled,@OnboardingColorHue,@OnboardingAnswersJson,@PathwayPreferencesJson,@CreatedAt,@UpdatedAt) RETURNING Id",
             ToSqlParameters(user));
     }
 
@@ -28,7 +30,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
     {
         using var c = _factory.CreateConnection();
         return await c.ExecuteAsync(
-            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=(SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway), InterfaceTheme=@InterfaceTheme, WeatherLocationMode=@WeatherLocationMode, WeatherCity=@WeatherCity, WeatherRegion=@WeatherRegion, WeatherCountry=@WeatherCountry, TemperatureUnit=@TemperatureUnit, OnboardingCompletedAt=@OnboardingCompletedAt, AuraRevealsEnabled=@AuraRevealsEnabled, OnboardingColorHue=@OnboardingColorHue, OnboardingAnswersJson=@OnboardingAnswersJson, PathwayPreferencesJson=@PathwayPreferencesJson, UpdatedAt=@UpdatedAt WHERE Id=@Id",
+            "UPDATE Users SET Email=@Email, PasswordHash=@PasswordHash, DisplayName=@DisplayName, Birthday=@Birthday, ZodiacSign=@ZodiacSign, AuraColor=@AuraColor, AuraIntensity=@AuraIntensity, Avatar=@Avatar, Motto=@Motto, SelectedPathway=COALESCE((SELECT PathwayKey FROM SpiritualPathways WHERE StableKey=@SelectedPathway COLLATE NOCASE),SelectedPathway), InterfaceTheme=@InterfaceTheme, WeatherLocationMode=@WeatherLocationMode, WeatherCity=@WeatherCity, WeatherRegion=@WeatherRegion, WeatherCountry=@WeatherCountry, TemperatureUnit=@TemperatureUnit, OnboardingCompletedAt=@OnboardingCompletedAt, AuraRevealsEnabled=@AuraRevealsEnabled, OnboardingColorHue=@OnboardingColorHue, OnboardingAnswersJson=@OnboardingAnswersJson, PathwayPreferencesJson=@PathwayPreferencesJson, UpdatedAt=@UpdatedAt WHERE Id=@Id",
             ToSqlParameters(user)) == 1;
     }
 

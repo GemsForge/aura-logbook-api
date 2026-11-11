@@ -11,4 +11,11 @@ public interface IReferenceDataValidator
 
     /// <summary>Requires every submitted mood key to exist and remain active.</summary>
     Task<bool> AreActiveMoodsAsync(IEnumerable<string> keys);
+
+    /// <summary>
+    /// Maps submitted mood keys case-insensitively to their canonical active keys, preserving order.
+    /// Returns null when any key is blank, unknown, or inactive.
+    /// </summary>
+    async Task<IReadOnlyList<string>?> ResolveActiveMoodKeysAsync(IReadOnlyList<string> keys)
+        => await AreActiveMoodsAsync(keys) ? keys : null;
 }
