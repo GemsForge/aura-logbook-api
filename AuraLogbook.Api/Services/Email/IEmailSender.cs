@@ -2,7 +2,8 @@ namespace AuraLogbook.Api.Services.Email;
 
 /// <summary>
 /// Outbound email abstraction shared by account recovery (#329) and magic-link sign-in (#326).
-/// No production provider exists yet; only <see cref="DevelopmentLogEmailSender"/> is registered.
+/// Registered per environment by <see cref="EmailSenderRegistration"/>: a log sender in Development,
+/// <see cref="SmtpEmailSender"/> elsewhere when configured.
 /// </summary>
 public interface IEmailSender
 {

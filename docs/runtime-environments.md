@@ -64,18 +64,48 @@ flag, making configuration selection visible in deployment logs.
 
 ## Password recovery
 
-Password recovery is enabled only in Development, where `IEmailSender` is
-implemented by a log-based sender. Start the API and UI locally, submit the
-forgot-password form, then copy the reset link from the API development log.
-The link expires after 30 minutes by default and can be used once. The API
+Recovery links expire after 30 minutes by default and can be used once. The API
 stores only the token hash. The request endpoint returns the same confirmation
 for registered and unregistered email addresses; excess requests are throttled
 per email and per client IP.
 
-Both recovery endpoints return 404 outside Development even if
-`PasswordReset:Enabled` is set. Do not enable the feature in a deployed
-environment until a production email sender and the user-storage arrangement
-have been selected and reviewed.
+Both recovery endpoints return 404 unless all of these hold:
+
+- `PasswordReset:Enabled` is `true`;
+- an email sender is registered: Development always uses the log-based sender,
+  and Staging/Production use SMTP only when `Email:Smtp:Host` and
+  `Email:Smtp:FromAddress` are set;
+- `PasswordReset:ResetUrlBase` is an absolute http(s) URL of the UI's
+  `/reset-password` page.
+
+| Environment | Sender | `ResetUrlBase` |
+| --- | --- | --- |
+| Development | Log (copy link from API log) | `http://localhost:58407/reset-password` (Vite uses `strictPort`) |
+| Staging | SMTP | `https://<staging-ui-host>/reset-password` |
+| Production | SMTP | `https://<production-ui-host>/reset-password` |
+
+To enable recovery in a deployed environment, set on the API host:
+
+```text
+PasswordReset__Enabled=true
+PasswordReset__ResetUrlBase=https://<ui-host>/reset-password
+Email__Smtp__Host=<smtp relay host>
+Email__Smtp__Port=587
+Email__Smtp__FromAddress=no-reply@<verified domain>
+Email__Smtp__Username=<secret>
+Email__Smtp__Password=<secret>
+```
+
+and build the UI with `VITE_PASSWORD_RESET_ENABLED=true` so the "Forgot
+password?" link and routes appear. Keep the two flags in step. The sending
+domain must publish SPF and DKIM records for the chosen relay, or mail may land
+in spam.
+
+Outside Development the API never logs reset tokens or links. If the SMTP relay
+fails, the user still gets the generic confirmation and the API logs only the
+error type. Production users are stored in files while reset tokens live in
+SQLite with no foreign key; review that arrangement before enabling recovery in
+Production.
 
 FIT/Staging deployments should provide their own `Database:ConnectionString`
 through deployment configuration. The database health diagnostic is available
