@@ -1,6 +1,7 @@
 ﻿using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services.ReferenceData;
 
 namespace AuraLogbook.Api.Services;
 
@@ -10,10 +11,12 @@ namespace AuraLogbook.Api.Services;
 public class UserService : IUserService
 {
     private readonly IFileUserRepository _userRepo;
+    private readonly IReferenceDataValidator _referenceData;
 
-    public UserService(IFileUserRepository userRepo)
+    public UserService(IFileUserRepository userRepo, IReferenceDataValidator referenceData)
     {
         _userRepo = userRepo;
+        _referenceData = referenceData;
     }
 
     /// <summary>
@@ -21,6 +24,9 @@ public class UserService : IUserService
     /// </summary>
     public async Task<(bool Success, string Message)> RegisterAsync(RegisterUserRequest requestuser)
     {
+        var selectedPathway = requestuser.SelectedPathway ?? SpiritualPathwayKeys.Mindfulness;
+        if (!await _referenceData.IsActivePathwayAsync(selectedPathway))
+            return (false, "Select an active pathway.");
         var existingUser = await _userRepo.GetByEmailAsync(requestuser.Email);
         if (existingUser is not null)
             return (false, "Email is already in use.");
@@ -59,6 +65,10 @@ public class UserService : IUserService
     /// </summary>
     public async Task<(bool Success, string Message)> UpdateUserAsync(UpdateUserRequest request)
     {
+        if (!await _referenceData.IsActivePathwayAsync(request.SelectedPathway))
+            return (false, "Select an active pathway.");
+        if (request.AuraColor is not null && !await _referenceData.IsActiveAuraAsync(request.AuraColor))
+            return (false, "Select an active aura color.");
         var existingUser = await _userRepo.GetByIdAsync(request.Id);
         if (existingUser is null)
             return (false, "User not found.");
@@ -177,11 +187,13 @@ public class UserService : IUserService
     {
         var error = ValidateOnboarding(request);
         if (error is not null) return (false, error);
+        if (!await _referenceData.IsActivePathwayAsync(PathwayKeyFor(request.SelectedPathway)))
+            return (false, "Choose an active pathway.");
 
         var user = await _userRepo.GetByIdAsync(userId);
         if (user is null) return (false, "User not found.");
 
-        user.SelectedPathway = request.SelectedPathway;
+        user.SelectedPathway = PathwayKeyFor(request.SelectedPathway);
         if (request.Birthday is { } birthday)
         {
             user.Birthday = birthday;
@@ -226,6 +238,14 @@ public class UserService : IUserService
         return request.PathwayPreferences?.Validate(request.SelectedPathway);
     }
 
+    /// <summary>Maps an onboarding pathway category to its stable database key.</summary>
+    private static string PathwayKeyFor(SpiritualPathway pathway) => pathway switch
+    {
+        SpiritualPathway.Energy => SpiritualPathwayKeys.Energy,
+        SpiritualPathway.Faith => SpiritualPathwayKeys.Faith,
+        _ => SpiritualPathwayKeys.Mindfulness,
+    };
+
     /// <summary>
     /// Builds a new user from a short registration (#341). Birthday and pathway are optional; the
     /// aura starts from defaults because it is derived later, not chosen. A legacy client that still
@@ -246,7 +266,7 @@ public class UserService : IUserService
             ZodiacSign = request.Birthday is { } birthday
                 ? ZodiacHelper.GetZodiacSign(birthday).ToLowerInvariant()
                 : string.Empty,
-            SelectedPathway = request.SelectedPathway ?? SpiritualPathway.Mindfulness,
+            SelectedPathway = request.SelectedPathway ?? SpiritualPathwayKeys.Mindfulness,
             OnboardingCompletedAt = request.SelectedPathway is null ? null : now,
         };
     }

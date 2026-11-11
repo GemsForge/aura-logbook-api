@@ -1,13 +1,18 @@
 using AuraLogbook.Api.Data.Database;
+using AuraLogbook.Api.Controllers;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Enums;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
+using AuraLogbook.Api.Services.ReferenceData;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Dapper;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace AuraLogbook.Api.Tests;
 
@@ -72,6 +77,72 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal("blue", user.AuraColor);
         Assert.Equal(50, user.AuraIntensity);
         Assert.Equal(InterfaceThemeValues.Aurora, user.InterfaceTheme);
+        Assert.Equal(SpiritualPathwayKeys.Mindfulness, user.SelectedPathway);
+    }
+
+    [Fact]
+    public async Task Reference_data_configuration_returns_ordered_seeded_definitions_and_theme_data()
+    {
+        var response = await new ReferenceDataController(_factory).GetConfiguration();
+        var configuration = Assert.IsType<ReferenceDataConfigurationDto>(Assert.IsType<OkObjectResult>(response.Result).Value);
+
+        Assert.Equal(["mindfulness", "energy", "faith"], configuration.Pathways.Select(pathway => pathway.Key));
+        Assert.Equal("blue", configuration.Auras.Single(aura => aura.Key == "blue").Key);
+        Assert.Equal(10, configuration.Auras.Single(aura => aura.Key == "blue").Shades.Count);
+        Assert.Contains(configuration.Moods, mood => mood.Key == "Centered" && mood.AuraColorKeys.Contains("yellow"));
+        Assert.Contains(configuration.ThemeTokens, token => token.Key == "color.canvas");
+        Assert.Contains(configuration.Graphics, graphic => graphic.Key == "avatar-1" && !string.IsNullOrWhiteSpace(graphic.AlternativeText));
+        Assert.Contains(configuration.ZodiacSigns, sign => sign.Key == "virgo" && sign.Symbol == "♍");
+
+        var compatibilityResponse = await new ReferenceDataController(_factory).GetPathways();
+        var compatibilityBody = Assert.IsAssignableFrom<IEnumerable<dynamic>>(Assert.IsType<OkObjectResult>(compatibilityResponse).Value);
+        Assert.Equal(3, compatibilityBody.Count());
+    }
+
+    [Fact]
+    public async Task Reference_data_validator_accepts_active_keys_and_rejects_unknown_or_inactive_keys()
+    {
+        var validator = new SqliteReferenceDataValidator(_factory);
+
+        Assert.True(await validator.IsActivePathwayAsync("mindfulness"));
+        Assert.True(await validator.IsActiveAuraAsync("blue"));
+        Assert.True(await validator.AreActiveMoodsAsync(["Centered", "Weary"]));
+        Assert.False(await validator.IsActivePathwayAsync("unknown"));
+        Assert.False(await validator.IsActiveAuraAsync("unknown"));
+        Assert.False(await validator.AreActiveMoodsAsync(["Centered", "unknown"]));
+
+        using var connection = _factory.CreateConnection();
+        await connection.ExecuteAsync("UPDATE AuraColorDefinitions SET IsActive = 0 WHERE AuraColorKey = 'blue'");
+        Assert.False(await validator.IsActiveAuraAsync("blue"));
+    }
+
+    [Fact]
+    public async Task User_repository_translates_stable_pathways_to_legacy_integer_storage()
+    {
+        var repository = new SqliteUserRepository(_factory);
+        var user = new User
+        {
+            Email = "stable-pathway@example.com", PasswordHash = "hash", DisplayName = "Stable Pathway",
+            Birthday = new DateOnly(1994, 9, 12), ZodiacSign = "virgo", AuraColor = "green", AuraIntensity = 50,
+            SelectedPathway = SpiritualPathwayKeys.Faith
+        };
+
+        user.Id = await repository.CreateAsync(user);
+        Assert.Equal(2, GetStoredPathwayId(user.Id));
+        Assert.Equal(SpiritualPathwayKeys.Faith, (await repository.GetByIdAsync(user.Id))?.SelectedPathway);
+    }
+
+    [Theory]
+    [InlineData(0, SpiritualPathwayKeys.Mindfulness)]
+    [InlineData(1, SpiritualPathwayKeys.Energy)]
+    [InlineData(2, SpiritualPathwayKeys.Faith)]
+    public void Legacy_json_pathway_ids_deserialize_to_stable_keys(int pathwayId, string stableKey)
+    {
+        var user = JsonSerializer.Deserialize<User>($"{{\"SelectedPathway\":{pathwayId}}}");
+
+        Assert.NotNull(user);
+        Assert.Equal(stableKey, user.SelectedPathway);
+        Assert.Contains($"\"SelectedPathway\":\"{stableKey}\"", JsonSerializer.Serialize(user));
     }
 
     [Fact]
@@ -106,7 +177,7 @@ public sealed class RelationalRepositoryTests : IDisposable
     public async Task User_service_registers_authenticates_and_updates_birthday_with_sqlite_repository()
     {
         var repository = new SqliteUserRepository(_factory);
-        var service = new UserService(repository);
+        var service = new UserService(repository, new SqliteReferenceDataValidator(_factory));
         var registration = new RegisterUserRequest
         {
             Email = "registration-date@example.com",
@@ -176,6 +247,12 @@ public sealed class RelationalRepositoryTests : IDisposable
         command.CommandText = "SELECT ZodiacSign FROM Users WHERE Id = @id";
         command.Parameters.AddWithValue("@id", userId);
         return command.ExecuteScalar() as string;
+    }
+
+    private int GetStoredPathwayId(int userId)
+    {
+        using var connection = _factory.CreateConnection();
+        return connection.ExecuteScalar<int>("SELECT SelectedPathway FROM Users WHERE Id = @userId", new { userId });
     }
 
     [Fact]
@@ -258,7 +335,7 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.NotNull(user);
         Assert.Null(user.Birthday);
         Assert.Equal(string.Empty, user.ZodiacSign);
-        Assert.Equal(SpiritualPathway.Mindfulness, user.SelectedPathway);
+        Assert.Equal(SpiritualPathwayKeys.Mindfulness, user.SelectedPathway);
         Assert.Null(user.OnboardingCompletedAt);
         Assert.True(user.AuraRevealsEnabled);
         Assert.Null(GetStoredBirthday(user.Id));
@@ -270,11 +347,11 @@ public sealed class RelationalRepositoryTests : IDisposable
     {
         var service = new UserService(new SqliteUserRepository(_factory));
 
-        await service.RegisterAsync(new RegisterUserRequest { Email = "legacy@example.com", Password = "StrongPassword123!", Birthday = new DateOnly(1994, 9, 12), SelectedPathway = SpiritualPathway.Faith });
+        await service.RegisterAsync(new RegisterUserRequest { Email = "legacy@example.com", Password = "StrongPassword123!", Birthday = new DateOnly(1994, 9, 12), SelectedPathway = SpiritualPathwayKeys.Faith });
 
         var user = await service.GetByEmailAsync("legacy@example.com");
         Assert.NotNull(user);
-        Assert.Equal(SpiritualPathway.Faith, user.SelectedPathway);
+        Assert.Equal(SpiritualPathwayKeys.Faith, user.SelectedPathway);
         Assert.NotNull(user.OnboardingCompletedAt);
     }
 
@@ -301,7 +378,7 @@ public sealed class RelationalRepositoryTests : IDisposable
 
         Assert.True(result.Success, result.Message);
         var saved = (await service.GetByIdAsync(user.Id))!;
-        Assert.Equal(SpiritualPathway.Energy, saved.SelectedPathway);
+        Assert.Equal(SpiritualPathwayKeys.Energy, saved.SelectedPathway);
         Assert.Equal(new DateOnly(1994, 9, 12), saved.Birthday);
         Assert.Equal("Virgo", saved.ZodiacSign);
         Assert.Equal(285, saved.OnboardingColorHue);
@@ -324,7 +401,7 @@ public sealed class RelationalRepositoryTests : IDisposable
 
         Assert.True(result.Success);
         var saved = (await service.GetByIdAsync(user.Id))!;
-        Assert.Equal(SpiritualPathway.Mindfulness, saved.SelectedPathway);
+        Assert.Equal(SpiritualPathwayKeys.Mindfulness, saved.SelectedPathway);
         Assert.Empty(saved.OnboardingAnswers);
         Assert.Null(saved.Birthday);
         Assert.NotNull(saved.OnboardingCompletedAt);

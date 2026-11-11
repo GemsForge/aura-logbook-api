@@ -1,6 +1,5 @@
 using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Models;
-using AuraLogbook.Api.Models.Enums;
 using Dapper;
 
 namespace AuraLogbook.Api.Repositories;
@@ -39,7 +38,7 @@ public sealed class SqliteMoodRepository : IFileMoodRepository
     private static object Parameters(MoodEntry entry) => new { entry.Id, entry.UserId, Date = entry.Date.ToString("yyyy-MM-dd"), entry.Comment, entry.AuraColor, entry.AuraIntensity, entry.ChakraKey, entry.WeatherSnapshot, entry.CreatedAt };
     public async Task<bool> DeleteAsync(int id) { using var c = _factory.CreateConnection(); return await c.ExecuteAsync("DELETE FROM MoodEntries WHERE Id=@id", new { id }) == 1; }
 
-    private static async Task ReplaceMoodsAsync(System.Data.Common.DbConnection c, System.Data.Common.DbTransaction tx, int entryId, IEnumerable<MoodType> moods)
+    private static async Task ReplaceMoodsAsync(System.Data.Common.DbConnection c, System.Data.Common.DbTransaction tx, int entryId, IEnumerable<string> moods)
     {
         await c.ExecuteAsync("DELETE FROM MoodEntryMoods WHERE MoodEntryId=@entryId", new { entryId }, tx);
         foreach (var mood in moods.Distinct())
@@ -52,7 +51,7 @@ public sealed class SqliteMoodRepository : IFileMoodRepository
         foreach (var row in rows)
         {
             var moods = await c.QueryAsync<string>("SELECT MoodKey FROM MoodEntryMoods WHERE MoodEntryId=@id", new { id = row.Id });
-            result.Add(new MoodEntry { Id = row.Id, UserId = row.UserId, Date = DateOnly.Parse(row.EntryDate), Comment = row.Comment, AuraColor = row.AuraColor, AuraIntensity = row.AuraIntensity, ChakraKey = row.ChakraKey, WeatherSnapshot = row.WeatherSnapshot, CreatedAt = DateTime.Parse(row.CreatedAt), Moods = moods.Select(Enum.Parse<MoodType>).ToList() });
+            result.Add(new MoodEntry { Id = row.Id, UserId = row.UserId, Date = DateOnly.Parse(row.EntryDate), Comment = row.Comment, AuraColor = row.AuraColor, AuraIntensity = row.AuraIntensity, ChakraKey = row.ChakraKey, WeatherSnapshot = row.WeatherSnapshot, CreatedAt = DateTime.Parse(row.CreatedAt), Moods = moods.ToList() });
         }
         return result;
     }

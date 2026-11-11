@@ -2,6 +2,7 @@
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Models.Dto.Insights;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services.ReferenceData;
 
 namespace AuraLogbook.Api.Services;
 
@@ -11,10 +12,12 @@ namespace AuraLogbook.Api.Services;
 public class MoodService : IMoodService
 {
     private readonly IFileMoodRepository _moodRepo;
+    private readonly IReferenceDataValidator _referenceData;
 
-    public MoodService(IFileMoodRepository moodRepo)
+    public MoodService(IFileMoodRepository moodRepo, IReferenceDataValidator referenceData)
     {
         _moodRepo = moodRepo;
+        _referenceData = referenceData;
     }
 
     /// <summary>
@@ -51,6 +54,8 @@ public class MoodService : IMoodService
     /// </summary>
     public async Task<(bool Success, string Message, int EntryId)> CreateMoodAsync(int userId, MoodEntryRequest dto)
     {
+        if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
+            return (false, "Select one or more active moods.");
         var moodEntry = new MoodEntry
         {
             UserId = userId,
@@ -81,6 +86,8 @@ public class MoodService : IMoodService
     /// </summary>
     public async Task<(bool Success, string Message)> UpdateMoodAsync(int userId, int moodId, MoodEntryRequest dto)
     {
+        if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
+            return (false, "Select one or more active moods.");
         var existing = await _moodRepo.GetByIdAsync(moodId);
         if (existing == null || existing.UserId != userId)
             return (false, "Mood entry not found or access denied.");

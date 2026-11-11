@@ -3,6 +3,7 @@ using AuraLogbook.Api.Controllers;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services.ReferenceData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -58,10 +59,27 @@ public sealed class ReflectionControllerTests
         repository.VerifyNoOtherCalls();
     }
 
-    private static ReflectionController CreateController(Mock<IReflectionRepository> repository, params Claim[] claims)
+    [Fact]
+    public async Task Prompts_reject_an_unknown_pathway_key()
+    {
+        var repository = new Mock<IReflectionRepository>();
+        var referenceData = new Mock<IReferenceDataValidator>();
+        referenceData.Setup(validator => validator.IsActivePathwayAsync("unknown")).ReturnsAsync(false);
+        var controller = CreateController(repository, referenceData.Object);
+
+        var response = await controller.GetPrompts("unknown", null, null);
+
+        Assert.IsType<BadRequestObjectResult>(response);
+        repository.Verify(repo => repo.GetActivePromptsAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>()), Times.Never);
+    }
+
+    private static ReflectionController CreateController(
+        Mock<IReflectionRepository> repository,
+        IReferenceDataValidator referenceData,
+        params Claim[] claims)
     {
         var identity = new ClaimsIdentity(claims, "test");
-        return new ReflectionController(repository.Object)
+        return new ReflectionController(repository.Object, referenceData)
         {
             ControllerContext = new ControllerContext
             {
@@ -69,4 +87,7 @@ public sealed class ReflectionControllerTests
             },
         };
     }
+
+    private static ReflectionController CreateController(Mock<IReflectionRepository> repository, params Claim[] claims) =>
+        CreateController(repository, Mock.Of<IReferenceDataValidator>(), claims);
 }

@@ -92,7 +92,13 @@ public static class AuraEngine
         }
 
         // Pathway base layer as a fixed share of the final mix.
-        (double Hue, double Share, string Label)? baseLayer = user.SelectedPathway switch
+        var pathway = user.SelectedPathway switch
+        {
+            SpiritualPathwayKeys.Energy => SpiritualPathway.Energy,
+            SpiritualPathwayKeys.Faith => SpiritualPathway.Faith,
+            _ => SpiritualPathway.Mindfulness,
+        };
+        (double Hue, double Share, string Label)? baseLayer = pathway switch
         {
             SpiritualPathway.Energy when user.Birthday is { } birthday
                 && AuraHueTables.ZodiacElement.TryGetValue(ZodiacHelper.GetZodiacSign(birthday), out var element)

@@ -1,12 +1,11 @@
-﻿using AuraLogbook.Api.Models.Enums;
-
 namespace AuraLogbook.Api.Models;
 public class MoodEntry
 {
     public int Id { get; set; }
     public int UserId { get; set; }
     public DateOnly Date { get; set; }
-    public List<MoodType> Moods { get; set; } = new();
+    /// <summary>Gets or sets database-defined mood keys recorded for this entry.</summary>
+    public List<string> Moods { get; set; } = new();
     public string? Comment { get; set; }
     public string? AuraColor { get; set; }
     public int? AuraIntensity { get; set; }

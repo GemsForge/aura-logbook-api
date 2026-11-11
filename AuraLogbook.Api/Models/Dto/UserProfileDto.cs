@@ -21,7 +21,8 @@
         public required int AuraIntensity { get; set; }
         public required string Avatar { get; set; }
         public required string Motto { get; set; }
-        public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+        /// <summary>Stable key for the user's selected pathway.</summary>
+        public string SelectedPathway { get; set; } = SpiritualPathwayKeys.Mindfulness;
         /// <summary>True once onboarding is completed or skipped; the UI routes to onboarding while false.</summary>
         public bool OnboardingCompleted { get; set; }
         /// <summary>Whether aura reveal copy and accents are shown.</summary>

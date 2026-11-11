@@ -3,6 +3,7 @@ using System.Security.Claims;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services.ReferenceData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,16 +12,17 @@ namespace AuraLogbook.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/reflections")]
-public sealed class ReflectionController(IReflectionRepository repository) : ControllerBase
+public sealed class ReflectionController(IReflectionRepository repository, IReferenceDataValidator referenceData) : ControllerBase
 {
+    /// <summary>Returns active prompts filtered by database-backed pathway and presentation keys.</summary>
     [HttpGet("prompts")]
     public async Task<IActionResult> GetPrompts(
-        [FromQuery] int? pathwayKey,
+        [FromQuery] string? pathwayKey,
         [FromQuery] string? auraColorKey,
         [FromQuery] string? chakraKey)
     {
-        if (pathwayKey is not null && !Enum.IsDefined(typeof(SpiritualPathway), pathwayKey.Value))
-            return BadRequest("Unknown pathway key.");
+        if (pathwayKey is not null && !await referenceData.IsActivePathwayAsync(pathwayKey))
+            return BadRequest("Select an active pathway.");
 
         var prompts = await repository.GetActivePromptsAsync(pathwayKey, auraColorKey, chakraKey);
         return Ok(prompts);

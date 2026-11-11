@@ -7,7 +7,7 @@ namespace AuraLogbook.Api.Repositories;
 public sealed class SqliteReflectionRepository(IDbConnectionFactory connectionFactory) : IReflectionRepository
 {
     public async Task<IReadOnlyList<ReflectionPrompt>> GetActivePromptsAsync(
-        int? pathwayKey,
+        string? pathwayKey,
         string? auraColorKey,
         string? chakraKey)
     {
@@ -15,7 +15,9 @@ public sealed class SqliteReflectionRepository(IDbConnectionFactory connectionFa
             SELECT Id, PromptKey, PromptText, Category, PathwayKey, AuraColorKey, ChakraKey
             FROM ReflectionPrompts
             WHERE IsActive = 1
-              AND (@PathwayKey IS NULL OR PathwayKey IS NULL OR PathwayKey = @PathwayKey)
+              AND (@PathwayKey IS NULL OR PathwayKey IS NULL OR PathwayKey = (
+                  SELECT PathwayKey FROM SpiritualPathways WHERE StableKey = @PathwayKey AND IsActive = 1
+              ))
               AND (@AuraColorKey IS NULL OR AuraColorKey IS NULL OR AuraColorKey = @AuraColorKey COLLATE NOCASE)
               AND (@ChakraKey IS NULL OR ChakraKey IS NULL OR ChakraKey = @ChakraKey COLLATE NOCASE)
             ORDER BY Category COLLATE NOCASE, PromptKey COLLATE NOCASE;

@@ -1,5 +1,3 @@
-﻿using AuraLogbook.Api.Models.Enums;
-
 namespace AuraLogbook.Api.Models.Dto.Insights
 {
     public class ZodiacInsightResponse
@@ -11,7 +9,8 @@ namespace AuraLogbook.Api.Models.Dto.Insights
 
         // Mood dashboard summary
         public int TotalEntries { get; set; }
-        public MoodType? MostFrequentMood { get; set; }
+        /// <summary>Gets or sets the database-defined key of the most frequent mood.</summary>
+        public string? MostFrequentMood { get; set; }
         public int CurrentStreak { get; set; }
         public DateOnly? LastEntryDate { get; set; }
 

@@ -3,6 +3,7 @@ using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
+using AuraLogbook.Api.Services.ReferenceData;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -82,6 +83,7 @@ builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection("Da
 builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddSingleton<JsonUserSeeder>();
+builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
 
 // Repositories
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
