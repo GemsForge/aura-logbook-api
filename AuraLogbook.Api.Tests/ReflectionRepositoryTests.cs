@@ -36,7 +36,7 @@ public sealed class ReflectionRepositoryTests : IDisposable
     {
         var repository = new SqliteReflectionRepository(_factory);
 
-        var prompts = await repository.GetActivePromptsAsync(1, "BLUE", "throat");
+        var prompts = await repository.GetActivePromptsAsync("energy", "BLUE", "throat");
 
         Assert.Equal(["energy-blue", "daily-check-in"], prompts.Select(prompt => prompt.PromptKey));
     }
@@ -46,7 +46,7 @@ public sealed class ReflectionRepositoryTests : IDisposable
     {
         var repository = new SqliteReflectionRepository(_factory);
 
-        var faithPrompts = await repository.GetActivePromptsAsync(2, null, null);
+        var faithPrompts = await repository.GetActivePromptsAsync("faith", null, null);
         var redAuraPrompts = await repository.GetActivePromptsAsync(null, "red", null);
         var heartPrompts = await repository.GetActivePromptsAsync(null, null, "heart");
 

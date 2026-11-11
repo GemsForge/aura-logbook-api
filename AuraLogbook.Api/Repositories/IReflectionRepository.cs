@@ -4,8 +4,9 @@ namespace AuraLogbook.Api.Repositories;
 
 public interface IReflectionRepository
 {
+    /// <summary>Returns active prompts filtered by stable pathway, aura, and chakra keys.</summary>
     Task<IReadOnlyList<ReflectionPrompt>> GetActivePromptsAsync(
-        int? pathwayKey,
+        string? pathwayKey,
         string? auraColorKey,
         string? chakraKey);
 

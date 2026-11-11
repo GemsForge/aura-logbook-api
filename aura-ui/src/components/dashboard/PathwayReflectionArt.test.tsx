@@ -20,9 +20,9 @@ describe("PathwayReflectionArt", () => {
 
 describe("normalizeSpiritualPathway", () => {
   it("accepts enum keys and display labels and rejects unknown values", () => {
-    expect(normalizeSpiritualPathway("Mindful Living")).toBe("Mindfulness");
-    expect(normalizeSpiritualPathway("astrology & energy")).toBe("Energy");
-    expect(normalizeSpiritualPathway("Faith")).toBe("Faith");
+    expect(normalizeSpiritualPathway("Mindful Living")).toBe("mindfulness");
+    expect(normalizeSpiritualPathway("astrology & energy")).toBe("energy");
+    expect(normalizeSpiritualPathway("Faith")).toBe("faith");
     expect(normalizeSpiritualPathway("Something else")).toBeUndefined();
     expect(normalizeSpiritualPathway(undefined)).toBeUndefined();
   });

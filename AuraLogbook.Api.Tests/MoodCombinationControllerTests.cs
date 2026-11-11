@@ -2,6 +2,7 @@ using AuraLogbook.Api.Controllers;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Enums;
 using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services.ReferenceData;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -21,10 +22,12 @@ public sealed class MoodCombinationControllerTests
             Interpretation = "Pathway reflection",
         };
         var repository = new Mock<IMoodCombinationRepository>();
+        var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
+        referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
         repository.Setup(x => x.GetAsync(
-                It.Is<IReadOnlyCollection<MoodType>>(moods => moods.SequenceEqual(new[] { MoodType.Restless, MoodType.Disconnected })), 1))
+                It.Is<IReadOnlyCollection<string>>(moods => moods.SequenceEqual(new[] { MoodType.Restless, MoodType.Disconnected })), 1))
             .ReturnsAsync(expected);
-        var controller = new MoodCombinationController(repository.Object);
+        var controller = new MoodCombinationController(repository.Object, referenceData.Object);
 
         var response = Assert.IsType<OkObjectResult>(await controller.GetInterpretation("Restless,Disconnected", 1));
 
@@ -41,7 +44,10 @@ public sealed class MoodCombinationControllerTests
     public async Task GetInterpretation_rejects_invalid_moods_or_pathway(string moods, int pathwayKey)
     {
         var repository = new Mock<IMoodCombinationRepository>(MockBehavior.Strict);
-        var controller = new MoodCombinationController(repository.Object);
+        var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
+        referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>()))
+            .ReturnsAsync((IEnumerable<string> keys) => keys.All(key => key is not "UnknownMood"));
+        var controller = new MoodCombinationController(repository.Object, referenceData.Object);
 
         var response = await controller.GetInterpretation(moods, pathwayKey);
 
@@ -53,9 +59,11 @@ public sealed class MoodCombinationControllerTests
     public async Task GetInterpretation_returns_no_content_for_an_unsupported_combination()
     {
         var repository = new Mock<IMoodCombinationRepository>();
-        repository.Setup(x => x.GetAsync(It.IsAny<IReadOnlyCollection<MoodType>>(), 0))
+        var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
+        referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
+        repository.Setup(x => x.GetAsync(It.IsAny<IReadOnlyCollection<string>>(), 0))
             .ReturnsAsync((MoodCombinationInterpretation?)null);
-        var controller = new MoodCombinationController(repository.Object);
+        var controller = new MoodCombinationController(repository.Object, referenceData.Object);
 
         var response = await controller.GetInterpretation("Restless,Disconnected", 0);
 

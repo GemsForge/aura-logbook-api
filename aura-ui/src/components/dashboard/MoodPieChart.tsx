@@ -6,7 +6,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { MoodIcons } from "../../features/mood/models/aura/MoodIcons";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import type { MoodType } from "../../features/mood/models/schema/MoodType";
 import type {
   MoodFrequencyResponse,
@@ -15,19 +15,6 @@ import type {
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import { prismGarden } from "@/theme";
-
-const COLORS = [
-  "#FF6384",
-  "#36A2EB",
-  "#FFCE56",
-  "#A569BD",
-  "#4BC0C0",
-  "#F7786B",
-  "#5D6D7E",
-  "#F4D03F",
-  "#1ABC9C",
-  "#E67E22",
-];
 
 // ✅ Converts incoming backend data to percent-only structure
 function convertToPercentOnly(
@@ -75,8 +62,15 @@ export default function MoodPieChart({
 }: {
   data: MoodFrequencyResponse[];
 }) {
+  const { data: referenceData } = useGetReferenceDataQuery();
   const percentOnly = convertToPercentOnly(data);
   const grouped = groupSmallMoods(percentOnly);
+  const colorForMood = (mood: string) => {
+    if (!referenceData) return "currentColor";
+    const moodDefinition = referenceData.moods.find((definition) => definition.key === mood);
+    return referenceData.auras.find((aura) => aura.key === moodDefinition?.auraColorKeys[0])?.baseHex ??
+      referenceData.auras[0]?.baseHex ?? "currentColor";
+  };
 
   return (
     <Box mt={4}>
@@ -94,11 +88,11 @@ export default function MoodPieChart({
               cx="50%"
               cy="50%"
               outerRadius="68%"
-              label={({ mood }) => `${MoodIcons[mood as MoodType] ?? "❔"}`}>
-              {grouped.map((_entry, index) => (
+              label={({ mood }) => `${referenceData?.moods.find((definition) => definition.key === mood)?.icon ?? ""}`}>
+              {grouped.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
+                  fill={colorForMood(entry.mood)}
                 />
               ))}
             </Pie>
@@ -109,7 +103,7 @@ export default function MoodPieChart({
               }}
               formatter={(value, name) => [
                 `${value}%`,
-                `${MoodIcons[name as MoodType] ?? "❔"} ${name}`,
+                `${referenceData?.moods.find((definition) => definition.key === name)?.icon ?? ""} ${name}`,
               ]}
             />
             <Legend

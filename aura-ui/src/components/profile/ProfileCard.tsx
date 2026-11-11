@@ -1,12 +1,10 @@
-import { SpiritualPathwayDescriptions } from "@/features/auth/models/SpiritualPathway";
-import { AuraColor } from "@/features/mood/models/aura";
-import { zodiacEmojis } from "@/features/zodiac/models/ZodiacEmojis";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { useGetCurrentUserQuery } from "@/store/authApi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { openProfileModal } from "@/store/slices/uiSlice";
-import { auraPalettes } from "@/theme/auraTheme";
+import { getAuraColorPreview } from "@/theme/auraTheme";
 import { getProfileCompletion } from "@/util/profile";
 import {
   Avatar,
@@ -29,7 +27,9 @@ export default function ProfileCard() {
   const dispatch = useAppDispatch();
   const { isFetching: userLoading } = useGetCurrentUserQuery();
   const user = useAppSelector(selectCurrentUser);
-  const showAstrologyContent = user?.selectedPathway === "Energy";
+  const { data: referenceData } = useGetReferenceDataQuery();
+  const showAstrologyContent = user?.selectedPathway === "energy";
+  const pathway = referenceData?.pathways.find(({ key }) => key === user?.selectedPathway);
   const { data: zodiac, isLoading, refetch } = useGetZodiacInsightQuery(undefined, { skip: !showAstrologyContent });
 
   useEffect(() => {
@@ -64,8 +64,7 @@ export default function ProfileCard() {
   // Determine user avatar
   const avatarVal = user.avatar ?? "";
   const isImage = avatarVal.startsWith("/") || avatarVal.startsWith("http");
-  const auraKey: AuraColor = user.auraColor ?? AuraColor.Blue;
-  const bgColor = !isImage ? auraPalettes[auraKey].primary.main : undefined;
+  const bgColor = !isImage ? getAuraColorPreview(user.auraColor ?? "", user.auraIntensity, referenceData?.auras ?? []) : undefined;
 
   return (
     <Sheet
@@ -89,7 +88,7 @@ export default function ProfileCard() {
           badgeContent={
             showAstrologyContent && zodiac && !isLoading ? (
               <Typography fontSize={24} lineHeight={1}>
-                {zodiacEmojis[zodiac.sign.toLowerCase()] || "?"}
+                {referenceData?.zodiacSigns.find((sign) => sign.key === zodiac.sign.toLowerCase())?.symbol || "?"}
               </Typography>
             ) : null
           }
@@ -131,9 +130,10 @@ export default function ProfileCard() {
               <Typography variant="subtitle2" fontWeight={600}>
                 My Pathway
               </Typography>
-              <Typography variant="body1">{user.selectedPathway}</Typography>
+              {/* Pathway keys are stable API identifiers; display the current definition label. */}
+              <Typography variant="body1">{pathway?.displayName ?? user.selectedPathway}</Typography>
               <Typography variant="body2" color="text.secondary">
-                {SpiritualPathwayDescriptions[user.selectedPathway]}
+                {pathway?.description}
               </Typography>
             </Box>
           )}

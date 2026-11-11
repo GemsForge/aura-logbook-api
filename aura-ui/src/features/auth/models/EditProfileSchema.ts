@@ -1,10 +1,8 @@
 import { weatherLocationModes, type TemperatureUnit, type WeatherLocationMode } from "@/features/weather/weatherLocation";
-import { AuraColor } from "@/features/mood/models/aura";
 import * as yup from "yup";
-import { SpiritualPathway } from "./SpiritualPathway";
+import type { SpiritualPathway } from "./SpiritualPathway";
+import type { AuraColor } from "@/features/mood/models/aura";
 import { interfaceThemes, type InterfaceTheme } from "./InterfaceTheme";
-
-const auraColors = Object.values(AuraColor) as AuraColor[];
 
 export interface EditProfileFormData {
   email: string;
@@ -42,13 +40,7 @@ export const editProfileSchema = yup
     // Optional since #341: registration no longer asks for a birthday.
     birthday: yup.string().optional(),
 
-    spiritualPathway: yup
-      .mixed<SpiritualPathway>()
-      .oneOf(
-        Object.values(SpiritualPathway),
-        "Select a valid spiritual pathway"
-      )
-      .required("Spiritual pathway is required"),
+    spiritualPathway: yup.string().required("Spiritual pathway is required"),
 
     interfaceTheme: yup
       .mixed<InterfaceTheme>()
@@ -97,10 +89,7 @@ export const editProfileSchema = yup
       otherwise: (schema) => schema.notRequired(),
     }),
 
-    auraColor: yup
-      .mixed<AuraColor>()
-      .oneOf(auraColors, "Select a valid aura color")
-      .required("Aura color is required"),
+    auraColor: yup.string().required("Aura color is required"),
 
     auraIntensity: yup
       .number()

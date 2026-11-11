@@ -162,8 +162,8 @@ namespace AuraLogbook.Api.Services
         int TotalEntries,
         int PositiveCount,
         int NegativeCount,
-        MoodType MostFrequentMood,
-        List<MoodType> TopMoods
+        string MostFrequentMood,
+        List<string> TopMoods
     );
 
 }

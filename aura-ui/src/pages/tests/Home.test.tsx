@@ -1,9 +1,14 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { useLocation } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../test/testUtilities";
 import HomePage from "../Home";
-import { auraPalettes } from "@/theme/auraTheme";
+import { testReferenceData } from "../../test/referenceDataFixtures";
+
+vi.mock("@/store/referenceDataApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/store/referenceDataApi")>();
+  return { ...actual, useGetReferenceDataQuery: () => ({ data: testReferenceData, isError: false }) };
+});
 
 function CurrentPath() {
   const location = useLocation();
@@ -35,13 +40,13 @@ describe("HomePage", () => {
 
   it("changes only the temporary hero color preview when a swatch is selected", () => {
     const { store } = renderWithProviders(<HomePage />);
-    const orangeSwatch = screen.getByRole("button", { name: "Preview Orange mood color" });
+    const greenSwatch = screen.getByRole("button", { name: "Preview Green mood color" });
     const hero = screen.getByRole("region", { name: "A quieter way to notice what matters." });
 
-    fireEvent.click(orangeSwatch);
+    fireEvent.click(greenSwatch);
 
-    expect(orangeSwatch).toHaveAttribute("aria-pressed", "true");
-    expect(hero.style.getPropertyValue("--home-preview-color")).toBe(auraPalettes.orange[300].main);
+    expect(greenSwatch).toHaveAttribute("aria-pressed", "true");
+    expect(hero.style.getPropertyValue("--home-preview-color")).toBe(testReferenceData.auras[1].shades?.[300]);
     expect(store.getState().ui.interfaceThemePreview).toBeNull();
     expect(store.getState().auth.profile).toBeNull();
   });

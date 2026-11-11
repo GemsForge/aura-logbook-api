@@ -1,6 +1,7 @@
 ﻿using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Models.Dto.Insights;
-using AuraLogbook.Api.Models.Enums;
+using AuraLogbook.Api.Data.Database;
+using Dapper;
 using AuraLogbook.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,16 @@ public class MoodController : ControllerBase
     private readonly IMoodStatsService _moodStatsService;
     private readonly IMoodMediaService _moodMediaService;
     private readonly ILogger<MoodController> _logger;
-    public MoodController(IMoodService moodService, IMoodStatsService moodStatsService, IMoodMediaService moodMediaService, ILogger<MoodController> logger)
+    private readonly IDbConnectionFactory _connectionFactory;
+
+    /// <summary>Creates the mood controller and its active mood definitions and media services.</summary>
+    public MoodController(IMoodService moodService, IMoodStatsService moodStatsService, IMoodMediaService moodMediaService, ILogger<MoodController> logger, IDbConnectionFactory connectionFactory)
     {
         _moodService = moodService;
         _moodStatsService = moodStatsService;
         _moodMediaService = moodMediaService;
         _logger = logger;
+        _connectionFactory = connectionFactory;
     }
 
     private int GetUserIdFromToken()
@@ -131,7 +136,8 @@ public class MoodController : ControllerBase
     {
         var userId = GetUserIdFromToken();
         var rand = new Random();
-        var moodTypes = Enum.GetValues(typeof(MoodType)).Cast<MoodType>().ToList();
+        using var connection = _connectionFactory.CreateConnection();
+        var moodTypes = (await connection.QueryAsync<string>("SELECT MoodKey FROM MoodDefinitions WHERE IsActive = 1 ORDER BY SortOrder, MoodKey")).ToList();
 
         for (int i = 0; i < days; i++)
         {

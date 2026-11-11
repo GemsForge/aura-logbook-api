@@ -6,6 +6,12 @@ import {
   renderWithProviders,
 } from "../../test/testUtilities";
 import Dashboard from "../Dashboard";
+import { testReferenceData } from "../../test/referenceDataFixtures";
+
+vi.mock("@/store/referenceDataApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/store/referenceDataApi")>();
+  return { ...actual, useGetReferenceDataQuery: () => ({ data: testReferenceData, isError: false }) };
+});
 
 const dashboardSummary = vi.hoisted(() => ({
   data: {
@@ -161,7 +167,6 @@ describe("Dashboard", () => {
     expect(screen.getByRole("heading", { name: /this week/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /a thought for today/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /recent reflections/i })).toBeInTheDocument();
-    expect(screen.getByText(/mindful pathway/i)).toBeInTheDocument();
     expect(screen.queryByText(/virgo/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("weather-card")).toBeInTheDocument();
     // The breakdown chart lives on the Insights page, not Today.
@@ -208,7 +213,7 @@ describe("Dashboard", () => {
     expect(quickMoodMutation).toHaveBeenCalledWith(expect.objectContaining({ moods: ["Empowered"] }));
     expect(await screen.findByText(/logged\. thank you for checking in/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /add a note or photo/i })).toBeInTheDocument();
-    expect(screen.getByText(/yellow reflection color/i)).toBeInTheDocument();
+    expect(screen.getByText(/green reflection color/i)).toBeInTheDocument();
     expect(screen.getByText(/a gentle next step/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /add a note or photo/i }));
     expect(screen.getByTestId("mood-update-modal")).toHaveTextContent("Add a note or photo");

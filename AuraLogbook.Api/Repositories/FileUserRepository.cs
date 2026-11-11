@@ -144,7 +144,9 @@ public class FileUserRepository : FileRepositoryBase<FileUserRepository.StoredUs
         public int AuraIntensity { get; set; } = 50;
         public string? Avatar { get; set; }
         public string? Motto { get; set; }
-        public SpiritualPathway SelectedPathway { get; set; } = SpiritualPathway.Mindfulness;
+        /// <summary>Stable pathway key; the converter accepts legacy numeric JSON IDs.</summary>
+        [System.Text.Json.Serialization.JsonConverter(typeof(LegacyPathwayKeyJsonConverter))]
+        public string SelectedPathway { get; set; } = SpiritualPathwayKeys.Mindfulness;
         /// <summary>Interface theme preference; missing in legacy files and resolved to Aurora on read.</summary>
         public string? InterfaceTheme { get; set; }
         /// <summary>Weather location preference (#331); missing in older files and resolved to Off.</summary>

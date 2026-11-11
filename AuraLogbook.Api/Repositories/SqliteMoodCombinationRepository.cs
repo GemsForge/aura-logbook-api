@@ -10,7 +10,7 @@ namespace AuraLogbook.Api.Repositories;
 public sealed class SqliteMoodCombinationRepository(IDbConnectionFactory connectionFactory) : IMoodCombinationRepository
 {
     /// <inheritdoc />
-    public async Task<MoodCombinationInterpretation?> GetAsync(IReadOnlyCollection<MoodType> moods, int pathwayKey)
+    public async Task<MoodCombinationInterpretation?> GetAsync(IReadOnlyCollection<string> moods, int pathwayKey)
     {
         var moodSetKey = MoodCombinationImporter.CreateMoodSetKey(moods);
         const string sql = """

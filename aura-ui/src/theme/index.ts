@@ -1,16 +1,31 @@
-import { alpha, createTheme, darken, lighten, type Theme } from "@mui/material/styles";
+import { createTheme, darken, lighten, type Theme } from "@mui/material/styles";
 import { extendTheme as extendJoyTheme } from "@mui/joy/styles";
-import { AuraColor } from "@/features/mood/models/aura";
 import { prismGarden } from "./prismGarden";
-import { auraPalettes, getAuraShade, normalizeAuraIntensity, resolveAuraColor } from "./auraTheme";
+import { auraPalettes, getAuraShade, normalizeAuraIntensity } from "./auraTheme";
 import {
   interfaceThemeTokens,
   getInterfaceThemeCssVariables,
   resolveInterfaceTheme,
   type InterfaceTheme,
 } from "./interfaceThemes";
+import type { AuraColorDefinition } from "@/features/mood/models/aura";
+import type { ThemeToken } from "@/store/referenceDataApi";
 
 export { prismGarden } from "./prismGarden";
+
+/** Installs validated database-managed theme tokens as CSS variables for shared UI surfaces. */
+export function installThemeTokenVariables(tokens: ThemeToken[], auras: AuraColorDefinition[] = []): void {
+  for (const { key, value } of tokens) {
+    if (!/^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)*$/.test(key)) continue;
+    document.documentElement.style.setProperty(`--aura-${key.replace(/\./g, "-")}`, value);
+  }
+  for (const aura of auras) {
+    for (const [shade, value] of Object.entries(aura.shades ?? {})) {
+      document.documentElement.style.setProperty(`--aura-palette-${aura.key}-${shade}`, value);
+    }
+    document.documentElement.style.setProperty(`--aura-palette-${aura.key}-500`, aura.shades?.[500] ?? aura.baseHex);
+  }
+}
 export {
   interfaceThemes,
   interfaceThemeTokens,
@@ -21,9 +36,9 @@ export {
 
 /** Builds an aura-tinted wash for reflection surfaces while the app shell follows its interface theme. */
 export function getAuraBackground(color: unknown, intensity: unknown = 50): string {
-  const hue = resolveAuraColor(color);
+  const hue = typeof color === "string" ? color : "";
   const strength = 0.08 + normalizeAuraIntensity(intensity) / 700;
-  return `radial-gradient(ellipse at 8% 10%, ${alpha(auraPalettes[hue][400].main!, strength)} 0%, transparent 55%), radial-gradient(ellipse at 92% 50%, ${alpha(auraPalettes[hue][200].main!, strength * 0.7)} 0%, transparent 58%)`;
+  return `radial-gradient(ellipse at 8% 10%, color-mix(in srgb, ${auraPalettes[hue][400].main} ${Math.round(strength * 100)}%, transparent) 0%, transparent 55%), radial-gradient(ellipse at 92% 50%, color-mix(in srgb, ${auraPalettes[hue][200].main} ${Math.round(strength * 70)}%, transparent) 0%, transparent 58%)`;
 }
 
 /**
@@ -33,7 +48,7 @@ export function getAuraBackground(color: unknown, intensity: unknown = 50): stri
  * @returns A Material UI theme ready for `ThemeProvider`.
  */
 export function getAuraTheme(
-  auraColor: AuraColor | string = AuraColor.Blue,
+  auraColor: string = "",
   auraIntensity: number = 50,
   selectedTheme: InterfaceTheme | string = "Aurora",
 ): Theme {
@@ -41,7 +56,7 @@ export function getAuraTheme(
   const tokens = interfaceThemeTokens[normalizedTheme];
   const colorScheme = tokens.mode;
   const cssVariables = getInterfaceThemeCssVariables(normalizedTheme);
-  const auraHue = resolveAuraColor(auraColor);
+  const auraHue = auraColor;
   const auraAccent = auraPalettes[auraHue][getAuraShade(auraIntensity)].main!;
 
   return createTheme({
@@ -74,11 +89,11 @@ export function getAuraTheme(
             ...cssVariables,
             colorScheme,
             "--aura-accent": auraAccent,
-            "--aura-glow": alpha(auraAccent, 0.24),
-            "--aura-wash": alpha(auraAccent, 0.14),
-            "--aura-line": alpha(auraAccent, 0.30),
+            "--aura-glow": `color-mix(in srgb, ${auraAccent} 24%, transparent)`,
+            "--aura-wash": `color-mix(in srgb, ${auraAccent} 14%, transparent)`,
+            "--aura-line": `color-mix(in srgb, ${auraAccent} 30%, transparent)`,
             "--aura-panel": tokens.surface,
-            "--aura-dark": `linear-gradient(135deg, ${alpha(auraAccent, 0.22)}, transparent 85%), ${tokens.surfaceRaised}`,
+            "--aura-dark": `linear-gradient(135deg, color-mix(in srgb, ${auraAccent} 22%, transparent), transparent 85%), ${tokens.surfaceRaised}`,
           },
           body: {
             backgroundColor: tokens.canvas,

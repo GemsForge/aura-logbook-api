@@ -1,13 +1,11 @@
 import { resolveTemperatureUnit, resolveWeatherLocationMode } from "@/features/weather/weatherLocation";
 import {
-  SpiritualPathway,
   type UpdateUserRequest,
 } from "@/features/auth/models";
 import {
   editProfileSchema,
   type EditProfileFormData,
 } from "@/features/auth/models/EditProfileSchema";
-import { AuraColor } from "@/features/mood/models/aura";
 import { resolveInterfaceTheme } from "@/theme";
 import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
@@ -19,12 +17,13 @@ import {
   resolveAuraColor,
 } from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { LinearProgress } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import EditProfileForm from "./EditProfile/EditProfileForm";
 import { AuraModal } from "../ui/AuraModal";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -39,6 +38,9 @@ export default function EditProfileModal({
   const { showToast } = useToast();
   // 1) Unconditionally call your hooks at the top:
   const { data: user, isFetching: loadingUser } = useGetCurrentUserQuery();
+  const { data: referenceData, isError: referenceDataError } = useGetReferenceDataQuery();
+  const auraOptions = referenceData?.auras ?? [];
+  const pathwayOptions = referenceData?.pathways ?? [];
   const [updateUser] = useUpdateUserMutation();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
@@ -50,13 +52,13 @@ export default function EditProfileModal({
       displayName: "",
       email: user?.email ?? "",
       birthday: "",
-      auraColor: AuraColor.Blue,
+      auraColor: "",
       auraIntensity: 50,
       avatar: "",
       password: "",
       confirmPassword: "",
       motto: "",
-      spiritualPathway: SpiritualPathway.Mindfulness,
+      spiritualPathway: "",
       interfaceTheme: "Aurora",
       weatherLocationMode: "Off",
       weatherCity: "",
@@ -87,13 +89,15 @@ export default function EditProfileModal({
         birthday: user.birthday
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
-        auraColor: resolveAuraColor(user.auraColor),
+        auraColor: resolveAuraColor(user.auraColor, auraOptions)?.key ?? auraOptions[0]?.key ?? "",
         auraIntensity: normalizeAuraIntensity(user.auraIntensity),
         avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
         motto: user.motto || "",
-        spiritualPathway: user.selectedPathway ?? SpiritualPathway.Mindfulness,
+        spiritualPathway: pathwayOptions.some((pathway) => pathway.key === user.selectedPathway)
+          ? user.selectedPathway!
+          : pathwayOptions[0]?.key ?? "",
         interfaceTheme: resolveInterfaceTheme(user.interfaceTheme),
         weatherLocationMode: resolveWeatherLocationMode(user.weatherLocationMode),
         weatherCity: user.weatherCity ?? "",
@@ -106,9 +110,10 @@ export default function EditProfileModal({
     } else if (!open) {
       dispatch(setInterfaceThemePreview(null));
     }
-  }, [open, user, reset, form, dispatch]);
+  }, [open, user, reset, form, dispatch, auraOptions, pathwayOptions]);
 
-  if (loadingUser || !user) return <LinearProgress color="secondary" />;
+  if (referenceDataError) return <Box role="alert" sx={{ p: 2 }}>Profile definitions are unavailable. Please retry.</Box>;
+  if (loadingUser || !user || !referenceData) return <LinearProgress color="secondary" aria-label="Loading profile definitions" />;
 
   const onSubmit = async (data: EditProfileFormData) => {
     const { auraIntensity, spiritualPathway, ...rest } = data;
@@ -140,7 +145,7 @@ export default function EditProfileModal({
 
   const colorKey = watch("auraColor");
   const intensity = watch("auraIntensity");
-  const currentAuraBg = getAuraColorPreview(colorKey, intensity);
+  const currentAuraBg = getAuraColorPreview(colorKey, intensity, auraOptions);
   // SHOULD I GET RID OF THIS DISPLAY NAME?
   const displayName = watch("displayName") || user?.displayName || "";
   const defaultInitials = displayName
@@ -168,6 +173,7 @@ export default function EditProfileModal({
           avatarPickerOpen={avatarPickerOpen}
           onAvatarPickerOpenChange={setAvatarPickerOpen}
           currentAuraBg={currentAuraBg}
+          avatars={referenceData.graphics.filter((asset) => asset.assetType === "avatar")}
           defaultInitials={defaultInitials}
           onSubmit={onSubmit}
           onCancel={() => dispatch(closeProfileModal())}

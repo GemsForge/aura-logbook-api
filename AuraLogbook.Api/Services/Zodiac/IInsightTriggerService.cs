@@ -47,7 +47,7 @@ namespace AuraLogbook.Api.Services
             MoodStatsDto stats,
             double posRatio,
             double negRatio,
-            IList<MoodType> topMoods)
+            IList<string> topMoods)
         {
             return insightType switch
             {

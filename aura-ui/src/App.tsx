@@ -1,5 +1,4 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
-// import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout";
 import { useDispatch } from "react-redux";

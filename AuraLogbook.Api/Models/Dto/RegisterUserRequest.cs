@@ -24,11 +24,10 @@ namespace AuraLogbook.Api.Models.Dto
 
         [MaxLength(30, ErrorMessage = "Display name cannot exceed 30 characters.")]
         public string? DisplayName { get; set; }
-
         /// <summary>Optional; when present the zodiac sign is derived from it.</summary>
         public DateOnly? Birthday { get; set; }
 
-        /// <summary>Optional; defaults to Mindfulness until onboarding sets it.</summary>
-        public SpiritualPathway? SelectedPathway { get; set; }
+        /// <summary>Optional stable pathway key; omitted values default to mindfulness.</summary>
+        public string? SelectedPathway { get; set; }
     }
 }

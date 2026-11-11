@@ -44,7 +44,7 @@ public sealed class WeatherLocationPreferenceTests : IDisposable
             Id = 3, Email = "legacy@example.test", PasswordHash = "hash", DisplayName = "Legacy",
             Birthday = new DateOnly(1990, 1, 1), ZodiacSign = "capricorn", AuraColor = "blue", AuraIntensity = 50,
         } }));
-        var service = new UserService(Repository());
+        var service = new UserService(Repository(), new TestReferenceDataValidator());
 
         var legacy = await service.GetByIdAsync(3);
         Assert.Equal(WeatherLocationValues.Off, legacy?.WeatherLocationMode);
@@ -55,7 +55,7 @@ public sealed class WeatherLocationPreferenceTests : IDisposable
         Assert.True(result.Success, result.Message);
 
         // A fresh repository instance reads the file again, as another device would see it.
-        var reloaded = await new UserService(Repository()).GetByIdAsync(3);
+        var reloaded = await new UserService(Repository(), new TestReferenceDataValidator()).GetByIdAsync(3);
         Assert.Equal(WeatherLocationValues.City, reloaded?.WeatherLocationMode);
         Assert.Equal("Lisbon", reloaded?.WeatherCity);
         Assert.Equal("PT", reloaded?.WeatherCountry);
@@ -68,7 +68,7 @@ public sealed class WeatherLocationPreferenceTests : IDisposable
     public async Task Turning_off_or_switching_to_device_clears_the_saved_place(string mode)
     {
         await SeedFileUserAsync();
-        var service = new UserService(Repository());
+        var service = new UserService(Repository(), new TestReferenceDataValidator());
         var user = (await service.GetByIdAsync(1))!;
         Assert.True((await service.UpdateUserAsync(Request(user, "City", "Atlanta", "GA", "US", null))).Success);
 
@@ -85,7 +85,7 @@ public sealed class WeatherLocationPreferenceTests : IDisposable
     public async Task City_mode_requires_a_city()
     {
         await SeedFileUserAsync();
-        var service = new UserService(Repository());
+        var service = new UserService(Repository(), new TestReferenceDataValidator());
         var user = (await service.GetByIdAsync(1))!;
 
         var result = await service.UpdateUserAsync(Request(user, "City", "  ", null, null, null));
@@ -98,7 +98,7 @@ public sealed class WeatherLocationPreferenceTests : IDisposable
     public async Task Omitting_the_mode_keeps_the_current_setting()
     {
         await SeedFileUserAsync();
-        var service = new UserService(Repository());
+        var service = new UserService(Repository(), new TestReferenceDataValidator());
         var user = (await service.GetByIdAsync(1))!;
         await service.UpdateUserAsync(Request(user, "City", "Oslo", null, "NO", null));
 

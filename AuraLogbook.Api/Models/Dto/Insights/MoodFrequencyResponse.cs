@@ -1,4 +1,3 @@
-﻿using AuraLogbook.Api.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace AuraLogbook.Api.Models.Dto.Insights;
@@ -11,7 +10,7 @@ public class MoodFrequencyResponse : IValidatableObject
     /// <summary>
     /// The mood type (e.g., Happy, Anxious, etc.).
     /// </summary>
-    public MoodType Mood { get; set; }
+    public string Mood { get; set; } = string.Empty;
 
     /// <summary>
     /// The number of times this mood occurred. Must not be set if Percent is used.

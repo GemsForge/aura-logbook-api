@@ -1,51 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { AuraColor } from "../features/mood/models/aura";
+import { testAuraDefinitions } from "../test/testUtilities";
 import {
-  auraPalettes,
+  getAccessibleTextColor,
   getAuraColorPreview,
   getAuraShade,
   normalizeAuraIntensity,
   resolveAuraColor,
 } from "./auraTheme";
 
-describe("aura profile color fallbacks", () => {
-  it.each([undefined, null, "unknown", ""])(
-    "resolves unsupported color %s to blue",
-    (color) => {
-      expect(resolveAuraColor(color)).toBe(AuraColor.Blue);
-      expect(getAuraColorPreview(color, 500)).toBe(
-        auraPalettes[AuraColor.Blue][500].main
-      );
-    }
-  );
-
-  it("accepts supported colors without depending on API casing", () => {
-    expect(resolveAuraColor(" GREEN ")).toBe(AuraColor.Green);
-    expect(getAuraColorPreview("GREEN", 700)).toBe(
-      auraPalettes[AuraColor.Green][700].main
-    );
+describe("database-backed aura palettes", () => {
+  it("uses the first active definition for an unknown stored key", () => {
+    expect(resolveAuraColor("unknown", testAuraDefinitions)?.key).toBe("blue");
+    expect(getAuraColorPreview("unknown", 50, testAuraDefinitions)).toBe("#2196f3");
   });
 
-  it.each([undefined, null, 250, 1000])(
-    "uses the selected palette primary shade for unsupported intensity %s",
-    (intensity) => {
-      expect(getAuraColorPreview(AuraColor.Green, intensity)).toBe(
-        auraPalettes[AuraColor.Green].primary.main
-      );
-    }
-  );
-
-  it.each([
-    [0, 100],
-    [50, 500],
-    [100, 900],
-    [700, 700],
-  ])("maps intensity %s to palette shade %s", (intensity, shade) => {
-    expect(getAuraShade(intensity)).toBe(shade);
+  it("resolves an active key without depending on casing", () => {
+    expect(resolveAuraColor(" GREEN ", testAuraDefinitions)?.key).toBe("green");
+    expect(getAuraColorPreview("GREEN", 70, testAuraDefinitions)).toBe("#388e3c");
   });
 
-  it("normalizes legacy palette intensity values", () => {
+  it.each([[0, 100], [50, 500], [100, 900], [70, 700]])(
+    "maps intensity %s to palette shade %s",
+    (intensity, shade) => expect(getAuraShade(intensity)).toBe(shade),
+  );
+
+  it("normalizes legacy intensities and selects accessible text contrast", () => {
     expect(normalizeAuraIntensity(500)).toBe(50);
     expect(normalizeAuraIntensity(700)).toBe(70);
+    expect(getAccessibleTextColor("#ffffff")).toBe("#000000");
+    expect(getAccessibleTextColor("#000000")).toBe("#ffffff");
   });
 });

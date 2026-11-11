@@ -10,9 +10,8 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { AuraColor, AuraMoodMap } from "@/features/mood/models/aura";
 import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
-import { auraPalettes } from "@/theme/auraTheme";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { normalizeSpiritualPathway, type SpiritualPathway } from "@/features/auth/models/SpiritualPathway";
@@ -38,9 +37,9 @@ const auraOrbitPositions = [
 
 /** Maps the persisted pathway label to the API SpiritualPathway enum key. */
 const pathwayKeyByUserPathway: Record<SpiritualPathway, number> = {
-  Mindfulness: 0,
-  Energy: 1,
-  Faith: 2,
+  mindfulness: 0,
+  energy: 1,
+  faith: 2,
 };
 
 type JournalingPrompt = { id: string; question: string };
@@ -48,9 +47,9 @@ type JournalingPromptPathway = { id: string; prompts: JournalingPrompt[] };
 
 /** Maps the persisted user pathway to the prompt-library pathway identifier. */
 const promptPathwayByUserPathway: Record<SpiritualPathway, string> = {
-  Mindfulness: "mindful",
-  Energy: "astrology-energy",
-  Faith: "faith-religion",
+  mindfulness: "mindful",
+  energy: "astrology-energy",
+  faith: "faith-religion",
 };
 
 
@@ -85,6 +84,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   const location = useLocation();
   const preselectedMood = (location.state as { preselectedMood?: MoodType } | null)?.preselectedMood;
   const currentUser = useAppSelector(selectCurrentUser);
+  const { data: referenceData } = useGetReferenceDataQuery();
   const {
     control,
     handleSubmit,
@@ -117,7 +117,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   const showNote = noteOpen || Boolean(entry) || Boolean(watch("comment"));
   const showPhotos = photosOpen || Boolean(entry) || selectedPhotos.length > 0;
   // Labels and enum keys resolve the same way as on Today and in the banner art.
-  const userPathway = normalizeSpiritualPathway(currentUser?.selectedPathway) ?? "Mindfulness";
+  const userPathway = normalizeSpiritualPathway(currentUser?.selectedPathway) ?? "mindfulness";
   const pathwayKey = pathwayKeyByUserPathway[userPathway];
   const interpretationEligible = selectedMoods.length >= 2 && selectedMoods.length <= 3;
   const {
@@ -143,13 +143,10 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   };
 
   // group moods by auraColor
-  const auraGroups = Object.values(AuraColor).reduce((acc, color) => {
-    acc[color] = [];
-    return acc;
-  }, {} as Record<AuraColor, MoodType[]>);
-  (Object.keys(AuraMoodMap) as MoodType[]).forEach((m) => {
-    auraGroups[AuraMoodMap[m].auraColor].push(m);
-  });
+  const auraGroups = (referenceData?.auras ?? []).map((aura) => ({
+    aura,
+    moods: (referenceData?.moods ?? []).filter((mood) => mood.auraColorKeys.includes(aura.key)).map((mood) => mood.key),
+  }));
 
   const onFormSubmit = (data: MoodEntryFormValues) => {
     void onSubmit({
@@ -197,11 +194,11 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
             {!selectedMoods.length && <Typography level="body-xs" color="neutral" sx={{ mt: 0.75 }}>Select one or more colors around you.</Typography>}
           </Box>
         </Box>
-        {Object.entries(auraGroups).map(([colorKey, moods], groupIndex) => {
-          const color = colorKey as AuraColor;
+        {auraGroups.map(({ aura, moods }, groupIndex) => {
+          const color = aura.key;
           if (moods.length === 0) return null;
 
-          const swatch = auraPalettes[color].primary!.main;
+          const swatch = aura.shades?.[500] ?? aura.baseHex;
           const [left, top] = auraOrbitPositions[groupIndex] ?? [50, 50];
           const selectedInGroup = moods.filter((mood) => selectedMoods.includes(mood)).length;
 
@@ -224,9 +221,11 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
               </Box>
               <Box sx={{ display: { xs: "contents", sm: "flex" }, flexDirection: "column" }}>
                 {moods.map((mood) => {
-                  const { icon, auraColor } = AuraMoodMap[mood];
+                  const moodDefinition = referenceData?.moods.find((definition) => definition.key === mood);
+                  const icon = moodDefinition?.icon ?? "";
                   const checked = selectedMoods.includes(mood);
-                  const hue = auraPalettes[auraColor].primary!.main;
+                  const moodAura = referenceData?.auras.find((definition) => definition.key === moodDefinition?.auraColorKeys[0]);
+                  const hue = moodAura?.shades?.[500] ?? moodAura?.baseHex ?? swatch;
                   return (
                     <Sheet
                       key={mood}

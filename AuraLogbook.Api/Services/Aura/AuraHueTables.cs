@@ -36,7 +36,7 @@ public static class AuraHueTables
     public const double ColorMomentWeight = 1.5;
 
     /// <summary>Mood → hue and chroma factor (spec §5). Neutral has no hue and only mutes the blend.</summary>
-    public static readonly IReadOnlyDictionary<MoodType, (double? Hue, double Chroma)> Moods = new Dictionary<MoodType, (double?, double)>
+    public static readonly IReadOnlyDictionary<string, (double? Hue, double Chroma)> Moods = new Dictionary<string, (double?, double)>
     {
         [MoodType.Empowered] = (40, 1.0),
         [MoodType.Centered] = (Blue, 0.8),
