@@ -9,7 +9,7 @@ describe("ThemeBanner artwork", () => {
   it("falls back once and hides decoration when both assets fail", () => {
     const { container } = renderWithProviders(<ThemeBanner title="Your reflections" description="A quiet moment." />);
     const image = container.querySelector("img")!;
-    expect(image).toHaveAttribute("src", "/theme-assets/backgrounds/banner-aurora-dark.png");
+    expect(image).toHaveAttribute("src", "/theme-assets/backgrounds/banner-aurora-light.png");
     fireEvent.error(image);
     expect(image).toHaveAttribute("src", "/theme-assets/backgrounds/banner-aurora.png");
     fireEvent.error(image);

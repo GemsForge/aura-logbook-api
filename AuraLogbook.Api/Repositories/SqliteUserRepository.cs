@@ -49,7 +49,7 @@ public sealed class SqliteUserRepository : IFileUserRepository
         user.Motto,
         user.SelectedPathway,
         InterfaceTheme = InterfaceThemeValues.Resolve(user.InterfaceTheme),
-        // Omitted legacy JSON modes must retain Ivory light during import or persistence.
+        // Persist the shared light default when no brightness was supplied.
         InterfaceMode = InterfaceModeValues.Resolve(user.InterfaceMode, user.InterfaceTheme),
         WeatherLocationMode = WeatherLocationValues.ResolveMode(user.WeatherLocationMode),
         user.WeatherCity,

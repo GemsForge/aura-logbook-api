@@ -1,12 +1,12 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
-import { resolveInterfaceTheme, resolveInterfaceMode, type InterfaceMode, type InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
+import { DEFAULT_INTERFACE_MODE, resolveInterfaceTheme, resolveInterfaceMode, type InterfaceMode, type InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
 
 export const GUEST_MODE_STORAGE_KEY = "aura-interface-mode";
-/** Browser storage can be unavailable; the guest session still starts safely in dark mode. */
+/** Browser storage can be unavailable; the guest session still starts safely in light mode. */
 export function readGuestInterfaceMode(): InterfaceMode {
   try { return resolveInterfaceMode(localStorage.getItem(GUEST_MODE_STORAGE_KEY)); }
-  catch { return "dark"; }
+  catch { return DEFAULT_INTERFACE_MODE; }
 }
 /** Saves only display brightness; failures leave the current session usable. */
 export function persistGuestInterfaceMode(mode: InterfaceMode): boolean {
@@ -46,5 +46,5 @@ export const selectInterfaceTheme = (state: RootState): InterfaceTheme =>
   resolveInterfaceTheme(state.ui.interfaceThemePreview ?? state.auth.profile?.interfaceTheme);
 /** Resolves the active brightness for both providers and the one-click toggle. */
 export const selectInterfaceMode = (state: RootState): InterfaceMode => state.ui.interfaceModePreview ?? state.ui.pendingInterfaceMode ??
-  (state.auth.profile ? resolveInterfaceMode(state.auth.profile.interfaceMode, state.auth.profile.interfaceTheme) : state.ui.guestInterfaceMode ?? "dark");
+  (state.auth.profile ? resolveInterfaceMode(state.auth.profile.interfaceMode, state.auth.profile.interfaceTheme) : state.ui.guestInterfaceMode ?? DEFAULT_INTERFACE_MODE);
 export default uiSlice.reducer;

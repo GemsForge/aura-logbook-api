@@ -6,6 +6,7 @@ import {
   editProfileSchema,
   type EditProfileFormData,
 } from "@/features/auth/models/EditProfileSchema";
+import { DEFAULT_INTERFACE_MODE } from "@/features/auth/models/InterfaceTheme";
 import { resolveInterfaceTheme, resolveInterfaceMode } from "@/theme";
 import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
@@ -60,7 +61,7 @@ export default function EditProfileModal({
       motto: "",
       spiritualPathway: "",
       interfaceTheme: "Aurora",
-      interfaceMode: "dark",
+      interfaceMode: DEFAULT_INTERFACE_MODE,
       weatherLocationMode: "Off",
       weatherCity: "",
       weatherRegion: "",

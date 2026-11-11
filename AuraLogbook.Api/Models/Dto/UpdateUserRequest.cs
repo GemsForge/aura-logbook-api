@@ -28,7 +28,7 @@ namespace AuraLogbook.Api.Models.Dto
         public string? Motto { get; set; }
         /// <summary>Optional appearance preference; omitted values preserve the current theme.</summary>
         public string? InterfaceTheme { get; set; }
-        /// <summary>Optional mode; omitted updates preserve the saved value. Legacy missing values resolve to dark, except Ivory.</summary>
+        /// <summary>Optional mode; omission preserves the saved value, while unsupported values resolve to light.</summary>
         public string? InterfaceMode { get; set; }
         /// <summary>Optional weather location mode (Off, City, Device); omitted preserves the current setting.</summary>
         public string? WeatherLocationMode { get; set; }

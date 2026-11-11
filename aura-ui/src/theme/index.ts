@@ -49,7 +49,7 @@ export function getAuraBackground(color: unknown, intensity: unknown = 50): stri
  * Creates the Material UI adapter for the selected interface theme.
  * Recorded aura color remains entry data and is styled by its own aura palette.
  * @param selectedTheme Saved interface preference; missing or invalid values use Aurora.
- * @param selectedMode Independent screen brightness; legacy Ivory falls back to light.
+ * @param selectedMode Independent screen brightness; omitted values use light.
  * @returns A Material UI theme ready for `ThemeProvider`.
  */
 export function getAuraTheme(
@@ -59,7 +59,7 @@ export function getAuraTheme(
   selectedMode?: InterfaceMode,
 ): Theme {
   const normalizedTheme = resolveInterfaceTheme(selectedTheme);
-  // The caller supplies mode independently; legacy Ivory resolves to Aurora light.
+  // The caller supplies mode independently; an omitted mode uses the shared light default.
   const tokens = getInterfaceThemeTokens(selectedTheme, selectedMode);
   const colorScheme = tokens.mode;
   const cssVariables = getInterfaceThemeCssVariables(normalizedTheme, tokens.mode);

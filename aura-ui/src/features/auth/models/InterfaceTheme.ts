@@ -9,8 +9,10 @@ export type InterfaceMode = (typeof interfaceModes)[number];
 export function resolveInterfaceTheme(value: unknown): InterfaceTheme {
   return interfaceThemes.includes(value as InterfaceTheme) ? value as InterfaceTheme : "Aurora";
 }
-/** Missing legacy Ivory mode becomes light; other missing or unsupported values become dark. */
-export function resolveInterfaceMode(value: unknown, legacyTheme?: unknown): InterfaceMode {
+/** Shared default for new accounts, visitors and missing mode values. */
+export const DEFAULT_INTERFACE_MODE: InterfaceMode = "light";
+/** Explicit choices are honored; missing or unsupported values use light in every family. */
+export function resolveInterfaceMode(value: unknown, _legacyTheme?: unknown): InterfaceMode {
   if (value === "light" || value === "dark") return value;
-  return value == null && legacyTheme === "Ivory" ? "light" : "dark";
+  return DEFAULT_INTERFACE_MODE;
 }

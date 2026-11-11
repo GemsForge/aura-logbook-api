@@ -68,9 +68,12 @@ for (const width of [320, 1440]) {
   }
   test(`public mode persists through reload at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 }); await api(page, "Aurora", false);
-    await page.goto("/login"); await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await page.goto("/login");
+    // Fresh visitors start light, then a deliberate dark selection survives reload.
     await expect.poll(() => canvas(page)).toBe(lightCanvas.Aurora);
-    await page.reload(); await expect(page.getByRole("button", { name: "Switch to dark theme" })).toBeEnabled();
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await expect.poll(() => canvas(page)).toBe("#170F26");
+    await page.reload(); await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
   test(`onboarding has a mode control without the app header at ${width}px`, async ({ page }) => {

@@ -14,17 +14,17 @@ describe("ThemeModeToggle", () => {
   beforeEach(() => { localStorage.clear(); mocks.update.mockReset(); });
   it("stores a guest mode independently and restores it from browser storage", () => {
     const { store } = renderWithProviders(<ThemeModeToggle />);
-    fireEvent.click(screen.getByRole("button", { name: "Switch to light theme" }));
-    expect(selectInterfaceMode(store.getState() as RootState)).toBe("light");
-    expect(localStorage.getItem(GUEST_MODE_STORAGE_KEY)).toBe("light");
-    expect(readGuestInterfaceMode()).toBe("light");
-    expect(screen.getByRole("button", { name: "Switch to dark theme" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Switch to dark theme" }));
+    expect(selectInterfaceMode(store.getState() as RootState)).toBe("dark");
+    expect(localStorage.getItem(GUEST_MODE_STORAGE_KEY)).toBe("dark");
+    expect(readGuestInterfaceMode()).toBe("dark");
+    expect(screen.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
   });
   it("keeps a guest session usable when browser storage is blocked", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
     renderWithProviders(<ThemeModeToggle />);
-    fireEvent.click(screen.getByRole("button", { name: "Switch to light theme" }));
-    expect(screen.getByRole("button", { name: "Switch to dark theme" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Switch to dark theme" }));
+    expect(screen.getByRole("button", { name: "Switch to light theme" })).toBeEnabled();
     expect(screen.getByRole("alert")).toHaveTextContent("It applies for this visit");
     vi.restoreAllMocks();
   });
