@@ -41,12 +41,12 @@ public sealed class RelationalRepositoryTests : IDisposable
     public async Task Interface_mode_survives_sqlite_create_update_and_every_profile_read()
     {
         var repository = new SqliteUserRepository(_factory);
-        var user = new User { Email = "mode-roundtrip@example.test", PasswordHash = "hash", AuraColor = "blue", AuraIntensity = 72, InterfaceTheme = "Ocean", InterfaceMode = "light" };
+        var user = new User { Email = "mode-roundtrip@example.test", PasswordHash = "hash", AuraColor = "blue", AuraIntensity = 72, InterfaceTheme = "Ocean", InterfaceMode = "system" };
         user.Id = await repository.CreateAsync(user);
-        Assert.Equal("light", (await repository.GetByIdAsync(user.Id))?.InterfaceMode);
-        Assert.Equal("light", (await repository.GetByEmailAsync(user.Email))?.InterfaceMode);
-        Assert.Equal("light", (await repository.GetAllAsync()).Single(item => item.Id == user.Id).InterfaceMode);
-        Assert.Equal("light", (await repository.SearchAsync("mode-roundtrip")).Single().InterfaceMode);
+        Assert.Equal("system", (await repository.GetByIdAsync(user.Id))?.InterfaceMode);
+        Assert.Equal("system", (await repository.GetByEmailAsync(user.Email))?.InterfaceMode);
+        Assert.Equal("system", (await repository.GetAllAsync()).Single(item => item.Id == user.Id).InterfaceMode);
+        Assert.Equal("system", (await repository.SearchAsync("mode-roundtrip")).Single().InterfaceMode);
         user.InterfaceMode = "dark";
         Assert.True(await repository.UpdateAsync(user));
         var reloaded = (await new SqliteUserRepository(_factory).GetByIdAsync(user.Id))!;

@@ -7,8 +7,8 @@ public static class InterfaceModeValues
     public const string Default = "light";
 
     /// <summary>Honors an explicit mode; missing or unsupported values use light in every family.</summary>
-    /// <param name="value">Saved or requested light/dark mode.</param>
+    /// <param name="value">Saved light/dark override or system-following preference; the client resolves device appearance.</param>
     /// <param name="legacyTheme">Retained for compatibility; every family now shares the light default.</param>
     public static string Resolve(string? value, string? legacyTheme = null) =>
-        value is "light" or "dark" ? value : Default;
+        value is "light" or "dark" or "system" ? value : Default;
 }

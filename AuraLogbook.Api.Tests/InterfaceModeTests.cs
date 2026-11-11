@@ -18,6 +18,7 @@ public sealed class InterfaceModeTests
     [InlineData(null, "Ocean", "light")]
     [InlineData("unknown", "Ivory", "light")]
     [InlineData("dark", "Ocean", "dark")]
+    [InlineData("system", "Ocean", "system")]
     [InlineData("light", "Ocean", "light")]
     public void Resolves_legacy_mode(string? value, string theme, string expected) =>
         Assert.Equal(expected, InterfaceModeValues.Resolve(value, theme));
@@ -64,9 +65,10 @@ public sealed class InterfaceModeTests
             var user = (await repository.GetByIdAsync(1))!;
             Assert.Equal("Aurora", user.InterfaceTheme); Assert.Equal("light", user.InterfaceMode);
             user.InterfaceTheme = "Ocean";
+            user.InterfaceMode = "system";
             Assert.True(await repository.UpdateAsync(user));
             var saved = (await repository.GetByIdAsync(1))!;
-            Assert.Equal("Ocean", saved.InterfaceTheme); Assert.Equal("light", saved.InterfaceMode);
+            Assert.Equal("Ocean", saved.InterfaceTheme); Assert.Equal("system", saved.InterfaceMode);
             Assert.Equal("blue", saved.AuraColor); Assert.Equal(72, saved.AuraIntensity);
         }
         finally { File.Delete(path); }
