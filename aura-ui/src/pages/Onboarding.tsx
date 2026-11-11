@@ -70,7 +70,9 @@ export default function Onboarding() {
     }
   };
 
-  const orbStyle = { width: { xs: 96, md: 300 }, "--aura-accent": `hsl(${orbHue} 65% 64%)`, "--aura-glow": `hsl(${orbHue} 70% 72% / 0.5)`, "--aura-line": `hsl(${orbHue} 70% 82% / 0.4)`, transition: "background 600ms" } as const;
+  // Phones get a full orb only on the reveal and closing steps; elsewhere a 56px orb sits beside the eyebrow.
+  const heroStep = step.kind === "reveal" || step.kind === "reminder";
+  const orbStyle = { width: { xs: heroStep ? 160 : 56, md: 300 }, flexShrink: 0, "--aura-accent": `hsl(${orbHue} 65% 64%)`, "--aura-glow": `hsl(${orbHue} 70% 72% / 0.5)`, "--aura-line": `hsl(${orbHue} 70% 82% / 0.4)`, transition: "background 600ms" } as const;
 
   let eyebrow = "";
   let heading = "";
@@ -82,7 +84,8 @@ export default function Onboarding() {
     const q = QUIZ_QUESTIONS[step.number - 1];
     eyebrow = `Question ${q.number} of 5`;
     heading = q.prompt;
-    sub = "Pick the one that feels closest. No wrong answers.";
+    // Shown once: repeating it on every question costs phone height (design critique, #342 follow-up).
+    sub = q.number === 1 ? "Pick the one that feels closest. No wrong answers." : "";
     body = (
       <Box role="radiogroup" aria-label={q.prompt} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {shuffled(q.options, q.number).map((o) => {
@@ -207,26 +210,42 @@ export default function Onboarding() {
   const progress = step.kind === "question" ? (step.number / 5) * 100 : undefined;
 
   return (
-    <Box sx={{ width: "100%", minWidth: 0, boxSizing: "border-box", display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, gap: { xs: 3, md: 12 }, alignItems: "center", py: { xs: 2, md: 6 }, px: { xs: 0, md: 4 }, maxWidth: 1280, mx: "auto" }}>
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: { xs: "center", md: "flex-start" }, textAlign: { xs: "center", md: "left" }, minWidth: 0 }}>
-        <Box aria-hidden="true" className="aura-orb" sx={orbStyle as unknown as CSSProperties} />
-        <Typography className="aura-eyebrow" level="body-xs" sx={{ mt: { xs: 3, md: 7 } }}>{eyebrow}</Typography>
-        <Typography level="h1" className="aura-page-heading" sx={{ mt: 1 }}>{heading}</Typography>
-        {sub && <Typography level="body-md" color="neutral" sx={{ mt: 1.5, maxWidth: 480 }}>{sub}</Typography>}
+    <Box sx={{ width: "100%", maxWidth: 1280, mx: "auto", minWidth: 0, boxSizing: "border-box", minHeight: "100dvh", display: "flex", flexDirection: "column", px: { xs: 2, md: 4 } }}>
+      {/* Slim top bar replaces the app header while onboarding: Back, quiz progress, Skip. */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, pt: "calc(12px + env(safe-area-inset-top, 0px))", pb: 1.5 }}>
+        <Button variant="outlined" aria-label="Back" onClick={() => go(-1)} disabled={draft.stepIndex === 0} sx={{ minWidth: 44 }}>‹</Button>
+        {progress !== undefined
+          ? <LinearProgress determinate value={progress} aria-label="Quiz progress" sx={{ flexGrow: 1 }} />
+          : <Box sx={{ flexGrow: 1 }} />}
+        {step.kind !== "reminder"
+          ? <Link component="button" onClick={() => (step.kind === "question" ? finish(true) : go(1))} sx={{ minHeight: 44 }}>Skip</Link>
+          : <Box sx={{ width: 44 }} />}
       </Box>
-      <Sheet variant="outlined" className="aura-panel" sx={{ width: "100%", maxWidth: { xs: 480, md: 520 }, mx: { xs: "auto", md: 0 }, boxSizing: "border-box", p: { xs: 2, md: 4 }, display: "flex", flexDirection: "column", gap: 2.5 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Button variant="outlined" aria-label="Back" onClick={() => go(-1)} disabled={draft.stepIndex === 0} sx={{ minWidth: 44 }}>‹</Button>
-          {progress !== undefined
-            ? <LinearProgress determinate value={progress} aria-label="Quiz progress" sx={{ flexGrow: 1 }} />
-            : <Box sx={{ flexGrow: 1 }} />}
-          {step.kind !== "reminder" && (
-            <Link component="button" onClick={() => (step.kind === "question" ? finish(true) : go(1))}>Skip</Link>
-          )}
+
+      <Box sx={{ flexGrow: 1, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, gap: { xs: 2, md: 12 }, alignItems: { xs: "start", md: "center" }, alignContent: { xs: "start", md: "center" }, py: { xs: 1, md: 6 } }}>
+        <Box sx={{ minWidth: 0, display: "flex", flexDirection: heroStep ? "column" : { xs: "row", md: "column" }, alignItems: heroStep ? { xs: "center", md: "flex-start" } : { xs: "flex-start", md: "flex-start" }, gap: { xs: 1.5, md: 0 }, textAlign: heroStep ? { xs: "center", md: "left" } : "left" }}>
+          <Box aria-hidden="true" className="aura-orb" sx={orbStyle as unknown as CSSProperties} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography className="aura-eyebrow" level="body-xs" sx={{ mt: heroStep ? { xs: 2, md: 7 } : { xs: 0.5, md: 7 } }}>{eyebrow}</Typography>
+            <Typography level="h1" className="aura-page-heading" sx={{ mt: 0.75, fontSize: { xs: "1.65rem !important", md: "clamp(2.1rem, 3.5vw, 3.4rem) !important" } }}>{heading}</Typography>
+            {sub && <Typography level="body-md" color="neutral" sx={{ mt: 1, maxWidth: 480 }}>{sub}</Typography>}
+          </Box>
         </Box>
-        {body}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>{primary}</Box>
-      </Sheet>
+
+        {/* Phones drop the card chrome; md+ keeps the panel. */}
+        <Sheet variant="outlined" className="onboarding-panel" sx={{ width: "100%", maxWidth: { xs: "none", md: 520 }, boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 2.5, p: { xs: 0, md: 4 }, border: { xs: "none", md: undefined }, background: { xs: "transparent", md: undefined }, boxShadow: { xs: "none", md: undefined } }}>
+          {body}
+          {/* md+: the action stays in the panel. */}
+          {primary && <Box sx={{ display: { xs: "none", md: "flex" }, flexDirection: "column", gap: 1 }}>{primary}</Box>}
+        </Sheet>
+      </Box>
+
+      {/* Phones: the action is pinned to the bottom so Alex never scrolls to move forward. */}
+      {primary && (
+        <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, position: "sticky", bottom: 0, mx: -2, px: 2, pt: 2, pb: "calc(12px + env(safe-area-inset-bottom, 0px))", background: "linear-gradient(to top, var(--al-theme-canvas) 70%, transparent)", zIndex: 1 }}>
+          {primary}
+        </Box>
+      )}
     </Box>
   );
 }
