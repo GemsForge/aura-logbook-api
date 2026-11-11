@@ -19,40 +19,54 @@ const destinations = [
   { label: "Gallery", path: "/gallery", icon: PhotoLibraryOutlined },
 ];
 
-/** Keeps journal destinations and profile access within thumb reach above the device safe area. */
+/** Hides text visually but keeps it as the item's accessible name for screen readers and tests. */
+/** Theme-derived wash so hover/active states follow the interface theme, not the aura reveal tint. */
+const themeWash = "color-mix(in srgb, var(--al-theme-primary) 14%, transparent)";
+
+const visuallyHidden = {
+  position: "absolute", width: 1, height: 1, p: 0, m: -1, overflow: "hidden",
+  clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0,
+} as const;
+
+/**
+ * Keeps journal destinations and profile access within thumb reach above the device safe area.
+ * Icon-only on phones so six items never crowd; labels remain as visually hidden accessible names,
+ * and the active item is marked by its wash plus `aria-current`, not by color alone. The border
+ * uses the interface theme border token so it follows the chosen theme rather than the aura.
+ */
 export default function MobileNavigation() {
   const { pathname } = useLocation();
   const dispatch = useAppDispatch();
   const profileOpen = useAppSelector(selectIsProfileModalOpen);
   const itemStyles = {
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    gap: 0.5, minHeight: 56, minWidth: 0, px: 0.5, borderRadius: "lg", color: "neutral.700",
+    position: "relative", minHeight: 52, minWidth: 0, px: 0.5, borderRadius: "lg", color: "neutral.700",
     textDecoration: "none", border: 0, background: "transparent", cursor: "pointer",
-    "&:hover": { backgroundColor: "var(--aura-wash)" },
-    "&:focus-visible": { outline: "2px solid var(--aura-accent)", outlineOffset: 2 },
+    "&:hover": { backgroundColor: themeWash },
+    "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 },
   };
 
   return (
     <Sheet component="nav" aria-label="Mobile journal navigation" sx={{
       display: { xs: "grid", md: "none" }, gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
       position: "fixed", left: 12, right: 12, bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
-      zIndex: 1050, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)",
+      zIndex: 1050, p: 0.5, borderRadius: "xl", border: "1px solid var(--al-theme-border)",
       backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 92%, transparent)", backdropFilter: "blur(24px)",
       boxShadow: "0 8px 32px var(--al-theme-glow)",
     }}>
       {destinations.map(({ label, path, icon: Icon }) => {
         const active = pathname === path && !profileOpen;
         return <Box key={path} component={Link} to={path} aria-current={active ? "page" : undefined}
-          sx={{ ...itemStyles, backgroundColor: active ? "var(--aura-wash)" : "transparent" }}>
-          <Icon aria-hidden="true" sx={{ fontSize: 23 }} />
-          <Typography level="body-xs" sx={{ color: "inherit", fontWeight: active ? 700 : 500 }}>{label}</Typography>
+          sx={{ ...itemStyles, backgroundColor: active ? themeWash : "transparent" }}>
+          <Icon aria-hidden="true" sx={{ fontSize: 26 }} />
+          <Typography component="span" sx={visuallyHidden}>{label}</Typography>
         </Box>;
       })}
       <Box component="button" type="button" aria-haspopup="dialog" aria-expanded={profileOpen}
         onClick={() => dispatch(openProfileModal())}
-        sx={{ ...itemStyles, backgroundColor: profileOpen ? "var(--aura-wash)" : "transparent" }}>
-        <PersonOutline aria-hidden="true" sx={{ fontSize: 23 }} />
-        <Typography level="body-xs" sx={{ color: "inherit", fontWeight: profileOpen ? 700 : 500 }}>Profile</Typography>
+        sx={{ ...itemStyles, backgroundColor: profileOpen ? themeWash : "transparent" }}>
+        <PersonOutline aria-hidden="true" sx={{ fontSize: 26 }} />
+        <Typography component="span" sx={visuallyHidden}>Profile</Typography>
       </Box>
     </Sheet>
   );

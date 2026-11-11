@@ -32,7 +32,8 @@ interface ProfileSectionsProps {
 /**
  * Lays out profile sections as accordions below `md` and as a vertical tab nav with one
  * visible panel at `md` and up. Every section stays mounted in both layouts so
- * react-hook-form keeps registered values and validation for hidden fields.
+ * react-hook-form keeps registered values and validation for hidden fields. Dividers use the
+ * interface theme border token so chrome follows the theme, never the aura reveal tint.
  */
 export function ProfileSections({ sections, defaultExpanded, reveal, navHeader }: ProfileSectionsProps) {
   const theme = useTheme();
@@ -61,7 +62,7 @@ export function ProfileSections({ sections, defaultExpanded, reveal, navHeader }
               expanded={open}
               onChange={() => setExpanded(open ? expanded.filter((id) => id !== section.id) : [...expanded, section.id])}
               slotProps={{ transition: { unmountOnExit: false } }}
-              sx={{ bgcolor: "transparent", borderTop: "1px solid var(--aura-line)", "&::before": { display: "none" } }}>
+              sx={{ bgcolor: "transparent", borderTop: "1px solid var(--al-theme-border)", "&::before": { display: "none" } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} id={`profile-${section.id}-header`} aria-controls={`profile-${section.id}-panel`}>
                 <Typography variant="subtitle2" component="h3" sx={{ fontWeight: 700 }}>{section.title}</Typography>
               </AccordionSummary>
@@ -77,7 +78,7 @@ export function ProfileSections({ sections, defaultExpanded, reveal, navHeader }
 
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: "180px minmax(0, 1fr)", minHeight: 420 }}>
-      <Box sx={{ borderRight: "1px solid var(--aura-line)", py: 2, pr: 1 }}>
+      <Box sx={{ borderRight: "1px solid var(--al-theme-border)", py: 2, pr: 1 }}>
         {navHeader}
         <Tabs
           orientation="vertical"

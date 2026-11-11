@@ -137,7 +137,6 @@ export function EditProfileForm({
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Choose the color to record with your reflections. The interface theme is a separate preference.
           </Typography>
-          <Box aria-hidden="true" sx={{ height: 28, borderRadius: 2, background: currentAuraBg, border: "1px solid var(--aura-line)" }} />
           <AuraSelector control={control} colorField="auraColor" intensityField="auraIntensity" />
           {/* #344: aura reveals can be turned off; accents then fall back to the interface theme. */}
           <Controller
@@ -220,7 +219,7 @@ export function EditProfileForm({
       </Box>
 
       {/* Sticky so Save stays reachable without scrolling to the end of a long form. */}
-      <Box sx={{ position: "sticky", bottom: 0, zIndex: 1, display: "flex", justifyContent: "space-between", gap: 1.5, px: { xs: 2, sm: 3 }, py: 1.5, bgcolor: "background.default", borderTop: "1px solid var(--aura-line)" }}>
+      <Box sx={{ position: "sticky", bottom: 0, zIndex: 1, display: "flex", justifyContent: "space-between", gap: 1.5, px: { xs: 2, sm: 3 }, py: 1.5, bgcolor: "background.default", borderTop: "1px solid var(--al-theme-border)" }}>
         <Button variant="plain" color="neutral" onClick={onCancel}>Cancel</Button>
         <Button variant="contained" type="submit" sx={{ minWidth: 140 }}>Save Changes</Button>
       </Box>
