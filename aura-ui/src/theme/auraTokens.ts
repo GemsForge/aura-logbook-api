@@ -104,3 +104,12 @@ export function deriveAuraTokens(hue: number, chroma: number, mode: ThemeMode, c
   const text = stepUntil(light ? 0.45 : 0.8, light ? -0.03 : 0.03, chroma, hue, canvas, 4.5);
   return { tint, surface, accent, onAccent, text };
 }
+
+/**
+ * Orb breathing period in seconds (#347): about 4s for a strong aura, 7s for a muted one, so the orb
+ * is calmer when the aura is quieter. `strength` is the 0–1 value from `GET /api/aura/current`.
+ */
+export function breathSeconds(strength: number): number {
+  const s = Math.min(1, Math.max(0, Number.isFinite(strength) ? strength : 0));
+  return Math.round((7 - 3 * s) * 10) / 10;
+}

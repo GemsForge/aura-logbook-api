@@ -1,6 +1,6 @@
 import GlobalStyles from "@mui/material/GlobalStyles";
 import { useGetCurrentAuraQuery } from "@/store/auraApi";
-import { deriveAuraTokens } from "@/theme/auraTokens";
+import { breathSeconds, deriveAuraTokens } from "@/theme/auraTokens";
 import { interfaceThemeTokens, type InterfaceTheme } from "@/theme/interfaceThemes";
 
 interface Props {
@@ -31,6 +31,8 @@ export function AuraTokensStyle({ interfaceTheme, enabled }: Props) {
           "--aura-button": t.accent,
           "--aura-on-button": t.onAccent,
           "--aura-text": t.text,
+          // #347: the orb breathes faster when the aura is strong.
+          "--aura-breath": `${breathSeconds(aura.strength)}s`,
         },
         // Primary buttons take the aura accent; text color is the contrast-checked on-accent.
         ".MuiButton-variantSolid.MuiButton-colorPrimary:not(:disabled)": {

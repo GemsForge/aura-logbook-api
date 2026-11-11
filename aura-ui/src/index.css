@@ -46,6 +46,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .aura-orb { position: relative; aspect-ratio: 1; width: min(100%, 360px); border-radius: 50%; background: radial-gradient(circle at 33% 28%, rgba(255,255,255,.94), var(--aura-glow, #b9cbd8) 47%, var(--aura-accent, #87a4ba) 100%); box-shadow: inset -20px -30px 60px rgba(34,44,39,.12), inset 8px 8px 26px rgba(255,255,255,.75), 0 25px 90px var(--aura-glow, #b9cbd8); }
 .aura-orb::before, .aura-orb::after { content: ""; position: absolute; border: 1px solid var(--aura-line, #b9cbd8); border-radius: 50%; inset: -12%; transform: rotate(-28deg) scaleY(.48); }
 .aura-orb::after { inset: -22%; transform: rotate(32deg) scaleY(.6); }
+/* #347: the orb is alive. It breathes (faster when the aura is strong, set via --aura-breath), its hue
+   drifts gently around the aura hue, its rings slowly orbit, and color changes cross-fade. The existing
+   prefers-reduced-motion rule below turns every animation and transition off, leaving a static orb. */
+.aura-orb { animation: aura-breathe var(--aura-breath, 5.5s) ease-in-out infinite, aura-drift 16s ease-in-out infinite alternate; transition: background 1.5s ease, box-shadow 1.5s ease; will-change: transform, filter; }
+.aura-orb::before { animation: aura-orbit-a 20s linear infinite; }
+.aura-orb::after { animation: aura-orbit-b 28s linear infinite; }
+.aura-orb.aura-orb--shimmer { animation: aura-shimmer 1.2s ease-out 1, aura-breathe var(--aura-breath, 5.5s) ease-in-out infinite; }
+@keyframes aura-breathe { 0%, 100% { transform: scale(.97); } 50% { transform: scale(1.03); } }
+@keyframes aura-drift { from { filter: hue-rotate(-15deg) brightness(.98); } to { filter: hue-rotate(15deg) brightness(1.03); } }
+@keyframes aura-orbit-a { from { transform: rotate(-28deg) scaleY(.48); } to { transform: rotate(332deg) scaleY(.48); } }
+@keyframes aura-orbit-b { from { transform: rotate(32deg) scaleY(.6); } to { transform: rotate(-328deg) scaleY(.6); } }
+@keyframes aura-shimmer { 0% { filter: brightness(1.35) saturate(1.4); } 100% { filter: brightness(1) saturate(1); } }
 .aura-brand-dot { display: inline-block; width: 22px; height: 28px; margin-right: 10px; vertical-align: middle; border-radius: 60% 40% 55% 45%; background: var(--aura-dark, #222c27); box-shadow: 0 3px 18px var(--aura-glow); transform: rotate(18deg); }
 /* Laptop-height screens get tighter shared chrome so the page content starts higher. */
 @media (min-width: 900px) and (max-height: 900px) { .aura-eyebrow { margin-bottom: .35rem !important; } }
