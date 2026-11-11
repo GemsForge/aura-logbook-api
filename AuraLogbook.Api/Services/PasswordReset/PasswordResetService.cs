@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace AuraLogbook.Api.Services.PasswordReset;
 
 /// <summary>Outcome of a reset attempt; deliberately coarse so callers cannot probe token state.</summary>
-public enum PasswordResetResult { Success, InvalidOrExpiredToken, InvalidPassword }
+public enum PasswordResetResult { Success, InvalidOrExpiredToken, InvalidPassword, PersistenceFailure }
 
 /// <summary>Token-based account recovery (#329).</summary>
 public interface IPasswordResetService
@@ -93,8 +93,16 @@ public sealed class PasswordResetService : IPasswordResetService
         if (user is null)
             return PasswordResetResult.InvalidOrExpiredToken;
 
+        var previousHash = user.PasswordHash;
         user.PasswordHash = PasswordHelper.HashPassword(newPassword);
-        await _users.UpdateAsync(user);
+        if (!await _users.UpdateAsync(user))
+        {
+            // Keep the loaded model consistent with storage and never report an unsaved reset as successful.
+            user.PasswordHash = previousHash;
+            _logger.LogError("Password reset could not save the new password for user {UserId}", user.Id);
+            return PasswordResetResult.PersistenceFailure;
+        }
+
         _logger.LogInformation("Password reset completed for user {UserId}", user.Id);
         return PasswordResetResult.Success;
     }

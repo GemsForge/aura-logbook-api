@@ -6,6 +6,7 @@ using AuraLogbook.Api.Repositories;
 using AuraLogbook.Api.Services;
 using AuraLogbook.Api.Services.Email;
 using AuraLogbook.Api.Services.PasswordReset;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Caching.Memory;
@@ -110,6 +111,22 @@ public sealed class PasswordResetTests : IDisposable
 
         Assert.Equal(PasswordResetResult.InvalidOrExpiredToken, await _service.ResetPasswordAsync(token, "AnotherPass1"));
         Assert.True(PasswordHelper.VerifyPassword("NewPassword1", _user.PasswordHash));
+    }
+
+    [Fact]
+    public async Task Failed_user_update_does_not_report_success_or_change_the_password()
+    {
+        var token = await RequestTokenAsync();
+        var before = _user.PasswordHash;
+        _users.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(false);
+
+        var result = Assert.IsType<ObjectResult>(await Controller().ResetPassword(
+            new ResetPasswordRequest { Token = token, NewPassword = "NewPassword1" }, default));
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, result.StatusCode);
+        Assert.Equal(AuthController.ResetPersistenceFailureMessage, result.Value);
+        Assert.Equal(before, _user.PasswordHash);
+        Assert.Equal(PasswordResetResult.InvalidOrExpiredToken, await _service.ResetPasswordAsync(token, "NewPassword1"));
     }
 
     [Fact]

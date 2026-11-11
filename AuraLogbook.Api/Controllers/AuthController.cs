@@ -36,6 +36,9 @@ public class AuthController : ControllerBase
     /// <summary>Single message for every unusable token (unknown, altered, expired, or already used).</summary>
     public const string InvalidResetTokenMessage = "This reset link is invalid or has expired. Please request a new one.";
 
+    /// <summary>Generic response when a valid reset token cannot be saved to user storage.</summary>
+    public const string ResetPersistenceFailureMessage = "The password could not be updated. Please request a new reset link.";
+
     public AuthController(IUserService userService, JwtTokenService jwtService,
         IPasswordResetService? passwordReset = null, IOptions<PasswordResetOptions>? resetOptions = null)
     {
@@ -72,6 +75,7 @@ public class AuthController : ControllerBase
         {
             PasswordResetResult.Success => Ok(new { message = "Your password has been reset. You can now sign in." }),
             PasswordResetResult.InvalidPassword => BadRequest(PasswordRules.LengthMessage),
+            PasswordResetResult.PersistenceFailure => StatusCode(StatusCodes.Status500InternalServerError, ResetPersistenceFailureMessage),
             _ => BadRequest(InvalidResetTokenMessage),
         };
     }
