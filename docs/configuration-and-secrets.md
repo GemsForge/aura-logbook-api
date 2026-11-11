@@ -57,6 +57,29 @@ The Spotify authorization request asks for these read permissions:
 
 When requested permissions change, reconnect Spotify in Aura Logbook to review and grant the updated access. The integration uses the currently-playing endpoint matching `user-read-currently-playing`. See [Spotify integration](spotify-integration.md) for setup, storage, routes and recovery.
 
+## JWT signing key
+
+`Jwt:Key` is a secret and is not in `appsettings.json`. The API refuses to start
+when it is missing or shorter than 32 bytes, and the error names the setting,
+never the value.
+
+```bash
+dotnet user-secrets --project AuraLogbook.Api/AuraLogbook.Api.csproj set "Jwt:Key" "$(openssl rand -base64 48)"
+```
+
+Deployments set `Jwt__Key` in the hosting platform's secret store. Changing the
+key signs everyone out; they sign in again.
+
+### Rotating previously committed credentials
+
+Earlier commits contained a JWT signing key and an unused Aztro RapidAPI key in
+`appsettings.json`. They remain in Git history, so treat both as exposed:
+
+1. Set a new random `Jwt__Key` in every deployed environment, then restart.
+2. Revoke the old key in the RapidAPI dashboard. The API no longer reads it.
+3. Do not rewrite Git history to remove them; rotation is what makes the old
+   values useless.
+
 ## What not to commit
 
 Do not commit:
