@@ -33,6 +33,8 @@ const NavBar = () => {
   const appDispatch = useAppDispatch();
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
+  // Optional personal motto shown under the brand name; blank mottos show nothing.
+  const headerMotto = user?.motto?.trim();
   const [avatarAnchor, setAvatarAnchor] = useState<HTMLButtonElement | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -82,7 +84,15 @@ const NavBar = () => {
               sx={{ width: { xs: 52, sm: 76 }, height: { xs: 52, sm: 76 }, objectFit: "contain", flexShrink: 0 }}
             />
             {/* Keep the mode control and profile reachable at 320px; the logo link retains its full accessible name. */}
-            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Aura Logbook</Box>
+            {/* Brand name with the signed-in person's motto beneath it; both hide below 600px to keep the header controls reachable. */}
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline-flex" }, flexDirection: "column", minWidth: 0 }}>
+              <span>Aura Logbook</span>
+              {isAuthenticated && headerMotto && (
+                <Box component="span" sx={{ fontFamily: "var(--joy-fontFamily-body)", fontSize: ".8rem", fontStyle: "italic", letterSpacing: 0, color: "var(--al-theme-muted, var(--joy-palette-text-secondary))", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: { sm: 260, md: 380 }, lineHeight: 1.3 }}>
+                  {headerMotto}
+                </Box>
+              )}
+            </Box>
           </Link>
         </Typography>
         <Box component="nav" aria-label="Main navigation" sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
