@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aura Logbook · Mood Illustrations</title>
+  <style>
+    :root { color-scheme: dark; --canvas: #100b17; --surface: #21182a; --line: #41304b; --ink: #f6eee5; --muted: #b9aabd; --gold: #edc987; --violet: #b982d8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .masthead { padding: 25px 38px 23px; background: linear-gradient(110deg, #161020, #39203b 58%, #29172f); border-bottom: 1px solid #513b5c; }
+    .brand { display: flex; align-items: center; gap: 16px; max-width: 1120px; margin: 0 auto; }
+    .brand img { width: 42px; height: 42px; object-fit: contain; }
+    .brand-name { font-family: Georgia, "Iowan Old Style", serif; font-size: 24px; line-height: 1.1; letter-spacing: -.02em; }
+    .brand-note { margin-top: 5px; color: #d1bfd1; font-size: 11px; letter-spacing: .02em; }
+    main { width: min(1120px, calc(100% - 76px)); margin: 34px auto 42px; }
+    .eyebrow { color: var(--violet); text-transform: uppercase; font-size: 10px; font-weight: 700; letter-spacing: .14em; margin-bottom: 8px; }
+    h1 { margin: 0; font-family: Georgia, "Iowan Old Style", serif; font-size: 28px; font-weight: 500; color: var(--gold); }
+    .intro { max-width: 600px; margin: 8px 0 24px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .card { min-height: 204px; border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(155deg, #261b30, #1e1627); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 13px 12px 11px; box-shadow: inset 0 1px 0 rgba(255,255,255,.025); }
+    .art-frame { width: min(145px, 100%); aspect-ratio: 1; display: flex; justify-content: center; align-items: center; flex: 0 0 auto; }
+    .art { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 12px rgba(9,5,16,.24)); }
+    .source-reference { display: flex; align-items: center; gap: 20px; margin-top: 22px; padding: 16px; border: 1px solid var(--line); border-radius: 13px; background: #1b1422; }
+    .source-reference img { width: 180px; height: 180px; object-fit: contain; flex: 0 0 auto; }
+    .source-reference h2 { margin: 0 0 7px; color: var(--gold); font: 20px Georgia, serif; }
+    .source-reference p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .label { margin-top: 4px; color: #f3e6d9; font: 15px Georgia, "Iowan Old Style", serif; text-align: center; }
+    footer { margin-top: 20px; color: #86778c; font-size: 10px; letter-spacing: .02em; }
+    @media (max-width: 760px) { .masthead { padding: 20px 20px; } main { width: calc(100% - 36px); margin-top: 26px; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; } .card { min-height: 178px; padding: 10px; } .art-frame { width: min(124px, 100%); } .source-reference { align-items: flex-start; flex-direction: column; } .source-reference img { width: min(100%, 260px); height: auto; } }
+    @media (max-width: 360px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .brand-name { font-size: 21px; } }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand">
+      <img src="./logo/aura-logbook-approved.png" alt="">
+      <div><div class="brand-name">Aura Logbook</div><div class="brand-note">Reference-led illustrations · expressive mood faces · luminous gold and violet light.</div></div>
+    </div>
+  </header>
+  <main>
+    <div class="eyebrow">Approved artwork · 16 moods</div>
+    <h1>Mood illustrations</h1>
+    <p class="intro">Expressive, gender-neutral aura portraits for mood check-ins. Each illustration keeps its mood’s expression at the center, with its mapped aura hue as a supporting cue.</p>
+    <section class="grid" aria-label="Approved mood illustrations">
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/empowered.png" alt=""></div><div class="label">Empowered</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/centered.png" alt=""></div><div class="label">Centered</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/harmonious.png" alt=""></div><div class="label">Harmonious</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/flowing.png" alt=""></div><div class="label">Flowing</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/weary.png" alt=""></div><div class="label">Weary</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/tense.png" alt=""></div><div class="label">Tense</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/frustrated.png" alt=""></div><div class="label">Frustrated</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/blocked.png" alt=""></div><div class="label">Blocked</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/restless.png" alt=""></div><div class="label">Restless</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/disconnected.png" alt=""></div><div class="label">Disconnected</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/heavy.png" alt=""></div><div class="label">Heavy</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/charged.png" alt=""></div><div class="label">Charged</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/scattered.png" alt=""></div><div class="label">Scattered</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/abundant.png" alt=""></div><div class="label">Abundant</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/visionary.png" alt=""></div><div class="label">Visionary</div></article>
+      <article class="card"><div class="art-frame"><img class="art" src="./mood-icons/neutral.png" alt=""></div><div class="label">Neutral</div></article>
+    </section>
+    <aside class="source-reference" aria-label="Approved source grid reference">
+      <img src="./mood-faces-approved-grid.png" alt="Approved original 4 by 4 grid of all sixteen mood illustrations">
+      <div><h2>Approved source grid</h2><p>The original 4 × 4 artwork is preserved here as the source reference. The cards above use the matching individual PNGs in mood order.</p></div>
+    </aside>
+    <footer>Asset reference · 16 individual transparent PNGs · 4 × 4 contact sheet</footer>
+  </main>
+</body>
+</html>
