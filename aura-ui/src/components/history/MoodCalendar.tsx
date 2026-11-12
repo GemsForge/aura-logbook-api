@@ -125,22 +125,25 @@ export default function MoodCalendar({
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 3px 12px var(--al-theme-glow)" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25, p: 0.25, borderRadius: "xl", border: "1px solid var(--aura-line)", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 3px 12px var(--al-theme-glow)" }}>
           <IconButton
             variant="plain"
+            size="sm"
             aria-label="Previous month"
             onClick={() => {
               setVisibleMonth((month) => month.subtract(1, "month"));
               onSelectDate(null);
             }}
           >
-            <ChevronLeft />
+            <ChevronLeft fontSize="small" />
           </IconButton>
-          <Typography component="h3" level="title-md" aria-live="polite" sx={{ minWidth: { xs: 6.5, sm: 8 }, textAlign: "center" }}>
+          {/* Compact month switcher: small label and arrows so the calendar grid stays the focus. */}
+          <Typography component="h3" level="title-sm" aria-live="polite" sx={{ minWidth: { xs: 6.5, sm: 7.5 }, textAlign: "center", fontSize: "0.85rem", fontWeight: 600 }}>
             {visibleMonth.format("MMMM YYYY")}
           </Typography>
           <IconButton
             variant="plain"
+            size="sm"
             aria-label="Next month"
             disabled={!visibleMonth.isBefore(today, "month")}
             onClick={() => {
@@ -148,7 +151,7 @@ export default function MoodCalendar({
               onSelectDate(null);
             }}
           >
-            <ChevronRight />
+            <ChevronRight fontSize="small" />
           </IconButton>
         </Box>
       </Box>

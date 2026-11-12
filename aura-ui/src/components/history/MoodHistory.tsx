@@ -2,6 +2,7 @@ import type { MoodEntry } from "@/features/mood/models/schema";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
+import IconButton from "@mui/joy/IconButton";
 import FileDownloadOutlined from "@mui/icons-material/FileDownloadOutlined";
 import WbTwilightOutlined from "@mui/icons-material/WbTwilightOutlined";
 import AddOutlined from "@mui/icons-material/AddOutlined";
@@ -112,9 +113,10 @@ export default function MoodHistoryPage() {
             <WbTwilightOutlined aria-hidden="true" sx={{ fontSize: 16 }} />Liveliest: {liveliest.name}
           </Box>
         )}
-        <Button variant="outlined" size="small" startIcon={<FileDownloadOutlined />} onClick={() => downloadJournalExport(logs)} disabled={loading || failed || logs.length === 0} aria-label={`Export ${logs.length} journal entries as JSON`}>
-          Export
-        </Button>
+        {/* Compact icon action, matching the + button; the name and tooltip say what it downloads. */}
+        <IconButton size="sm" variant="outlined" onClick={() => downloadJournalExport(logs)} disabled={loading || failed || logs.length === 0} aria-label={`Export ${logs.length} journal entries as JSON`} title="Export journal (JSON)" sx={{ borderRadius: "50%" }}>
+          <FileDownloadOutlined fontSize="small" />
+        </IconButton>
       </ThemeBanner>
 
       {loading && <Typography role="status" level="body-sm" sx={{ mb: 1.5 }}>Gathering your reflections…</Typography>}
@@ -142,16 +144,19 @@ export default function MoodHistoryPage() {
           </Box>
 
           <Sheet component="section" aria-labelledby="reflection-day-title" className="aura-panel" sx={{ p: { xs: 1.75, sm: 2.25 }, minWidth: 0, display: "grid", gap: 2 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 1 }}>
-              <Typography id="reflection-day-title" component="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.35rem" }}>
-                {activeDate ? dayjs(activeDate).format("dddd, MMMM D") : visibleMonth.format("MMMM YYYY")}
-              </Typography>
-              {dayEntries.length > 0 && <Typography level="body-xs" color="neutral">{dayEntries.length} {dayEntries.length === 1 ? "check-in" : "check-ins"}</Typography>}
+            {/* Day heading, count, and a compact add action share one quiet row so the entries lead. */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography id="reflection-day-title" component="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.1rem", lineHeight: 1.25 }}>
+                  {activeDate ? dayjs(activeDate).format("dddd, MMMM D") : visibleMonth.format("MMMM YYYY")}
+                </Typography>
+                {dayEntries.length > 0 && <Typography level="body-xs" color="neutral" sx={{ whiteSpace: "nowrap" }}>{dayEntries.length} {dayEntries.length === 1 ? "check-in" : "check-ins"}</Typography>}
+              </Box>
+              <IconButton component="a" href="/log-mood" size="sm" variant="outlined" aria-label="Add a reflection" title="Add a reflection" sx={{ borderRadius: "50%", flexShrink: 0 }}><AddOutlined fontSize="small" /></IconButton>
             </Box>
             {dayEntries.length === 0
               ? <Typography role="status" level="body-sm" color="neutral">{activeDate ? "No reflections were saved this day." : "No reflections this month. Pick a day with color to read it."}</Typography>
               : dayEntries.map((entry) => <MoodCard key={entry.id} entry={entry} onEdit={setEntryToEdit} onDelete={setEntryToDelete} />)}
-            <Button component="a" href="/log-mood" variant="outlined" size="small" startIcon={<AddOutlined />} sx={{ justifySelf: "start" }}>Add a reflection</Button>
           </Sheet>
         </Box>
       )}
