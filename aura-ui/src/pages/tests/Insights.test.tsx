@@ -15,7 +15,7 @@ vi.mock("../../store/moodApi", () => ({
 }));
 vi.mock("../../store/referenceDataApi", async () => ({
   ...(await vi.importActual<object>("../../store/referenceDataApi")),
-  useGetReferenceDataQuery: () => ({ data: { moods: [{ key: "Centered", icon: "😊", energyLevel: 3, auraColorKeys: ["green"] }], auras: [{ key: "green", shades: { 500: "#4caf50" } }] } }),
+  useGetReferenceDataQuery: () => ({ data: { moods: [{ key: "Centered", icon: "/mood-icons/centered.png", energyLevel: 3, auraColorKeys: ["green"] }], auras: [{ key: "green", shades: { 500: "#4caf50" } }] } }),
 }));
 vi.mock("../../store/auraApi", () => ({
   useGetZodiacInsightQuery: (_arg: unknown, options?: { skip?: boolean }) => options?.skip

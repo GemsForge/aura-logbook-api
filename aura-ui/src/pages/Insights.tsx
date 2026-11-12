@@ -8,6 +8,7 @@ import WbSunnyOutlined from "@mui/icons-material/WbSunnyOutlined";
 import MusicNoteOutlined from "@mui/icons-material/MusicNoteOutlined";
 import PhotoOutlined from "@mui/icons-material/PhotoOutlined";
 import BedtimeOutlined from "@mui/icons-material/BedtimeOutlined";
+import { MoodIcon } from "@/components/mood/MoodIcon";
 import AuraRibbon from "@/components/insights/AuraRibbon";
 import {
   averageEnergy, checkInDays, energyFactors, entriesInRange, moodCounts, periodRange, previousRange, ribbonPoints, topMood,
@@ -94,7 +95,7 @@ export default function Insights() {
             {top ? <>
               <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "2.3rem", sm: "2.7rem" }, lineHeight: 1.05, mt: .5 }}>{top.mood}</Typography>
               <Typography level="body-sm" sx={{ mt: .5 }}>{top.count} of {top.total} {top.total === 1 ? "mood" : "moods"} logged</Typography>
-              <Box aria-hidden="true" sx={{ position: "absolute", right: 16, bottom: 6, fontSize: { xs: "3rem", sm: "3.75rem" }, lineHeight: 1 }}>{moods.find((definition) => definition.key === top.mood)?.icon}</Box>
+              <Box aria-hidden="true" sx={{ position: "absolute", right: 16, bottom: 10 }}><MoodIcon icon={moods.find((definition) => definition.key === top.mood)?.icon} size={64} /></Box>
             </> : <Typography level="title-lg" sx={{ mt: .5 }}>No check-ins this {PERIOD_WORD[period]} yet</Typography>}
           </Sheet>
           <StatCard label="Streak" value={`${streak} ${streak === 1 ? "day" : "days"}`} caption={streak > 0 ? "in a row" : "Starts with your next check-in"} />

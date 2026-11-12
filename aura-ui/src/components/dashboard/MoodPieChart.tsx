@@ -88,7 +88,15 @@ export default function MoodPieChart({
               cx="50%"
               cy="50%"
               outerRadius="68%"
-              label={({ mood }) => `${referenceData?.moods.find((definition) => definition.key === mood)?.icon ?? ""}`}>
+              label={({ cx, cy, midAngle, outerRadius, mood }) => {
+                const icon = referenceData?.moods.find((definition) => definition.key === mood)?.icon;
+                if (!icon || typeof cx !== "number" || typeof cy !== "number" || typeof midAngle !== "number" || typeof outerRadius !== "number") return null;
+                const angle = (-midAngle * Math.PI) / 180;
+                const radius = outerRadius * 1.12;
+                const x = cx + radius * Math.cos(angle) - 10;
+                const y = cy + radius * Math.sin(angle) - 10;
+                return <image href={icon} x={x} y={y} width={20} height={20} aria-hidden="true" />;
+              }}>
               {grouped.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
@@ -103,7 +111,7 @@ export default function MoodPieChart({
               }}
               formatter={(value, name) => [
                 `${value}%`,
-                `${referenceData?.moods.find((definition) => definition.key === name)?.icon ?? ""} ${name}`,
+                String(name),
               ]}
             />
             <Legend

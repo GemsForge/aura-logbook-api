@@ -11,6 +11,7 @@ import { useLocation } from "react-router-dom";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
+import { MoodIcon } from "@/components/mood/MoodIcon";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
@@ -222,7 +223,6 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
               <Box sx={{ display: { xs: "contents", sm: "flex" }, flexDirection: "column" }}>
                 {moods.map((mood) => {
                   const moodDefinition = referenceData?.moods.find((definition) => definition.key === mood);
-                  const icon = moodDefinition?.icon ?? "";
                   const checked = selectedMoods.includes(mood);
                   const moodAura = referenceData?.auras.find((definition) => definition.key === moodDefinition?.auraColorKeys[0]);
                   const hue = moodAura?.shades?.[500] ?? moodAura?.baseHex ?? swatch;
@@ -246,7 +246,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
                         checked={checked}
                         disabled={disabled || isSubmitting}
                         onChange={() => toggleMood(mood)}
-                        label={`${icon} ${mood}`}
+                        label={<Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}><MoodIcon icon={moodDefinition?.icon} size={24} />{mood}</Box>}
                         variant="plain"
                         size="lg"
                         uncheckedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
