@@ -60,7 +60,7 @@ const NavBar = () => {
   return (
     <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--al-theme-border)", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 86%, transparent)", backdropFilter: "blur(24px)" }}>
       <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 64, md: 86 }, px: { xs: 1.5, md: 3 }, gap: { xs: 1, md: 1.5 } }}>
-        <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
+        <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: isAuthenticated ? "inline-flex" : "none", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
         <Typography level="title-lg" sx={{ flexGrow: 1, minWidth: 0, fontFamily: "display", fontWeight: 400, fontSize: { xs: "1.28rem", sm: "1.5rem" }, letterSpacing: "-.04em" }}>
@@ -91,12 +91,7 @@ const NavBar = () => {
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral">Today</Link>
             </>
           )}
-          {!isAuthenticated && (
-            <>
-              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral">Login</Link>
-              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary">Create account</Link>
-            </>
-          )}
+          {/* Signed-out visitors get no Login/Create account links here: the landing page itself leads with sign-in. */}
         </Box>
           <ThemeModeToggle />
           {/* Profile preferences remain reachable when desktop navigation is hidden. */}
@@ -178,16 +173,11 @@ const NavBar = () => {
           aria-label="Mobile navigation"
           sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, px: 2, pb: 2, pt: 1, borderTop: "1px solid", borderColor: "var(--al-theme-border)" }}
         >
-          {isAuthenticated ? (
+          {isAuthenticated && (
             <>
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Today</Link>
               <Link href="/log-mood" onClick={goTo("/log-mood")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Log mood</Link>
               <Link href="/history" onClick={goTo("/history")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Reflections</Link>
-            </>
-          ) : (
-            <>
-              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Login</Link>
-              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Create account</Link>
             </>
           )}
         </Box>
