@@ -6,19 +6,20 @@ import MoodEntryFormFields from "./MoodEntryFormFields";
 import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
-import { ThemeBanner } from "@/components/ui/ThemeBanner";
-import { PathwayReflectionArt } from "@/components/dashboard/PathwayReflectionArt";
-import { useAppSelector } from "@/store/hooks";
+import dayjs from "dayjs";
+import Stack from "@mui/joy/Stack";
+import Typography from "@mui/joy/Typography";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { normalizeSpiritualPathway } from "@/features/auth/models/SpiritualPathway";
+import { auraApi } from "@/store/auraApi";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
 import { useCheckInWeather } from "@/hooks/useCheckInWeather";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 
-/** Hosts mood creation in a compact card while preserving the circular mood selector. */
+/** Hosts a same-day mood entry with its creation time and compact journaling form. */
 export default function MoodEntryForm() {
-  // The banner shows the user's own pathway thumbnail when they have chosen a pathway.
   const currentUser = useAppSelector(selectCurrentUser);
-  const pathway = normalizeSpiritualPathway(currentUser?.selectedPathway);
+  const dispatch = useAppDispatch();
   const checkInWeather = useCheckInWeather(currentUser);
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -49,6 +50,8 @@ export default function MoodEntryForm() {
         setSaveFailed(false);
         setFeedback({ message: "Saving your check-in…", role: "status" });
         const createdEntry = await MoodApi.logMood({ ...data, weather: checkInWeather });
+        // The full-entry form uses the Axios client, so refresh the separate derived-aura cache directly.
+        dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
         moodEntryId = createdEntry.id;
         setSavedMoodId(moodEntryId);
         nextPhotoStatuses = photos.map(() => "pending");
@@ -107,9 +110,13 @@ export default function MoodEntryForm() {
   };
 
   return (
-    <Box className="signed-in-content" sx={{ maxWidth: 1000, mx: "auto", py: { xs: 0, md: 1 } }}>
-      <ThemeBanner title="How are you feeling today?" description="Take a moment to notice what is present. There is no right answer." illustration="mood" art={pathway ? <PathwayReflectionArt pathway={pathway} /> : undefined} />
+    <Box className="signed-in-content" sx={{ maxWidth: 850, mx: "auto", py: { xs: 0, md: 1 } }}>
+      {/* Keep the shared themed page introduction above the compact journal form. */}
+      <ThemeBanner title="New entry" description="Check in with how you feel today, then add a reflection or photo if you like." illustration="mood" />
       <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 1.75, md: 2.5 } }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} sx={{ mb: 1.5 }}>
+          <Typography level="body-sm" color="neutral" sx={{ ml: "auto" }}>{dayjs().format("ddd, MMM D · h:mm A")}</Typography>
+        </Stack>
         <MoodEntryFormFields
           onSubmit={handleSubmit}
           disabled={savedMoodId !== null}

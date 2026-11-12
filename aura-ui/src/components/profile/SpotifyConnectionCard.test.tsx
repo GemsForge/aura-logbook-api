@@ -45,6 +45,7 @@ describe("SpotifyConnectionCard", () => {
 
   it("distinguishes pending requests from empty playback and playlists", () => {
     renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
+    expect(screen.getByRole("button", { name: "Disconnect Spotify" })).toBeVisible();
     expect(screen.getByText("Loading what’s playing…")).toBeInTheDocument();
     expect(screen.getByText("Loading your playlists…")).toBeInTheDocument();
     expect(screen.queryByText("Nothing is playing right now.")).not.toBeInTheDocument();

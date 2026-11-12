@@ -22,6 +22,8 @@ import { liveliestTime } from "@/features/insights/insightMetrics";
 import { computeCheckInStreak } from "@/features/mood/moodPatternSummary";
 import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
+import { useAppDispatch } from "@/store/hooks";
+import { auraApi } from "@/store/auraApi";
 
 /** Counts moods by distinct check-in day so a busy day does not outweigh quieter days. */
 function topMoodByDay(entries: MoodEntry[]) {
@@ -46,6 +48,7 @@ function topMoodByDay(entries: MoodEntry[]) {
  * column shows the selected day's entries in time order. Month arrows replace the old date-range form.
  */
 export default function MoodHistoryPage() {
+  const dispatch = useAppDispatch();
   const [logs, setLogs] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -77,6 +80,8 @@ export default function MoodHistoryPage() {
     if (!entryToDelete) return;
     try {
       await MoodApi.deleteMood(entryToDelete.id);
+      // Deleting a mood removes its contribution from the current reflected color.
+      dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
       showToast("Mood entry deleted", "success");
       setEntryToDelete(null);
       fetchLogs();

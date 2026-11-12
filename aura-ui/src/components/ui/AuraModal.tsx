@@ -17,6 +17,8 @@ export interface AuraModalProps {
   open: boolean;
   onClose: NonNullable<DialogProps["onClose"]>;
   title: ReactNode;
+  /** Keeps the dialog's accessible name while removing its visible title row. */
+  hideTitle?: boolean;
   children: ReactNode;
   actions?: ReactNode;
   variant?: AuraModalVariant;
@@ -55,6 +57,7 @@ export function AuraModal({
   open,
   onClose,
   title,
+  hideTitle = false,
   children,
   actions,
   variant = "standard",
@@ -101,7 +104,22 @@ export function AuraModal({
               : undefined,
         },
       }}>
-      <DialogTitle id={titleId}>{title}</DialogTitle>
+      <DialogTitle
+        id={titleId}
+        sx={hideTitle ? {
+          position: "absolute",
+          width: "1px",
+          height: "1px",
+          p: 0,
+          m: "-1px",
+          overflow: "hidden",
+          clip: "rect(0, 0, 0, 0)",
+          whiteSpace: "nowrap",
+          border: 0,
+        } : undefined}
+      >
+        {title}
+      </DialogTitle>
       <DialogContent sx={contentSx}>{children}</DialogContent>
       {actions != null && <DialogActions sx={actionsSx}>{actions}</DialogActions>}
     </Dialog>

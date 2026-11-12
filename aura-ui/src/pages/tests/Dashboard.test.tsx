@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -212,6 +212,9 @@ describe("Dashboard", () => {
     quickMoodMutation.mockReset().mockReturnValue({ unwrap: () => Promise.resolve({ id: 42, message: "Saved" }) });
     const user = userEvent.setup();
     renderWithProviders(<Dashboard />, { preloadedState: createAuthenticatedState() });
+    const quickMoodGroup = within(screen.getByRole("group", { name: "How are you feeling today?" }));
+    expect(quickMoodGroup.getAllByRole("button").map((button) => button.getAttribute("aria-label")))
+      .toEqual(testReferenceData.moods.map(({ displayName }) => displayName).sort((left, right) => left.localeCompare(right)).slice(0, 6));
     await user.click(screen.getByRole("button", { name: "Empowered" }));
     expect(quickMoodMutation).toHaveBeenCalledWith(expect.objectContaining({ moods: ["Empowered"] }));
     expect(await screen.findByText(/logged\. thank you for checking in/i)).toBeInTheDocument();

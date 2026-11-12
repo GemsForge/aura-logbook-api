@@ -65,7 +65,7 @@ describe("MoodEntryForm", () => {
     renderWithProviders(<MoodEntryForm />);
 
     expect(
-      screen.getByRole("heading", { name: /how are you feeling today/i })
+      screen.getByRole("heading", { name: "New entry" })
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save mood" })).toBeInTheDocument();
   });

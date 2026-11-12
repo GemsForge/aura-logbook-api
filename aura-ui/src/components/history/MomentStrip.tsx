@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import Box from "@mui/joy/Box";
 import IconButton from "@mui/joy/IconButton";
 import Typography from "@mui/joy/Typography";
@@ -8,6 +8,8 @@ import MusicNoteOutlined from "@mui/icons-material/MusicNoteOutlined";
 import CloudOutlined from "@mui/icons-material/CloudOutlined";
 import WbSunnyOutlined from "@mui/icons-material/WbSunnyOutlined";
 import { AuraModal } from "@/components/ui/AuraModal";
+import PhotoNavigationControls from "@/components/history/PhotoNavigationControls";
+import { usePhotoViewerNavigation } from "@/components/history/photoViewerNavigation";
 import { MoodMediaApi, type MoodMediaAttachment } from "@/api/MoodMediaApi";
 import type { MoodEntry } from "@/features/mood/models/schema";
 
@@ -115,7 +117,13 @@ export default function MomentStrip({ entry }: { entry: MoodEntry }) {
         ))}
       </Box>
       {overflow.right && <IconButton size="sm" variant="outlined" aria-label="Scroll moments right" onClick={() => stripRef.current?.scrollBy({ left: 200, behavior: "smooth" })} sx={{ borderRadius: "50%", minWidth: 28, minHeight: 28 }}><ChevronRight fontSize="small" /></IconButton>}
-      {viewing && <PhotoViewer entryId={entry.id} photo={viewing} onClose={() => setViewing(null)} />}
+      {viewing && <PhotoViewer
+        entryId={entry.id}
+        photos={photos}
+        photo={viewing}
+        onPhotoChange={setViewing}
+        onClose={() => setViewing(null)}
+      />}
     </Box>
   );
 }
@@ -146,13 +154,34 @@ function PhotoThumb({ entryId, photo, label, onOpen }: { entryId: number; photo:
   );
 }
 
-/** Full-size view of one private photo. */
-export function PhotoViewer({ entryId, photo, onClose }: { entryId: number; photo: MoodMediaAttachment; onClose: () => void }) {
+/** Viewport-constrained private-photo viewer with swipe, arrow-key, and visible button navigation. */
+export function PhotoViewer({ entryId, photos, photo, onPhotoChange, onClose }: {
+  entryId: number;
+  photos: MoodMediaAttachment[];
+  photo: MoodMediaAttachment;
+  onPhotoChange: (photo: MoodMediaAttachment) => void;
+  onClose: () => void;
+}) {
+  const index = photos.findIndex((item) => item.id === photo.id);
+  const navigate = useCallback((nextIndex: number) => {
+    const nextPhoto = photos[nextIndex];
+    if (nextPhoto) onPhotoChange(nextPhoto);
+  }, [onPhotoChange, photos]);
+  const navigation = usePhotoViewerNavigation({ active: true, index, count: photos.length, onNavigate: navigate });
   const url = usePrivateImage(entryId, photo.id);
   return (
-    <AuraModal open onClose={onClose} title="Photo">
-      {url ? <Box component="img" src={url} alt={photo.fileName} sx={{ display: "block", maxWidth: "100%", maxHeight: "70vh", mx: "auto", borderRadius: "md" }} />
-        : <Typography role="status" level="body-sm">Loading photo…</Typography>}
+    <AuraModal
+      open
+      onClose={onClose}
+      title="Photo"
+      fullScreenBelow="sm"
+      actions={<PhotoNavigationControls index={index} count={photos.length} onNavigate={navigate} />}
+      actionsSx={{ justifyContent: "center" }}
+    >
+      <Box onTouchStart={navigation.onTouchStart} onTouchEnd={navigation.onTouchEnd} sx={{ touchAction: "pan-y" }}>
+        {url ? <Box component="img" src={url} alt={photo.fileName} sx={{ display: "block", maxWidth: "100%", maxHeight: { xs: "min(45vh, 440px)", sm: "min(50vh, 560px)" }, mx: "auto", objectFit: "contain", borderRadius: "md" }} />
+          : <Typography role="status" level="body-sm">Loading photo…</Typography>}
+      </Box>
     </AuraModal>
   );
 }

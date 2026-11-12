@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import dayjs from "dayjs";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import { renderWithProviders } from "../../test/testUtilities";
@@ -20,7 +20,9 @@ describe("MoodCard", () => {
       <MoodCard entry={entry} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
-    expect(screen.getByText(`${dayjs(entry.createdAt).format("h:mm A")} · Harmonious, Centered`)).toBeInTheDocument();
+    expect(screen.getByText(dayjs(entry.createdAt).format("h:mm A"))).toBeInTheDocument();
+    const moods = within(screen.getByRole("group", { name: "Moods for this entry" })).getAllByText(/^(Centered|Harmonious)$/);
+    expect(moods.map((mood) => mood.textContent)).toEqual(["Centered", "Harmonious"]);
     expect(screen.getByText("Feeling grounded.")).toBeInTheDocument();
   });
 

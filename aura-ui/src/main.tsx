@@ -24,7 +24,6 @@ import "./index.css";
 import { useAppSelector } from "./store/hooks";
 import { selectCurrentUser } from "./store/slices/authSlice";
 import { selectInterfaceTheme, selectInterfaceMode } from "./store/slices/uiSlice";
-import { normalizeAuraIntensity } from "./theme/auraTheme";
 import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
 import { useGetReferenceDataQuery } from "./store/referenceDataApi";
 import { hasUsableReferenceData } from "./theme/referenceDataValidation";
@@ -44,9 +43,9 @@ function ThemedApp() {
   const user = useAppSelector(selectCurrentUser);
   const interfaceTheme = useAppSelector(selectInterfaceTheme);
   
-  // Profile mutations update Redux immediately, making saved preferences visible across both themes.
-  const auraColor = user?.auraColor ?? referenceData?.auras[0]?.key ?? "blue";
-  const auraIntensity = normalizeAuraIntensity(user?.auraIntensity);
+  // A neutral palette is the shell fallback; AuraTokensStyle overlays only the check-in-derived color.
+  const auraColor = referenceData?.auras[0]?.key ?? "blue";
+  const auraIntensity = 50;
   // Providers and banners share the same independent family and brightness selectors.
   const interfaceMode = useAppSelector(selectInterfaceMode);
 

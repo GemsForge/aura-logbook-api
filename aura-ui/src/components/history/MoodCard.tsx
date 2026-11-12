@@ -10,6 +10,7 @@ import MarkdownReflection from "../MarkdownReflection";
 import MomentStrip from "./MomentStrip";
 import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
+import { MoodTag } from "@/components/history/MoodTag";
 
 /**
  * One reflection, read like a journal entry: a margin rule in the first mood's aura color, the logged time
@@ -32,11 +33,14 @@ export function MoodCard({
   return (
     <Box component="article" aria-label={`${time} reflection: ${entry.moods.join(", ")}`} sx={{ pl: 1.5, py: .25, borderLeft: "3px solid", borderColor: aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)" }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
-        <Typography level="body-xs" color="neutral">{time} · {entry.moods.join(", ")}</Typography>
+        <Typography level="body-xs" color="neutral">{time}</Typography>
         <Box sx={{ display: "flex", flexShrink: 0 }}>
           <IconButton size="sm" variant="plain" onClick={() => onEdit(entry)} aria-label="Edit mood entry" sx={tapTarget44}><EditOutlined fontSize="small" /></IconButton>
           <IconButton size="sm" variant="plain" onClick={() => onDelete(entry)} aria-label="Delete mood entry" sx={tapTarget44}><DeleteOutline fontSize="small" /></IconButton>
         </Box>
+      </Box>
+      <Box role="group" aria-label={`${entry.moods.length === 1 ? "Mood" : "Moods"} for this entry`} sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .5 }}>
+        {[...entry.moods].sort((left, right) => left.localeCompare(right)).map((mood) => <MoodTag key={mood} mood={mood} />)}
       </Box>
       {/* The writing opens the full reading view; long reflections are clamped here as a preview. The link's name is the text itself (WCAG 1.3.1/2.4.4), not a replacement label. */}
       <Box component={RouterLink} to={`/history/${entry.id}`}

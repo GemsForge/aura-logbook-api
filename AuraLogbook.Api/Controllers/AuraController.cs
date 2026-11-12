@@ -16,9 +16,8 @@ namespace AuraLogbook.Api.Controllers;
 public sealed class AuraController(IFileUserRepository users, IFileMoodRepository moods, IMoodCombinationRepository combinations, IAuraSeasonRepository seasons) : ControllerBase
 {
     /// <summary>
-    /// Computes the current aura from onboarding answers, recent mood logs (with authored mood-combination
-    /// hues, #345) and the pathway base layer.
-    /// Computed on read, so it always reflects the latest check-ins.
+    /// Computes the current aura from recent mood logs and authored mood-combination hues (#345).
+    /// Computed on read, so it reflects the latest check-ins; profile and pathway choices do not set its color.
     /// </summary>
     /// <response code="200">The aura tone and its contributors.</response>
     [HttpGet("current")]

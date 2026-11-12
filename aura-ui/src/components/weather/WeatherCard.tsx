@@ -14,8 +14,9 @@ export interface WeatherCardProps {
 // Every state keeps the chip at least 32px tall so loading does not shift the greeting banner.
 const chipSx = {
   display: "inline-flex", alignItems: "center", gap: 0.5, px: 1, py: 0.5, borderRadius: 999,
-  bgcolor: "var(--al-theme-surface-raised)", color: "var(--al-theme-ink)",
-  border: "1px solid var(--al-theme-border)", minHeight: 32, minWidth: 132, boxSizing: "border-box",
+  // The weather chip is a small, repeated cue for the check-in-derived aura.
+  bgcolor: "color-mix(in srgb, var(--aura-accent, var(--al-theme-primary)) 18%, var(--al-theme-surface-raised))", color: "var(--al-theme-ink)",
+  border: "1px solid var(--aura-line, var(--al-theme-border))", minHeight: 32, minWidth: 132, boxSizing: "border-box",
 } as const;
 const linkSx = {
   border: 0, background: "transparent", p: 0, cursor: "pointer", color: "inherit", font: "inherit",

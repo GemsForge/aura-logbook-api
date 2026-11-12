@@ -1,6 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import dayjs from "dayjs";
 import type { TextareaHTMLAttributes } from "react";
 import { renderWithProviders } from "@/test/testUtilities";
 import { testReferenceData } from "@/test/referenceDataFixtures";
@@ -46,18 +47,67 @@ describe("MoodEntryFormFields", () => {
     renderWithProviders(<MoodEntryFormFields onSubmit={onSubmit} />);
 
     expect(document.getElementById("mood-form")).toBeInTheDocument();
-    await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
-    // The note is optional and closed until asked for.
-    await user.click(screen.getByRole("button", { name: "Add a note" }));
-    await user.type(screen.getByRole("textbox"), "  A good day  ");
+    expect(screen.getByRole("group", { name: "Choose one or more moods" })).toBeInTheDocument();
+    expect(screen.getAllByRole("checkbox")).toHaveLength(testReferenceData.moods.length);
+    expect(Array.from(screen.getByRole("group", { name: "Choose one or more moods" }).querySelectorAll("label"))
+      .map((label) => label.textContent?.trim()))
+      .toEqual(testReferenceData.moods.map(({ displayName }) => displayName).sort((left, right) => left.localeCompare(right)));
+    const empoweredChoice = screen.getByRole("checkbox", { name: /empowered/i });
+    const empoweredImage = document.querySelector('img[src="/mood-icons/empowered.png"]');
+    expect(screen.getByText("Empowered")).toBeVisible();
+    expect(empoweredImage).toHaveAttribute("alt", "");
+    expect(empoweredImage).toHaveStyle({ width: "28px", height: "28px" });
+    expect(empoweredImage?.parentElement).toHaveAttribute("data-mood-color", "#4caf50");
+    expect(screen.queryByLabelText("Date")).not.toBeInTheDocument();
+    await user.click(empoweredChoice);
+    expect(empoweredChoice).toBeChecked();
+    await user.type(screen.getByRole("textbox", { name: "Reflection" }), "  A good day  ");
     await user.click(screen.getByRole("button", { name: "Submit Entry" }));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit).toHaveBeenCalledWith({
-      date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      date: dayjs().format("YYYY-MM-DD"),
       moods: ["Empowered"],
       comment: "A good day",
     }, []);
+  });
+
+  it("offers another prompt from the active pathway", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MoodEntryFormFields onSubmit={vi.fn()} />, {
+      preloadedState: {
+        auth: {
+          token: "test-token",
+          isAuthenticated: true,
+          profile: {
+            id: 1,
+            email: "gem@example.com",
+            displayName: "Gem",
+            birthday: "2000-01-01",
+            zodiacSign: "capricorn",
+            selectedPathway: "Energy",
+          },
+        },
+      },
+    });
+    expect(screen.getByText("Prompt · Astrology & Energy")).toBeInTheDocument();
+    const prompt = screen.getByTestId("reflection-prompt");
+    const initialPrompt = prompt.textContent;
+
+    await user.click(screen.getByRole("button", { name: /another prompt/i }));
+
+    expect(screen.getByTestId("reflection-prompt").textContent).not.toBe(initialPrompt);
+  });
+
+  it("preselects saved moods when editing an entry", () => {
+    renderWithProviders(<MoodEntryFormFields
+      entry={{ id: 7, userId: 1, date: "2026-11-10", moods: ["Centered"], comment: "A note", createdAt: "2026-11-10T10:00:00Z" }}
+      onSubmit={vi.fn()}
+    />);
+
+    expect(screen.getByRole("checkbox", { name: /centered/i })).toBeChecked();
+    expect(screen.getByText("1 selected")).toBeInTheDocument();
+    expect(screen.getByText("Date", { selector: "label" })).toBeInTheDocument();
   });
 
   it("renders a pathway interpretation when two authored moods are selected", async () => {

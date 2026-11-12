@@ -21,6 +21,8 @@ import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
 import { MoodIcon } from "@/components/mood/MoodIcon";
 import { parseSnapshot, PhotoViewer, usePrivateImage } from "@/components/history/MomentStrip";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
+import { useAppDispatch } from "@/store/hooks";
+import { auraApi } from "@/store/auraApi";
 
 /** Orders entries oldest to newest by day, then by logged time, for Earlier/Later stepping. */
 const byTime = (a: MoodEntry, b: MoodEntry) => a.date.localeCompare(b.date) || (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
@@ -32,6 +34,7 @@ const byTime = (a: MoodEntry, b: MoodEntry) => a.date.localeCompare(b.date) || (
  * the page's h1 and receives focus on load so screen readers start at the top of each entry.
  */
 export default function ReflectionRead() {
+  const dispatch = useAppDispatch();
   const { id } = useParams();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<MoodEntry[] | null>(null);
@@ -88,7 +91,7 @@ export default function ReflectionRead() {
           {[time, sameDay.length > 1 ? `${sameDay.findIndex((other) => other.id === entry.id) + 1} of ${sameDay.length} check-ins that day` : null, dayjs(entry.date).format("YYYY")].filter(Boolean).join(" · ")}
         </Typography>
         <Box component="ul" aria-label="Moods" sx={{ listStyle: "none", p: 0, m: 0, mt: 1.5, display: "flex", gap: .75, flexWrap: "wrap" }}>
-          {entry.moods.map((mood) => (
+          {[...entry.moods].sort((left, right) => left.localeCompare(right)).map((mood) => (
             <Box component="li" key={mood} sx={{ display: "inline-flex", alignItems: "center", gap: .75, pl: .5, pr: 1.5, py: .4, borderRadius: 999, border: "1px solid var(--al-theme-border)", bgcolor: "var(--al-theme-surface-raised)", fontSize: "var(--joy-fontSize-sm)" }}>
               {moodDefinition(mood)?.icon ? <MoodIcon icon={moodDefinition(mood)?.icon} size={22} /> : <Box aria-hidden="true" sx={{ width: 16, height: 16, borderRadius: "50%", bgcolor: auraColor(mood) }} />}
               {mood}
@@ -126,6 +129,8 @@ export default function ReflectionRead() {
       {deleting && (
         <DeleteConfirmDialog entry={entry} onClose={() => setDeleting(false)} onConfirm={async () => {
           await MoodApi.deleteMood(entry.id);
+          // Keep the global color in sync when an entry is removed from its reading view.
+          dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
           setDeleting(false);
           // After deleting, keep reading: go to the neighbouring entry, or back to the list when none remain.
           navigate(later ? `/history/${later.id}` : earlier ? `/history/${earlier.id}` : "/history", { replace: true });
@@ -165,7 +170,13 @@ function PhotoGrid({ entryId }: { entryId: number }) {
       {photos.map((photo, index) => (
         <li key={photo.id}><GridPhoto entryId={entryId} photo={photo} label={`Photo ${index + 1} of ${photos.length}, opens viewer`} onOpen={() => setViewing(photo)} /></li>
       ))}
-      {viewing && <PhotoViewer entryId={entryId} photo={viewing} onClose={() => setViewing(null)} />}
+      {viewing && <PhotoViewer
+        entryId={entryId}
+        photos={photos}
+        photo={viewing}
+        onPhotoChange={setViewing}
+        onClose={() => setViewing(null)}
+      />}
     </Box>
   );
 }
