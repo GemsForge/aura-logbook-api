@@ -10,7 +10,7 @@ const makeEntries = (moodsByDate: Array<[string, MoodType[]]>): MoodEntry[] =>
 describe("moodPatternSummary", () => {
   it.each([0, 2])("uses the sparse-data line with %i weekly entries", (count) => {
     const entries = makeEntries(Array.from({ length: count }, (_, index) => [`2026-11-${String(10 - index).padStart(2, "0")}`, ["Centered"]] as [string, MoodType[]]));
-    expect(summarizeMoodPatterns(entries, today)).toBe("Log a few more days to see your patterns.");
+    expect(summarizeMoodPatterns(entries, today)).toBeNull();
   });
 
   it("reports the most frequent mood at three and five entries without a weekday claim", () => {

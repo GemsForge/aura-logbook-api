@@ -26,11 +26,11 @@ export function WhyThisColor() {
           <Typography level="body-md">Your aura appears once you check in. It's a reflection that shifts with you, never a label.</Typography>
         ) : (
           <>
-            <Typography level="body-md">Your aura is a gentle blend of:</Typography>
+            <Typography level="title-sm">Shaped by</Typography>
             <List marker="disc">
               {contributors.map((c) => <ListItem key={c}>{c}</ListItem>)}
             </List>
-            <Typography level="body-sm" color="neutral">Recent check-ins count most. Colors are often linked with feelings, but they never define you. You can turn aura reveals off in your profile.</Typography>
+            <Typography level="body-sm" color="neutral">Recent check-ins count most. A reflection, never a label.</Typography>
           </>
         )}
       </AuraModal>
