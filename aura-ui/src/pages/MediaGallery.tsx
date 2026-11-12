@@ -11,6 +11,10 @@ import { MoodApi } from "@/api/MoodApi";
 import { AuraButton } from "@/components/ui/AuraButton";
 import { AuraModal } from "@/components/ui/AuraModal";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import dayjs from "dayjs";
+
+/** Formats a mood entry's ISO date (YYYY-MM-DD) for the entry picker, e.g. "Nov 10, 2026". */
+const formatEntryDate = (date: string) => dayjs(date).format("MMM DD, YYYY");
 import { prepareMoodPhoto } from "@/features/mood/utils/prepareMoodPhoto";
 
 interface GalleryPhoto {
@@ -117,9 +121,10 @@ export default function MediaGallery() {
           value={selectedEntryId}
           onChange={(_, value) => setSelectedEntryId(value)}
           disabled={busy || entries.length === 0}
-          sx={{ minWidth: 0, flex: "1 1 240px" }}
+          // The 240px basis is a row-layout width; in the stacked mobile column it would become the height.
+          sx={{ minWidth: 0, flex: { xs: "0 0 auto", sm: "1 1 240px" } }}
         >
-          {entries.map((entry) => <Option key={entry.id} value={entry.id}>{entry.date} · {entry.moods.join(", ")}</Option>)}
+          {entries.map((entry) => <Option key={entry.id} value={entry.id}>{formatEntryDate(entry.date)} · {entry.moods.join(", ")}</Option>)}
         </Select>
         <AuraButton component="label" variant="outlined" disabled={busy || !selectedEntry} startIcon={<AddPhotoAlternateOutlined />}>
           {busy ? "Working…" : "Upload photos"}
