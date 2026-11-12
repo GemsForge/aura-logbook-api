@@ -16,7 +16,7 @@ This revision follows the supplied concept sheet: luminous multi-petal lotus aur
 - `pathways/astrology-energy/` — crystals, moon phases, and orbit illustration. Seven optional chakra symbols are in its nested `chakra-symbols/` collection only.
 - `brand/` — unmodified approved logo copies. Use the logo unchanged.
 - `design-tokens/` — seven separate interface theme palettes plus aura color tokens.
-- `previews/contact-sheet.png` — dark concept-sheet-style library overview; `previews/index.html` is a browsable preview.
+- `previews/contact-sheet.png` — full library overview with paired light/dark backdrops; `previews/backdrops-contact-sheet.png` is the backdrop-only comparison. `previews/index.html` is a browsable, offline preview. Regenerate both PNGs with `node aura-ui/public/theme-assets/previews/render-preview.mjs` after installing the UI dependencies and Playwright Chromium. The six active theme families appear first; Ivory is labeled as a legacy compatibility asset.
 - `asset-manifest.json` — each filename, collection, pathway visibility, format, and intended use.
 
 ## File formats and names
