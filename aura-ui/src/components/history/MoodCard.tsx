@@ -7,6 +7,7 @@ import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
 import IconButton from "@mui/joy/IconButton";
 import dayjs from "dayjs";
+import { Link as RouterLink } from "react-router-dom";
 import { MoodTag } from "./MoodTag";
 import MarkdownReflection from "../MarkdownReflection";
 import MoodMediaGallery from "./MoodMediaGallery";
@@ -25,7 +26,7 @@ export function MoodCard({
   return (
     <Sheet variant="outlined" className="aura-panel" sx={{ mb: 1.25, p: { xs: 1.5, sm: 2 }, position: "relative" }}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography level="body-sm" textColor="text.secondary">
+        <Typography component={RouterLink} to={`/history/${entry.id}`} level="body-sm" textColor="text.secondary" sx={{ textDecoration: "none", "&:hover": { textDecoration: "underline", textDecorationColor: "var(--aura-line)" }, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
           {date}
         </Typography>
         <Box>
@@ -38,8 +39,8 @@ export function MoodCard({
         </Box>
       </Box>
 
-      <Stack direction="row" flexWrap="wrap" mt={0.5}>
-        {entry.moods.map((mood) => (
+      <Stack direction="row" flexWrap="wrap" mt={0.5} role="group" aria-label={`${entry.moods.length === 1 ? "Mood" : "Moods"} for this entry`}>
+        {[...entry.moods].sort((left, right) => left.localeCompare(right)).map((mood) => (
           <MoodTag key={mood} mood={mood} />
         ))}
       </Stack>

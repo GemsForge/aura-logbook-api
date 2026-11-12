@@ -12,6 +12,7 @@ import MoodEntryForm from "./components/MoodEntryForm";
 import HomePage from "./pages/Home";
 import MediaGallery from "./pages/MediaGallery";
 import Insights from "./pages/Insights";
+import ReflectionRead from "./pages/ReflectionRead";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import { passwordResetEnabled } from "./features/auth/models/PasswordResetSchema";
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
               { path: "dashboard", element: <Dashboard /> },
               { path: "log-mood", element: <MoodEntryForm /> },
               { path: "history", element: <MoodHistory /> },
+              { path: "history/:id", element: <ReflectionRead /> },
               { path: "gallery", element: <MediaGallery /> },
               { path: "insights", element: <Insights /> },
             ],

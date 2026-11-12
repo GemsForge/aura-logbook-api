@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import dayjs from "dayjs";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import { renderWithProviders } from "../../test/testUtilities";
@@ -21,8 +21,9 @@ describe("MoodCard", () => {
     );
 
     expect(screen.getByText(dayjs(entry.date).format("LL"))).toBeInTheDocument();
-    expect(screen.getByText(/Harmonious/)).toBeInTheDocument();
-    expect(screen.getByText(/Centered/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: dayjs(entry.date).format("LL") })).toHaveAttribute("href", `/history/${entry.id}`);
+    const moodTags = within(screen.getByRole("group", { name: "Moods for this entry" })).getAllByText(/^(Centered|Harmonious)$/);
+    expect(moodTags.map((tag) => tag.textContent)).toEqual(["Centered", "Harmonious"]);
     expect(screen.getByText("Feeling grounded.")).toBeInTheDocument();
   });
 
