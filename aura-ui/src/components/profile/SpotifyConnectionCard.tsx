@@ -22,7 +22,12 @@ const callbackMessages: Record<string, string> = {
   "reconnect-required": "Spotify sign-in needs to be renewed. Please connect again.",
   "access-denied": "Spotify denied access. Reconnect to review your permissions.",
   "not-configured": "Spotify isn’t available yet. Please try again later.",
+  "provider-error": "Spotify couldn’t complete sign-in. Please connect again.",
+  "rate-limited": "Spotify is busy. Wait a moment, then try again.",
+  unavailable: "Spotify is temporarily unavailable. Please try again.",
 };
+
+const popupBlockedMessage = "Your browser blocked the Spotify sign-in window. Allow pop-ups for Aura and try again.";
 
 /** Uses only safe API error messages; never displays raw provider responses or browser errors. */
 function errorMessage(error: unknown, fallback: string) {
@@ -47,6 +52,7 @@ export default function SpotifyConnectionCard() {
     page: { items: SpotifyPlaylist[]; hasMore: boolean; nextOffset: number | null } | null;
   }>({ connectionKey: "", items: [], page: null });
   const carouselRef = useRef<HTMLDivElement>(null);
+  const authorizationPopup = useRef<Window | null>(null);
   const carouselId = useId();
   const requestedPageConnectionKey = useRef<string | null>(null);
   const connectionGenerationRef = useRef(0);
@@ -57,6 +63,7 @@ export default function SpotifyConnectionCard() {
     if (track) track.scrollBy({ left: direction * track.clientWidth });
   };
   const connection = useGetSpotifyConnectionQuery(userId, { skip: !userId, refetchOnMountOrArgChange: true });
+  const refetchConnection = connection.refetch;
   const [startConnection, startState] = useConnectSpotifyMutation();
   const [disconnect, disconnectState] = useDisconnectSpotifyMutation();
   const metadataOptions = { skip: !userId || !connection.data?.connected, refetchOnMountOrArgChange: true };
@@ -82,14 +89,59 @@ export default function SpotifyConnectionCard() {
     setSearchParams(next, { replace: true });
   }, [dispatch, searchParams, setSearchParams]);
 
+  useEffect(() => {
+    /** Accept callback results only from the window opened by this connection card. */
+    const handleOAuthMessage = (event: MessageEvent<unknown>) => {
+      const popup = authorizationPopup.current;
+      if (!popup || event.origin !== window.location.origin || event.source !== popup) return;
+      if (!event.data || typeof event.data !== "object" || !("type" in event.data)
+        || event.data.type !== "aura.spotify.oauth.complete" || !("result" in event.data)) return;
+      const result = event.data.result;
+      if (typeof result !== "string" || !Object.prototype.hasOwnProperty.call(callbackMessages, result)
+        && result !== "connected") return;
+
+      authorizationPopup.current = null;
+      setFailedAction(result !== "connected");
+      setNotice(result === "connected" ? "Spotify connected." : callbackMessages[result] ?? "Spotify couldn’t complete sign-in. Please connect again.");
+      if (result === "connected") dispatch(spotifyApi.util.invalidateTags(["SpotifyConnection"]));
+    };
+
+    window.addEventListener("message", handleOAuthMessage);
+    return () => window.removeEventListener("message", handleOAuthMessage);
+  }, [dispatch]);
+
+  useEffect(() => {
+    /** Refresh Spotify status when the user returns from an external authorization window. */
+    const refreshConnection = () => {
+      if (document.visibilityState === "visible") void refetchConnection();
+    };
+
+    window.addEventListener("focus", refreshConnection);
+    document.addEventListener("visibilitychange", refreshConnection);
+    return () => {
+      window.removeEventListener("focus", refreshConnection);
+      document.removeEventListener("visibilitychange", refreshConnection);
+    };
+  }, [refetchConnection]);
+
   const connect = async () => {
     setNotice(null);
+    // Keep the signed-in app loaded while Spotify uses a separate top-level window.
+    const popup = window.open("about:blank", "aura-spotify-authorization", "popup");
+    if (!popup) {
+      setFailedAction(true);
+      setNotice(popupBlockedMessage);
+      return;
+    }
+    authorizationPopup.current = popup;
     try {
       const result = await startConnection().unwrap();
       const url = new URL(result.authorizationUrl);
       if (url.origin !== "https://accounts.spotify.com") throw new Error("Invalid sign-in URL");
-      window.location.assign(url.href);
+      popup.location.href = url.href;
     } catch (error) {
+      popup.close();
+      authorizationPopup.current = null;
       setFailedAction(true);
       setNotice(errorMessage(error, "Couldn’t open Spotify sign-in. Please try again."));
     }

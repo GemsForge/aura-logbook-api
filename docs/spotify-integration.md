@@ -24,6 +24,8 @@ Run only one API instance on the callback port. The development launcher now sto
 
 `Spotify:FrontendRedirectUri` defaults to `http://127.0.0.1:58407/dashboard`. Change it when using a different UI address. The Spotify callback must match the registered URI and actual API port. A browser enforcing HTTPS-only must allow the local loopback HTTP callback; production uses HTTPS. See [Spotify's redirect requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
 
+Aura opens Spotify authorization in a separate browser window so a mobile browser or installed web app can keep its signed-in page loaded. The callback sends its result to that Aura window when the browser preserves the opener relationship, and the Spotify card refreshes its connection when Aura regains focus. If the browser separates the contexts, the callback page explains how to return to the original Aura app; the callback does not transfer or expose an Aura session token.
+
 ## Authorization and storage
 
 - OAuth uses Authorization Code with PKCE. Each random state is stored only as a hash; its verifier is encrypted with ASP.NET Data Protection.

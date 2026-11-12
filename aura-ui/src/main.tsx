@@ -29,6 +29,8 @@ import { AuraTokensStyle } from "./components/aura/AuraTokensStyle";
 import { useGetReferenceDataQuery } from "./store/referenceDataApi";
 import { hasUsableReferenceData } from "./theme/referenceDataValidation";
 import { installThemeTokenVariables } from "./theme";
+import SpotifyOAuthReturnPage from "./features/spotify/SpotifyOAuthReturnPage";
+import { notifySpotifyOAuthOpener, readSpotifyOAuthResult } from "./features/spotify/spotifyOAuthCallback";
 
 /** Redux keeps both UI libraries aligned; Joy’s render cache never overrides the account preference. */
 function ModeBridge({ mode, children }: { mode: InterfaceMode; children: ReactNode }) {
@@ -107,10 +109,19 @@ function ThemedApp() {
 }
 
 const rootElement = document.getElementById("root")!;
+const spotifyOAuthResult = readSpotifyOAuthResult(window.location.search);
+const callbackReturnedToAura = spotifyOAuthResult
+  ? notifySpotifyOAuthOpener(window.opener, window.location.origin, spotifyOAuthResult)
+  : false;
+
+if (callbackReturnedToAura) window.close();
+
 createRoot(rootElement).render(
-  <StrictMode>
-    <Provider store={store}>
-      <ThemedApp />
-    </Provider>
-  </StrictMode>
+  spotifyOAuthResult && !callbackReturnedToAura && !localStorage.getItem("token")
+    ? <SpotifyOAuthReturnPage result={spotifyOAuthResult} />
+    : <StrictMode>
+        <Provider store={store}>
+          <ThemedApp />
+        </Provider>
+      </StrictMode>
 );
