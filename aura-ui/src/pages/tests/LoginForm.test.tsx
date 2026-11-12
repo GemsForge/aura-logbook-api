@@ -24,8 +24,9 @@ describe("LoginForm", () => {
     renderWithProviders(<LoginForm showTitle />);
 
     expect(
-      screen.getByRole("heading", { name: /sign in/i })
+      screen.getByRole("heading", { name: /welcome back/i })
     ).toBeInTheDocument();
+    expect(screen.getByText(/a journal for what you feel and believe/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
@@ -34,12 +35,13 @@ describe("LoginForm", () => {
     expect(screen.getByRole("link", { name: /sign up/i })).toBeInTheDocument();
   });
 
-  it("should render without the optional title", () => {
+  it("should render concise copy without the optional centered title", () => {
     renderWithProviders(<LoginForm />);
 
     expect(
-      screen.queryByRole("heading", { name: /sign in/i })
-    ).not.toBeInTheDocument();
+      screen.queryByRole("heading", { name: /welcome back/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/a journal for what you feel and believe/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
