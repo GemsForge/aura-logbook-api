@@ -169,9 +169,10 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           <Typography level="body-xs" color="neutral" sx={{ fontWeight: 600 }}>Prompt</Typography>
           <Typography data-testid="reflection-prompt" level="body-sm" sx={{ mt: .25 }}>{reflectionPrompt}</Typography>
         </Box>
-        <Button type="button" variant="outlined" size="small" disabled={disabled || isSubmitting} startIcon={<ShuffleRounded fontSize="small" />} onClick={chooseAnotherPrompt} sx={{ flex: "0 0 auto" }}>
-          Another prompt
-        </Button>
+        {/* Keep the prompt action compact while preserving its name and a 44px touch target. */}
+        <IconButton type="button" variant="outlined" color="primary" size="md" disabled={disabled || isSubmitting} aria-label="Another prompt" title="Randomize prompt" onClick={chooseAnotherPrompt} sx={{ minWidth: 44, minHeight: 44, flex: "0 0 auto" }}>
+          <ShuffleRounded fontSize="small" />
+        </IconButton>
       </Sheet>
 
       <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} flexWrap="wrap">
