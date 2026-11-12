@@ -12,6 +12,7 @@ import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAuraSeasonsQuery } from "@/store/auraApi";
 import { tapTarget44 } from "@/components/ui/tapTarget";
 import { getAccessibleTextColor } from "@/theme/auraTheme";
+import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -203,20 +204,8 @@ export default function MoodCalendar({
           </IconButton>
         </Box>
         {!isDesktop && (
-          <Box role="group" aria-label="Calendar size" sx={{ display: "inline-flex", p: "2px", borderRadius: 999, border: "1px solid var(--al-theme-control-border, var(--al-theme-border))" }}>
-            {(["week", "month"] as const).map((option) => (
-              <Box key={option} component="button" type="button" aria-pressed={view === option} aria-controls="mood-calendar-grid" onClick={() => chooseView(option)}
-                sx={{
-                  ...tapTarget44, border: 0, borderRadius: 999, px: 1.25, minHeight: 28, font: "inherit", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
-                  // Selected uses ink-on-surface inversion so it reads in light and dark themes alike.
-                  bgcolor: view === option ? "var(--al-theme-ink)" : "transparent",
-                  color: view === option ? "var(--al-theme-surface)" : "var(--al-theme-ink)",
-                  "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 },
-                }}>
-                {option === "week" ? "Week" : "Month"}
-              </Box>
-            ))}
-          </Box>
+          <SegmentedToggle label="Calendar size" size="sm" value={view} onChange={chooseView} controls="mood-calendar-grid"
+            options={[{ value: "week", label: "Week" }, { value: "month", label: "Month" }]} />
         )}
       </Box>
 
