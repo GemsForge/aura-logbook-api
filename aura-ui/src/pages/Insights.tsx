@@ -9,6 +9,7 @@ import MusicNoteOutlined from "@mui/icons-material/MusicNoteOutlined";
 import PhotoOutlined from "@mui/icons-material/PhotoOutlined";
 import BedtimeOutlined from "@mui/icons-material/BedtimeOutlined";
 import { MoodIcon } from "@/components/mood/MoodIcon";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import AuraRibbon from "@/components/insights/AuraRibbon";
 import {
   averageEnergy, checkInDays, energyFactors, entriesInRange, moodCounts, periodRange, previousRange, ribbonPoints, topMood,
@@ -70,11 +71,8 @@ export default function Insights() {
 
   return (
     <Box className="signed-in-content" sx={{ maxWidth: 960, mx: "auto" }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 2, flexWrap: "wrap", mb: 2 }}>
-        <Box>
-          <Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450 }}>Insights</Typography>
-          <Typography level="body-sm" color="neutral">{range.label}</Typography>
-        </Box>
+      <ThemeBanner title="Insights" description={`Your energy and moods for ${range.label}.`} illustration="insights" />
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <ToggleButtonGroup aria-label="Insights period" value={period} onChange={(_, value) => value && setPeriod(value)} variant="soft" sx={{ borderRadius: 999, "& button": { borderRadius: 999, minHeight: 40, px: 2.25 } }}>
           <Button value="week">Week</Button>
           <Button value="month">Month</Button>

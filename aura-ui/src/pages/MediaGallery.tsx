@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 
 /** Formats a mood entry's ISO date (YYYY-MM-DD) for the entry picker, e.g. "Nov 10, 2026". */
 const formatEntryDate = (date: string) => dayjs(date).format("MMM DD, YYYY");
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import { prepareMoodPhoto } from "@/features/mood/utils/prepareMoodPhoto";
 
 interface GalleryPhoto {
@@ -110,9 +111,7 @@ export default function MediaGallery() {
 
   return (
     <Box className="signed-in-content" maxWidth={1120} mx="auto" mt={1}>
-      <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Moments you’ve kept</Typography>
-      <Typography component="h1" level="h1" className="aura-page-heading" sx={{ mb: 1 }}>Media Gallery</Typography>
-      <Typography level="body-lg" color="neutral" sx={{ mb: 2.5 }}>Private photos from your mood entries, gathered in one place.</Typography>
+      <ThemeBanner title="Media Gallery" description="Private photos from your mood entries, gathered in one place." illustration="journal" />
 
       <Sheet className="aura-panel" variant="plain" sx={{ display: "flex", alignItems: { xs: "stretch", sm: "center" }, flexDirection: { xs: "column", sm: "row" }, gap: 1.25, p: { xs: 1.5, sm: 2 }, mb: 2 }}>
         <Select
