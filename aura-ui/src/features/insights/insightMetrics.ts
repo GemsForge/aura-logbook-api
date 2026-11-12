@@ -61,7 +61,8 @@ export function loggedAt(entry: MoodEntry): Dayjs {
 }
 
 /** One point on the aura ribbon: horizontal position 0–1, energy 1–5 (null = no check-in, drawn as a gap), and a hover label. */
-export interface RibbonPoint { x: number; energy: number | null; mood: string | null; label: string }
+/** `moods` lists every mood behind the point (all of a check-in's moods, or a period's most frequent), so the ribbon's color matches the mood mix. */
+export interface RibbonPoint { x: number; energy: number | null; mood: string | null; moods: string[]; label: string }
 
 /**
  * Ribbon points for a period. Week plots every check-in at its logged time, so swings within a day show;
@@ -75,11 +76,11 @@ export function ribbonPoints(period: InsightPeriod, entries: MoodEntry[], range:
     for (let day = 0; day < 7; day++) {
       const date = range.start.add(day, "day");
       const dayEntries = inRange.filter((entry) => dayjs(entry.date).isSame(date, "day")).sort((a, b) => loggedAt(a).valueOf() - loggedAt(b).valueOf());
-      if (!dayEntries.length) { points.push({ x: (day + 0.5) / 7, energy: null, mood: null, label: `${date.format("ddd")}: no check-in` }); continue; }
+      if (!dayEntries.length) { points.push({ x: (day + 0.5) / 7, energy: null, mood: null, moods: [], label: `${date.format("ddd")}: no check-in` }); continue; }
       dayEntries.forEach((entry) => {
         const time = loggedAt(entry);
         const fraction = (time.hour() * 60 + time.minute()) / 1440;
-        points.push({ x: (day + Math.min(Math.max(fraction, 0.08), 0.92)) / 7, energy: entryEnergy(entry, moods), mood: entry.moods[0] ?? null, label: `${date.format("ddd")} · ${entry.moods.join(", ")} · ${time.format("h:mm A")}` });
+        points.push({ x: (day + Math.min(Math.max(fraction, 0.08), 0.92)) / 7, energy: entryEnergy(entry, moods), mood: entry.moods[0] ?? null, moods: entry.moods, label: `${date.format("ddd")} · ${entry.moods.join(", ")} · ${time.format("h:mm A")}` });
       });
     }
     return points;
@@ -90,7 +91,7 @@ export function ribbonPoints(period: InsightPeriod, entries: MoodEntry[], range:
     const slot = range.start.add(index, unit);
     const slotEntries = inRange.filter((entry) => dayjs(entry.date).isSame(slot, unit));
     const label = slot.format(period === "month" ? "MMM D" : "MMMM");
-    return { x: (index + 0.5) / buckets, energy: averageEnergy(slotEntries, moods), mood: topMood(slotEntries)?.mood ?? null, label: slotEntries.length ? `${label} · mostly ${topMood(slotEntries)?.mood}` : `${label}: no check-ins` };
+    return { x: (index + 0.5) / buckets, energy: averageEnergy(slotEntries, moods), mood: topMood(slotEntries)?.mood ?? null, moods: moodCounts(slotEntries).slice(0, 3).map(([mood]) => mood), label: slotEntries.length ? `${label} · mostly ${topMood(slotEntries)?.mood}` : `${label}: no check-ins` };
   });
 }
 
