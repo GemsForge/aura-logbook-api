@@ -20,6 +20,7 @@ import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import { liveliestTime } from "@/features/insights/insightMetrics";
 import { computeCheckInStreak } from "@/features/mood/moodPatternSummary";
 import { getAccessibleTextColor } from "@/theme/auraTheme";
+import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 
 /** Counts moods by distinct check-in day so a busy day does not outweigh quieter days. */
@@ -114,7 +115,7 @@ export default function MoodHistoryPage() {
           </Box>
         )}
         {/* Compact icon action, matching the + button; the name and tooltip say what it downloads. */}
-        <IconButton size="sm" variant="outlined" onClick={() => downloadJournalExport(logs)} disabled={loading || failed || logs.length === 0} aria-label={`Export ${logs.length} journal entries as JSON`} title="Export journal (JSON)" sx={{ borderRadius: "50%" }}>
+        <IconButton size="sm" variant="outlined" onClick={() => downloadJournalExport(logs)} disabled={loading || failed || logs.length === 0} aria-label={`Export ${logs.length} journal entries as JSON`} title="Export journal (JSON)" sx={{ borderRadius: "50%", ...tapTarget44 }}>
           <FileDownloadOutlined fontSize="small" />
         </IconButton>
       </ThemeBanner>
@@ -127,15 +128,16 @@ export default function MoodHistoryPage() {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.05fr) minmax(0, 1fr)" }, gap: 2, alignItems: "start", mb: 2 }}>
           <Box sx={{ display: "grid", gap: 1.5, minWidth: 0, "& .signed-in-calendar": { mb: 0 } }}>
             {/* Compact stat strips: small label above a one-line value + inline caption, roughly half the old card height on phone and desktop. */}
+            {/* Stat cards are plain content, not labeled regions, so they add no landmarks (WCAG 1.3.1). */}
             <Box sx={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 1 }}>
-              <Sheet component="section" aria-label={topMood ? `Top mood in ${visibleMonth.format("MMMM")}: ${topMood.mood}, ${topMood.count} of ${topMood.totalDays} days` : "Top mood"} sx={{ px: 1.25, py: .75, minWidth: 0, borderRadius: "lg", border: "1px solid var(--al-theme-border)", background: topMood ? (topMoodSurface ?? "var(--al-theme-surface-raised)") : "var(--al-theme-surface-raised)", color: topMood ? topMoodInk : undefined }}>
+              <Sheet sx={{ px: 1.25, py: .75, minWidth: 0, borderRadius: "lg", border: "1px solid var(--al-theme-border)", background: topMood ? (topMoodSurface ?? "var(--al-theme-surface-raised)") : "var(--al-theme-surface-raised)", color: topMood ? topMoodInk : undefined }}>
                 <Typography level="body-xs" sx={{ color: "inherit", opacity: .78, lineHeight: 1.3 }}>Top mood · {visibleMonth.format("MMMM")}</Typography>
                 <Box sx={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", columnGap: .75 }}>
                   <Typography sx={{ color: "inherit", fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.1rem", lineHeight: 1.2, overflowWrap: "anywhere" }}>{topMood?.mood ?? "—"}</Typography>
                   <Typography level="body-xs" sx={{ color: "inherit", opacity: .78 }}>{topMood ? `${topMood.count} of ${topMood.totalDays} days` : "No check-ins this month"}</Typography>
                 </Box>
               </Sheet>
-              <Sheet component="section" aria-label={`Streak: ${streak} ${streak === 1 ? "day" : "days"}`} sx={{ px: 1.25, py: .75, minWidth: 0, borderRadius: "lg", border: "1px solid var(--al-theme-border)", background: "var(--al-theme-surface-raised)" }}>
+              <Sheet sx={{ px: 1.25, py: .75, minWidth: 0, borderRadius: "lg", border: "1px solid var(--al-theme-border)", background: "var(--al-theme-surface-raised)" }}>
                 <Typography level="body-xs" color="neutral" sx={{ lineHeight: 1.3 }}>Streak</Typography>
                 <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", columnGap: .75 }}>
                   <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.1rem", lineHeight: 1.2 }}>{streak} {streak === 1 ? "day" : "days"}</Typography>
@@ -158,7 +160,7 @@ export default function MoodHistoryPage() {
                 </Typography>
                 {dayEntries.length > 0 && <Typography level="body-xs" color="neutral" sx={{ whiteSpace: "nowrap" }}>{dayEntries.length} {dayEntries.length === 1 ? "check-in" : "check-ins"}</Typography>}
               </Box>
-              <IconButton component="a" href="/log-mood" size="sm" variant="outlined" aria-label="Add a reflection" title="Add a reflection" sx={{ borderRadius: "50%", flexShrink: 0 }}><AddOutlined fontSize="small" /></IconButton>
+              <IconButton component="a" href="/log-mood" size="sm" variant="outlined" aria-label="Add a reflection" title="Add a reflection" sx={{ ...tapTarget44, borderRadius: "50%", flexShrink: 0 }}><AddOutlined fontSize="small" /></IconButton>
             </Box>
             {dayEntries.length === 0
               ? <Typography role="status" level="body-sm" color="neutral">{activeDate ? "No reflections were saved this day." : "No reflections this month. Pick a day with color to read it."}</Typography>

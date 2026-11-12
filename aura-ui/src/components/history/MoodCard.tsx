@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { Link as RouterLink } from "react-router-dom";
 import MarkdownReflection from "../MarkdownReflection";
 import MomentStrip from "./MomentStrip";
+import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 
 /**
@@ -33,16 +34,18 @@ export function MoodCard({
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
         <Typography level="body-xs" color="neutral">{time} · {entry.moods.join(", ")}</Typography>
         <Box sx={{ display: "flex", flexShrink: 0 }}>
-          <IconButton size="sm" variant="plain" onClick={() => onEdit(entry)} aria-label="Edit mood entry"><EditOutlined fontSize="small" /></IconButton>
-          <IconButton size="sm" variant="plain" onClick={() => onDelete(entry)} aria-label="Delete mood entry"><DeleteOutline fontSize="small" /></IconButton>
+          <IconButton size="sm" variant="plain" onClick={() => onEdit(entry)} aria-label="Edit mood entry" sx={tapTarget44}><EditOutlined fontSize="small" /></IconButton>
+          <IconButton size="sm" variant="plain" onClick={() => onDelete(entry)} aria-label="Delete mood entry" sx={tapTarget44}><DeleteOutline fontSize="small" /></IconButton>
         </Box>
       </Box>
-      {/* The writing opens the full reading view; long reflections are clamped here as a preview. */}
-      <Box component={RouterLink} to={`/history/${entry.id}`} aria-label={`Read the full ${time} reflection`}
+      {/* The writing opens the full reading view; long reflections are clamped here as a preview. The link's name is the text itself (WCAG 1.3.1/2.4.4), not a replacement label. */}
+      <Box component={RouterLink} to={`/history/${entry.id}`}
         sx={{ display: "block", color: "inherit", textDecoration: "none", borderRadius: "sm", "&:hover": { textDecoration: "underline", textDecorationColor: "var(--aura-line)" }, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
         {entry.comment
           ? <Box sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1rem", lineHeight: 1.6, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden", "& p": { m: 0 } }}><MarkdownReflection value={entry.comment} /></Box>
           : <Typography level="body-sm" color="neutral">Open this check-in</Typography>}
+        {/* The link reads the reflection itself, then this hidden suffix names the destination. */}
+        <Box component="span" sx={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>, read full reflection</Box>
       </Box>
       <MomentStrip entry={entry} />
     </Box>

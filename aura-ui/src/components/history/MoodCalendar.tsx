@@ -5,11 +5,12 @@ import IconButton from "@mui/joy/IconButton";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import dayjs, { type Dayjs } from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAuraSeasonsQuery } from "@/store/auraApi";
+import { tapTarget44 } from "@/components/ui/tapTarget";
 import { getAccessibleTextColor } from "@/theme/auraTheme";
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -37,7 +38,7 @@ function useIsDesktop() {
 }
 const visuallyHidden = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } as const;
 /** Outlined round arrows drawn in theme ink so they keep contrast on dark surfaces. */
-const navButtonSx = { borderRadius: "50%", color: "var(--al-theme-ink)", borderColor: "var(--al-theme-control-border, var(--al-theme-border))", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } } as const;
+const navButtonSx = { ...tapTarget44, borderRadius: "50%", color: "var(--al-theme-ink)", borderColor: "var(--al-theme-control-border, var(--al-theme-border))", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } } as const;
 
 /** Draws standard groups of five tally strokes; the date button keeps the exact count for assistive technology. */
 function MoodEntryTallies({ count }: { count: number }) {
@@ -91,6 +92,7 @@ export default function MoodCalendar({
   const [visibleMonth, setVisibleMonth] = useState(() => dayjs().startOf("month"));
   const [weekStart, setWeekStart] = useState(() => dayjs().startOf("week"));
   const isDesktop = useIsDesktop();
+  const gridRef = useRef<HTMLTableElement>(null);
   const [preferredView, setPreferredView] = useState<CalendarView>(readStoredView);
   // Desktop has room for the whole month beside the journal, so the toggle only applies on smaller screens.
   const view: CalendarView = isDesktop ? "month" : preferredView;
@@ -147,6 +149,31 @@ export default function MoodCalendar({
   for (let index = 0; index < days.length; index += 7) {
     weeks.push(days.slice(index, index + 7));
   }
+  // The one tabbable day: the selected day if visible, else today, else the first enabled day in view.
+  const visibleKeys = days.filter((day) => !day.isAfter(today, "day")).map((day) => day.format("YYYY-MM-DD"));
+  const focusDate = selectedDate && visibleKeys.includes(selectedDate) ? selectedDate
+    : visibleKeys.includes(today.format("YYYY-MM-DD")) ? today.format("YYYY-MM-DD") : visibleKeys[0];
+  const [pendingFocus, setPendingFocus] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const button = gridRef.current?.querySelector<HTMLButtonElement>(`[data-date="${pendingFocus}"]`);
+    if (button && !button.disabled) { button.focus(); setPendingFocus(null); }
+  });
+  /** Arrow keys move a day or a week, Home/End jump to the week's ends; stepping past the view turns the page. */
+  const onGridKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    const current = (event.target as HTMLElement).closest<HTMLElement>("[data-date]")?.dataset.date;
+    if (!current) return;
+    const from = dayjs(current);
+    const target = event.key === "ArrowRight" ? from.add(1, "day") : event.key === "ArrowLeft" ? from.subtract(1, "day")
+      : event.key === "ArrowDown" ? from.add(1, "week") : event.key === "ArrowUp" ? from.subtract(1, "week")
+        : event.key === "Home" ? from.startOf("week") : event.key === "End" ? from.endOf("week").startOf("day") : null;
+    if (!target) return;
+    event.preventDefault();
+    if (target.isAfter(today, "day")) return;
+    if (view === "week" && !target.isSame(weekStart, "week")) setWeekStart(target.startOf("week"));
+    if (view === "month" && !target.isSame(visibleMonth, "month")) setVisibleMonth(target.startOf("month"));
+    setPendingFocus(target.format("YYYY-MM-DD"));
+  };
   const rangeLabel = view === "week"
     ? `${weekStart.format("MMM D")} – ${weekStart.add(6, "day").format(weekStart.month() === weekStart.add(6, "day").month() ? "D" : "MMM D")}`
     : visibleMonth.format("MMMM YYYY");
@@ -180,7 +207,7 @@ export default function MoodCalendar({
             {(["week", "month"] as const).map((option) => (
               <Box key={option} component="button" type="button" aria-pressed={view === option} aria-controls="mood-calendar-grid" onClick={() => chooseView(option)}
                 sx={{
-                  border: 0, borderRadius: 999, px: 1.25, minHeight: 28, font: "inherit", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
+                  ...tapTarget44, border: 0, borderRadius: 999, px: 1.25, minHeight: 28, font: "inherit", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
                   // Selected uses ink-on-surface inversion so it reads in light and dark themes alike.
                   bgcolor: view === option ? "var(--al-theme-ink)" : "transparent",
                   color: view === option ? "var(--al-theme-surface)" : "var(--al-theme-ink)",
@@ -196,6 +223,8 @@ export default function MoodCalendar({
       <Box
         component="table"
         id="mood-calendar-grid"
+        ref={gridRef}
+        onKeyDown={onGridKeyDown}
         aria-label={`Mood entries by day, ${view === "week" ? `week of ${rangeLabel}` : rangeLabel}`}
         sx={{ width: "100%", tableLayout: "fixed", borderCollapse: "separate", borderSpacing: { xs: "4px", sm: "8px" } }}
       >
@@ -233,8 +262,13 @@ export default function MoodCalendar({
                     <IconButton
                       variant="plain"
                       disabled={future}
-                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${moodLabel}${seasonLabel}`}
-                      aria-pressed={selected}
+                      // Selection is stated in the name; aria-current marks today, matching how screen readers expect dates.
+                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${moodLabel}${seasonLabel}${selected ? ", selected" : ""}`}
+                      aria-current={day.isSame(today, "day") ? "date" : undefined}
+                      data-date={key}
+                      data-selected={selected || undefined}
+                      // Roving tabindex: the whole grid is one Tab stop; arrow keys move between days.
+                      tabIndex={key === focusDate ? 0 : -1}
                       onClick={() => {
                         if (view === "month") setVisibleMonth(day.startOf("month"));
                         onSelectDate(selected ? null : key);
@@ -261,7 +295,7 @@ export default function MoodCalendar({
                         boxShadow: selected ? "0 0 0 2px var(--al-theme-surface), 0 0 0 4px var(--al-theme-focus)" : "none",
                         opacity: outsideMonth ? 0.55 : 1,
                         // Keep the mood fill and contrast ink when Joy applies its pressed (selected) styles.
-                        "&[aria-pressed='true']": { background: moodTint ?? "transparent", color: moodInk ?? "var(--al-theme-ink)" },
+                        "&[data-selected]": { background: moodTint ?? "transparent", color: moodInk ?? "var(--al-theme-ink)" },
                         "&:hover": { background: moodTint ?? "var(--al-theme-surface-raised)", borderColor: "var(--al-theme-control-border)", transform: "translateY(-1px)" },
                         "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 1 },
                         transition: "background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",

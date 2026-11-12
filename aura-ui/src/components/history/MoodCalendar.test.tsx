@@ -31,3 +31,19 @@ describe("MoodCalendar week/month toggle", () => {
     expect(localStorage.getItem("aura.reflections.calendarView")).toBe("month");
   });
 });
+
+/** The grid is a single Tab stop; arrow keys move between days, and today is marked as the current date. */
+describe("MoodCalendar keyboard", () => {
+  it("roves focus with arrow keys and marks today with aria-current", () => {
+    localStorage.setItem("aura.reflections.calendarView", "month");
+    renderWithProviders(<MoodCalendar entries={[]} selectedDate={null} onSelectDate={vi.fn()} />);
+    const grid = screen.getByRole("table");
+    const tabbable = within(grid).getAllByRole("button").filter((button) => button.tabIndex === 0);
+    expect(tabbable).toHaveLength(1);
+    expect(tabbable[0]).toHaveAttribute("aria-current", "date");
+    tabbable[0].focus();
+    fireEvent.keyDown(tabbable[0], { key: "ArrowLeft" });
+    expect(document.activeElement).not.toBe(tabbable[0]);
+    expect(document.activeElement?.getAttribute("data-date")).toBe(new Date(Date.now() - 86400000).toLocaleDateString("en-CA"));
+  });
+});
