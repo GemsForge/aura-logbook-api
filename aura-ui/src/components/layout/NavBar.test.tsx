@@ -20,22 +20,17 @@ describe("NavBar", () => {
 
     expect(screen.getByRole("link", { name: "Aura Logbook home" })).toHaveAttribute("href", "/home");
     expect(screen.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Create account" })).toBeInTheDocument();
+    // The header no longer carries Login/Create account; the landing page leads with sign-in.
+    expect(screen.queryByRole("link", { name: "Login" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Create account" })).not.toBeInTheDocument();
     expect(screen.getByTestId("prism-mark")).toHaveAttribute("aria-hidden", "true");
-
-    fireEvent.click(screen.getByRole("link", { name: "Create account" }));
-    expect(screen.getByLabelText("Current path")).toHaveTextContent("/register");
   });
 
-  it("keeps Home out of the signed-out mobile menu", () => {
+  it("shows no Login or Create account links to signed-out visitors", () => {
     renderWithProviders(<NavBar />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open navigation" }));
-    const mobileNavigation = within(screen.getByRole("navigation", { name: "Mobile navigation" }));
-    expect(mobileNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
-    expect(mobileNavigation.getByRole("link", { name: "Login" })).toBeInTheDocument();
-    expect(mobileNavigation.getByRole("link", { name: "Create account" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Login" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Create account" })).not.toBeInTheDocument();
   });
 
   it("shows authenticated destinations and logs out to home", () => {
@@ -75,3 +70,19 @@ describe("NavBar", () => {
     expect(mobileNavigation.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
   });
 });
+
+/** The signed-in person's motto sits under the brand name; nothing shows when it is blank. */
+describe("NavBar motto", () => {
+  it("shows the motto under Aura Logbook when signed in", () => {
+    const state = createAuthenticatedState();
+    renderWithProviders(<NavBar />, { preloadedState: { auth: { ...state.auth, profile: { ...state.auth.profile, motto: "Rest is part of the work." } } } });
+    expect(screen.getByText("Rest is part of the work.")).toBeInTheDocument();
+  });
+
+  it("shows no motto line when the motto is blank", () => {
+    const state = createAuthenticatedState();
+    renderWithProviders(<NavBar />, { preloadedState: { auth: { ...state.auth, profile: { ...state.auth.profile, motto: "   " } } } });
+    expect(screen.queryByText("Rest is part of the work.")).not.toBeInTheDocument();
+  });
+});
+

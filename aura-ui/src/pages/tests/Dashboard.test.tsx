@@ -112,6 +112,8 @@ vi.mock("../../store/auraApi", () => ({
 }));
 
 // Mock the child components used in the Dashboard
+// Weather attached to check-ins comes from the cached weather query; stub it so the store module graph stays out of this test.
+vi.mock("@/store/weatherApi", () => ({ useGetCurrentWeatherQuery: () => ({ data: undefined }) }));
 vi.mock("../../components/weather/WeatherCard", () => ({
   default: () => <div data-testid="weather-card">Weather Card</div>,
 }));
@@ -174,9 +176,9 @@ describe("Dashboard", () => {
     expect(screen.queryByTestId("mood-pie-chart")).not.toBeInTheDocument();
     expect(screen.getByRole("list", { name: /last seven days/i })).toBeInTheDocument();
     expect(screen.queryByTestId("mood-timeline-chart")).not.toBeInTheDocument();
-    expect(screen.getByText(/12 entries · most often Calm/i)).toBeInTheDocument();
-    expect(screen.getByText("Music")).toBeInTheDocument();
-    expect(screen.getByTestId("spotify-connection-card").closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByRole("list", { name: "Your check-in stats" })).toHaveTextContent(/Entries12Most oftenCalm/);
+    expect(screen.getByTestId("spotify-connection-card")).toBeInTheDocument();
+    expect(screen.getByTestId("spotify-connection-card").closest("details")).toBeNull();
   });
 
   it("shows celestial insight only on the Astrology & Energy pathway", () => {

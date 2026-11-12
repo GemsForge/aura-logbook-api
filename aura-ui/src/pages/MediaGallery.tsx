@@ -15,6 +15,11 @@ import { MoodApi } from "@/api/MoodApi";
 import { AuraButton } from "@/components/ui/AuraButton";
 import { AuraModal } from "@/components/ui/AuraModal";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import dayjs from "dayjs";
+
+/** Formats a mood entry's ISO date (YYYY-MM-DD) for the entry picker, e.g. "Nov 10, 2026". */
+const formatEntryDate = (date: string) => dayjs(date).format("MMM DD, YYYY");
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import { prepareMoodPhoto } from "@/features/mood/utils/prepareMoodPhoto";
 
 interface GalleryPhoto {
@@ -176,10 +181,8 @@ export default function MediaGallery() {
   };
 
   return (
-    <Box maxWidth={1120} mx="auto" mt={1}>
-      <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 1.5 }}>Moments you’ve kept</Typography>
-      <Typography component="h1" level="h1" className="aura-page-heading" sx={{ mb: 1 }}>Media Gallery</Typography>
-      <Typography level="body-lg" color="neutral" sx={{ mb: 2.5 }}>Private photos from your mood entries, gathered in one place.</Typography>
+    <Box className="signed-in-content" maxWidth={1120} mx="auto" mt={1}>
+      <ThemeBanner title="Media Gallery" description="Private photos from your mood entries, gathered in one place." illustration="journal" />
 
       <Sheet className="aura-panel" variant="plain" sx={{ display: "flex", alignItems: { xs: "stretch", sm: "center" }, flexDirection: { xs: "column", sm: "row" }, gap: 1.25, p: { xs: 1.5, sm: 2 }, mb: 2 }}>
         <Box sx={{ minWidth: 0, width: "100%", maxWidth: { sm: 640 }, flex: { xs: "1 1 auto", sm: "1 1 300px" } }}>
@@ -196,7 +199,7 @@ export default function MediaGallery() {
               listbox: { sx: { color: "var(--al-theme-ink)", backgroundColor: "var(--al-theme-surface-raised)", borderColor: "var(--al-theme-control-border)" } },
             }}
           >
-            {entries.map((entry) => <Option key={entry.id} value={entry.id} sx={{ color: "var(--al-theme-ink)" }}>{entry.date} · {entry.moods.join(", ")}</Option>)}
+            {entries.map((entry) => <Option key={entry.id} value={entry.id} sx={{ color: "var(--al-theme-ink)" }}>{formatEntryDate(entry.date)} · {entry.moods.join(", ")}</Option>)}
           </Select>
           <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>
             {entries.length ? "Photos will appear with this saved mood entry." : "Create a mood entry before adding photos."}

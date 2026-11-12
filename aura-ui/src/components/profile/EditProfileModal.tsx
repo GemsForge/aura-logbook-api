@@ -12,11 +12,6 @@ import { useToast } from "@/hooks/useToast";
 import { useGetCurrentUserQuery, useUpdateUserMutation } from "@/store/authApi";
 import { useAppDispatch } from "@/store/hooks";
 import { closeProfileModal, setInterfaceThemePreview, setInterfaceModePreview } from "@/store/slices/uiSlice";
-import {
-  getAuraColorPreview,
-  normalizeAuraIntensity,
-  resolveAuraColor,
-} from "@/theme/auraTheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, LinearProgress } from "@mui/material";
 import dayjs from "dayjs";
@@ -40,7 +35,6 @@ export default function EditProfileModal({
   // 1) Unconditionally call your hooks at the top:
   const { data: user, isFetching: loadingUser } = useGetCurrentUserQuery();
   const { data: referenceData, isError: referenceDataError } = useGetReferenceDataQuery();
-  const auraOptions = referenceData?.auras ?? [];
   const pathwayOptions = referenceData?.pathways ?? [];
   const [updateUser] = useUpdateUserMutation();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -53,8 +47,6 @@ export default function EditProfileModal({
       displayName: "",
       email: user?.email ?? "",
       birthday: "",
-      auraColor: "",
-      auraIntensity: 50,
       avatar: "",
       password: "",
       confirmPassword: "",
@@ -92,8 +84,6 @@ export default function EditProfileModal({
         birthday: user.birthday
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
-        auraColor: resolveAuraColor(user.auraColor, auraOptions)?.key ?? auraOptions[0]?.key ?? "",
-        auraIntensity: normalizeAuraIntensity(user.auraIntensity),
         avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
@@ -115,19 +105,16 @@ export default function EditProfileModal({
       dispatch(setInterfaceThemePreview(null));
       dispatch(setInterfaceModePreview(null));
     }
-  }, [open, user, reset, form, dispatch, auraOptions, pathwayOptions]);
+  }, [open, user, reset, form, dispatch, pathwayOptions]);
 
   if (referenceDataError) return <Box role="alert" sx={{ p: 2 }}>Profile definitions are unavailable. Please retry.</Box>;
   if (loadingUser || !user || !referenceData) return <LinearProgress color="secondary" aria-label="Loading profile definitions" />;
 
   const onSubmit = async (data: EditProfileFormData) => {
-    const { auraIntensity, spiritualPathway, ...rest } = data;
+    const { spiritualPathway, ...rest } = data;
     const payload: UpdateUserRequest = {
       id: user!.id,
       ...rest,
-      auraIntensity: normalizeAuraIntensity(
-        auraIntensity ?? user!.auraIntensity
-      ),
       // Birthday is optional (#341): omit it when empty so the saved value is kept.
       birthday: data.birthday ? dayjs(data.birthday).format("YYYY-MM-DD") : undefined,
       password: isChangingPassword ? data.password : undefined,
@@ -149,9 +136,8 @@ export default function EditProfileModal({
     }
   };
 
-  const colorKey = watch("auraColor");
-  const intensity = watch("auraIntensity");
-  const currentAuraBg = getAuraColorPreview(colorKey, intensity, auraOptions);
+  // Avatar initials follow the current derived aura accent instead of a manually selected color.
+  const currentAuraBg = "var(--aura-accent)";
   // Initials fall back to the live display name when no avatar is chosen.
   const displayName = watch("displayName") || user?.displayName || "";
   const defaultInitials = displayName

@@ -17,7 +17,6 @@ import { Controller, type FieldErrors, type UseFormReturn } from "react-hook-for
 import { ProfileSections, type ProfileSection } from "./ProfileSections";
 import type { GraphicAsset } from "@/store/referenceDataApi";
 import { MyPathwaySelector } from "@/components/MyPathwaySelector";
-import { AuraSelector } from "../AuraSelectorField";
 import { AvatarPickerModal } from "../AvatarPickerModal";
 import { MottoField } from "../MottoField";
 import { InterfaceModeField } from "../InterfaceModeField";
@@ -46,7 +45,7 @@ interface EditProfileFormProps {
 const fieldSection: Partial<Record<keyof EditProfileFormData, string>> = {
   displayName: "profile", birthday: "profile", spiritualPathway: "profile", motto: "profile",
   interfaceTheme: "appearance", interfaceMode: "appearance",
-  auraColor: "aura", auraIntensity: "aura", auraRevealsEnabled: "aura",
+  auraRevealsEnabled: "aura",
   weatherLocationMode: "weather", weatherCity: "weather", weatherRegion: "weather", weatherCountry: "weather", temperatureUnit: "weather",
   email: "account", password: "account", confirmPassword: "account", isChangingPassword: "account",
 };
@@ -135,9 +134,8 @@ export function EditProfileForm({
       content: (
         <>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Choose the color to record with your reflections. The interface theme is a separate preference.
+            Your reflected color shifts with your recent mood check-ins. The interface theme is a separate preference.
           </Typography>
-          <AuraSelector control={control} colorField="auraColor" intensityField="auraIntensity" />
           {/* #344: aura reveals can be turned off; accents then fall back to the interface theme. */}
           <Controller
             name="auraRevealsEnabled"

@@ -26,7 +26,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     options: [
       { label: "Slowing down and breathing through it", pathway: "Mindfulness", hue: 230 },
       { label: "Knowing there's a bigger cycle or season at play", pathway: "Energy", hue: 290 },
-      { label: "Praying, or handing it over to God", pathway: "Faith", hue: 60 },
+      { label: "Turning to a belief, value, or practice that grounds me", pathway: "Faith", hue: 60 },
     ],
   },
   {
@@ -35,7 +35,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     options: [
       { label: "Feeling calmer day to day", pathway: "Mindfulness", hue: 175 },
       { label: "Understanding my energy and moods", pathway: "Energy", hue: 300 },
-      { label: "Feeling closer to my Creator", pathway: "Faith", hue: 55 },
+      { label: "Feeling connected to what gives my life meaning", pathway: "Faith", hue: 55 },
     ],
   },
   {
@@ -44,7 +44,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     options: [
       { label: "Notice what's happening in my body and mind", pathway: "Mindfulness", hue: 160 },
       { label: "Wonder what the moon, stars or my aura are saying", pathway: "Energy", hue: 270 },
-      { label: "Look for meaning or a message meant for me", pathway: "Faith", hue: 70 },
+      { label: "Look for meaning through my beliefs or values", pathway: "Faith", hue: 70 },
     ],
   },
   {
@@ -53,7 +53,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     options: [
       { label: "Clear and grounded", pathway: "Mindfulness", hue: 200 },
       { label: "In tune and aligned", pathway: "Energy", hue: 250 },
-      { label: "Held and guided", pathway: "Faith", hue: 20 },
+      { label: "Supported by what matters to me", pathway: "Faith", hue: 20 },
     ],
   },
   {
@@ -62,7 +62,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     options: [
       { label: "A short mindful prompt", pathway: "Mindfulness", hue: 190 },
       { label: "A cosmic or energy insight", pathway: "Energy", hue: 280 },
-      { label: "A verse or a prayer", pathway: "Faith", hue: 50 },
+      { label: "A reflection shaped by my beliefs or values", pathway: "Faith", hue: 50 },
     ],
   },
 ];

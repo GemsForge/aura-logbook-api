@@ -8,8 +8,19 @@ import type {
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "./store";
+import type { AppDispatch, RootState } from "./store";
 import { logout } from "./slices/authSlice";
+import { auraApi } from "./auraApi";
+
+/** Refreshes derived color after journal mutations so the visible accent follows the latest entries. */
+async function refreshDerivedAura(dispatch: AppDispatch, queryFulfilled: Promise<unknown>) {
+  try {
+    await queryFulfilled;
+    dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
+  } catch {
+    // A failed journal mutation does not change the derived aura.
+  }
+}
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL + "/Mood",
@@ -67,6 +78,7 @@ export const moodApi = createApi({
         body,
       }),
       invalidatesTags: [{ type: "Moods", id: "LIST" }, "Dashboard"],
+      onQueryStarted: (_arg, { dispatch, queryFulfilled }) => refreshDerivedAura(dispatch, queryFulfilled),
     }),
 
     // GET /Mood/{id}
@@ -90,6 +102,7 @@ export const moodApi = createApi({
         { type: "Moods", id: "LIST" },
         "Dashboard",
       ],
+      onQueryStarted: (_arg, { dispatch, queryFulfilled }) => refreshDerivedAura(dispatch, queryFulfilled),
     }),
 
     // DELETE /Mood/{id}
@@ -99,6 +112,7 @@ export const moodApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: [{ type: "Moods", id: "LIST" }, "Dashboard"],
+      onQueryStarted: (_arg, { dispatch, queryFulfilled }) => refreshDerivedAura(dispatch, queryFulfilled),
     }),
 
     // GET /Mood/dashboard/summary

@@ -26,6 +26,8 @@ vi.mock("../../hooks/useToast", async (importOriginal) => {
   };
 });
 
+// Weather attached to check-ins comes from the cached weather query; stub it so the store module graph stays out of this test.
+vi.mock("@/store/weatherApi", () => ({ useGetCurrentWeatherQuery: () => ({ data: undefined }) }));
 vi.mock("@/api/MoodApi", () => ({ MoodApi: { logMood: flow.logMood } }));
 vi.mock("@/api/MoodMediaApi", () => ({ MoodMediaApi: { upload: flow.upload } }));
 

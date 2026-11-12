@@ -12,17 +12,9 @@ import { AuraInput } from "@/components/ui/AuraInput";
 import { useCompleteOnboardingMutation } from "@/store/authApi";
 import { useToast } from "@/hooks/useToast";
 import type { SpiritualPathway } from "@/features/auth/models";
-import { QUIZ_QUESTIONS, PATHWAY_NAMES, blendHues, scoreQuiz } from "@/features/onboarding/quiz";
-import { CHECK_IN_OPENERS, ELEMENT_HUE, PATHWAY_FOCUS, sunSign, toggleFocus } from "@/features/onboarding/pathwayPages";
+import { QUIZ_QUESTIONS, PATHWAY_NAMES, scoreQuiz } from "@/features/onboarding/quiz";
+import { CHECK_IN_OPENERS, PATHWAY_FOCUS, sunSign, toggleFocus } from "@/features/onboarding/pathwayPages";
 import { STEPS, buildOnboardingRequest, clearDraft, loadDraft, saveDraft, type OnboardingDraft } from "@/features/onboarding/draft";
-
-/** Unlabeled color-moment swatches; names are screen-reader labels only. */
-const SWATCHES = [
-  { name: "Red", hue: 0, color: "#EF9A9A" }, { name: "Orange", hue: 35, color: "#FFB74D" },
-  { name: "Gold", hue: 50, color: "#FFD54F" }, { name: "Green", hue: 125, color: "#A5D6A7" },
-  { name: "Teal", hue: 175, color: "#80CBC4" }, { name: "Blue", hue: 210, color: "#90CAF9" },
-  { name: "Violet", hue: 290, color: "#CE93D8" }, { name: "Rose", hue: 340, color: "#F48FB1" },
-];
 
 /** Reveal wording per pathway (spec §9); the aura is framed in each pathway's own language. */
 const REVEAL_FRAME: Record<SpiritualPathway, string> = {
@@ -37,7 +29,7 @@ function shuffled<T>(items: readonly T[], seed: number): T[] {
 }
 
 /**
- * Onboarding flow (#342): five pathway questions, optional birthday, a wordless color moment, the
+ * Onboarding flow (#342): five pathway questions, optional birthday, the
  * pathway + aura reveal, a pathway-specific page and reminders. Progress is kept in sessionStorage
  * so a refresh keeps answers; finishing (or skipping) saves through `PUT /Auth/me/onboarding`.
  * Mobile is a single column; at md+ the orb and heading sit left and the step panel right.
@@ -56,8 +48,8 @@ export default function Onboarding() {
 
   const step = STEPS[draft.stepIndex];
   const score = useMemo(() => scoreQuiz(draft.answers), [draft.answers]);
-  const blend = blendHues(draft.answers, draft.colorMomentHue);
-  const orbHue = blend?.hue ?? 270;
+  // The onboarding orb is decorative; the saved aura color is derived later from mood check-ins.
+  const orbHue = 270;
   const pathway = draft.pathway ?? (score.leaders.length === 1 ? score.leaders[0] : undefined);
   const update = (patch: Partial<OnboardingDraft>) => setDraft((d) => ({ ...d, ...patch }));
   const go = (delta: number) => update({ stepIndex: Math.min(Math.max(0, draft.stepIndex + delta), STEPS.length - 1) });
@@ -128,23 +120,6 @@ export default function Onboarding() {
         <Button variant="plain" onClick={() => { update({ birthday: undefined }); go(1); }}>Not now</Button>
       </>
     );
-  } else if (step.kind === "color") {
-    eyebrow = "One more thing";
-    heading = "Which one feels like right now?";
-    sub = "Don't think. Just tap.";
-    body = (
-      <Box role="radiogroup" aria-label="Color that feels like right now" sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(3, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }, gap: 2.5, justifyItems: "center" }}>
-        {SWATCHES.map((s) => {
-          const checked = draft.colorMomentHue === s.hue;
-          return (
-            <Box key={s.name} component="button" type="button" role="radio" aria-checked={checked} aria-label={s.name}
-              onClick={() => update({ colorMomentHue: s.hue })}
-              sx={{ width: 80, height: 80, borderRadius: "50%", cursor: "pointer", border: `3px solid ${checked ? "var(--al-theme-focus)" : "transparent"}`, background: `radial-gradient(circle at 33% 28%, rgba(255,255,255,.9), ${s.color} 62%)`, transform: checked ? "scale(1.08)" : "none", transition: "transform 200ms" }} />
-          );
-        })}
-      </Box>
-    );
-    primary = <Button variant="contained" onClick={() => go(1)}>Reveal my aura</Button>;
   } else if (step.kind === "reveal") {
     const tied = choosing || (score.leaders.length > 1 && !draft.pathway);
     const options: SpiritualPathway[] = choosing ? ["Mindfulness", "Energy", "Faith"] : score.leaders;
@@ -163,7 +138,7 @@ export default function Onboarding() {
         <Typography level="title-lg" sx={{ fontFamily: "var(--joy-fontFamily-display)" }}>
           A color that will shift as you check in.
         </Typography>
-        <Typography level="body-sm" color="neutral">Your aura starts from your answers and grows with your mood logs. It's a reflection, never a label.</Typography>
+        <Typography level="body-sm" color="neutral">Your color takes shape through mood check-ins and shifts as you log. It's a reflection, never a label.</Typography>
       </Box>
     );
     primary = tied ? null : (
@@ -176,12 +151,12 @@ export default function Onboarding() {
     const p = pathway ?? "Mindfulness";
     const sign = draft.birthday ? sunSign(draft.birthday) : undefined;
     eyebrow = PATHWAY_NAMES[p];
-    heading = p === "Energy" ? "Your sky, your aura's base" : p === "Faith" ? "Your heart's season" : "What would you like to tend?";
-    sub = p === "Energy" ? "Your sign sets a starting tone. Your check-ins tint it from there." : p === "Faith" ? "Choose the encouragement you'd welcome each day." : "Choose one or two. Your prompts will lean toward them.";
+    heading = p === "Energy" ? "Your sky" : p === "Faith" ? "Your heart's season" : "What would you like to tend?";
+    sub = p === "Energy" ? "Explore your sign as an optional lens for reflection." : p === "Faith" ? "Choose the encouragement you'd welcome each day." : "Choose one or two. Your prompts will lean toward them.";
     body = (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {p === "Energy" && (sign ? (
-          <Typography level="body-md">{sign.sign} · {sign.element} · aura base <strong>{ELEMENT_HUE[sign.element].name}</strong></Typography>
+          <Typography level="body-md">{sign.sign} · {sign.element}</Typography>
         ) : (
           <Link component="button" onClick={() => jump("birthday")}>Add your birthday to see your sky</Link>
         ))}

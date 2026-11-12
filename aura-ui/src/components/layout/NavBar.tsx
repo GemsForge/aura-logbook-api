@@ -33,6 +33,8 @@ const NavBar = () => {
   const appDispatch = useAppDispatch();
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
+  // Optional personal motto shown under the brand name; blank mottos show nothing.
+  const headerMotto = user?.motto?.trim();
   const [avatarAnchor, setAvatarAnchor] = useState<HTMLButtonElement | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -60,7 +62,7 @@ const NavBar = () => {
   return (
     <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--al-theme-border)", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 86%, transparent)", backdropFilter: "blur(24px)" }}>
       <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 64, md: 86 }, px: { xs: 1.5, md: 3 }, gap: { xs: 1, md: 1.5 } }}>
-        <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: "inline-flex", md: "none" } }}>
+        <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: isAuthenticated ? "inline-flex" : "none", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
         <Typography level="title-lg" sx={{ flexGrow: 1, minWidth: 0, fontFamily: "display", fontWeight: 400, fontSize: { xs: "1.28rem", sm: "1.5rem" }, letterSpacing: "-.04em" }}>
@@ -82,7 +84,15 @@ const NavBar = () => {
               sx={{ width: { xs: 52, sm: 76 }, height: { xs: 52, sm: 76 }, objectFit: "contain", flexShrink: 0 }}
             />
             {/* Keep the mode control and profile reachable at 320px; the logo link retains its full accessible name. */}
-            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Aura Logbook</Box>
+            {/* Brand name with the signed-in person's motto beneath it; both hide below 600px to keep the header controls reachable. */}
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline-flex" }, flexDirection: "column", minWidth: 0 }}>
+              <span>Aura Logbook</span>
+              {isAuthenticated && headerMotto && (
+                <Box component="span" sx={{ fontFamily: "var(--joy-fontFamily-body)", fontSize: ".8rem", fontStyle: "italic", letterSpacing: 0, color: "var(--al-theme-muted, var(--joy-palette-text-secondary))", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: { sm: 260, md: 380 }, lineHeight: 1.3 }}>
+                  {headerMotto}
+                </Box>
+              )}
+            </Box>
           </Link>
         </Typography>
         <Box component="nav" aria-label="Main navigation" sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
@@ -91,12 +101,7 @@ const NavBar = () => {
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral">Today</Link>
             </>
           )}
-          {!isAuthenticated && (
-            <>
-              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral">Login</Link>
-              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary">Create account</Link>
-            </>
-          )}
+          {/* Signed-out visitors get no Login/Create account links here: the landing page itself leads with sign-in. */}
         </Box>
           <ThemeModeToggle />
           {/* Profile preferences remain reachable when desktop navigation is hidden. */}
@@ -178,16 +183,11 @@ const NavBar = () => {
           aria-label="Mobile navigation"
           sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 0.5, px: 2, pb: 2, pt: 1, borderTop: "1px solid", borderColor: "var(--al-theme-border)" }}
         >
-          {isAuthenticated ? (
+          {isAuthenticated && (
             <>
               <Link href="/dashboard" onClick={goTo("/dashboard")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Today</Link>
               <Link href="/log-mood" onClick={goTo("/log-mood")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Log mood</Link>
               <Link href="/history" onClick={goTo("/history")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Reflections</Link>
-            </>
-          ) : (
-            <>
-              <Link href="/login" onClick={goTo("/login")} underline="none" color="neutral" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Login</Link>
-              <Link href="/register" onClick={goTo("/register")} underline="none" color="primary" sx={{ p: 1.25, borderRadius: "md", "&:hover": { backgroundColor: "var(--aura-wash)" } }}>Create account</Link>
             </>
           )}
         </Box>

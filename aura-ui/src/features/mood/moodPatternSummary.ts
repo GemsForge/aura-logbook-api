@@ -30,12 +30,15 @@ export function buildWeekMoodStrip(entries: MoodEntry[], referenceDate: Date = n
   });
 }
 
-/** Returns one factual weekly sentence, with thresholds based on this week's saved entries. */
-export function summarizeMoodPatterns(entries: MoodEntry[], referenceDate: Date = new Date(), moodDefinitions: MoodDefinition[] = []): string {
+/**
+ * Returns one factual weekly sentence, or null when fewer than three check-ins this week make any
+ * "pattern" an overstatement. Callers hide the slot instead of telling the person to log more.
+ */
+export function summarizeMoodPatterns(entries: MoodEntry[], referenceDate: Date = new Date(), moodDefinitions: MoodDefinition[] = []): string | null {
   const week = buildWeekMoodStrip(entries, referenceDate, moodDefinitions);
   const weekDates = new Set(week.map(({ date }) => date));
   const weeklyEntries = entries.filter((entry) => weekDates.has(dayjs(entry.date).format("YYYY-MM-DD")));
-  if (weeklyEntries.length < 3) return "Log a few more days to see your patterns.";
+  if (weeklyEntries.length < 3) return null;
 
   const moodCounts = new Map<MoodType, number>();
   weeklyEntries.forEach((entry) => entry.moods.forEach((mood) => moodCounts.set(mood, (moodCounts.get(mood) ?? 0) + 1)));
@@ -56,4 +59,17 @@ export function summarizeMoodPatterns(entries: MoodEntry[], referenceDate: Date 
   }
 
   return sentence;
+}
+
+/**
+ * Counts consecutive calendar days with at least one check-in, ending today, or yesterday when today
+ * has none yet (so the streak isn't shown as broken before the day is over).
+ */
+export function computeCheckInStreak(entries: MoodEntry[], referenceDate: Date = new Date()): number {
+  const days = new Set(entries.map((entry) => dayjs(entry.date).format("YYYY-MM-DD")));
+  let cursor = dayjs(referenceDate).startOf("day");
+  if (!days.has(cursor.format("YYYY-MM-DD"))) cursor = cursor.subtract(1, "day");
+  let streak = 0;
+  while (days.has(cursor.format("YYYY-MM-DD"))) { streak++; cursor = cursor.subtract(1, "day"); }
+  return streak;
 }

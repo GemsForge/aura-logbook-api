@@ -6,7 +6,6 @@ import type { QuizAnswers } from "./quiz";
 export type OnboardingStep =
   | { kind: "question"; number: number }
   | { kind: "birthday" }
-  | { kind: "color" }
   | { kind: "reveal" }
   | { kind: "pathway" }
   | { kind: "reminder" };
@@ -27,7 +26,6 @@ export interface OnboardingDraft {
 export const STEPS: readonly OnboardingStep[] = [
   ...[1, 2, 3, 4, 5].map((number) => ({ kind: "question", number }) as const),
   { kind: "birthday" },
-  { kind: "color" },
   { kind: "reveal" },
   { kind: "pathway" },
   { kind: "reminder" },
@@ -75,7 +73,6 @@ export function buildOnboardingRequest(draft: OnboardingDraft): OnboardingReques
     selectedPathway,
     birthday: draft.birthday || undefined,
     answers,
-    colorMomentHue: draft.colorMomentHue,
     pathwayPreferences: hasPrefs
       ? {
           focus: draft.focus,

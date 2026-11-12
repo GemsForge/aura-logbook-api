@@ -55,19 +55,29 @@ public sealed class MoodCombinationControllerTests
         repository.VerifyNoOtherCalls();
     }
 
-    [Fact]
-    public async Task GetInterpretation_returns_no_content_for_an_unsupported_combination()
+    [Theory]
+    [InlineData(0, "make room for each feeling")]
+    [InlineData(1, "choose a pace or practice")]
+    [InlineData(2, "spiritual practice")]
+    public async Task GetInterpretation_composes_a_pathway_reflection_for_an_uncurated_mood_set(int pathwayKey, string expectedPathwayText)
     {
         var repository = new Mock<IMoodCombinationRepository>();
         var referenceData = new Mock<IReferenceDataValidator> { CallBase = true }; // CallBase runs the default ResolveActiveMoodKeysAsync.
         referenceData.Setup(x => x.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
-        repository.Setup(x => x.GetAsync(It.IsAny<IReadOnlyCollection<string>>(), 0))
+        repository.Setup(x => x.GetAsync(It.IsAny<IReadOnlyCollection<string>>(), pathwayKey))
             .ReturnsAsync((MoodCombinationInterpretation?)null);
         var controller = new MoodCombinationController(repository.Object, referenceData.Object);
 
-        var response = await controller.GetInterpretation("Restless,Disconnected", 0);
+        var response = Assert.IsType<OkObjectResult>(await controller.GetInterpretation("Scattered,Neutral,Empowered", pathwayKey));
+        var interpretation = Assert.IsType<MoodCombinationInterpretation>(response.Value);
 
-        Assert.IsType<NoContentResult>(response);
+        Assert.Equal("composed-empowered-neutral-scattered", interpretation.CombinationId);
+        Assert.Equal(["Empowered", "Neutral", "Scattered"], interpretation.Moods);
+        Assert.Equal(pathwayKey, interpretation.PathwayKey);
+        Assert.Contains("confidence and agency", interpretation.Interpretation, StringComparison.Ordinal);
+        Assert.Contains("a quieter or in-between state", interpretation.Interpretation, StringComparison.Ordinal);
+        Assert.Contains("many thoughts competing for attention", interpretation.Interpretation, StringComparison.Ordinal);
+        Assert.Contains(expectedPathwayText, interpretation.Interpretation, StringComparison.Ordinal);
         repository.VerifyAll();
     }
 }

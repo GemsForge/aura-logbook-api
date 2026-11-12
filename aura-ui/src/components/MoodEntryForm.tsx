@@ -9,11 +9,18 @@ import { useRef, useState } from "react";
 import dayjs from "dayjs";
 import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
+import { auraApi } from "@/store/auraApi";
 import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
+import { useCheckInWeather } from "@/hooks/useCheckInWeather";
 
 /** Hosts a same-day mood entry with its creation time and compact journaling form. */
 export default function MoodEntryForm() {
+  const currentUser = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
+  const checkInWeather = useCheckInWeather(currentUser);
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +49,9 @@ export default function MoodEntryForm() {
       if (moodEntryId === null) {
         setSaveFailed(false);
         setFeedback({ message: "Saving your check-in…", role: "status" });
-        const createdEntry = await MoodApi.logMood(data);
+        const createdEntry = await MoodApi.logMood({ ...data, weather: checkInWeather });
+        // The full-entry form uses the Axios client, so refresh the separate derived-aura cache directly.
+        dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
         moodEntryId = createdEntry.id;
         setSavedMoodId(moodEntryId);
         nextPhotoStatuses = photos.map(() => "pending");

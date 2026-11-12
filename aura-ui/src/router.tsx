@@ -47,6 +47,7 @@ export const router = createBrowserRouter([
               { path: "dashboard", element: <Dashboard /> },
               { path: "log-mood", element: <MoodEntryForm /> },
               { path: "history", element: <MoodHistory /> },
+              // Full-page reading view for one reflection.
               { path: "history/:id", element: <ReflectionRead /> },
               { path: "gallery", element: <MediaGallery /> },
               { path: "insights", element: <Insights /> },

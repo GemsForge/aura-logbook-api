@@ -1,17 +1,45 @@
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
-import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import Box from "@mui/joy/Box";
-import { AuraButton } from "@/components/ui/AuraButton";
 import IconButton from "@mui/joy/IconButton";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import dayjs, { type Dayjs } from "dayjs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import type { MoodType } from "@/features/mood/models/schema/MoodType";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAuraSeasonsQuery } from "@/store/auraApi";
+import { tapTarget44 } from "@/components/ui/tapTarget";
+import { getAccessibleTextColor } from "@/theme/auraTheme";
+import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Calendar density: one week row, or the full month grid. */
+type CalendarView = "week" | "month";
+/** Per-browser key for the viewer's last calendar density choice. */
+const VIEW_STORAGE_KEY = "aura.reflections.calendarView";
+/** Reads the stored choice; defaults to the compact week row, and survives blocked storage. */
+function readStoredView(): CalendarView {
+  try { return localStorage.getItem(VIEW_STORAGE_KEY) === "month" ? "month" : "week"; } catch { return "week"; }
+}
+/** True at the md breakpoint and up, where the calendar sits beside the journal and always shows the month. */
+function useIsDesktop() {
+  const query = "(min-width: 900px)";
+  const [matches, setMatches] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.(query).matches);
+  useEffect(() => {
+    const media = window.matchMedia?.(query);
+    if (!media) return;
+    const update = () => setMatches(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  return matches;
+}
+const visuallyHidden = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } as const;
+/** Outlined round arrows drawn in theme ink so they keep contrast on dark surfaces. */
+const navButtonSx = { ...tapTarget44, borderRadius: "50%", color: "var(--al-theme-ink)", borderColor: "var(--al-theme-control-border, var(--al-theme-border))", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } } as const;
 
 /** Draws standard groups of five tally strokes; the date button keeps the exact count for assistive technology. */
 function MoodEntryTallies({ count }: { count: number }) {
@@ -44,19 +72,42 @@ function MoodEntryTallies({ count }: { count: number }) {
   );
 }
 
-/** Shows API-backed daily mood tallies and filters History using theme-aware calendar surfaces. */
+/**
+ * Mood calendar with a Week/Month toggle on phones and tablets (desktop always shows the month). Each day
+ * with entries is filled with a light shade of its most frequent mood's aura color, with the number in a
+ * contrast-checked ink so it stays legible in light and dark themes. Arrows step by the visible unit.
+ */
 export default function MoodCalendar({
   entries,
   selectedDate,
   onSelectDate,
+  onMonthChange,
 }: {
   entries: MoodEntry[];
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
+  /** Called with the first day of the month whenever the visible month changes, so page stats can follow it. */
+  onMonthChange?: (month: Dayjs) => void;
 }) {
-  const [visibleMonth, setVisibleMonth] = useState(() => dayjs().startOf("month"));
-  const { data: seasons } = useGetAuraSeasonsQuery();
   const today = dayjs().startOf("day");
+  const [visibleMonth, setVisibleMonth] = useState(() => dayjs().startOf("month"));
+  const [weekStart, setWeekStart] = useState(() => dayjs().startOf("week"));
+  const isDesktop = useIsDesktop();
+  const gridRef = useRef<HTMLTableElement>(null);
+  const [preferredView, setPreferredView] = useState<CalendarView>(readStoredView);
+  // Desktop has room for the whole month beside the journal, so the toggle only applies on smaller screens.
+  const view: CalendarView = isDesktop ? "month" : preferredView;
+  const chooseView = (next: CalendarView) => {
+    setPreferredView(next);
+    try { localStorage.setItem(VIEW_STORAGE_KEY, next); } catch { /* storage may be unavailable; the choice still applies this visit */ }
+    if (next === "week") setWeekStart((selectedDate ? dayjs(selectedDate) : today).startOf("week"));
+    else setVisibleMonth(weekStart.startOf("month"));
+  };
+  // Page stats follow the month being viewed; in week view that is the month the week starts in.
+  const reportedMonth = view === "week" ? weekStart.startOf("month") : visibleMonth;
+  useEffect(() => { onMonthChange?.(reportedMonth); }, [reportedMonth.valueOf(), onMonthChange]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: seasons } = useGetAuraSeasonsQuery();
+  const { data: referenceData } = useGetReferenceDataQuery();
   const entryCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const entry of entries) {
@@ -64,9 +115,29 @@ export default function MoodCalendar({
     }
     return counts;
   }, [entries]);
+  const dominantMoods = useMemo(() => {
+    const dailyCounts = new Map<string, Map<MoodType, number>>();
+    for (const entry of entries) {
+      const moodCounts = dailyCounts.get(entry.date) ?? new Map<MoodType, number>();
+      for (const mood of entry.moods) moodCounts.set(mood, (moodCounts.get(mood) ?? 0) + 1);
+      dailyCounts.set(entry.date, moodCounts);
+    }
 
-  const firstGridDay = visibleMonth.startOf("month").startOf("week");
-  const lastGridDay = visibleMonth.endOf("month").endOf("week");
+    const sortOrder = new Map((referenceData?.moods ?? []).map((mood) => [mood.key, mood.sortOrder]));
+    const result = new Map<string, MoodType>();
+    for (const [date, moodCounts] of dailyCounts) {
+      const [mood] = [...moodCounts].sort(([leftMood, leftCount], [rightMood, rightCount]) =>
+        rightCount - leftCount
+        || (sortOrder.get(leftMood) ?? Number.MAX_SAFE_INTEGER) - (sortOrder.get(rightMood) ?? Number.MAX_SAFE_INTEGER)
+        || (leftMood < rightMood ? -1 : leftMood > rightMood ? 1 : 0),
+      )[0] ?? [];
+      if (mood) result.set(date, mood);
+    }
+    return result;
+  }, [entries, referenceData?.moods]);
+
+  const firstGridDay = view === "week" ? weekStart : visibleMonth.startOf("month").startOf("week");
+  const lastGridDay = view === "week" ? weekStart.add(6, "day") : visibleMonth.endOf("month").endOf("week");
   const days: Dayjs[] = [];
   for (
     let day = firstGridDay;
@@ -79,56 +150,71 @@ export default function MoodCalendar({
   for (let index = 0; index < days.length; index += 7) {
     weeks.push(days.slice(index, index + 7));
   }
-  const entriesThisMonth = entries.filter((entry) =>
-    dayjs(entry.date).isSame(visibleMonth, "month"),
-  ).length;
+  // The one tabbable day: the selected day if visible, else today, else the first enabled day in view.
+  const visibleKeys = days.filter((day) => !day.isAfter(today, "day")).map((day) => day.format("YYYY-MM-DD"));
+  const focusDate = selectedDate && visibleKeys.includes(selectedDate) ? selectedDate
+    : visibleKeys.includes(today.format("YYYY-MM-DD")) ? today.format("YYYY-MM-DD") : visibleKeys[0];
+  const [pendingFocus, setPendingFocus] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const button = gridRef.current?.querySelector<HTMLButtonElement>(`[data-date="${pendingFocus}"]`);
+    if (button && !button.disabled) { button.focus(); setPendingFocus(null); }
+  });
+  /** Arrow keys move a day or a week, Home/End jump to the week's ends; stepping past the view turns the page. */
+  const onGridKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    const current = (event.target as HTMLElement).closest<HTMLElement>("[data-date]")?.dataset.date;
+    if (!current) return;
+    const from = dayjs(current);
+    const target = event.key === "ArrowRight" ? from.add(1, "day") : event.key === "ArrowLeft" ? from.subtract(1, "day")
+      : event.key === "ArrowDown" ? from.add(1, "week") : event.key === "ArrowUp" ? from.subtract(1, "week")
+        : event.key === "Home" ? from.startOf("week") : event.key === "End" ? from.endOf("week").startOf("day") : null;
+    if (!target) return;
+    event.preventDefault();
+    if (target.isAfter(today, "day")) return;
+    if (view === "week" && !target.isSame(weekStart, "week")) setWeekStart(target.startOf("week"));
+    if (view === "month" && !target.isSame(visibleMonth, "month")) setVisibleMonth(target.startOf("month"));
+    setPendingFocus(target.format("YYYY-MM-DD"));
+  };
+  const rangeLabel = view === "week"
+    ? `${weekStart.format("MMM D")} – ${weekStart.add(6, "day").format(weekStart.month() === weekStart.add(6, "day").month() ? "D" : "MMM D")}`
+    : visibleMonth.format("MMMM YYYY");
+  const unit = view === "week" ? "week" : "month";
+  const step = (direction: 1 | -1) => {
+    if (view === "week") setWeekStart((start) => start.add(direction, "week"));
+    else setVisibleMonth((month) => month.add(direction, "month"));
+    onSelectDate(null);
+  };
+  const canGoNext = view === "week" ? weekStart.add(1, "week").isBefore(today.add(1, "day"), "day") : visibleMonth.isBefore(today, "month");
 
   return (
-    <Sheet component="section" className="aura-panel" aria-labelledby="mood-calendar-title" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2, overflow: "hidden", position: "relative" }}>
+    <Sheet component="section" className="aura-panel signed-in-calendar" aria-labelledby="mood-calendar-title" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2, overflow: "hidden", position: "relative" }}>
       <Box sx={{ height: 3, position: "absolute", top: 0, left: "8%", right: "8%", borderRadius: "0 0 8px 8px", background: "linear-gradient(90deg, transparent, var(--aura-accent), var(--aura-glow), transparent)", opacity: 0.65 }} />
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: 1, flexWrap: "wrap" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box sx={{ width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", color: "text.primary", background: "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))", border: "1px solid var(--aura-line)", boxShadow: "0 4px 16px var(--aura-wash)" }}>
-            <CalendarMonth aria-hidden="true" />
-          </Box>
-          <Box>
-            <Typography id="mood-calendar-title" component="h2" level="h3">Mood calendar</Typography>
-            <Typography level="body-sm" color="neutral" sx={{ mt: 0.25 }}>
-              {entriesThisMonth} {entriesThisMonth === 1 ? "moment" : "moments"} marked this month
-            </Typography>
-          </Box>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, p: 0.5, borderRadius: "xl", border: "1px solid var(--aura-line)", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 3px 12px var(--al-theme-glow)" }}>
-          <IconButton
-            variant="plain"
-            aria-label="Previous month"
-            onClick={() => {
-              setVisibleMonth((month) => month.subtract(1, "month"));
-              onSelectDate(null);
-            }}
-          >
-            <ChevronLeft />
+      <Typography id="mood-calendar-title" component="h2" sx={visuallyHidden}>Mood calendar</Typography>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: .5, flexWrap: "wrap" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: .25 }}>
+          <IconButton variant="outlined" size="sm" aria-label={`Previous ${unit}`} onClick={() => step(-1)} sx={navButtonSx}>
+            <ChevronLeft fontSize="small" />
           </IconButton>
-          <Typography component="h3" level="title-md" aria-live="polite" sx={{ minWidth: { xs: 6.5, sm: 8 }, textAlign: "center" }}>
-            {visibleMonth.format("MMMM YYYY")}
+          {/* Compact range label; announced politely so stepping weeks or months is heard. */}
+          <Typography component="h3" level="title-sm" aria-live="polite" sx={{ minWidth: { xs: 7, sm: 8 }, textAlign: "center", fontSize: "0.85rem", fontWeight: 600, color: "var(--al-theme-ink)" }}>
+            {rangeLabel}
           </Typography>
-          <IconButton
-            variant="plain"
-            aria-label="Next month"
-            disabled={!visibleMonth.isBefore(today, "month")}
-            onClick={() => {
-              setVisibleMonth((month) => month.add(1, "month"));
-              onSelectDate(null);
-            }}
-          >
-            <ChevronRight />
+          <IconButton variant="outlined" size="sm" aria-label={`Next ${unit}`} disabled={!canGoNext} onClick={() => step(1)} sx={navButtonSx}>
+            <ChevronRight fontSize="small" />
           </IconButton>
         </Box>
+        {!isDesktop && (
+          <SegmentedToggle label="Calendar size" size="sm" value={view} onChange={chooseView} controls="mood-calendar-grid"
+            options={[{ value: "week", label: "Week" }, { value: "month", label: "Month" }]} />
+        )}
       </Box>
 
       <Box
         component="table"
-        aria-label={`Mood entries by day in ${visibleMonth.format("MMMM YYYY")}`}
+        id="mood-calendar-grid"
+        ref={gridRef}
+        onKeyDown={onGridKeyDown}
+        aria-label={`Mood entries by day, ${view === "week" ? `week of ${rangeLabel}` : rangeLabel}`}
         sx={{ width: "100%", tableLayout: "fixed", borderCollapse: "separate", borderSpacing: { xs: "4px", sm: "8px" } }}
       >
         <Box component="thead">
@@ -146,55 +232,69 @@ export default function MoodCalendar({
               {week.map((day) => {
                 const key = day.format("YYYY-MM-DD");
                 const count = entryCounts.get(key) ?? 0;
+                const prominentMood = dominantMoods.get(key);
+                const moodDefinition = referenceData?.moods.find((definition) => definition.key === prominentMood);
+                const moodAura = referenceData?.auras.find((aura) => aura.key === moodDefinition?.auraColorKeys[0]);
+                const moodTint = moodAura ? (moodAura.shades?.[200] ?? moodAura.baseHex) : undefined;
+                const moodInk = moodTint ? getAccessibleTextColor(moodTint) : undefined;
                 const selected = selectedDate === key;
-                const outsideMonth = !day.isSame(visibleMonth, "month");
+                const outsideMonth = view === "month" && !day.isSame(visibleMonth, "month");
                 const future = day.isAfter(today, "day");
                 const season = seasons?.history.find((span) =>
                   key >= span.startedOn && (span.endedOn === null || key <= span.endedOn),
                 );
-                // Include the ribbon's meaning in the button name because its visual mark is decorative.
+                // Include the season ribbon and mood tint meanings because their visual marks are decorative.
                 const seasonLabel = season ? `, ${season.name} season` : "";
+                const moodLabel = prominentMood ? `, most frequent mood ${prominentMood}` : "";
                 return (
                   <Box component="td" key={key} sx={{ p: 0, verticalAlign: "top" }}>
                     <IconButton
                       variant="plain"
                       disabled={future}
-                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${seasonLabel}`}
-                      aria-pressed={selected}
+                      // Selection is stated in the name; aria-current marks today, matching how screen readers expect dates.
+                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${moodLabel}${seasonLabel}${selected ? ", selected" : ""}`}
+                      aria-current={day.isSame(today, "day") ? "date" : undefined}
+                      data-date={key}
+                      data-selected={selected || undefined}
+                      // Roving tabindex: the whole grid is one Tab stop; arrow keys move between days.
+                      tabIndex={key === focusDate ? 0 : -1}
                       onClick={() => {
-                        setVisibleMonth(day.startOf("month"));
+                        if (view === "month") setVisibleMonth(day.startOf("month"));
                         onSelectDate(selected ? null : key);
                       }}
                       sx={{
                         width: "100%",
                         minWidth: 0,
-                        // Compact cells: room for the date and up to one row of tallies.
-                        minHeight: { xs: 40, sm: 50 },
+                        // Near-square compact cells keep the calendar balanced in the desktop overview column.
+                        maxWidth: { xs: 42, sm: 54 },
+                        minHeight: { xs: 40, sm: 48 },
                         height: "auto",
+                        aspectRatio: "1 / 1",
+                        mx: "auto",
                         p: { xs: 0.25, sm: 0.5 },
                         display: "flex",
                         flexDirection: "column",
                         gap: 0,
-                        borderRadius: "md",
+                        // Rounded squares, not circles, for each day.
+                        borderRadius: "8px",
                         border: "1px solid",
-                        borderColor: selected ? "var(--aura-accent)" : count ? "var(--aura-line)" : "transparent",
-                        background: selected
-                          ? "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))"
-                          : count
-                            ? "linear-gradient(145deg, var(--aura-wash), color-mix(in srgb, var(--al-theme-surface) 82%, transparent))"
-                          : "transparent",
-                        boxShadow: selected ? "0 0 0 2px var(--aura-wash), 0 5px 16px var(--aura-glow)" : count ? "0 2px 8px var(--al-theme-glow)" : "none",
+                        borderColor: selected ? "var(--al-theme-focus)" : count ? "var(--al-theme-border)" : "transparent",
+                        color: moodInk ?? "var(--al-theme-ink)",
+                        background: moodTint ?? "transparent",
+                        boxShadow: selected ? "0 0 0 2px var(--al-theme-surface), 0 0 0 4px var(--al-theme-focus)" : "none",
                         opacity: outsideMonth ? 0.55 : 1,
-                        "&:hover": { background: "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))", borderColor: "var(--aura-accent)", transform: "translateY(-1px)" },
-                        "&:focus-visible": { outline: "2px solid var(--aura-accent)", outlineOffset: 1 },
-                        transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
+                        // Keep the mood fill and contrast ink when Joy applies its pressed (selected) styles.
+                        "&[data-selected]": { background: moodTint ?? "transparent", color: moodInk ?? "var(--al-theme-ink)" },
+                        "&:hover": { background: moodTint ?? "var(--al-theme-surface-raised)", borderColor: "var(--al-theme-control-border)", transform: "translateY(-1px)" },
+                        "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 1 },
+                        transition: "background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
                         "@media (prefers-reduced-motion: reduce)": {
                           transition: "none",
                           "&:hover": { transform: "none" },
                         },
                       }}
                     >
-                      <Typography level="title-sm" sx={{ lineHeight: 1.15, fontWeight: count || selected ? 700 : 500 }}>{day.date()}</Typography>
+                      <Typography level="title-sm" sx={{ color: "inherit", lineHeight: 1.15, fontWeight: count || selected ? 700 : 500 }}>{day.date()}</Typography>
                       <Box sx={{ minHeight: "1.1em", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {count > 0 && <MoodEntryTallies count={count} />}
                       </Box>
@@ -208,16 +308,6 @@ export default function MoodCalendar({
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 1, mt: 1 }}>
-        <Typography level="body-xs" color="neutral">
-          Each tally marks a saved mood entry. Select a day to read its reflections.
-        </Typography>
-        {selectedDate && (
-          <AuraButton variant="outlined" size="small" aria-label="Clear selected calendar day" onClick={() => onSelectDate(null)}>
-            Clear day
-          </AuraButton>
-        )}
-      </Box>
     </Sheet>
   );
 }

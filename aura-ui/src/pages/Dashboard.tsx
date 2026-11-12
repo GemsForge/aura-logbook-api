@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Box from "@mui/joy/Box";
-import Button from "@mui/joy/Button";
+import { AuraButton as Button } from "@/components/ui/AuraButton";
 import Divider from "@mui/joy/Divider";
 import Grid from "@mui/joy/Grid";
 import Sheet from "@mui/joy/Sheet";
@@ -15,6 +15,8 @@ import type { MoodType } from "@/features/mood/models/schema/MoodType";
 import { getQuickMoodNextStep } from "@/features/mood/quickMoodNextStep";
 import { buildWeekMoodStrip, summarizeMoodPatterns } from "@/features/mood/moodPatternSummary";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
+import { useGetCurrentWeatherQuery } from "@/store/weatherApi";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { MoodIcon } from "@/components/mood/MoodIcon";
 import { MoodTag } from "@/components/history/MoodTag";
 import { getMoodPillSx } from "@/components/mood/moodPillStyles";
@@ -31,18 +33,26 @@ import dailyQuotes from "../../data/aura_logbook_daily_quotes.json";
 import MarkdownReflection from "@/components/MarkdownReflection";
 import SpotifyConnectionCard from "@/components/profile/SpotifyConnectionCard";
 import MoodUpdateModal from "@/components/MoodUpdateModal";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
+import { getCheckInSubtext } from "@/features/mood/checkInCopy";
 
 type DailyQuote = { id: string; text: string; theme: string; author: string };
 type DailyQuotePathway = { id: string; title: string; quotes: DailyQuote[] };
 type JournalingPromptPathway = { id: string; prompts: Array<{ id: string; question: string }> };
 
 /** Maps the profile pathway (enum key or display label) to its prompt-library identifier. */
-const dailyQuotePathwayIds: Record<SpiritualPathway, string> = { Mindfulness: "mindful", Energy: "astrology-energy", Faith: "faith-religion" };
-const resolveDailyQuotePathwayId = (pathway?: string) => dailyQuotePathwayIds[normalizeSpiritualPathway(pathway) ?? "Mindfulness"];
+const dailyQuotePathwayIds: Record<SpiritualPathway, string> = { mindfulness: "mindful", energy: "astrology-energy", faith: "faith-religion" };
+const resolveDailyQuotePathwayId = (pathway?: string) => dailyQuotePathwayIds[normalizeSpiritualPathway(pathway) ?? "mindfulness"];
 
-// A module-load seed rotates the prompt on reload while keeping ordinary rerenders stable.
-const dailyQuoteReloadSeed = Math.random();
+/** Selects a repeatable quote for a user and local calendar date, keeping the thought daily. */
+function selectDailyQuote(pathway: DailyQuotePathway | undefined, userId: number | string | undefined, date: string): DailyQuote | undefined {
+  if (!pathway?.quotes.length) return undefined;
+  const key = `${userId ?? "guest"}:${date}:${pathway.id}`;
+  let hash = 0;
+  for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+  return pathway.quotes[hash % pathway.quotes.length];
+}
 
 /** Outlined secondary actions under the chips: clearly buttons, with a 44px touch target on phones. */
 const quickActionSx = { minHeight: { xs: 44, sm: 36 }, borderColor: "var(--al-theme-control-border)" } as const;
@@ -71,13 +81,16 @@ export default function Dashboard() {
   // Celestial data is neither requested nor rendered on shared/default pathways.
   // #331: weather follows the user's own setting; with it off, nothing is requested.
   const weatherLocation = useWeatherLocation(user);
+  // Same cached request as the weather chip; attached to quick check-ins so Insights can relate weather to energy.
+  const { data: checkInWeather } = useGetCurrentWeatherQuery(weatherLocation.status === "ready" ? weatherLocation.query : skipToken);
   const showAstrologyContent = normalizeSpiritualPathway(user?.selectedPathway) === "energy";
   const { data: zodiac, isLoading: loadingZodiac } = useGetZodiacInsightQuery(undefined, { skip: !showAstrologyContent });
 
   const dailyQuotePathwayId = resolveDailyQuotePathwayId(user?.selectedPathway);
-  const dailyQuotePathway = (dailyQuotes.pathways as DailyQuotePathway[]).find(({ id }) => id === dailyQuotePathwayId);
-  const dailyQuoteIndex = Math.floor(dailyQuoteReloadSeed * (dailyQuotePathway?.quotes.length || 1));
-  const dailyQuote = dailyQuotePathway?.quotes[dailyQuoteIndex];
+  const quotePathways = dailyQuotes.pathways as DailyQuotePathway[];
+  const dailyQuotePathway = quotePathways.find(({ id }) => id === dailyQuotePathwayId)
+    ?? quotePathways.find(({ id }) => id === "mindful");
+  const dailyQuote = selectDailyQuote(dailyQuotePathway, user?.id, today);
   const journalingPathway = (journalingPrompts.pathways as JournalingPromptPathway[]).find(({ id }) => id === dailyQuotePathwayId);
   const nextStep = quickCheckIn?.saved ? getQuickMoodNextStep(quickCheckIn.mood, journalingPathway?.prompts[0]?.question) : null;
   // One persisted source drives today's entry and recent reflections.
@@ -108,10 +121,9 @@ export default function Dashboard() {
   const totalEntries = summary?.totalEntries ?? 0;
   const mostFrequent = summary?.mostFrequentMood ?? "";
   const lastMood = recentEntries[0]?.moods[0];
-  const summaryLine = totalEntries === 0
-    ? "No check-ins yet. Your first one can be small."
-    : `${totalEntries} ${totalEntries === 1 ? "entry" : "entries"}${mostFrequent ? ` · most often ${mostFrequent}` : ""}${lastMood ? ` · latest ${lastMood}` : ""}`;
   const moodDefinitions = [...(referenceData?.moods ?? [])].sort((left, right) => left.displayName.localeCompare(right.displayName));
+  // The aura color linked to the saved quick check-in's mood; its description defines the color in plain, non-diagnostic words.
+  const quickCheckInAura = quickCheckIn ? referenceData?.auras.find((aura) => aura.key === moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.auraColorKeys[0]) : undefined;
   const quickMoods = (showMoreMoods ? moodDefinitions : moodDefinitions.slice(0, 6)).map(({ key }) => key);
 
   /** Creates one check-in per deliberate chip selection; the mutation state prevents rapid duplicate taps. */
@@ -121,7 +133,7 @@ export default function Dashboard() {
     setIsSavingQuickMood(true);
     setQuickCheckIn({ mood, saved: false });
     try {
-      const created = await logMood({ date: today, moods: [mood] }).unwrap();
+      const created = await logMood({ date: today, moods: [mood], weather: checkInWeather }).unwrap();
       setQuickCheckIn({ mood, saved: true, entryId: created.id });
     } catch {
       setQuickCheckIn({ mood, saved: false });
@@ -132,39 +144,74 @@ export default function Dashboard() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1240, mx: "auto" }}>
-      <Sheet className="aura-panel" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
+    <Box className="signed-in-content" sx={{ maxWidth: 1240, mx: "auto" }}>
+      {/* Greeting and date share the themed page banner with its theme-colored weather chip. */}
+      <ThemeBanner title={`${greeting}, ${displayName}.`} description={dayjs().format("dddd, MMMM D")} illustration="summary">
+        <WeatherCard location={weatherLocation} />
+      </ThemeBanner>
+      {/* "A thought for today" sits left of the greeting/check-in card on desktop and follows it on mobile, so check-in stays first for small screens. */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid xs={12} md={4} sx={{ order: { xs: 2, md: 1 } }}><Stack gap={2}><Sheet className="aura-dark-panel" sx={{ p: 2 }}><Typography level="h3" sx={{ color: "inherit", fontSize: "1.1rem" }}>A thought for today</Typography><Typography level="body-md" sx={{ color: "inherit", lineHeight: 1.45, my: 1 }}>“{dailyQuote?.text ?? "What would you like to notice about today?"}”</Typography><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">{/* Credit only a real author; the app's own name here is redundant. */}{dailyQuote?.author && dailyQuote.author !== "Aura Logbook" && <Typography level="body-xs" sx={{ color: "inherit", opacity: .75 }}>{dailyQuote.author}</Typography>}<Typography level="body-xs" sx={{ color: "inherit", px: 1, py: .25, borderRadius: 99, bgcolor: "rgba(255,255,255,.16)" }}>{dailyQuotePathway?.title ?? "Mindful Pathway"}</Typography></Stack></Sheet>
+        <Sheet className="aura-panel" sx={{ p: 2 }}>
+          {/* Compact week: the count is the headline stat; each day's mood lives in its accessible name and tooltip, not repeated as text. */}
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline"><Typography level="h3" sx={{ fontSize: "1.05rem" }}>This week</Typography><Typography level="title-md" aria-label={`${weeklyCheckInCount} of 7 days checked in`}>{weekStrip.filter(day => day.entryCount > 0).length}<Typography level="body-xs" color="neutral">/7 days</Typography></Typography></Stack>
+          <Box role="list" aria-label="Mood check-ins for the last seven days" sx={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: .25, mt: 1 }}>{weekStrip.map(day => <Box key={day.date} role="listitem" title={day.mood ?? "No check-in"} aria-label={`${day.label}, ${day.date}: ${day.mood ?? "No check-in"}`} sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: .35 }}><Typography level="body-xs" color="neutral">{day.label.charAt(0)}</Typography><Box aria-hidden="true" sx={{ width: 14, height: 14, borderRadius: "50%", border: "1px solid var(--aura-line)", bgcolor: day.auraColor ? (referenceData?.auras.find((aura) => aura.key === day.auraColor)?.shades?.[500] ?? "transparent") : "transparent" }} /></Box>)}</Box>
+          {patternSummary && <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>{patternSummary}</Typography>}
+        </Sheet></Stack></Grid>
+        <Grid xs={12} md={8} sx={{ order: { xs: 1, md: 2 } }}>
+      {/* The check-in is the main place to notice today's derived aura; mood illustrations keep their own meanings. */}
+      <Sheet className="aura-panel dashboard-check-in" sx={{ p: { xs: 2, sm: 2.5 }, height: "100%", borderTop: "3px solid var(--aura-accent, var(--al-theme-primary)) !important" }}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1.5}>
-          <Box><Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, lineHeight: 1.15 }}>{greeting}, {displayName}.</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{dayjs().format("dddd, MMMM D")}</Typography><WhyThisColor /></Box>
-          <WeatherCard location={weatherLocation} />
+          {/* The onboarding orb, small, beside "Why this color?": it takes the derived aura colors (--aura-accent/--aura-glow) set by AuraTokensStyle, so it shows today's aura. Decorative only. */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.75 }}>
+            <Box aria-hidden="true" className="aura-orb" sx={{ width: 40, flexShrink: 0, ml: .75, boxShadow: "inset -6px -8px 14px rgba(34,44,39,.12), inset 3px 3px 8px rgba(255,255,255,.75), 0 6px 20px var(--aura-glow, #b9cbd8)" }} />
+            <WhyThisColor />
+          </Box>
         </Stack>
-        <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography>
+        <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .25 }}>{getCheckInSubtext(user?.selectedPathway)}</Typography>
           {/* The check-in sizes to its content. The saved moment is taller than the chips, so the cards below move down only in direct response to the tap (not an unexpected layout shift), and return to place on "Done"; e2e/quick-check-in.spec.ts measures both. */}
           {/* Always mounted so screen readers announce the save; a live region inserted together with its text is often skipped. */}
           <Box role="status" aria-live="polite" sx={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{quickCheckIn?.saved ? `Logged ${quickCheckIn.mood}. Thank you for checking in.` : ""}</Box>
-          {quickCheckIn?.saved ? <Box ref={savedStateRef} tabIndex={-1} role="group" aria-label="Check-in saved" sx={{ mt: 1, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 4, borderRadius: "8px" } }}><Typography level="body-sm">Logged. Thank you for checking in.</Typography><Stack direction="row" alignItems="center" gap={.75} sx={{ mt: .5 }}><Typography level="body-sm" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}><MoodIcon icon={moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.icon} size={20} />{quickCheckIn.mood} · {quickMoodEntry.data?.createdAt ? dayjs(quickMoodEntry.data.createdAt).format("h:mm A") : dayjs().format("h:mm A")}</Typography><Box aria-hidden="true" sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: (referenceData?.auras.find((aura) => aura.key === moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.auraColorKeys[0])?.shades?.[500] ?? "transparent") }} /><Typography level="body-xs" color="neutral">{(referenceData?.auras.find((aura) => aura.key === moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.auraColorKeys[0])?.displayName ?? "Aura")} reflection color</Typography></Stack><Stack direction="row" gap={1} sx={{ mt: .5 }}><Button variant="plain" disabled={!quickMoodEntry.data} onClick={() => setShowDetailModal(true)}>Add a note or photo</Button><Button variant="plain" color="neutral" onClick={() => { returnFocusToChips.current = true; setQuickCheckIn(null); }}>Done</Button></Stack>{nextStep && <Box sx={{ mt: .75, p: 1, borderRadius: "md", bgcolor: "var(--aura-wash)" }}><Typography level="body-xs" color="neutral">A gentle next step</Typography><Typography level="body-sm">{nextStep.prompt}</Typography></Box>}</Box>
-            : <Box sx={{ mt: 1 }}><Box ref={moodGroupRef} role="group" aria-label="How are you feeling today?" sx={{ display: "flex", flexWrap: "wrap", gap: .75 }}>{quickMoods.map(mood => {
+          {quickCheckIn?.saved ? <Box ref={savedStateRef} tabIndex={-1} role="group" aria-label="Check-in saved" sx={{ mt: 1, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 4, borderRadius: "8px" } }}><Typography level="body-sm">Logged. Thank you for checking in.</Typography><Stack direction="row" alignItems="center" gap={.75} sx={{ mt: .5 }}><Typography level="body-sm" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}><MoodIcon icon={moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.icon} size={20} />{quickCheckIn.mood} · {quickMoodEntry.data?.createdAt ? dayjs(quickMoodEntry.data.createdAt).format("h:mm A") : dayjs().format("h:mm A")}</Typography><Box aria-hidden="true" sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: (quickCheckInAura?.shades?.[500] ?? "transparent") }} /><Typography level="body-xs" color="neutral">{quickCheckInAura?.displayName ?? "Aura"} reflection color</Typography></Stack>{quickCheckInAura?.description && <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>{quickCheckInAura.description}</Typography>}<Stack direction="row" gap={1} sx={{ mt: .5 }}><Button variant="plain" disabled={!quickMoodEntry.data} onClick={() => setShowDetailModal(true)}>Add a note or photo</Button><Button variant="plain" color="neutral" onClick={() => { returnFocusToChips.current = true; setQuickCheckIn(null); }}>Done</Button></Stack>{nextStep && <Box sx={{ mt: .75, p: 1, borderRadius: "md", bgcolor: "var(--aura-wash)" }}><Typography level="body-xs" color="neutral">A gentle next step</Typography><Typography level="body-sm">{nextStep.prompt}</Typography></Box>}</Box>
+            : <Box sx={{ mt: 1 }}><Box ref={moodGroupRef} role="group" aria-label="How are you feeling today?" sx={{ display: "flex", flexWrap: "wrap", gap: .75 }}>{/* Tint each quick check-in from its assigned mood aura, keeping text on the theme ink. */}{quickMoods.map(mood => {
               const definition = moodDefinitions.find((item) => item.key === mood);
               const moodAura = referenceData?.auras.find((aura) => aura.key === definition?.auraColorKeys[0]);
               const moodColor = moodAura?.shades?.[500] ?? moodAura?.baseHex ?? "var(--al-theme-primary)";
               return <Button key={mood} size="sm" variant="soft" color="neutral" disabled={isSavingQuickMood} aria-label={mood} onClick={() => void submitQuickMood(mood)} sx={{ ...getMoodPillSx(moodColor, { interactive: true }), display: "inline-flex", alignItems: "center", gap: 0.5 }}><MoodIcon icon={definition?.icon} size={20} />{mood}</Button>;
             })}</Box><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" sx={{ mt: 1.25 }}><Button size="sm" variant="outlined" color="neutral" sx={quickActionSx} onClick={() => setShowMoreMoods(value => !value)} aria-expanded={showMoreMoods}>{showMoreMoods ? "Fewer moods" : "More moods"}</Button><Button size="sm" variant="outlined" sx={quickActionSx} onClick={() => navigate("/log-mood")}>Add more detail</Button></Stack>{quickCheckIn && !quickCheckIn.saved && <Typography role="alert" level="body-sm" color="danger" sx={{ mt: .5 }}>That check-in didn’t save. <Button variant="plain" disabled={isSavingQuickMood} onClick={() => void submitQuickMood(quickCheckIn.mood)}>Retry {quickCheckIn.mood}</Button></Typography>}</Box>}
           {entriesError && <Typography role="alert" level="body-sm" color="danger">Your entries couldn’t be loaded. <Button variant="plain" onClick={() => refetchEntries()}>Retry</Button></Typography>}
-          <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>{summaryLine}</Typography>
+          {totalEntries === 0
+            ? <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>No check-ins yet. Your first one can be small.</Typography>
+            : <Box role="list" aria-label="Your check-in stats" sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
+                <StatTile label={totalEntries === 1 ? "Entry" : "Entries"} value={String(totalEntries)} />
+                {mostFrequent && <StatTile label="Most often" value={mostFrequent} />}
+                {lastMood && <StatTile label="Latest" value={lastMood} />}
+              </Box>}
         </Box>
       </Sheet>
+        </Grid>
+      </Grid>
       <AuraSeasonCard />
       <Grid container spacing={2}>
-        <Grid xs={12} md={7}><Sheet className="aura-panel" sx={{ p: 2, height: "100%" }}><Typography level="h3" sx={{ fontSize: "1.1rem", mb: .5 }}>This week</Typography><Box role="list" aria-label="Mood check-ins for the last seven days" sx={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: .5, mt: 1.25 }}>{weekStrip.map(day => <Box key={day.date} role="listitem" aria-label={`${day.label}, ${day.date}: ${day.mood ?? "No check-in"}`} sx={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: .35 }}><Typography level="body-xs" color="neutral">{day.label}</Typography><Box aria-hidden="true" sx={{ width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--aura-line)", bgcolor: day.auraColor ? (referenceData?.auras.find((aura) => aura.key === day.auraColor)?.shades?.[500] ?? "transparent") : "transparent" }} /><Typography level="body-xs" sx={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{day.mood ?? "—"}</Typography></Box>)}</Box><Typography level="body-xs" color="neutral" sx={{ mt: 1 }}> {weeklyCheckInCount} {weeklyCheckInCount === 1 ? "check-in" : "check-ins"} this week · Missing a day costs nothing.</Typography><Typography level="body-sm" sx={{ mt: .5 }}>{patternSummary}</Typography></Sheet></Grid>
-        <Grid xs={12} md={5}><Sheet className="aura-dark-panel" sx={{ p: 2, height: "100%" }}><Typography level="h3" sx={{ color: "inherit", fontSize: "1.1rem" }}>A thought for today</Typography><Typography level="body-md" sx={{ color: "inherit", lineHeight: 1.45, my: 1 }}>“{dailyQuote?.text ?? "What would you like to notice about today?"}”</Typography><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap"><Typography level="body-xs" sx={{ color: "inherit", opacity: .75 }}>{dailyQuote?.author ?? "Aura Logbook"}</Typography><Typography level="body-xs" sx={{ color: "inherit", px: 1, py: .25, borderRadius: 99, bgcolor: "rgba(255,255,255,.16)" }}>{dailyQuotePathway?.title ?? "Mindful"}</Typography></Stack></Sheet></Grid>
-        <Grid xs={12}><Sheet className="aura-panel" sx={{ p: 2 }}><Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Typography level="h3" sx={{ fontSize: "1.1rem" }}>Recent reflections</Typography><Button variant="plain" onClick={() => navigate("/history")}>See all</Button></Stack><Stack divider={<Divider />} sx={{ mt: .5 }}>
+        <Grid xs={12} md={8}><Sheet className="aura-panel" sx={{ p: 2 }}><Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Typography level="h3" sx={{ fontSize: "1.1rem" }}>Recent reflections</Typography><Button variant="plain" onClick={() => navigate("/history")}>See all</Button></Stack><Stack divider={<Divider />} sx={{ mt: .5 }}>
           {!recentEntries.length && <Typography level="body-sm" color="neutral" sx={{ py: 1 }}>Your recent writing will be here when you’re ready.</Typography>}
           {recentEntries.slice(0, 3).map(entry => <Box key={entry.id} sx={{ py: 1 }}><Stack direction="row" justifyContent="space-between" gap={1}><Stack direction="row" flexWrap="wrap" gap={1}>{[...entry.moods].sort((left, right) => left.localeCompare(right)).map(mood => <MoodTag key={mood} mood={mood} />)}</Stack><Typography level="body-xs" color="neutral">{dayjs(entry.date).format("MMM D")}</Typography></Stack>{entry.comment && <Box sx={{ mt: .5 }}><MarkdownReflection value={entry.comment} /></Box>}</Box>)}
         </Stack></Sheet></Grid>
-        <Grid xs={12}><details><summary style={{ cursor: "pointer", padding: "12px 16px", borderRadius: 12, background: "var(--aura-wash)" }}>Music</summary><Box sx={{ mt: 1 }}><SpotifyConnectionCard /></Box></details></Grid>
+        {/* Keep Spotify visible in the dashboard flow so playback and playlists are immediately reachable. */}
+        <Grid xs={12} md={4}><SpotifyConnectionCard /></Grid>
         {showAstrologyContent && zodiac && <Grid xs={12}><Sheet className="aura-panel" sx={{ p: 2 }}><Typography level="h3">A lens for reflection</Typography><Typography level="body-sm" color="neutral">{zodiac.sign} · {zodiac.element} · {String(zodiac.insights?.[0]?.message ?? "")}</Typography></Sheet></Grid>}
       </Grid>
       {showDetailModal && quickMoodEntry.data && <MoodUpdateModal entry={quickMoodEntry.data} title="Add a note or photo" saveLabel="Save details" onClose={() => setShowDetailModal(false)} onSuccess={() => { void refetchEntries(); void quickMoodEntry.refetch(); }} />}
+    </Box>
+  );
+}
+
+/** One glanceable stat: the value leads and the label is a quiet caption, so numbers read without a sentence. */
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <Box role="listitem" sx={{ px: 1.25, py: .5, borderRadius: "md", bgcolor: "var(--aura-wash)", minWidth: 72 }}>
+      <Typography level="body-xs" color="neutral">{label}</Typography>
+      <Typography level="title-md">{value}</Typography>
     </Box>
   );
 }

@@ -32,7 +32,7 @@ const AppLayout = () => {
   }
 
   return (
-    <Box className="prism-page" sx={{ display: "flex", minHeight: "100vh", pb: isAuthenticated ? { xs: "calc(96px + env(safe-area-inset-bottom, 0px))", md: 0 } : 0 }}>
+    <Box className={isAuthenticated ? "prism-page signed-in-shell" : "prism-page"} sx={{ display: "flex", minHeight: "100vh", pb: isAuthenticated ? { xs: "calc(96px + env(safe-area-inset-bottom, 0px))", md: 0 } : 0 }}>
       <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Link href="#main-content" sx={{ position: "absolute", left: -10000, "&:focus": { left: 16, top: 16, zIndex: 10 } }}>
           Skip to main content
@@ -40,7 +40,7 @@ const AppLayout = () => {
         <NavBar />
 
         {/* Programmatic focus lets the skip link move keyboard users into the page content. */}
-        <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" sx={{ mt: { xs: 2, md: 3 }, mb: 2, flexGrow: 1, px: { xs: 2, md: 3 } }}>
+        <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" className={isAuthenticated ? "signed-in-container" : undefined} sx={{ mt: { xs: 2, md: 3 }, mb: 2, flexGrow: 1, px: { xs: 2, md: 3 } }}>
           {isAuthenticated ? (
             <Box
               sx={{
@@ -48,6 +48,7 @@ const AppLayout = () => {
                 gridTemplateColumns: { xs: "1fr", md: "168px minmax(0, 1fr)" },
                 gap: { xs: 2, md: 2.5 },
               }}
+              className="signed-in-grid"
             >
               <Box sx={{ gridColumn: { xs: "1", md: "2" }, gridRow: "1", minWidth: 0 }}>
                 <Outlet />

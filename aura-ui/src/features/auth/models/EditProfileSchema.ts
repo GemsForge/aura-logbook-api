@@ -1,7 +1,6 @@
 import { weatherLocationModes, type TemperatureUnit, type WeatherLocationMode } from "@/features/weather/weatherLocation";
 import * as yup from "yup";
 import type { SpiritualPathway } from "./SpiritualPathway";
-import type { AuraColor } from "@/features/mood/models/aura";
 import { DEFAULT_INTERFACE_MODE, interfaceThemes, interfaceModePreferences, type InterfaceTheme, type InterfaceModePreference } from "./InterfaceTheme";
 
 export interface EditProfileFormData {
@@ -13,8 +12,6 @@ export interface EditProfileFormData {
   initials?: string;
   password?: string;
   confirmPassword?: string;
-  auraColor: AuraColor;
-  auraIntensity?: number | null;
   motto?: string;
   spiritualPathway: SpiritualPathway;
   interfaceTheme: InterfaceTheme;
@@ -91,16 +88,6 @@ export const editProfileSchema = yup
           .oneOf([yup.ref("password")], "Passwords must match"),
       otherwise: (schema) => schema.notRequired(),
     }),
-
-    auraColor: yup.string().required("Aura color is required"),
-
-    auraIntensity: yup
-      .number()
-      .min(0, "Intensity cannot be negative")
-      .max(100, "Intensity cannot exceed 100")
-      .nonNullable()
-      .default(50)
-      .notRequired(),
 
     motto: yup
       .string()

@@ -7,24 +7,25 @@ import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import MusicNoteOutlined from "@mui/icons-material/MusicNoteOutlined";
 import CloudOutlined from "@mui/icons-material/CloudOutlined";
 import WbSunnyOutlined from "@mui/icons-material/WbSunnyOutlined";
 import dayjs from "dayjs";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
 import { MoodApi } from "@/api/MoodApi";
+import { MoodMediaApi, type MoodMediaAttachment } from "@/api/MoodMediaApi";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import MarkdownReflection from "@/components/MarkdownReflection";
 import MoodUpdateModal from "@/components/MoodUpdateModal";
 import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
-import { MoodTag } from "@/components/history/MoodTag";
-import MoodMediaGallery from "@/components/history/MoodMediaGallery";
+import { MoodIcon } from "@/components/mood/MoodIcon";
+import { parseSnapshot, PhotoViewer, usePrivateImage } from "@/components/history/MomentStrip";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppDispatch } from "@/store/hooks";
 import { auraApi } from "@/store/auraApi";
 
 /** Orders entries oldest to newest by day, then by logged time, for Earlier/Later stepping. */
 const byTime = (a: MoodEntry, b: MoodEntry) => a.date.localeCompare(b.date) || (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
-type MoodEntryWithWeather = MoodEntry & { weatherSnapshot?: string | null };
 
 /**
  * Reading view for one reflection at `/history/:id`: a narrow serif column with the full writing, its moods,
@@ -66,7 +67,8 @@ export default function ReflectionRead() {
     return aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)";
   };
   const time = entry.createdAt ? dayjs(entry.createdAt).format("h:mm A") : null;
-  const weather = parseSnapshot<{ description?: string; iconCode?: string; temperature?: number; unit?: string }>((entry as MoodEntryWithWeather).weatherSnapshot);
+  const song = parseSnapshot<{ name?: string; artists?: string }>(entry.musicTrack);
+  const weather = parseSnapshot<{ description?: string; iconCode?: string; temperature?: number; unit?: string }>(entry.weatherSnapshot);
   const clear = !!weather && (/clear/i.test(weather.description ?? "") || (weather.iconCode ?? "").startsWith("01"));
   const backTo = `/history?date=${entry.date}`;
 
@@ -90,7 +92,10 @@ export default function ReflectionRead() {
         </Typography>
         <Box component="ul" aria-label="Moods" sx={{ listStyle: "none", p: 0, m: 0, mt: 1.5, display: "flex", gap: .75, flexWrap: "wrap" }}>
           {[...entry.moods].sort((left, right) => left.localeCompare(right)).map((mood) => (
-            <Box component="li" key={mood}><MoodTag mood={mood} /></Box>
+            <Box component="li" key={mood} sx={{ display: "inline-flex", alignItems: "center", gap: .75, pl: .5, pr: 1.5, py: .4, borderRadius: 999, border: "1px solid var(--al-theme-border)", bgcolor: "var(--al-theme-surface-raised)", fontSize: "var(--joy-fontSize-sm)" }}>
+              {moodDefinition(mood)?.icon ? <MoodIcon icon={moodDefinition(mood)?.icon} size={22} /> : <Box aria-hidden="true" sx={{ width: 16, height: 16, borderRadius: "50%", bgcolor: auraColor(mood) }} />}
+              {mood}
+            </Box>
           ))}
         </Box>
 
@@ -98,9 +103,18 @@ export default function ReflectionRead() {
           ? <Box sx={{ mt: 3, fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.08rem", sm: "1.15rem" }, lineHeight: 1.8, overflowWrap: "anywhere", "& p": { m: 0, mb: 1.75 } }}><MarkdownReflection value={entry.comment} /></Box>
           : <Typography level="body-md" color="neutral" sx={{ mt: 3 }}>No words this time, just the moods.</Typography>}
 
-        {weather?.description && <Box sx={{ mt: 3 }}><MomentCard icon={clear ? <WbSunnyOutlined /> : <CloudOutlined />} tint={clear ? "#f2c94c" : "#9fb7e6"} title={weather.temperature !== undefined ? `${Math.round(weather.temperature)}°${weather.unit ?? "F"}` : "Weather"} caption={weather.description} /></Box>}
+        {(song?.name || weather?.description) && (
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.25, mt: 3 }}>
+            {song?.name && (
+              <MomentCard href={`https://open.spotify.com/search/${encodeURIComponent(`${song.name} ${song.artists ?? ""}`.trim())}`} icon={<MusicNoteOutlined />} tint="#b39ddb" title={song.name} caption={`${song.artists ? `${song.artists} · ` : ""}open in Spotify`} />
+            )}
+            {weather?.description && (
+              <MomentCard icon={clear ? <WbSunnyOutlined /> : <CloudOutlined />} tint={clear ? "#f2c94c" : "#9fb7e6"} title={weather.temperature !== undefined ? `${Math.round(weather.temperature)}°${weather.unit ?? "F"}` : "Weather"} caption={weather.description} />
+            )}
+          </Box>
+        )}
 
-        <MoodMediaGallery moodEntryId={entry.id} />
+        {(entry.photoCount ?? 0) > 0 && <PhotoGrid entryId={entry.id} />}
 
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap", mt: 4, pt: 2, borderTop: "1px solid var(--al-theme-border)" }}>
           <Typography level="body-xs" color="neutral">{entry.createdAt ? `Saved ${dayjs(entry.createdAt).format("MMM D, h:mm A")}` : ""}</Typography>
@@ -141,8 +155,39 @@ function MomentCard({ icon, tint, title, caption, href }: { icon: React.ReactNod
   );
 }
 
-/** Parses an optional stored snapshot and treats malformed historical data as absent. */
-function parseSnapshot<T>(value?: string | null): T | null {
-  if (!value) return null;
-  try { return JSON.parse(value) as T; } catch { return null; }
+/** All of an entry's private photos in a grid; each opens the full-size viewer. */
+function PhotoGrid({ entryId }: { entryId: number }) {
+  const [photos, setPhotos] = useState<MoodMediaAttachment[]>([]);
+  const [viewing, setViewing] = useState<MoodMediaAttachment | null>(null);
+  useEffect(() => {
+    let live = true;
+    MoodMediaApi.getForMood(entryId).then((items) => { if (live) setPhotos(items); }).catch(() => undefined);
+    return () => { live = false; };
+  }, [entryId]);
+  if (!photos.length) return null;
+  return (
+    <Box component="ul" aria-label="Photos" sx={{ listStyle: "none", p: 0, m: 0, mt: 1.25, display: "grid", gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" }, gap: 1 }}>
+      {photos.map((photo, index) => (
+        <li key={photo.id}><GridPhoto entryId={entryId} photo={photo} label={`Photo ${index + 1} of ${photos.length}, opens viewer`} onOpen={() => setViewing(photo)} /></li>
+      ))}
+      {viewing && <PhotoViewer
+        entryId={entryId}
+        photos={photos}
+        photo={viewing}
+        onPhotoChange={setViewing}
+        onClose={() => setViewing(null)}
+      />}
+    </Box>
+  );
+}
+
+/** One grid photo button. */
+function GridPhoto({ entryId, photo, label, onOpen }: { entryId: number; photo: MoodMediaAttachment; label: string; onOpen: () => void }) {
+  const url = usePrivateImage(entryId, photo.id);
+  return (
+    <Box component="button" type="button" aria-label={label} onClick={onOpen}
+      sx={{ width: "100%", aspectRatio: "4 / 3", p: 0, border: "1px solid var(--al-theme-border)", borderRadius: "md", overflow: "hidden", cursor: "pointer", bgcolor: "var(--al-theme-surface-raised)", display: "block", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
+      {url && <Box component="img" src={url} alt="" sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
+    </Box>
+  );
 }

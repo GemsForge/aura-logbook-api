@@ -1,10 +1,10 @@
 # Pathway-aware mood-combination reflections
 
-Aura Logbook can show an optional, authored reflection when a signed-in user selects two or three distinct moods. The reflection is selected by the exact mood set and the user’s chosen spiritual pathway. It is not a diagnosis, score, or replacement for the user’s own journal entry.
+Aura Logbook can show an optional, pathway-aware reflection when a signed-in user selects two or three distinct moods. Curated reflections are used for exact mood-set matches; every other valid set receives a composed reflection based on the selected mood names and pathway. It is not a diagnosis, score, or replacement for the user’s own journal entry.
 
 ## Data and import
 
-Curated source records live in `aura-ui/data/aura_logbook_mood_combinations.json`. Each record has a stable ID, two or three distinct mood names, and one non-empty interpretation for each supported pathway. The importer rejects duplicate IDs, duplicate mood sets, unknown moods, and incomplete pathway records. Mood order is normalized when the key is stored.
+Curated source records live in `aura-ui/data/aura_logbook_mood_combinations.json`. Each record has a stable ID, two or three distinct mood names, and one non-empty interpretation for each supported pathway. The importer rejects duplicate IDs, duplicate mood sets, unknown moods, and incomplete pathway records. Mood order is normalized when the key is stored. The API composes a non-diagnostic pathway reflection when a valid set has no curated record, so new mood combinations do not display an empty state.
 
 Migration `018_mood_combination_interpretations.sql` creates the lookup table and index. The normal DatabaseSeeder run applies pending migrations and imports the configured combinations source. For a local Development database, from the repository root:
 
@@ -25,7 +25,7 @@ The seeder also imports the user, mood, and zodiac JSON sources using its docume
 | `moods` | Two or three comma-separated, distinct mood names. Order does not affect the match. |
 | `pathwayKey` | The stored pathway enum: `0` Mindfulness, `1` Energy, or `2` Faith. |
 
-The endpoint returns the authored interpretation or `204 No Content` when the combination has no matching record. Invalid pathway, mood, or count values return `400 Bad Request`.
+The endpoint returns the authored interpretation when present, or a composed reflection for an otherwise valid mood set. Invalid pathway, mood, duplicate, or count values return `400 Bad Request`.
 
 ## UI behavior
 

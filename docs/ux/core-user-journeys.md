@@ -32,7 +32,7 @@ Authenticated pages are protected: a signed-out visit to Dashboard, Log Mood, or
 | Return | Login accepts email/password, hydrates the user session, then navigates to Dashboard. | Authenticated dashboard appears; session failure gives an error and leaves the user able to try again. |
 | Personalize later | Profile card exposes Edit Profile, where pathway, aura preference, avatar, motto, and account details can be changed. | Saved preferences are reflected in the profile and theme. |
 
-**Current boundary:** pathway selection is a profile preference and is displayed on the Dashboard. The current code does not yet use it to change mood entry, prompts, or insight content. The current pathway labels and descriptions also need review against the inclusive experience principles before redesign copy is treated as final.
+**Current boundary:** pathway selection is a profile preference and shapes optional check-in wording, daily thoughts, prompts, and interpretations. The mood-derived color itself follows recent check-ins; the pathway does not determine its hue. Current pathway labels and descriptions still need review against the inclusive experience principles before redesign copy is treated as final.
 
 ### 2. Record a mood
 

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AuraLogbookApi.Dtos;
 
 namespace AuraLogbook.Api.Models.Dto;
 
@@ -14,4 +15,7 @@ public class MoodEntryRequest
 
     [StringLength(500, ErrorMessage = "Comment cannot exceed 500 characters.")]
     public string? Comment { get; set; }
+
+    /// <summary>Optional current weather the client showed at check-in; stored as a snapshot for Insights patterns.</summary>
+    public WeatherDto? Weather { get; set; }
 }

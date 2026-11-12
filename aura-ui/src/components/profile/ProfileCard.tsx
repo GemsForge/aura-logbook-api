@@ -4,7 +4,6 @@ import { useGetCurrentUserQuery } from "@/store/authApi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { openProfileModal } from "@/store/slices/uiSlice";
-import { getAuraColorPreview } from "@/theme/auraTheme";
 import { getProfileCompletion } from "@/util/profile";
 import {
   Avatar,
@@ -64,7 +63,8 @@ export default function ProfileCard() {
   // Determine user avatar
   const avatarVal = user.avatar ?? "";
   const isImage = avatarVal.startsWith("/") || avatarVal.startsWith("http");
-  const bgColor = !isImage ? getAuraColorPreview(user.auraColor ?? "", user.auraIntensity, referenceData?.auras ?? []) : undefined;
+  // Profile initials share the check-in-derived accent; aura color is no longer a manual preference.
+  const bgColor = !isImage ? "var(--aura-accent)" : undefined;
 
   return (
     <Sheet

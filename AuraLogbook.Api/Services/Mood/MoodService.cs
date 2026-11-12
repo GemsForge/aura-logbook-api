@@ -2,7 +2,9 @@
 using AuraLogbook.Api.Models.Dto;
 using AuraLogbook.Api.Models.Dto.Insights;
 using AuraLogbook.Api.Repositories;
+using System.Text.Json;
 using AuraLogbook.Api.Services.ReferenceData;
+using AuraLogbook.Api.Services.Spotify;
 
 namespace AuraLogbook.Api.Services;
 
@@ -13,11 +15,16 @@ public class MoodService : IMoodService
 {
     private readonly IFileMoodRepository _moodRepo;
     private readonly IReferenceDataValidator _referenceData;
+    private readonly ISpotifyService? _spotify;
+    private readonly ILogger<MoodService>? _logger;
 
-    public MoodService(IFileMoodRepository moodRepo, IReferenceDataValidator referenceData)
+    /// <summary>Creates the service; Spotify is optional so music capture is skipped where it isn't registered.</summary>
+    public MoodService(IFileMoodRepository moodRepo, IReferenceDataValidator referenceData, ISpotifyService? spotify = null, ILogger<MoodService>? logger = null)
     {
         _moodRepo = moodRepo;
         _referenceData = referenceData;
+        _spotify = spotify;
+        _logger = logger;
     }
 
     /// <summary>
@@ -62,6 +69,8 @@ public class MoodService : IMoodService
             Date = dto.Date,
             Moods = dto.Moods,
             Comment = dto.Comment,
+            WeatherSnapshot = dto.Weather is null ? null : JsonSerializer.Serialize(new { description = dto.Weather.Description, iconCode = dto.Weather.IconCode, temperature = dto.Weather.Temperature, unit = dto.Weather.Unit }),
+            MusicTrack = await CaptureMusicAsync(userId),
             CreatedAt = DateTime.UtcNow
         };
 
@@ -98,5 +107,25 @@ public class MoodService : IMoodService
 
         var result = await _moodRepo.UpdateAsync(existing);
         return result ? (true, "Mood entry updated.") : (false, "Failed to update mood.");
+    }
+
+    /// <summary>
+    /// Best-effort lookup of the track playing on the user's connected Spotify account. Users without a
+    /// connection, nothing playing, or any Spotify failure yield null so a check-in never fails or waits long.
+    /// </summary>
+    private async Task<string?> CaptureMusicAsync(int userId)
+    {
+        if (_spotify is null) return null;
+        try
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            var playback = await _spotify.GetCurrentlyPlayingAsync(userId, timeout.Token);
+            return playback is { IsPlaying: true } ? JsonSerializer.Serialize(new { name = playback.Name, artists = playback.Artists }) : null;
+        }
+        catch (Exception exception)
+        {
+            _logger?.LogDebug(exception, "Skipped music capture for a check-in.");
+            return null;
+        }
     }
 }

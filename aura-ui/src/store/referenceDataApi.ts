@@ -14,6 +14,8 @@ export interface ReferenceDefinition {
 export interface MoodDefinition extends ReferenceDefinition {
   /** Public UI path stored in MoodDefinitions.Icon, such as /mood-icons/centered.png. */
   icon: string;
+  /** Activation from 1 (low) to 5 (high) for the aura ribbon and average energy; never a good/bad score. Optional for older API responses. */
+  energyLevel?: number;
   auraColorKeys: string[];
 }
 
