@@ -177,11 +177,12 @@ export default function Dashboard() {
       </Grid>
       <AuraSeasonCard />
       <Grid container spacing={2}>
-        <Grid xs={12}><Sheet className="aura-panel" sx={{ p: 2 }}><Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Typography level="h3" sx={{ fontSize: "1.1rem" }}>Recent reflections</Typography><Button variant="plain" onClick={() => navigate("/history")}>See all</Button></Stack><Stack divider={<Divider />} sx={{ mt: .5 }}>
+        <Grid xs={12} md={8}><Sheet className="aura-panel" sx={{ p: 2 }}><Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Typography level="h3" sx={{ fontSize: "1.1rem" }}>Recent reflections</Typography><Button variant="plain" onClick={() => navigate("/history")}>See all</Button></Stack><Stack divider={<Divider />} sx={{ mt: .5 }}>
           {!recentEntries.length && <Typography level="body-sm" color="neutral" sx={{ py: 1 }}>Your recent writing will be here when you’re ready.</Typography>}
           {recentEntries.slice(0, 3).map(entry => <Box key={entry.id} sx={{ py: 1 }}><Stack direction="row" justifyContent="space-between" gap={1}><Stack direction="row" flexWrap="wrap" gap={1}>{entry.moods.map(mood => <Box key={mood} component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, typography: "title-sm" }}><MoodIcon icon={moodDefinitions.find((definition) => definition.key === mood)?.icon} size={20} />{mood}</Box>)}</Stack><Typography level="body-xs" color="neutral">{dayjs(entry.date).format("MMM D")}</Typography></Stack>{entry.comment && <Box sx={{ mt: .5 }}><MarkdownReflection value={entry.comment} /></Box>}</Box>)}
         </Stack></Sheet></Grid>
-        <Grid xs={12}><details><summary style={{ cursor: "pointer", padding: "12px 16px", borderRadius: 12, background: "var(--aura-wash)" }}>Music</summary><Box sx={{ mt: 1 }}><SpotifyConnectionCard /></Box></details></Grid>
+        {/* Keep Spotify visible in the dashboard flow so playback and playlists are immediately reachable. */}
+        <Grid xs={12} md={4}><SpotifyConnectionCard /></Grid>
         {showAstrologyContent && zodiac && <Grid xs={12}><Sheet className="aura-panel" sx={{ p: 2 }}><Typography level="h3">A lens for reflection</Typography><Typography level="body-sm" color="neutral">{zodiac.sign} · {zodiac.element} · {String(zodiac.insights?.[0]?.message ?? "")}</Typography></Sheet></Grid>}
       </Grid>
       {showDetailModal && quickMoodEntry.data && <MoodUpdateModal entry={quickMoodEntry.data} title="Add a note or photo" saveLabel="Save details" onClose={() => setShowDetailModal(false)} onSuccess={() => { void refetchEntries(); void quickMoodEntry.refetch(); }} />}

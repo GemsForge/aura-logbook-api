@@ -75,23 +75,18 @@ describe("SpotifyConnectionCard", () => {
     expect(state.connection.refetch).toHaveBeenCalledOnce();
   });
 
-  it("makes every loaded playlist reachable and pages the carousel in both directions", async () => {
+  it("shows every loaded playlist in a scrollable shelf without carousel controls", () => {
     state.playlists.isFetching = false;
     state.playlists.data.items = Array.from({ length: 8 }, (_, index) => ({
       id: String(index), name: `Playlist ${index + 1}`, imageUrl: null,
       spotifyUrl: `https://open.spotify.com/playlist/${index}`,
     }));
     renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
-    const carousel = screen.getByRole("region", { name: "Spotify playlists" });
-    // JSDOM has no layout or native scrolling; supply a viewport to verify paging behavior.
-    Object.defineProperty(carousel, "clientWidth", { value: 300 });
-    const scrollBy = vi.fn();
-    carousel.scrollBy = scrollBy;
+    const playlistShelf = screen.getByRole("list", { name: "Spotify playlists" });
+    expect(playlistShelf).toHaveClass("spotify-playlist-shelf");
     expect(screen.getByRole("link", { name: "Open Playlist 8 in Spotify" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Next playlists" }));
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: 300 });
-    await userEvent.click(screen.getByRole("button", { name: "Previous playlists" }));
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: -300 });
+    expect(screen.queryByRole("button", { name: "Next playlists" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Previous playlists" })).not.toBeInTheDocument();
   });
 
   it("shows a failed sign-in request without an unhandled rejection", async () => {

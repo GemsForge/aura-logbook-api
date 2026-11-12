@@ -55,12 +55,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .signed-in-calendar { padding: .75rem !important; }
   .signed-in-calendar table { border-spacing: .125rem !important; }
   .signed-in-calendar table button { min-height: 44px !important; height: 44px !important; padding: .125rem !important; }
-  /* Spotify keeps the same sections and touch controls while desktop cover tiles use less space. */
-  .spotify-connection-card { padding: calc(var(--joy-spacing, 8px) * 2) !important; }
+  /* Keep the Spotify header and now-playing artwork compact on phone layouts. */
+  .spotify-connection-card { padding: calc(var(--joy-spacing, 8px) * 1.5) !important; }
   .spotify-connection-card .spotify-mark svg { width: 2rem; height: 2rem; }
   .spotify-connection-card .spotify-track-art { width: 2.5rem !important; height: 2.5rem !important; }
-  .spotify-connection-card .spotify-playlist-track { gap: calc(var(--joy-spacing, 8px) * .5) !important; padding: calc(var(--joy-spacing, 8px) * .25) !important; }
-  .spotify-connection-card .spotify-playlist-card { flex: 0 0 19% !important; padding: calc(var(--joy-spacing, 8px) * .375) !important; }
 }
 
 /* Luminous Journal: shared surface, type and orbital artwork roles across all routes. */
