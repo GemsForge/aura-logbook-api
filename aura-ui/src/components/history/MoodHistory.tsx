@@ -14,6 +14,8 @@ import { MoodCard } from "./MoodCard";
 import { downloadJournalExport } from "@/features/mood/utils/journalExport";
 import MoodCalendar from "./MoodCalendar";
 import { ThemeBanner } from "@/components/ui/ThemeBanner";
+import { liveliestTime } from "@/features/insights/insightMetrics";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 
 /** Presents API-backed journal entries and calendar filters in a compact, scannable history view. */
 export default function MoodHistoryPage() {
@@ -28,6 +30,7 @@ export default function MoodHistoryPage() {
   const [entryToEdit, setEntryToEdit] = useState<MoodEntry | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<MoodEntry | null>(null);
   const { showToast } = useToast();
+  const { data: referenceData } = useGetReferenceDataQuery();
 
   const fetchLogs = useCallback(
     async (start?: Dayjs | null, end?: Dayjs | null) => {
@@ -69,6 +72,9 @@ export default function MoodHistoryPage() {
   const visibleLogs = selectedCalendarDate
     ? logs.filter((entry) => entry.date === selectedCalendarDate)
     : logs;
+
+  // Liveliest part of the day across the listed reflections (respects the date filter); hidden until a part has 3+ check-ins.
+  const liveliest = liveliestTime(logs, referenceData?.moods ?? []);
 
   return (
     <Box className="signed-in-content" maxWidth={1000} mx="auto">
@@ -113,6 +119,14 @@ export default function MoodHistoryPage() {
       {loading && <Typography role="status" level="body-sm" sx={{ mb: 1.5 }}>Gathering your reflections…</Typography>}
       {failed && <Box role="alert" className="aura-panel" sx={{ p: 2, mb: 2 }}><Typography color="danger">We couldn’t load your reflections.</Typography><Button onClick={() => fetchLogs(startDate, endDate)}>Try again</Button></Box>}
       {!loading && !failed && !logs.length && <Box className="aura-panel" sx={{ p: 3, textAlign: "center", mb: 2 }}><Typography level="h2">Every story starts somewhere.</Typography><Typography level="body-md" color="neutral" sx={{ my: 1 }}>Your saved reflections will find their home here.</Typography><Button component="a" href="/log-mood" variant="solid">Write your first reflection ↗</Button></Box>}
+
+      {!loading && !failed && liveliest && (
+        <Box component="section" aria-label={`Liveliest time: ${liveliest.name}, ${liveliest.range}, ${liveliest.count} check-ins`} sx={{ mb: 2, p: 2, borderRadius: "xl", border: "1px solid var(--aura-line)", background: "color-mix(in oklab, #b8862b 30%, var(--al-theme-surface, transparent))", maxWidth: 360 }}>
+          <Typography level="body-sm" color="neutral">Liveliest time</Typography>
+          <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "2rem", lineHeight: 1.1, mt: .5 }}>{liveliest.name}</Typography>
+          <Typography level="body-xs" sx={{ mt: .25 }}>{liveliest.range} · {liveliest.count} check-ins</Typography>
+        </Box>
+      )}
 
       {!loading && !failed && logs.length > 0 && (
         <MoodCalendar
