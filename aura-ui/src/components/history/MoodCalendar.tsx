@@ -9,6 +9,8 @@ import Typography from "@mui/joy/Typography";
 import dayjs, { type Dayjs } from "dayjs";
 import { useMemo, useState } from "react";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import type { MoodType } from "@/features/mood/models/schema/MoodType";
+import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAuraSeasonsQuery } from "@/store/auraApi";
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -44,7 +46,7 @@ function MoodEntryTallies({ count }: { count: number }) {
   );
 }
 
-/** Shows API-backed daily mood tallies and filters History using theme-aware calendar surfaces. */
+/** Shows daily tallies and tints each date with its most frequent mood while keeping selection chrome theme-owned. */
 export default function MoodCalendar({
   entries,
   selectedDate,
@@ -56,6 +58,7 @@ export default function MoodCalendar({
 }) {
   const [visibleMonth, setVisibleMonth] = useState(() => dayjs().startOf("month"));
   const { data: seasons } = useGetAuraSeasonsQuery();
+  const { data: referenceData } = useGetReferenceDataQuery();
   const today = dayjs().startOf("day");
   const entryCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -64,6 +67,26 @@ export default function MoodCalendar({
     }
     return counts;
   }, [entries]);
+  const dominantMoods = useMemo(() => {
+    const dailyCounts = new Map<string, Map<MoodType, number>>();
+    for (const entry of entries) {
+      const moodCounts = dailyCounts.get(entry.date) ?? new Map<MoodType, number>();
+      for (const mood of entry.moods) moodCounts.set(mood, (moodCounts.get(mood) ?? 0) + 1);
+      dailyCounts.set(entry.date, moodCounts);
+    }
+
+    const sortOrder = new Map((referenceData?.moods ?? []).map((mood) => [mood.key, mood.sortOrder]));
+    const result = new Map<string, MoodType>();
+    for (const [date, moodCounts] of dailyCounts) {
+      const [mood] = [...moodCounts].sort(([leftMood, leftCount], [rightMood, rightCount]) =>
+        rightCount - leftCount
+        || (sortOrder.get(leftMood) ?? Number.MAX_SAFE_INTEGER) - (sortOrder.get(rightMood) ?? Number.MAX_SAFE_INTEGER)
+        || (leftMood < rightMood ? -1 : leftMood > rightMood ? 1 : 0),
+      )[0] ?? [];
+      if (mood) result.set(date, mood);
+    }
+    return result;
+  }, [entries, referenceData?.moods]);
 
   const firstGridDay = visibleMonth.startOf("month").startOf("week");
   const lastGridDay = visibleMonth.endOf("month").endOf("week");
@@ -146,20 +169,27 @@ export default function MoodCalendar({
               {week.map((day) => {
                 const key = day.format("YYYY-MM-DD");
                 const count = entryCounts.get(key) ?? 0;
+                const prominentMood = dominantMoods.get(key);
+                const moodDefinition = referenceData?.moods.find((definition) => definition.key === prominentMood);
+                const moodAura = referenceData?.auras.find((aura) => aura.key === moodDefinition?.auraColorKeys[0]);
+                const moodTint = moodAura?.baseHex
+                  ? `color-mix(in srgb, ${moodAura.baseHex} 30%, var(--al-theme-surface))`
+                  : undefined;
                 const selected = selectedDate === key;
                 const outsideMonth = !day.isSame(visibleMonth, "month");
                 const future = day.isAfter(today, "day");
                 const season = seasons?.history.find((span) =>
                   key >= span.startedOn && (span.endedOn === null || key <= span.endedOn),
                 );
-                // Include the ribbon's meaning in the button name because its visual mark is decorative.
+                // Include the season ribbon and mood tint meanings because their visual marks are decorative.
                 const seasonLabel = season ? `, ${season.name} season` : "";
+                const moodLabel = prominentMood ? `, most frequent mood ${prominentMood}` : "";
                 return (
                   <Box component="td" key={key} sx={{ p: 0, verticalAlign: "top" }}>
                     <IconButton
                       variant="plain"
                       disabled={future}
-                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${seasonLabel}`}
+                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${moodLabel}${seasonLabel}`}
                       aria-pressed={selected}
                       onClick={() => {
                         setVisibleMonth(day.startOf("month"));
@@ -168,26 +198,26 @@ export default function MoodCalendar({
                       sx={{
                         width: "100%",
                         minWidth: 0,
-                        // Compact cells: room for the date and up to one row of tallies.
-                        minHeight: { xs: 40, sm: 50 },
+                        // Near-square compact cells keep the calendar balanced in the desktop overview column.
+                        maxWidth: { xs: 42, sm: 54 },
+                        minHeight: { xs: 40, sm: 48 },
                         height: "auto",
+                        aspectRatio: "1 / 1",
+                        mx: "auto",
                         p: { xs: 0.25, sm: 0.5 },
                         display: "flex",
                         flexDirection: "column",
                         gap: 0,
-                        borderRadius: "md",
+                        borderRadius: "50%",
                         border: "1px solid",
-                        borderColor: selected ? "var(--aura-accent)" : count ? "var(--aura-line)" : "transparent",
-                        background: selected
-                          ? "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))"
-                          : count
-                            ? "linear-gradient(145deg, var(--aura-wash), color-mix(in srgb, var(--al-theme-surface) 82%, transparent))"
-                          : "transparent",
-                        boxShadow: selected ? "0 0 0 2px var(--aura-wash), 0 5px 16px var(--aura-glow)" : count ? "0 2px 8px var(--al-theme-glow)" : "none",
+                        borderColor: selected ? "var(--al-theme-focus)" : count ? "var(--al-theme-border)" : "transparent",
+                        color: prominentMood ? (moodAura?.shades?.[700] ?? moodAura?.baseHex ?? "var(--al-theme-ink)") : "var(--al-theme-ink)",
+                        background: moodTint ?? "transparent",
+                        boxShadow: selected ? "0 0 0 2px var(--al-theme-surface), 0 0 0 4px var(--al-theme-focus)" : "none",
                         opacity: outsideMonth ? 0.55 : 1,
-                        "&:hover": { background: "linear-gradient(145deg, var(--aura-wash), var(--al-theme-surface))", borderColor: "var(--aura-accent)", transform: "translateY(-1px)" },
-                        "&:focus-visible": { outline: "2px solid var(--aura-accent)", outlineOffset: 1 },
-                        transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
+                        "&:hover": { background: moodTint ?? "var(--al-theme-surface-raised)", borderColor: "var(--al-theme-control-border)", transform: "translateY(-1px)" },
+                        "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 1 },
+                        transition: "background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
                         "@media (prefers-reduced-motion: reduce)": {
                           transition: "none",
                           "&:hover": { transform: "none" },
@@ -210,7 +240,7 @@ export default function MoodCalendar({
 
       <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 1, mt: 1 }}>
         <Typography level="body-xs" color="neutral">
-          Each tally marks a saved mood entry. Select a day to read its reflections.
+          Each day’s color shows its most frequent mood. Tallies mark saved entries; select a day to read its reflections.
         </Typography>
         {selectedDate && (
           <AuraButton variant="outlined" size="small" aria-label="Clear selected calendar day" onClick={() => onSelectDate(null)}>

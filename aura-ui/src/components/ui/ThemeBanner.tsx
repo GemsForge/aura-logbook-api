@@ -8,6 +8,7 @@ interface ThemeBannerProps {
   title: string;
   description: string;
   illustration?: "journal" | "mood" | "aura" | "insights" | "summary" | "calendar" | "settings";
+  /** Optional inline content displayed beside the description, such as weather beside the date. */
   children?: ReactNode;
   /** Optional artwork (e.g. the user's pathway thumbnail) shown in place of the feature icon. */
   art?: ReactNode;
@@ -16,7 +17,7 @@ interface ThemeBannerProps {
 /**
  * One decorative image fades into its matching canvas; legacy art loads only if the variant fails.
  * Compact themed page introduction using the selected theme art and a bounded text scrim.
- * Kept short (one title line plus one description line) so page content starts above the fold.
+ * Kept short so page content starts above the fold; optional children share the description row.
  */
 export function ThemeBanner({ title, description, illustration, children, art }: ThemeBannerProps) {
   const theme = useAppSelector(selectInterfaceTheme);
@@ -71,10 +72,18 @@ export function ThemeBanner({ title, description, illustration, children, art }:
         <Typography component="h1" variant="h3" sx={{ fontSize: { xs: "1.45rem", sm: "1.75rem" }, fontWeight: 650, lineHeight: 1.15 }}>
           {title}
         </Typography>
-        <Typography component="p" color="text.secondary" variant="body2" sx={{ mt: .5, maxWidth: 600, lineHeight: 1.45 }}>
-          {description}
-        </Typography>
-        {children && <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.25 }}>{children}</Box>}
+        {children ? (
+          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", columnGap: 1.25, rowGap: 0.5, mt: 0.5 }}>
+            <Typography component="p" color="text.secondary" variant="body2" sx={{ maxWidth: 600, lineHeight: 1.45 }}>
+              {description}
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>{children}</Box>
+          </Box>
+        ) : (
+          <Typography component="p" color="text.secondary" variant="body2" sx={{ mt: .5, maxWidth: 600, lineHeight: 1.45 }}>
+            {description}
+          </Typography>
+        )}
       </Box>
       {art ? <Box sx={{ position: "relative", zIndex: 2, flex: "0 0 auto" }}>{art}</Box> : illustration && (
         <Box

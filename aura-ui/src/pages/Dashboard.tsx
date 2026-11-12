@@ -31,6 +31,7 @@ import dailyQuotes from "../../data/aura_logbook_daily_quotes.json";
 import MarkdownReflection from "@/components/MarkdownReflection";
 import SpotifyConnectionCard from "@/components/profile/SpotifyConnectionCard";
 import MoodUpdateModal from "@/components/MoodUpdateModal";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
 
 type DailyQuote = { id: string; text: string; theme: string; author: string };
@@ -134,6 +135,10 @@ export default function Dashboard() {
 
   return (
     <Box className="signed-in-content" sx={{ maxWidth: 1240, mx: "auto" }}>
+      {/* Greeting and date share the themed page banner with its theme-colored weather chip. */}
+      <ThemeBanner title={`${greeting}, ${displayName}.`} description={dayjs().format("dddd, MMMM D")} illustration="summary">
+        <WeatherCard location={weatherLocation} />
+      </ThemeBanner>
       {/* "A thought for today" sits left of the greeting/check-in card on desktop and follows it on mobile, so check-in stays first for small screens. */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid xs={12} md={4} sx={{ order: { xs: 2, md: 1 } }}><Stack gap={2}><Sheet className="aura-dark-panel" sx={{ p: 2 }}><Typography level="h3" sx={{ color: "inherit", fontSize: "1.1rem" }}>A thought for today</Typography><Typography level="body-md" sx={{ color: "inherit", lineHeight: 1.45, my: 1 }}>“{dailyQuote?.text ?? "What would you like to notice about today?"}”</Typography><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">{/* Credit only a real author; the app's own name here is redundant. */}{dailyQuote?.author && dailyQuote.author !== "Aura Logbook" && <Typography level="body-xs" sx={{ color: "inherit", opacity: .75 }}>{dailyQuote.author}</Typography>}<Typography level="body-xs" sx={{ color: "inherit", px: 1, py: .25, borderRadius: 99, bgcolor: "rgba(255,255,255,.16)" }}>{dailyQuotePathway?.title ?? "Mindful"}</Typography></Stack></Sheet>
@@ -146,8 +151,7 @@ export default function Dashboard() {
         <Grid xs={12} md={8} sx={{ order: { xs: 1, md: 2 } }}>
       <Sheet className="aura-panel" sx={{ p: { xs: 2, sm: 2.5 }, height: "100%" }}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1.5}>
-          <Box><Typography level="h1" sx={{ fontSize: { xs: "1.7rem", sm: "1.9rem" }, fontWeight: 450, lineHeight: 1.15 }}>{greeting}, {displayName}.</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{dayjs().format("dddd, MMMM D")}</Typography><WhyThisColor /></Box>
-          <WeatherCard location={weatherLocation} />
+          <WhyThisColor />
         </Stack>
         <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography>
           {/* The check-in sizes to its content. The saved moment is taller than the chips, so the cards below move down only in direct response to the tap (not an unexpected layout shift), and return to place on "Done"; e2e/quick-check-in.spec.ts measures both. */}
