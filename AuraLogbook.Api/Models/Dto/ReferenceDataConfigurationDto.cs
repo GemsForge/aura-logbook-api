@@ -34,6 +34,8 @@ public sealed class AuraColorConfigurationDto : ReferenceDataDefinitionDto
 public sealed class MoodDefinitionDto : ReferenceDataDefinitionDto
 {
     public required string Icon { get; init; }
+    /// <summary>Activation from 1 (low) to 5 (high); positions the mood on the Insights aura ribbon. Not a good/bad score.</summary>
+    public int EnergyLevel { get; init; } = 3;
     public required IReadOnlyList<string> AuraColorKeys { get; init; }
 }
 

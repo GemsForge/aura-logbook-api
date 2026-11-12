@@ -13,6 +13,8 @@ export interface ReferenceDefinition {
 /** Database-managed mood copy, icon, and aura-color association. */
 export interface MoodDefinition extends ReferenceDefinition {
   icon: string;
+  /** Activation from 1 (low) to 5 (high) for the aura ribbon and average energy; never a good/bad score. Optional for older API responses. */
+  energyLevel?: number;
   auraColorKeys: string[];
 }
 

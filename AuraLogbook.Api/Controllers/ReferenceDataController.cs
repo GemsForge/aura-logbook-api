@@ -36,7 +36,7 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
             Shades = shadesByColor.GetValueOrDefault(row.Key) ?? new Dictionary<int, string>()
         }).ToList();
         var moodRows = (await connection.QueryAsync<MoodRow>(
-            "SELECT MoodKey AS Key, DisplayName, Description, Icon, SortOrder FROM MoodDefinitions WHERE IsActive = 1 ORDER BY SortOrder, MoodKey")).ToList();
+            "SELECT MoodKey AS Key, DisplayName, Description, Icon, SortOrder, EnergyLevel FROM MoodDefinitions WHERE IsActive = 1 ORDER BY SortOrder, MoodKey")).ToList();
         var moodMappings = await connection.QueryAsync<MoodAuraMappingRow>(
             "SELECT mapping.MoodKey, mapping.AuraColorKey FROM MoodAuraMappings mapping " +
             "INNER JOIN MoodDefinitions mood ON mood.MoodKey = mapping.MoodKey AND mood.IsActive = 1 " +
@@ -51,6 +51,7 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
             Description = row.Description,
             Icon = row.Icon,
             SortOrder = row.SortOrder,
+            EnergyLevel = row.EnergyLevel,
             AuraColorKeys = mappingsByMood.GetValueOrDefault(row.Key) ?? Array.Empty<string>()
         }).ToList();
         var tokens = (await connection.QueryAsync<ThemeTokenDto>(
@@ -126,6 +127,7 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
         public string Description { get; set; } = string.Empty;
         public string Icon { get; set; } = string.Empty;
         public int SortOrder { get; set; }
+        public int EnergyLevel { get; set; } = 3;
     }
 
     private sealed class MoodAuraMappingRow
