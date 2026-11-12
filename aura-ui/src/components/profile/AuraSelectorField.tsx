@@ -1,5 +1,4 @@
 // src/components/profile/AuraSelector.tsx
-import React from "react";
 import {
   Box,
   Typography,
@@ -9,22 +8,22 @@ import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
 import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
-import { Controller, type Control, type Path, useWatch } from "react-hook-form";
+import { Controller, type Control, type FieldValues, type Path, useWatch } from "react-hook-form";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { getAuraColorPreview } from "@/theme/auraTheme";
-import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
-interface AuraSelectorProps {
-  control: Control<EditProfileFormData>;
-  colorField: Path<EditProfileFormData>;
-  intensityField: Path<EditProfileFormData>;
+/** Generic over the host form so any form with an aura color and intensity field can reuse it (the profile form no longer has them). */
+interface AuraSelectorProps<T extends FieldValues> {
+  control: Control<T>;
+  colorField: Path<T>;
+  intensityField: Path<T>;
 }
 
-export const AuraSelector: React.FC<AuraSelectorProps> = ({
+export function AuraSelector<T extends FieldValues>({
   control,
   colorField,
   intensityField,
-}) => {
+}: AuraSelectorProps<T>) {
   // watch the two fields
   const colorKey = useWatch({ control, name: colorField });
   const intensity = useWatch({ control, name: intensityField });
@@ -113,4 +112,4 @@ export const AuraSelector: React.FC<AuraSelectorProps> = ({
       />
     </Box>
   );
-};
+}

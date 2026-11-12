@@ -8,14 +8,19 @@ import type {
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { AppDispatch, RootState } from "./store";
+import type { RootState } from "./store";
 import { logout } from "./slices/authSlice";
-import { auraApi } from "./auraApi";
 
-/** Refreshes derived color after journal mutations so the visible accent follows the latest entries. */
-async function refreshDerivedAura(dispatch: AppDispatch, queryFulfilled: Promise<unknown>) {
+/**
+ * Refreshes derived color after journal mutations so the visible accent follows the latest entries.
+ * auraApi is loaded lazily: a static import pulls auraApi → ZodiacApi → api → store → moodApi into a
+ * cycle, so `moodApi` would be undefined while the store is being built. `dispatch` is typed by the one
+ * action it sends (not AppDispatch) for the same reason at the type level.
+ */
+async function refreshDerivedAura(dispatch: (action: { type: string }) => unknown, queryFulfilled: Promise<unknown>) {
   try {
     await queryFulfilled;
+    const { auraApi } = await import("./auraApi");
     dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
   } catch {
     // A failed journal mutation does not change the derived aura.

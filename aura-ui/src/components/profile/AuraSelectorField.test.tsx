@@ -2,12 +2,14 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useForm } from "react-hook-form";
 import { describe, expect, it } from "vitest";
-import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 import { renderWithProviders } from "@/test/testUtilities";
 import { AuraSelector } from "./AuraSelectorField";
 
+/** Minimal form for the selector; the profile form no longer edits aura color. */
+type AuraFormValues = { auraColor: string; auraIntensity: number };
+
 function AuraSelectorHarness() {
-  const { control, watch } = useForm<EditProfileFormData>({
+  const { control, watch } = useForm<AuraFormValues>({
     defaultValues: { auraColor: "blue", auraIntensity: 50 },
   });
 

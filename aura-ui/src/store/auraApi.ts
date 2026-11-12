@@ -1,6 +1,5 @@
 // src/store/auraApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ZodiacApi } from "@/api/ZodiacApi";
 import type { ZodiacInsightResponse } from "@/features/zodiac/models/ZodiacInsightResponse";
 import type { RootState } from "./store";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
@@ -57,7 +56,10 @@ export const auraApi = createApi({
       // instead of build.query({ query: ... }), we call our existing Axios wrapper:
       async queryFn() {
         try {
-          const data = await ZodiacApi.getInsight(); // your existing client method :contentReference[oaicite:0]{index=0}
+          // Loaded lazily: ZodiacApi → api → store → auraApi is an import cycle, and a static import leaves
+          // auraApi undefined whenever a module imports it before the store.
+          const { ZodiacApi } = await import("@/api/ZodiacApi");
+          const data = await ZodiacApi.getInsight();
           return { data };
         } catch (err: unknown) {
           const error = err instanceof Error ? err : new Error("Zodiac request failed");
