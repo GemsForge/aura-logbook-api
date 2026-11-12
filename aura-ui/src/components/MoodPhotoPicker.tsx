@@ -5,7 +5,6 @@ import IconButton from "@mui/joy/IconButton";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { AuraButton } from "@/components/ui/AuraButton";
 import { prepareMoodPhoto } from "@/features/mood/utils/prepareMoodPhoto";
 
 /** Provides accessible local photo selection, preparation, preview, and removal before a mood is saved. */
@@ -85,10 +84,10 @@ export default function MoodPhotoPicker({ onChange, disabled = false, statuses =
           <Typography level="title-sm">Add photos (optional)</Typography>
           <Typography level="body-xs" color="neutral">Private to your account · Up to 10 photos</Typography>
         </Box>
-        <AuraButton component="label" variant="outlined" size="small" disabled={disabled || preparing || photos.length >= 10} startIcon={<AddPhotoAlternateOutlined />}>
-          Choose photos
+        <IconButton component="label" variant="outlined" color="neutral" size="md" disabled={disabled || preparing || photos.length >= 10} aria-label="Choose photos" sx={{ minWidth: 44, minHeight: 44 }}>
+          <AddPhotoAlternateOutlined />
           <input type="file" accept="image/*,.heic,.heif" multiple aria-label="Choose mood photos" disabled={disabled || preparing || photos.length >= 10} onChange={handleSelection} style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }} />
-        </AuraButton>
+        </IconButton>
       </Box>
       {preparing && <Typography role="status" level="body-sm" color="neutral" sx={{ mt: 1 }}>Preparing selected photos…</Typography>}
       {error && <Typography role="alert" level="body-sm" color="danger" sx={{ mt: 1 }}>{error}</Typography>}

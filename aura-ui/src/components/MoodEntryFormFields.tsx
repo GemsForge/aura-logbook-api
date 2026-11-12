@@ -2,6 +2,9 @@ import Box from "@mui/joy/Box";
 import Checkbox from "@mui/joy/Checkbox";
 import Typography from "@mui/joy/Typography";
 import { AuraButton as Button } from "@/components/ui/AuraButton";
+import ShuffleRounded from "@mui/icons-material/ShuffleRounded";
+import AddPhotoAlternateOutlined from "@mui/icons-material/AddPhotoAlternateOutlined";
+import IconButton from "@mui/joy/IconButton";
 import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import { DatePicker } from "@mui/x-date-pickers";
@@ -20,6 +23,8 @@ import { useGetMoodCombinationInterpretationQuery } from "@/store/auraApi";
 import journalingPrompts from "../../data/aura_logbook_journaling_prompts.json";
 import MDEditor from "@uiw/react-md-editor";
 import MoodPhotoPicker from "@/components/MoodPhotoPicker";
+import { getCheckInSubtext } from "@/features/mood/checkInCopy";
+import { getMoodPillSx } from "@/components/mood/moodPillStyles";
 
 
 type MoodEntryFormValues = {
@@ -27,14 +32,6 @@ type MoodEntryFormValues = {
   moods: MoodType[];
   comment?: string;
 };
-
-/** Stable positions keep the aura selector readable while preserving a circular interaction model. */
-// Orbit card centers as [left%, top%] on the compact (~430px) wheel; the top card sits a little
-// lower so its tallest group (three moods) stays inside the wheel's box.
-const auraOrbitPositions = [
-  [50, 13], [78, 20], [89, 43], [82, 71], [58, 87],
-  [30, 85], [11, 65], [11, 39], [26, 18],
-] as const;
 
 /** Maps the persisted pathway label to the API SpiritualPathway enum key. */
 const pathwayKeyByUserPathway: Record<SpiritualPathway, number> = {
@@ -44,7 +41,7 @@ const pathwayKeyByUserPathway: Record<SpiritualPathway, number> = {
 };
 
 type JournalingPrompt = { id: string; question: string };
-type JournalingPromptPathway = { id: string; prompts: JournalingPrompt[] };
+type JournalingPromptPathway = { id: string; title: string; prompts: JournalingPrompt[] };
 
 /** Maps the persisted user pathway to the prompt-library pathway identifier. */
 const promptPathwayByUserPathway: Record<SpiritualPathway, string> = {
@@ -79,9 +76,9 @@ interface Props {
 
 export default function MoodEntryFormFields({ entry, showSubmitButton = true, onSubmit, disabled = false, isSubmitting = false, submitLabel, statusMessage, statusRole = "status", photoStatuses = [] }: Props) {
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
-  // Optional sections open on request; an existing entry (edit / add-details) shows them directly.
-  const [noteOpen, setNoteOpen] = useState(false);
+  // Notes remain optional, while photo attachments are opened only when requested.
   const [photosOpen, setPhotosOpen] = useState(false);
+  const [promptSelection, setPromptSelection] = useState<{ pathwayId: string; promptId: string } | null>(null);
   const location = useLocation();
   const preselectedMood = (location.state as { preselectedMood?: MoodType } | null)?.preselectedMood;
   const currentUser = useAppSelector(selectCurrentUser);
@@ -115,7 +112,6 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   }, [entry, reset]);
 
   const selectedMoods = watch("moods");
-  const showNote = noteOpen || Boolean(entry) || Boolean(watch("comment"));
   const showPhotos = photosOpen || Boolean(entry) || selectedPhotos.length > 0;
   // Labels and enum keys resolve the same way as on Today and in the banner art.
   const userPathway = normalizeSpiritualPathway(currentUser?.selectedPathway) ?? "mindfulness";
@@ -134,7 +130,17 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   const promptPathwayId = promptPathwayByUserPathway[userPathway];
   const promptPathway = (journalingPrompts.pathways as JournalingPromptPathway[]).find(({ id }) => id === promptPathwayId);
   const promptIndex = (dayjs().month() + dayjs().date()) % (promptPathway?.prompts.length || 1);
-  const reflectionPrompt = promptPathway?.prompts[promptIndex]?.question ?? "What would you like to remember about this moment?";
+  const dailyPrompt = promptPathway?.prompts[promptIndex];
+  const selectedPromptId = promptSelection?.pathwayId === promptPathwayId ? promptSelection.promptId : null;
+  const activePrompt = promptPathway?.prompts.find(({ id }) => id === selectedPromptId) ?? dailyPrompt;
+  const reflectionPrompt = activePrompt?.question ?? "What would you like to remember about this moment?";
+
+  /** Chooses another prompt from the selected pathway without repeating the visible prompt. */
+  const chooseAnotherPrompt = () => {
+    const alternatives = promptPathway?.prompts.filter(({ id }) => id !== activePrompt?.id) ?? [];
+    if (alternatives.length === 0) return;
+    setPromptSelection({ pathwayId: promptPathwayId, promptId: alternatives[Math.floor(Math.random() * alternatives.length)].id });
+  };
 
   const toggleMood = (mood: MoodType) => {
     const updated = selectedMoods.includes(mood)
@@ -143,39 +149,48 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
     setValue("moods", updated);
   };
 
-  // group moods by auraColor
-  const auraGroups = (referenceData?.auras ?? []).map((aura) => ({
-    aura,
-    moods: (referenceData?.moods ?? []).filter((mood) => mood.auraColorKeys.includes(aura.key)).map((mood) => mood.key),
-  }));
+  // Keep the selector as one compact row so the written reflection stays visually primary.
+  const moodDefinitions = [...(referenceData?.moods ?? [])].sort((left, right) => left.displayName.localeCompare(right.displayName));
 
   const onFormSubmit = (data: MoodEntryFormValues) => {
     void onSubmit({
-      date: dayjs(data.date).format("YYYY-MM-DD"),
+      // New entries always use today's local date; edits keep the date selected for that entry.
+      date: dayjs(entry ? data.date : undefined).format("YYYY-MM-DD"),
       moods: data.moods,
       comment: data.comment?.trim() || undefined,
     }, selectedPhotos);
   };
 
   return (
-    <Box id="mood-form" component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 1.75 }}>
-      {/* The page banner already asks the question, so the form opens straight onto a compact
-          date (almost always today) beside the selection count, then the moods. */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5}>
-        <Controller
-          name="date"
-          control={control}
-          render={({ field }) => (
-            <DatePicker
-              label="Date"
-              disabled={disabled || isSubmitting}
-              value={dayjs(field.value)}
-              onChange={(newDate) => newDate && field.onChange(newDate.format("YYYY-MM-DD"))}
-              format="MMM D, YYYY"
-              slotProps={{ textField: { size: "small", sx: { width: 172 } } }}
-            />
-          )}
-        />
+    <Box id="mood-form" component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+      {/* Keep the prompt readable while letting a light aura wash connect it to the day's reflection. */}
+      <Sheet variant="soft" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, p: { xs: 1, sm: 1.25 }, borderRadius: "lg", backgroundColor: "color-mix(in srgb, var(--aura-accent) 12%, var(--al-theme-surface-raised))", borderInlineStart: "3px solid var(--aura-accent)" }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography level="body-xs" color="neutral" sx={{ fontWeight: 600 }}>Prompt</Typography>
+          <Typography data-testid="reflection-prompt" level="body-sm" sx={{ mt: .25 }}>{reflectionPrompt}</Typography>
+        </Box>
+        <Button type="button" variant="outlined" size="small" disabled={disabled || isSubmitting} startIcon={<ShuffleRounded fontSize="small" />} onClick={chooseAnotherPrompt} sx={{ flex: "0 0 auto" }}>
+          Another prompt
+        </Button>
+      </Sheet>
+
+      <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} flexWrap="wrap">
+        {entry ? (
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                label="Date"
+                disabled={disabled || isSubmitting}
+                value={dayjs(field.value)}
+                onChange={(newDate) => newDate && field.onChange(newDate.format("YYYY-MM-DD"))}
+                format="MMM D, YYYY"
+                slotProps={{ textField: { size: "small", sx: { width: 172 } } }}
+              />
+            )}
+          />
+        ) : <Box><Typography component="h2" level="title-md">How are you feeling today?</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .25 }}>{getCheckInSubtext(currentUser?.selectedPathway)}</Typography></Box>}
         <Typography level="body-sm" color={selectedMoods.length > 0 ? "primary" : "neutral"}>
           {selectedMoods.length === 0 ? "Nothing selected" : `${selectedMoods.length} selected`}
         </Typography>
@@ -186,103 +201,92 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
         </Typography>
       )}
 
-      <Box sx={{ position: "relative", width: "100%", maxWidth: 540, display: { xs: "flex", sm: "block" }, flexWrap: "wrap", gap: .75, p: 0, minHeight: { xs: "auto", sm: 430 }, mx: "auto", borderRadius: { xs: 0, sm: "50%" }, background: { xs: "none", sm: "radial-gradient(circle, var(--al-theme-surface) 0 20%, color-mix(in srgb, var(--al-theme-surface-raised) 72%, transparent) 20.5% 45%, transparent 45.5%), conic-gradient(from 20deg, color-mix(in srgb, var(--aura-accent) 24%, transparent), color-mix(in srgb, var(--al-theme-accent) 24%, transparent), color-mix(in srgb, var(--aura-accent) 10%, transparent), color-mix(in srgb, var(--al-theme-primary) 18%, transparent), color-mix(in srgb, var(--aura-accent) 24%, transparent))" }, border: { xs: 0, sm: "1px solid var(--al-theme-border)" }, "&::before": { display: { xs: "none", sm: "block" }, content: "\"\"", position: "absolute", inset: "17%", border: "1px dashed color-mix(in srgb, var(--al-theme-ink-muted) 40%, transparent)", borderRadius: "50%" }, "&::after": { display: { xs: "none", sm: "block" }, content: "\"\"", position: "absolute", inset: "31%", border: "1px solid color-mix(in srgb, var(--al-theme-ink-muted) 22%, transparent)", borderRadius: "50%" } }}>
-        <Box sx={{ position: "absolute", inset: "32% 22%", display: { xs: "none", sm: "grid" }, placeItems: "center", textAlign: "center", pointerEvents: "none", zIndex: 2 }}>
-          <Box sx={{ width: "100%", minHeight: 84, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 1.25, borderRadius: "50%", backgroundColor: "var(--al-theme-surface)", boxShadow: "0 10px 30px var(--al-theme-glow)" }}>
-            <Typography level="body-xs" sx={{ color: "neutral.500" }}>{selectedMoods.length ? "Your current mix" : "Your inner weather"}</Typography>
-            <Typography level="title-lg" sx={{ mt: 0.5, fontFamily: "display", fontWeight: 400, lineHeight: 1.1 }}>{selectedMoods.length ? selectedMoods.slice(0, 2).join(" · ") : "Choose what feels close"}</Typography>
-            {selectedMoods.length > 2 && <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>+ {selectedMoods.length - 2} more</Typography>}
-            {!selectedMoods.length && <Typography level="body-xs" color="neutral" sx={{ mt: 0.75 }}>Select one or more colors around you.</Typography>}
-          </Box>
-        </Box>
-        {auraGroups.map(({ aura, moods }, groupIndex) => {
-          const color = aura.key;
-          if (moods.length === 0) return null;
-
-          const swatch = aura.shades?.[500] ?? aura.baseHex;
-          const [left, top] = auraOrbitPositions[groupIndex] ?? [50, 50];
-          const selectedInGroup = moods.filter((mood) => selectedMoods.includes(mood)).length;
-
+      {/* Compact labeled mood controls keep the illustrations and their meanings clear at a glance. */}
+      <Box role="group" aria-label="Choose one or more moods" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: { xs: .25, sm: .5 }, width: "100%" }}>
+        {moodDefinitions.map((moodDefinition) => {
+          const mood = moodDefinition.key;
+          const checked = selectedMoods.includes(mood);
+          const moodAura = referenceData?.auras.find((aura) => aura.key === moodDefinition.auraColorKeys[0]);
+          const moodHue = moodAura?.shades?.[500] ?? moodAura?.baseHex ?? "var(--al-theme-primary)";
+          const iconBackground = moodHue
+            ? `color-mix(in srgb, ${moodHue} 20%, var(--al-theme-surface))`
+            : "var(--al-theme-surface-raised)";
           return (
-            <Sheet key={color} variant="soft" sx={{ display: { xs: "contents", sm: "block" }, position: { xs: "relative", sm: "absolute" }, left: { xs: "auto", sm: `${left}%` }, top: { xs: "auto", sm: `${top}%` }, transform: { xs: "none", sm: "translate(-50%, -50%)" }, width: { xs: "auto", sm: 124 }, p: .75, borderRadius: "12px", backgroundColor: `${swatch}28`, backdropFilter: "blur(8px)", border: "2px solid", borderColor: `${swatch}B8`, boxShadow: `0 8px 24px ${swatch}30`, zIndex: 3, transition: "transform .2s ease, box-shadow .2s ease", "&:hover": { transform: { xs: "translateY(-2px)", sm: "translate(-50%, -50%) scale(1.03)" }, boxShadow: `0 12px 30px ${swatch}5c` } }}>
-              <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", mb: .5 }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    bgcolor: swatch,
-                    borderRadius: "50%",
-                    mr: .75,
-                  }}
-                />
-                <Typography level="body-sm" sx={{ color: "neutral.800", textTransform: "capitalize", fontWeight: 700 }}>
-                  {color}
-                </Typography>
-                {selectedInGroup > 0 && <Typography level="body-xs" sx={{ ml: "auto", color: swatch, fontWeight: 700 }}>{selectedInGroup}</Typography>}
-              </Box>
-              <Box sx={{ display: { xs: "contents", sm: "flex" }, flexDirection: "column" }}>
-                {moods.map((mood) => {
-                  const moodDefinition = referenceData?.moods.find((definition) => definition.key === mood);
-                  const checked = selectedMoods.includes(mood);
-                  const moodAura = referenceData?.auras.find((definition) => definition.key === moodDefinition?.auraColorKeys[0]);
-                  const hue = moodAura?.shades?.[500] ?? moodAura?.baseHex ?? swatch;
-                  return (
-                    <Sheet
-                      key={mood}
-                      variant={checked ? "solid" : "outlined"}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        borderRadius: { xs: "999px", sm: "md" },
-                        borderColor: checked ? hue : { xs: `${hue}B8`, sm: "neutral.200" },
-                        minHeight: { xs: 40, sm: "auto" },
-                        backgroundColor: checked ? `${hue}55` : "var(--al-theme-surface)",
-                        color: "neutral.900",
-                        transition: "transform .18s ease, box-shadow .18s ease, background-color .18s ease",
-                        "&:hover": { transform: "translateY(-1px)", boxShadow: "sm" },
-                      }}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        disabled={disabled || isSubmitting}
-                        onChange={() => toggleMood(mood)}
-                        label={<Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}><MoodIcon icon={moodDefinition?.icon} size={24} />{mood}</Box>}
-                        variant="plain"
-                        size="lg"
-                        uncheckedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
-                        checkedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
-                        sx={{ width: "100%", color: "neutral.900", px: { xs: 1.25, sm: 0.5 }, "& .MuiCheckbox-label": { fontWeight: checked ? 700 : 500, fontSize: { xs: "0.85rem", sm: "0.72rem" }, lineHeight: 1.25, py: 0.25, whiteSpace: "nowrap" }, "& .MuiCheckbox-checkbox": { opacity: 0, width: 0, height: 0, minWidth: 0, minHeight: 0, p: 0, overflow: "hidden" } }}
-                      />
-                    </Sheet>
-                  );
-                })}
-              </Box>
+            <Sheet
+              key={mood}
+              variant="outlined"
+              sx={{
+                ...getMoodPillSx(moodHue, { selected: checked, interactive: true }),
+                position: "relative",
+                minHeight: 44,
+                flex: "0 0 auto",
+                borderRadius: "999px",
+                borderWidth: checked ? 2 : 1,
+              }}
+            >
+              <Checkbox
+                id={`mood-${mood.toLowerCase()}`}
+                checked={checked}
+                aria-describedby={errors.moods ? "mood-error" : undefined}
+                disabled={disabled || isSubmitting}
+                onChange={() => toggleMood(mood)}
+                label={<Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: .75, minWidth: 0 }}>
+                  <Box component="span" data-mood-color={moodHue} sx={{ width: 32, height: 32, flex: "0 0 auto", display: "grid", placeItems: "center", borderRadius: "50%", backgroundColor: iconBackground }}>
+                    <MoodIcon icon={moodDefinition.icon} size={28} />
+                  </Box>
+                  <Box component="span" sx={{ color: "text.primary", fontSize: "0.875rem", whiteSpace: "nowrap" }}>{moodDefinition.displayName}</Box>
+                </Box>}
+                variant="plain"
+                size="md"
+                uncheckedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
+                checkedIcon={<Box component="span" aria-hidden="true" sx={{ width: 0, height: 0 }} />}
+                sx={{ width: "100%", height: "100%", minHeight: 44, justifyContent: "flex-start", px: .625, py: 0, color: "text.primary", borderRadius: "999px", "& .MuiCheckbox-label": { display: "inline-flex", alignItems: "center" }, "& .MuiCheckbox-checkbox": { position: "absolute", opacity: 0, width: 0, height: 0, overflow: "hidden" } }}
+              />
+              {checked && <Box aria-hidden="true" sx={{ position: "absolute", bottom: -2, right: -2, width: 14, height: 14, display: "grid", placeItems: "center", borderRadius: "50%", bgcolor: "primary.500", color: "primary.contrastText", fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</Box>}
             </Sheet>
           );
         })}
-        {errors.moods && (
-          <Typography color="danger" level="body-sm" sx={{ mt: 1 }}>
-            {errors.moods.message as string}
-          </Typography>
-        )}
       </Box>
+      {errors.moods && <Typography id="mood-error" role="alert" color="danger" level="body-sm">{errors.moods.message as string}</Typography>}
 
       <Typography level="body-xs" color="neutral">Color meanings are optional personal reflection, not a health assessment.</Typography>
 
-      {/* Optional extras stay closed until asked for, so a mood-only check-in fits on one screen.
-          Editing an entry, or one that already has a note or chosen photos, opens them. */}
-      {(!showNote || !showPhotos) && !disabled && (
-        <Stack direction="row" gap={1} flexWrap="wrap">
-          {!showNote && <Button variant="outlined" size="small" onClick={() => setNoteOpen(true)}>Add a note</Button>}
-          {!showPhotos && <Button variant="outlined" size="small" onClick={() => setPhotosOpen(true)}>Add photos</Button>}
-        </Stack>
+      <Controller
+        name="comment"
+        control={control}
+        render={({ field }) => (
+          <Box>
+            {/* Markdown remains the persisted comment format; the editor is the primary reflection field. */}
+            {/* The toolbar takes a restrained derived-aura wash; contrast-safe aura text keeps its controls readable in either interface mode. */}
+            {/* The editor overlays an absolute textarea on relative highlighted text; shared parent padding keeps caret and glyph origins aligned. */}
+            <Box data-color-mode="light" sx={{ "& .w-md-editor": { borderRadius: "14px", borderColor: errors.comment ? "var(--al-theme-danger)" : "var(--al-theme-control-border)", backgroundColor: "var(--al-theme-surface)", color: "var(--al-theme-ink)", boxShadow: "none", overflow: "hidden" }, "& .w-md-editor-toolbar": { backgroundColor: "color-mix(in srgb, var(--aura-accent, var(--al-theme-primary)) 14%, var(--al-theme-surface-raised))", borderBottomColor: "var(--aura-line, var(--al-theme-border))" }, "& .w-md-editor-toolbar li > button": { color: "var(--al-theme-ink-muted)" }, "& .w-md-editor-toolbar li > button:hover, & .w-md-editor-toolbar li.active > button": { color: "var(--aura-text, var(--al-theme-ink))", backgroundColor: "var(--aura-wash, var(--al-theme-border))" }, "& .w-md-editor-content": { backgroundColor: "transparent" }, "& .w-md-editor-text": { padding: "16px !important" }, "& .w-md-editor-text-pre, & .w-md-editor-text-input": { fontFamily: "inherit", fontSize: "0.98rem", lineHeight: 1.6, color: "var(--al-theme-ink)" }, "& .w-md-editor-text-pre": { padding: 0 }, "& .w-md-editor-text-input": { padding: "inherit" }, "& .w-md-editor-text-pre > code": { fontFamily: "inherit !important", fontSize: "0.98rem !important", lineHeight: "1.6 !important" }, "& .w-md-editor-preview": { padding: "16px", fontFamily: "inherit" } }}>
+              <MDEditor
+                value={field.value ?? ""}
+                onChange={(value) => field.onChange(value ?? "")}
+                preview={disabled ? "preview" : "edit"}
+                hideToolbar={disabled}
+                textareaProps={{ "aria-label": "Reflection", placeholder: "Add a heading, then write a little about your day…", readOnly: disabled || isSubmitting }}
+                height={220}
+              />
+            </Box>
+            {errors.comment && <Typography color="danger" level="body-sm" role="alert">{errors.comment.message}</Typography>}
+          </Box>
+        )}
+      />
+
+      {/* Photos attach to the same journal entry while remaining optional. */}
+      {!showPhotos && !disabled && (
+        <IconButton type="button" variant="outlined" color="neutral" size="md" aria-label="Add photos" onClick={() => setPhotosOpen(true)} sx={{ minWidth: 44, minHeight: 44, alignSelf: "flex-start" }}>
+          <AddPhotoAlternateOutlined />
+        </IconButton>
       )}
       {showPhotos && <MoodPhotoPicker onChange={setSelectedPhotos} disabled={disabled || isSubmitting} statuses={photoStatuses} />}
 
       {statusMessage && <Typography role={statusRole} aria-live={statusRole === "alert" ? "assertive" : "polite"} aria-atomic="true" level="body-sm" color={statusRole === "alert" ? "danger" : "primary"}>{statusMessage}</Typography>}
 
+      {/* Give the pathway reflection the same soft, check-in-derived halo as the other focal surfaces. */}
       {interpretationEligible && currentUser && (
-        <Sheet variant="soft" sx={{ p: { xs: 1.75, sm: 2.25 }, borderRadius: "lg", border: "1px solid", borderColor: "primary.outlinedBorder" }}>
+        <Sheet variant="soft" sx={{ p: { xs: 1.75, sm: 2.25 }, borderRadius: "lg", border: "1px solid", borderColor: "var(--aura-line, var(--al-theme-border))", boxShadow: "0 0 18px var(--aura-glow, transparent)" }}>
           <Typography level="body-xs" sx={{ textTransform: "uppercase", letterSpacing: "0.14em", color: "primary.700", fontWeight: 700 }}>
             Your pathway reflection
           </Typography>
@@ -306,33 +310,6 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
           )}
         </Sheet>
       )}
-
-      {showNote && <Controller
-        name="comment"
-        control={control}
-        render={({ field }) => (
-          <Box>
-            <Typography level="body-sm" color="neutral" sx={{ mb: .75 }}>{reflectionPrompt}</Typography>
-            {/* Markdown remains the persisted comment value, so the editor does not introduce an HTML-only format. */}
-            {/* The editor ships light-mode icon colors; toolbar buttons take theme ink so they stay visible in dark themes. */}
-            <Box data-color-mode="light" sx={{ "& .w-md-editor": { borderRadius: "14px", borderColor: errors.comment ? "var(--al-theme-danger)" : "var(--al-theme-control-border)", backgroundColor: "var(--al-theme-surface)", color: "var(--al-theme-ink)", boxShadow: "none", overflow: "hidden" }, "& .w-md-editor-toolbar": { backgroundColor: "var(--al-theme-surface-raised)", borderBottomColor: "var(--al-theme-border)" }, "& .w-md-editor-toolbar li > button": { color: "var(--al-theme-ink-muted)" }, "& .w-md-editor-toolbar li > button:hover, & .w-md-editor-toolbar li.active > button": { color: "var(--al-theme-ink)", backgroundColor: "var(--al-theme-border)" }, "& .w-md-editor-content": { backgroundColor: "transparent" }, "& .w-md-editor-text-pre, & .w-md-editor-text-input, & .w-md-editor-text": { fontFamily: "inherit", fontSize: "0.98rem", lineHeight: 1.6, color: "var(--al-theme-ink)" }, "& .w-md-editor-text-input": { padding: "16px" }, "& .w-md-editor-preview": { padding: "16px", fontFamily: "inherit" } }}>
-              <MDEditor
-                value={field.value ?? ""}
-                onChange={(value) => field.onChange(value ?? "")}
-                preview={disabled ? "preview" : "edit"}
-                hideToolbar={disabled}
-                textareaProps={{ "aria-label": "Reflection", placeholder: "Write what you noticed, felt, or want to remember…", readOnly: disabled || isSubmitting }}
-                height={140}
-              />
-            </Box>
-            {errors.comment && (
-              <Typography color="danger" level="body-sm">
-                {errors.comment.message}
-              </Typography>
-            )}
-          </Box>
-        )}
-      />}
 
       {/* On phones Save stays pinned above the tab bar; on desktop the short form keeps it in reach. */}
       {showSubmitButton && (
