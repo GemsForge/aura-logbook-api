@@ -69,16 +69,15 @@ export function LoginForm({ showTitle }: LoginFormProps) {
         px: { xs: 0, sm: 2 },
       }}
     >
-      <Box sx={{ display: { xs: "none", md: "flex" }, flex: 1, flexDirection: "column", alignItems: "center", p: 7, maxWidth: 500 }}><Box aria-hidden="true" className="aura-orb" sx={{ width: 220, mb: 8 }} /><Typography level="h2" sx={{ fontSize: "3.3rem", fontWeight: 400, letterSpacing: "-.05em", lineHeight: 1.05 }}>Your world inside.<br />A little clearer.</Typography><Typography level="body-md" color="neutral" sx={{ mt: 2 }}>A quiet ritual. A more connected you.</Typography></Box>
+      {/* Keep the reflection message prominent with the orb, apart from sign-in actions. */}
+      <Box sx={{ display: { xs: "none", md: "flex" }, flexDirection: "column", alignItems: "center", width: 300, flexShrink: 0, mr: { md: 6, lg: 10 } }}>
+        <Box aria-hidden="true" className="aura-orb" sx={{ width: 220, mb: 5 }} />
+        <Typography level="h3" sx={{ maxWidth: 320, fontSize: { md: "1.8rem", lg: "2rem" }, fontWeight: 400, letterSpacing: "-0.035em", lineHeight: 1.2, textAlign: "center" }}>A journal for what you feel and believe.</Typography>
+      </Box>
       <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 3, sm: 5 }, width: "100%", maxWidth: 440, flexShrink: 0, boxSizing: "border-box" }}>
-        <Typography className="aura-eyebrow" color="neutral" sx={{ mb: 2 }}>Aura Logbook / Your own little universe</Typography>
-        {!showTitle && <Typography level="h1" sx={{ fontSize: "3rem", fontWeight: 400, letterSpacing: "-.05em", lineHeight: 1, mb: 3 }}>Make yourself at home.</Typography>}
-        {showTitle && (
-          <Box sx={{ mb: 3, textAlign: "center" }}>
-            <Typography level="h1" sx={{ fontSize: "3rem", fontWeight: 400, letterSpacing: "-0.05em", lineHeight: 1 }}>Welcome back · Sign in</Typography>
-            <Typography level="body-sm" color="neutral" sx={{ mt: 0.75 }}>A small pause can change the shape of a day.</Typography>
-          </Box>
-        )}
+        <Box sx={{ mb: 3, textAlign: showTitle ? "center" : "left" }}>
+          <Typography level="h1" sx={{ fontSize: { xs: "2.5rem", sm: "3rem" }, fontWeight: 400, letterSpacing: "-0.05em", lineHeight: 1 }}>Welcome back</Typography>
+        </Box>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
