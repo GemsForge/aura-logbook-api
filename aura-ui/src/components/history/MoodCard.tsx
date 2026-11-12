@@ -6,11 +6,11 @@ import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
 import dayjs from "dayjs";
 import { Link as RouterLink } from "react-router-dom";
+import { MoodTag } from "./MoodTag";
 import MarkdownReflection from "../MarkdownReflection";
 import MomentStrip from "./MomentStrip";
 import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
-import { MoodTag } from "@/components/history/MoodTag";
 
 /**
  * One reflection, read like a journal entry: a margin rule in the first mood's aura color, the logged time

@@ -45,8 +45,7 @@ namespace AuraLogbook.Api.Models.Dto
         public bool? AuraRevealsEnabled { get; set; }
         /// <summary>Optional temperature unit, "F" or "C"; omitted preserves the current unit.</summary>
         public string? TemperatureUnit { get; set; }
-        /// <summary>Stable key for the active pathway selected by the user.</summary>
-        [Required]
-        public string SelectedPathway { get; set; } = SpiritualPathwayKeys.Mindfulness;
+        /// <summary>Optional pathway change; omitting it preserves the user's saved pathway.</summary>
+        public string? SelectedPathway { get; set; }
 }
 }

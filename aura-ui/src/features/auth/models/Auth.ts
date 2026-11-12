@@ -55,7 +55,8 @@ export interface UpdateUserRequest {
   /** Omit to keep the saved birthday. */
   birthday?: string;
   avatar?: string; // base64 or image URL
-  selectedPathway: SpiritualPathway;
+  /** Omit for focused account updates so the saved pathway remains unchanged. */
+  selectedPathway?: SpiritualPathway;
   /** Optional aura reveals toggle (#344); omit to keep the saved value. */
   auraRevealsEnabled?: boolean;
   /** Optional for compatibility with clients that predate interface themes. */

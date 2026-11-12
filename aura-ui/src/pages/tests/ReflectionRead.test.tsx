@@ -2,7 +2,13 @@ import { screen, waitFor } from "@testing-library/react";
 import { Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../test/testUtilities";
+import { testReferenceData } from "../../test/referenceDataFixtures";
 import ReflectionRead from "../ReflectionRead";
+
+vi.mock("@/store/referenceDataApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/store/referenceDataApi")>();
+  return { ...actual, useGetReferenceDataQuery: () => ({ data: testReferenceData, isError: false }) };
+});
 
 vi.mock("@/api/MoodApi", () => ({
   MoodApi: {
@@ -26,6 +32,7 @@ describe("ReflectionRead", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Friday, October 9" })).toBeInTheDocument();
     expect(screen.getByText("Rest can be the thing I choose next.")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Moods" })).toHaveTextContent("Weary");
     expect(screen.getByText("58°F")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Earlier reflection, October 8" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "No later reflection" })).toBeDisabled();

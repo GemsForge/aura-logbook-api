@@ -12,9 +12,9 @@ import Typography from "@mui/joy/Typography";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { auraApi } from "@/store/auraApi";
+import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
 import { useCheckInWeather } from "@/hooks/useCheckInWeather";
-import { ThemeBanner } from "@/components/ui/ThemeBanner";
 
 /** Hosts a same-day mood entry with its creation time and compact journaling form. */
 export default function MoodEntryForm() {

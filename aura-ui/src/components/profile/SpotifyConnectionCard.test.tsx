@@ -1,6 +1,6 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAuthenticatedState, renderWithProviders } from "@/test/testUtilities";
 import type { SpotifyPlaylist } from "@/store/spotifyApi";
 import SpotifyConnectionCard from "./SpotifyConnectionCard";
@@ -13,10 +13,11 @@ const state = vi.hoisted(() => ({
   playlists: { data: { items: [] as SpotifyPlaylist[] }, isFetching: true, isError: false, refetch: vi.fn() },
   morePlaylists: { data: null as { items: SpotifyPlaylist[]; hasMore: boolean; nextOffset: number | null } | null, isFetching: false, isError: false, error: undefined as unknown },
   fetchMorePlaylists: vi.fn(),
+  invalidateTags: vi.fn(() => ({ type: "spotify/invalidate" })),
 }));
 
 vi.mock("@/store/spotifyApi", () => ({
-  spotifyApi: { util: { invalidateTags: () => ({ type: "spotify/invalidate" }), resetApiState: () => ({ type: "spotify/reset" }) } },
+  spotifyApi: { util: { invalidateTags: state.invalidateTags, resetApiState: () => ({ type: "spotify/reset" }) } },
   useGetSpotifyConnectionQuery: () => state.connection,
   useGetCurrentlyPlayingQuery: () => state.current,
   useGetSpotifyPlaylistsQuery: () => state.playlists,
@@ -42,6 +43,8 @@ describe("SpotifyConnectionCard", () => {
     state.morePlaylists.isError = false;
     state.morePlaylists.error = undefined;
   });
+
+  afterEach(() => vi.restoreAllMocks());
 
   it("distinguishes pending requests from empty playback and playlists", () => {
     renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
@@ -92,10 +95,54 @@ describe("SpotifyConnectionCard", () => {
 
   it("shows a failed sign-in request without an unhandled rejection", async () => {
     state.connection.data.connected = false;
+    const popup = { location: { href: "" }, close: vi.fn() } as unknown as Window;
+    vi.spyOn(window, "open").mockReturnValue(popup);
     state.connect.mockReturnValue({ unwrap: () => Promise.reject({ status: 503, data: { message: "Spotify is not available yet." } }) });
     renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
     await userEvent.click(screen.getByRole("button", { name: "Connect Spotify" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Spotify is not available yet.");
+  });
+
+  it("keeps Aura open and refreshes connection state after Spotify returns", async () => {
+    state.connection.data.connected = false;
+    state.connection.isFetching = false;
+    const popup = { location: { href: "" }, close: vi.fn() } as unknown as Window;
+    vi.spyOn(window, "open").mockReturnValue(popup);
+    state.connect.mockReturnValue({
+      unwrap: () => Promise.resolve({ authorizationUrl: "https://accounts.spotify.com/authorize?state=test" }),
+    });
+    renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
+
+    await userEvent.click(screen.getByRole("button", { name: "Connect Spotify" }));
+    expect(popup.location.href).toBe("https://accounts.spotify.com/authorize?state=test");
+
+    fireEvent(window, new MessageEvent("message", {
+      origin: "https://untrusted.example",
+      source: popup,
+      data: { type: "aura.spotify.oauth.complete", result: "connected" },
+    }));
+    expect(state.invalidateTags).not.toHaveBeenCalled();
+
+    fireEvent(window, new MessageEvent("message", {
+      origin: window.location.origin,
+      source: popup,
+      data: { type: "aura.spotify.oauth.complete", result: "connected" },
+    }));
+    expect(await screen.findByText("Spotify connected.")).toBeInTheDocument();
+    expect(state.invalidateTags).toHaveBeenCalledWith(["SpotifyConnection"]);
+    fireEvent(window, new Event("focus"));
+    expect(state.connection.refetch).toHaveBeenCalled();
+  });
+
+  it("explains when the browser blocks the Spotify authorization window", async () => {
+    state.connection.data.connected = false;
+    vi.spyOn(window, "open").mockReturnValue(null);
+    renderWithProviders(<SpotifyConnectionCard />, { preloadedState: createAuthenticatedState() });
+
+    await userEvent.click(screen.getByRole("button", { name: "Connect Spotify" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Your browser blocked the Spotify sign-in window.");
+    expect(state.connect).not.toHaveBeenCalled();
   });
 
   it("explains an expired callback and offers a fresh authorization", async () => {

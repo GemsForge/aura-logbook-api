@@ -94,4 +94,32 @@ public sealed class InterfaceModeTests
         Assert.Equal("Mindfulness", user.SelectedPathway); Assert.Equal(new DateOnly(1994,9,12), user.Birthday);
         Assert.Equal("C", user.TemperatureUnit); Assert.False(user.AuraRevealsEnabled); Assert.Equal("Keep me", user.Motto);
     }
+
+    /// <summary>Appearance-only updates do not depend on a pathway being present or active.</summary>
+    [Theory]
+    [InlineData("light")]
+    [InlineData("dark")]
+    [InlineData("system")]
+    public async Task Appearance_update_without_pathway_preserves_saved_pathway(string mode)
+    {
+        var user = new User { Id = 1, Email = "alex@example.test", InterfaceTheme = "Ocean", InterfaceMode = "light", SelectedPathway = "legacy-pathway" };
+        var repository = new Mock<IFileUserRepository>();
+        repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+        repository.Setup(r => r.UpdateAsync(user)).ReturnsAsync(true);
+        var reference = new Mock<IReferenceDataValidator>();
+        var service = new UserService(repository.Object, reference.Object);
+
+        var result = await service.UpdateUserAsync(new UpdateUserRequest
+        {
+            Id = 1,
+            Email = user.Email,
+            InterfaceMode = mode,
+        });
+
+        Assert.True(result.Success);
+        Assert.Equal(mode, user.InterfaceMode);
+        Assert.Equal("legacy-pathway", user.SelectedPathway);
+        reference.Verify(r => r.IsActivePathwayAsync(It.IsAny<string>()), Times.Never);
+        repository.Verify(r => r.UpdateAsync(user), Times.Once);
+    }
 }

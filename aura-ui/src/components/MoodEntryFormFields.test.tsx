@@ -90,7 +90,7 @@ describe("MoodEntryFormFields", () => {
         },
       },
     });
-    expect(screen.getByText("Prompt · Astrology & Energy")).toBeInTheDocument();
+    expect(screen.getByText("Prompt")).toBeInTheDocument();
     const prompt = screen.getByTestId("reflection-prompt");
     const initialPrompt = prompt.textContent;
 
