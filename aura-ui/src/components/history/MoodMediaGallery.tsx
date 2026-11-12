@@ -71,14 +71,14 @@ export default function MoodMediaGallery({ moodEntryId }: { moodEntryId: number 
   return (
     <Box component="section" aria-label="Private mood photos" sx={{ mt: 1 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, flexWrap: "wrap" }}>
-        <Typography level="title-sm">Photos</Typography>
+        
         <AuraButton
           variant="outlined"
           size="small"
           aria-expanded={expanded}
           onClick={() => setExpanded((current) => !current)}
         >
-          {expanded ? "Hide photos" : "View private photos"}
+          {expanded ? "Done" : "Manage photos"}
         </AuraButton>
         {expanded && attachments.length < 10 && (
           <AuraButton

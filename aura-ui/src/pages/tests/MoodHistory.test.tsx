@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderWithProviders } from "../../test/testUtilities";
@@ -62,7 +63,7 @@ const testData = {
     {
       id: 1,
       userId: 1,
-      date: "2025-06-18",
+      date: dayjs().format("YYYY-MM-DD"),
       moods: ["Harmonious", "Centered"] as MoodType[],
       comment: "Feeling grounded.",
       createdAt: "2025-06-18T14:38:13Z",
@@ -80,10 +81,10 @@ describe("MoodHistoryPage", () => {
    * Smoke test for the Mood History page.
    *
    * This test checks that the page can load without crashing, shows the main
-   * Mood History heading, displays the date filter controls, and renders at
+   * Reflections heading, displays the date filter controls, and renders at
    * least one mood card after the mocked mood history API call finishes.
    *
-   * The real MoodCard, date picker internals, delete dialog, and update modal
+   * The real MoodCard, delete dialog, and update modal
    * are not tested here. Those pieces are mocked so this test can stay focused
    * on whether the MoodHistoryPage itself shows up correctly.
    */
@@ -91,17 +92,17 @@ describe("MoodHistoryPage", () => {
     renderWithProviders(<MoodHistoryPage />);
 
     expect(
-      screen.getByRole("heading", { name: /mood history/i })
+      screen.getByRole("heading", { level: 1, name: /reflections/i })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/start date/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/end date/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /filter/i })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByTestId("mood-card")).toBeInTheDocument();
     });
 
     expect(screen.getByText(/feeling grounded/i)).toBeInTheDocument();
-    expect(mockedMoodApi.getAllMoods).toHaveBeenCalledWith(undefined, undefined);
+    // Month arrows replace the date-range form, so the page loads every entry once.
+    expect(mockedMoodApi.getAllMoods).toHaveBeenCalledWith();
+    // The latest reflection day opens by default and its entries show in the journal column.
+    expect(screen.getByRole("button", { name: /export 1 journal entries/i })).toBeInTheDocument();
   });
 });

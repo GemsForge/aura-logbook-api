@@ -15,14 +15,12 @@ const entry: MoodEntry = {
 };
 
 describe("MoodCard", () => {
-  it("renders the date, moods, and optional comment", () => {
+  it("renders the logged time, moods, and optional comment (the day heading carries the date)", () => {
     renderWithProviders(
       <MoodCard entry={entry} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
-    expect(screen.getByText(dayjs(entry.date).format("LL"))).toBeInTheDocument();
-    expect(screen.getByText(/Harmonious/)).toBeInTheDocument();
-    expect(screen.getByText(/Centered/)).toBeInTheDocument();
+    expect(screen.getByText(`${dayjs(entry.createdAt).format("h:mm A")} · Harmonious, Centered`)).toBeInTheDocument();
     expect(screen.getByText("Feeling grounded.")).toBeInTheDocument();
   });
 
@@ -38,5 +36,23 @@ describe("MoodCard", () => {
 
     expect(onEdit).toHaveBeenCalledWith(entry);
     expect(onDelete).toHaveBeenCalledWith(entry);
+  });
+});
+
+describe("MoodCard moment strip", () => {
+  it("lists captured song and weather as one keyboard stop that arrow keys move through", () => {
+    renderWithProviders(
+      <MoodCard
+        entry={{ ...entry, musicTrack: JSON.stringify({ name: "Holocene", artists: "Bon Iver" }), weatherSnapshot: JSON.stringify({ description: "clear sky", iconCode: "01d", temperature: 51, unit: "F" }) }}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+    const items = screen.getAllByRole("listitem");
+    expect(items.map((item) => item.tabIndex)).toEqual([0, -1]);
+    items[0].focus();
+    fireEvent.keyDown(items[0], { key: "ArrowRight" });
+    expect(items[1]).toHaveFocus();
+    expect(items[1]).toHaveAccessibleName("Weather: 51°F clear sky");
   });
 });

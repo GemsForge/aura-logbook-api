@@ -7,7 +7,7 @@ import IconButton from "@mui/joy/IconButton";
 import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import dayjs, { type Dayjs } from "dayjs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
@@ -51,12 +51,16 @@ export default function MoodCalendar({
   entries,
   selectedDate,
   onSelectDate,
+  onMonthChange,
 }: {
   entries: MoodEntry[];
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
+  /** Called with the first day of the month whenever the visible month changes, so page stats can follow it. */
+  onMonthChange?: (month: Dayjs) => void;
 }) {
   const [visibleMonth, setVisibleMonth] = useState(() => dayjs().startOf("month"));
+  useEffect(() => { onMonthChange?.(visibleMonth); }, [visibleMonth, onMonthChange]);
   const { data: seasons } = useGetAuraSeasonsQuery();
   const { data: referenceData } = useGetReferenceDataQuery();
   const today = dayjs().startOf("day");
