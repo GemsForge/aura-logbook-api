@@ -61,11 +61,12 @@ public class UserService : IUserService
     }
 
     /// <summary>
-    /// Updates user information.
+    /// Updates user information while preserving optional values omitted by focused account updates.
     /// </summary>
     public async Task<(bool Success, string Message)> UpdateUserAsync(UpdateUserRequest request)
     {
-        if (!await _referenceData.IsActivePathwayAsync(request.SelectedPathway))
+        if (!string.IsNullOrWhiteSpace(request.SelectedPathway) &&
+            !await _referenceData.IsActivePathwayAsync(request.SelectedPathway))
             return (false, "Select an active pathway.");
         if (request.AuraColor is not null && !await _referenceData.IsActiveAuraAsync(request.AuraColor))
             return (false, "Select an active aura color.");
@@ -105,7 +106,8 @@ public class UserService : IUserService
             existingUser.Motto = request.Motto.Trim();
         }
 
-        existingUser.SelectedPathway = request.SelectedPathway;
+        if (!string.IsNullOrWhiteSpace(request.SelectedPathway))
+            existingUser.SelectedPathway = request.SelectedPathway;
         // Normalize a legacy appearance once; subsequent family changes preserve the current mode.
         existingUser.InterfaceMode = InterfaceModeValues.Resolve(existingUser.InterfaceMode, existingUser.InterfaceTheme);
         existingUser.InterfaceTheme = InterfaceThemeValues.Resolve(existingUser.InterfaceTheme);

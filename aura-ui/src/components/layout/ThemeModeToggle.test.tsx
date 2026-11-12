@@ -39,12 +39,22 @@ describe("ThemeModeToggle", () => {
     const { store } = renderWithProviders(<ThemeModeToggle />, { preloadedState: { auth: { token: "token", isAuthenticated: true, profile } } });
     choose("Light");
     expect(selectInterfaceMode(store.getState() as RootState)).toBe("light");
-    expect(mocks.update).toHaveBeenCalledWith({ id: 9, email: profile.email, displayName: "Alex", selectedPathway: "Mindfulness", interfaceMode: "light" });
+    expect(mocks.update).toHaveBeenCalledWith({ id: 9, email: profile.email, displayName: "Alex", interfaceMode: "light" });
     expect(store.getState().auth.profile).toEqual(profile);
     await act(async () => { reject(new Error("offline")); });
     expect(selectInterfaceMode(store.getState() as RootState)).toBe("dark");
     expect(screen.getByRole("alert")).toHaveTextContent("previous mode has been restored");
     expect(store.getState().auth.profile).toEqual(profile);
+  });
+  it.each(["Light", "Dark", "Use device setting"])("saves %s without coupling the request to a pathway", async (label) => {
+    mocks.update.mockReturnValue({ unwrap: () => Promise.resolve() });
+    const profileWithoutPathway = { ...profile, interfaceMode: label === "Dark" ? "light" : "dark", selectedPathway: undefined };
+    renderWithProviders(<ThemeModeToggle />, { preloadedState: { auth: { token: "token", isAuthenticated: true, profile: profileWithoutPathway } } });
+
+    choose(label);
+
+    const expectedMode = label === "Use device setting" ? "system" : label.toLowerCase();
+    expect(mocks.update).toHaveBeenCalledWith({ id: 9, email: profile.email, displayName: "Alex", interfaceMode: expectedMode });
   });
   it("hands a successful preview over to the saved profile", async () => {
     let resolve!: () => void;

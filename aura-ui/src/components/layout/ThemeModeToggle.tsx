@@ -37,7 +37,7 @@ export function ThemeModeToggle({ disabled = false }: {
     dispatch(setPendingInterfaceMode(value));
     try {
       await updateUser({ id: user.id, email: user.email, displayName: user.displayName,
-        selectedPathway: user.selectedPathway, interfaceMode: value }).unwrap();
+        interfaceMode: value }).unwrap();
     } catch {
       setError("Could not save your screen mode. Your previous mode has been restored. Try again.");
     } finally { dispatch(setPendingInterfaceMode(null)); }
