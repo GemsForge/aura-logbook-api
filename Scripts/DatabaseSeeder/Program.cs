@@ -85,7 +85,8 @@ foreach (var user in users)
     command.Parameters.AddWithValue("$passwordHash", user.PasswordHash);
     command.Parameters.AddWithValue("$displayName", (object?)user.DisplayName ?? DBNull.Value);
     command.Parameters.AddWithValue("$birthday", NormalizeBirthday(user.Birthday) ?? (object)DBNull.Value);
-    command.Parameters.AddWithValue("$zodiacSign", (object?)user.ZodiacSign ?? DBNull.Value);
+    // ZodiacSigns.SignKey is lowercase; legacy users.json stores display-cased names, so normalize to satisfy the foreign key.
+    command.Parameters.AddWithValue("$zodiacSign", string.IsNullOrWhiteSpace(user.ZodiacSign) ? DBNull.Value : user.ZodiacSign.Trim().ToLowerInvariant());
     command.Parameters.AddWithValue("$auraColor", string.IsNullOrWhiteSpace(user.AuraColor) ? "blue" : user.AuraColor.ToLowerInvariant());
     command.Parameters.AddWithValue("$auraIntensity", NormalizeIntensity(user.AuraIntensity));
     command.Parameters.AddWithValue("$avatar", (object?)user.Avatar ?? DBNull.Value);
@@ -142,17 +143,25 @@ static async Task<int> CountAsync(SqliteConnection connection, string table)
     return Convert.ToInt32(await command.ExecuteScalarAsync());
 }
 
+// Legacy moods.json stores moods as ordinals of the former MoodType enum; this array preserves that exact order.
+static string[] LegacyMoodKeys() =>
+[
+    MoodType.Empowered, MoodType.Centered, MoodType.Harmonious, MoodType.Flowing, MoodType.Weary,
+    MoodType.Tense, MoodType.Frustrated, MoodType.Restless, MoodType.Disconnected, MoodType.Heavy,
+    MoodType.Charged, MoodType.Scattered, MoodType.Abundant, MoodType.Visionary, MoodType.Neutral,
+];
+
 static async Task<int> SeedMoodsAsync(SqliteConnection connection, string path, IReadOnlyDictionary<int, int> userIdMap)
 {
     var entries = JsonSerializer.Deserialize<List<LegacyMood>>(await File.ReadAllTextAsync(path), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
     await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync();
-    foreach (var mood in Enum.GetValues<MoodType>())
+    foreach (var mood in LegacyMoodKeys())
     {
         await using var definition = connection.CreateCommand();
         definition.Transaction = transaction;
         definition.CommandText = "INSERT INTO MoodDefinitions (MoodKey, DisplayName) VALUES ($key, $name) ON CONFLICT(MoodKey) DO NOTHING;";
-        definition.Parameters.AddWithValue("$key", mood.ToString());
-        definition.Parameters.AddWithValue("$name", mood.ToString());
+        definition.Parameters.AddWithValue("$key", mood);
+        definition.Parameters.AddWithValue("$name", mood);
         await definition.ExecuteNonQueryAsync();
     }
     foreach (var entry in entries)
@@ -173,12 +182,12 @@ static async Task<int> SeedMoodsAsync(SqliteConnection connection, string path, 
         await command.ExecuteNonQueryAsync();
         foreach (var moodValue in entry.Moods.Distinct())
         {
-            if (!Enum.IsDefined(typeof(MoodType), moodValue)) throw new InvalidOperationException($"Unknown mood value {moodValue}.");
+            if (moodValue < 0 || moodValue >= LegacyMoodKeys().Length) throw new InvalidOperationException($"Unknown mood value {moodValue}.");
             await using var pair = connection.CreateCommand();
             pair.Transaction = transaction;
             pair.CommandText = "INSERT INTO MoodEntryMoods (MoodEntryId, MoodKey) VALUES ($entryId, $moodKey) ON CONFLICT DO NOTHING;";
             pair.Parameters.AddWithValue("$entryId", entry.Id);
-            pair.Parameters.AddWithValue("$moodKey", ((MoodType)moodValue).ToString());
+            pair.Parameters.AddWithValue("$moodKey", LegacyMoodKeys()[moodValue]);
             await pair.ExecuteNonQueryAsync();
         }
     }
