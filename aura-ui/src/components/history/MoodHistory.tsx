@@ -17,9 +17,9 @@ import { MoodCard } from "./MoodCard";
 import { downloadJournalExport } from "@/features/mood/utils/journalExport";
 import MoodCalendar from "./MoodCalendar";
 import { ThemeBanner } from "@/components/ui/ThemeBanner";
+import StatCard from "@/components/ui/StatCard";
 import { liveliestTime } from "@/features/insights/insightMetrics";
 import { computeCheckInStreak } from "@/features/mood/moodPatternSummary";
-import { getAccessibleTextColor } from "@/theme/auraTheme";
 import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 
@@ -103,7 +103,6 @@ export default function MoodHistoryPage() {
   const topMoodAura = referenceData?.auras.find((aura) => aura.key === topMoodDefinition?.auraColorKeys[0]);
   const topMoodColor = topMoodAura?.shades?.[500] ?? topMoodAura?.baseHex ?? "var(--al-theme-primary)";
   const topMoodSurface = topMoodAura?.shades?.[100] ?? topMoodAura?.baseHex;
-  const topMoodInk = topMoodSurface ? getAccessibleTextColor(topMoodSurface) : "var(--al-theme-ink)";
 
   return (
     <Box className="signed-in-content" maxWidth={1100} mx="auto">
@@ -127,26 +126,12 @@ export default function MoodHistoryPage() {
       {!loading && !failed && logs.length > 0 && (
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.05fr) minmax(0, 1fr)" }, gap: 2, alignItems: "start", mb: 2 }}>
           <Box sx={{ display: "grid", gap: 1.5, minWidth: 0, "& .signed-in-calendar": { mb: 0 } }}>
-            {/* Compact stat strips: small label above a one-line value + inline caption, roughly half the old card height on phone and desktop. */}
-            {/* Stat cards are plain content, not labeled regions, so they add no landmarks (WCAG 1.3.1). */}
+                        {/* Stat cards are plain content, not labeled regions, so they add no landmarks (WCAG 1.3.1). */}
             <Box sx={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 1 }}>
-              <Sheet sx={{ px: 1.25, py: .75, minWidth: 0, borderRadius: "lg", border: "1px solid var(--al-theme-border)", background: topMood ? (topMoodSurface ?? "var(--al-theme-surface-raised)") : "var(--al-theme-surface-raised)", color: topMood ? topMoodInk : undefined }}>
-                <Typography level="body-xs" sx={{ color: "inherit", opacity: .78, lineHeight: 1.3 }}>Top mood · {visibleMonth.format("MMMM")}</Typography>
-                <Box sx={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", columnGap: .75 }}>
-                  <Typography sx={{ color: "inherit", fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.1rem", lineHeight: 1.2, overflowWrap: "anywhere" }}>{topMood?.mood ?? "—"}</Typography>
-                  <Typography level="body-xs" sx={{ color: "inherit", opacity: .78 }}>{topMood ? `${topMood.count} of ${topMood.totalDays} days` : "No check-ins this month"}</Typography>
-                </Box>
-              </Sheet>
-              <Sheet sx={{ px: 1.25, py: .75, minWidth: 0, borderRadius: "lg", border: "1px solid var(--al-theme-border)", background: "var(--al-theme-surface-raised)" }}>
-                <Typography level="body-xs" color="neutral" sx={{ lineHeight: 1.3 }}>Streak</Typography>
-                <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", columnGap: .75 }}>
-                  <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.1rem", lineHeight: 1.2 }}>{streak} {streak === 1 ? "day" : "days"}</Typography>
-                  {/* Decorative 6px dots sit inline after the value so they add no extra row. */}
-                  <Box aria-hidden="true" sx={{ display: "flex", gap: .375 }}>
-                    {Array.from({ length: Math.min(streak, 7) }, (_, index) => <Box key={index} component="span" sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: topMoodColor }} />)}
-                  </Box>
-                </Box>
-              </Sheet>
+              <StatCard label={`Top mood · ${visibleMonth.format("MMMM")}`} value={topMood?.mood ?? "—"} tone={topMood ? topMoodSurface : undefined}
+                caption={topMood ? `${topMood.count} of ${topMood.totalDays} days` : "No check-ins this month"} />
+              <StatCard label="Streak" value={`${streak} ${streak === 1 ? "day" : "days"}`}
+                adornment={<Box aria-hidden="true" sx={{ display: "flex", gap: .375 }}>{Array.from({ length: Math.min(streak, 7) }, (_, index) => <Box key={index} component="span" sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: topMoodColor }} />)}</Box>} />
             </Box>
             <MoodCalendar entries={logs} selectedDate={activeDate} onSelectDate={setSelectedDate} onMonthChange={onMonthChange} />
           </Box>

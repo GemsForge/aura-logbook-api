@@ -25,11 +25,14 @@ vi.mock("../../store/auraApi", () => ({
 
 /** The Insights page owns the pattern summary and breakdown that used to sit at the bottom of Today. */
 describe("Insights", () => {
-  it("shows top mood and mood mix without celestial content on the mindful pathway", () => {
+  it("shows average energy and mood mix without celestial content on the mindful pathway", () => {
     pathway.selectedPathway = "Mindfulness";
     renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
     expect(screen.getByRole("heading", { level: 1, name: "Insights" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: /top mood this week: centered/i })).toBeInTheDocument();
+    // Average energy replaces top mood on Insights; one Centered (energy 3) check-in averages 3.0.
+    expect(screen.getByText("Average energy")).toBeInTheDocument();
+    expect(screen.getByText("3.0")).toBeInTheDocument();
+    expect(screen.queryByText("Top mood")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Mood mix" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Insights period" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Aura ribbon" })).toBeInTheDocument();

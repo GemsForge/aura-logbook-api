@@ -70,7 +70,8 @@ export default function AuraRibbon({ points, colorFor, labels }: AuraRibbonProps
           const area = `${line} L${last(xy)![0] + (xy.length === 1 ? 6 : 0)},${BASE + 6} L${xy[0][0] - (xy.length === 1 ? 6 : 0)},${BASE + 6} Z`;
           return (
             <g key={`seg-${index}`}>
-              <path d={area} fill={`url(#${gradientId})`} opacity={0.45} />
+              {/* A lone check-in has no span to fill, so it draws only its point and a short tick, not a bar. */}
+              {xy.length > 1 && <path d={area} fill={`url(#${gradientId})`} opacity={0.45} />}
               <path d={line} fill="none" stroke={`url(#${gradientId})`} strokeWidth={3} strokeLinecap="round" />
             </g>
           );

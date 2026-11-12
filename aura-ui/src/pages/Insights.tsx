@@ -8,11 +8,11 @@ import WbSunnyOutlined from "@mui/icons-material/WbSunnyOutlined";
 import MusicNoteOutlined from "@mui/icons-material/MusicNoteOutlined";
 import PhotoOutlined from "@mui/icons-material/PhotoOutlined";
 import BedtimeOutlined from "@mui/icons-material/BedtimeOutlined";
-import { MoodIcon } from "@/components/mood/MoodIcon";
 import { ThemeBanner } from "@/components/ui/ThemeBanner";
+import StatCard from "@/components/ui/StatCard";
 import AuraRibbon from "@/components/insights/AuraRibbon";
 import {
-  averageEnergy, checkInDays, energyFactors, entriesInRange, moodCounts, periodRange, previousRange, ribbonPoints, topMood,
+  averageEnergy, checkInDays, energyFactors, entriesInRange, moodCounts, periodRange, previousRange, ribbonPoints,
   type EnergyFactor, type InsightPeriod,
 } from "@/features/insights/insightMetrics";
 import { computeCheckInStreak } from "@/features/mood/moodPatternSummary";
@@ -56,7 +56,6 @@ export default function Insights() {
   const range = periodRange(period);
   const current = entriesInRange(entries, range);
   const previous = entriesInRange(entries, previousRange(period, range));
-  const top = topMood(current);
   const mix = moodCounts(current);
   const energy = averageEnergy(current, moods);
   const previousEnergy = averageEnergy(previous, moods);
@@ -73,7 +72,9 @@ export default function Insights() {
     <Box className="signed-in-content" sx={{ maxWidth: 960, mx: "auto" }}>
       <ThemeBanner title="Insights" description={`Your energy and moods for ${range.label}.`} illustration="insights" />
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <ToggleButtonGroup aria-label="Insights period" value={period} onChange={(_, value) => value && setPeriod(value)} variant="soft" sx={{ borderRadius: 999, "& button": { borderRadius: 999, minHeight: 40, px: 2.25 } }}>
+        <ToggleButtonGroup aria-label="Insights period" value={period} onChange={(_, value) => value && setPeriod(value)} variant="soft" sx={{ borderRadius: 999, "& button": { borderRadius: 999, minHeight: 36, px: 2, color: "var(--al-theme-ink)" },
+            // Selected period inverts ink and surface so it stays legible in light and dark themes.
+            "& button[aria-pressed='true']": { bgcolor: "var(--al-theme-ink)", color: "var(--al-theme-surface)" } }}>
           <Button value="week">Week</Button>
           <Button value="month">Month</Button>
           <Button value="year">Year</Button>
@@ -83,19 +84,15 @@ export default function Insights() {
       {entries.length === 0 ? (
         <Sheet className="aura-panel" sx={{ p: 2.5 }}>
           <Typography level="title-md">Your first check-in starts this page.</Typography>
-          <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Your top mood, streak, and aura ribbon show up here.</Typography>
+          <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Your average energy, streak, and aura ribbon show up here.</Typography>
         </Sheet>
       ) : (
-        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr 1fr", md: "2fr 1fr 1fr" } }}>
-          {/* The one bold element: the top mood, washed in its own aura color. */}
-          <Sheet component="section" aria-label={top ? `Top mood this ${PERIOD_WORD[period]}: ${top.mood}, ${top.count} of ${top.total}` : "Top mood"} sx={{ gridColumn: { xs: "1 / -1", md: "auto" }, p: 2.25, borderRadius: "xl", position: "relative", overflow: "hidden", border: "1px solid var(--aura-line)", background: top ? `color-mix(in oklab, ${colorFor(top.mood)} 30%, var(--al-theme-surface, transparent))` : undefined }}>
-            <Typography level="body-sm" color="neutral">Top mood</Typography>
-            {top ? <>
-              <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "2.3rem", sm: "2.7rem" }, lineHeight: 1.05, mt: .5 }}>{top.mood}</Typography>
-              <Typography level="body-sm" sx={{ mt: .5 }}>{top.count} of {top.total} {top.total === 1 ? "mood" : "moods"} logged</Typography>
-              <Box aria-hidden="true" sx={{ position: "absolute", right: 16, bottom: 10 }}><MoodIcon icon={moods.find((definition) => definition.key === top.mood)?.icon} size={64} /></Box>
-            </> : <Typography level="title-lg" sx={{ mt: .5 }}>No check-ins this {PERIOD_WORD[period]} yet</Typography>}
-          </Sheet>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(3, minmax(0, 1fr))" } }}>
+          {/* Stat row: average energy replaces top mood here (Reflections already shows top mood); all three share StatCard. */}
+          <Box sx={{ gridColumn: { xs: "1 / -1", sm: "auto" }, minWidth: 0 }}>
+            <StatCard label="Average energy" value={energy !== null ? energy.toFixed(1) : "—"} unit={energy !== null ? "/ 5" : undefined} tone={energy !== null ? "#c8ecc0" : undefined}
+              caption={energy === null ? `No check-ins this ${PERIOD_WORD[period]} yet` : previousEnergy !== null ? `${formatDelta(energy - previousEnergy)} vs last ${PERIOD_WORD[period]}` : undefined} />
+          </Box>
           <StatCard label="Streak" value={`${streak} ${streak === 1 ? "day" : "days"}`} caption={streak > 0 ? "in a row" : "Starts with your next check-in"} />
           <StatCard label="Check-ins" value={`${days} of ${range.elapsedDays}`} caption="days" />
 
@@ -107,15 +104,7 @@ export default function Insights() {
             <AuraRibbon points={ribbonPoints(period, entries, range, moods)} colorFor={colorFor} labels={axisLabels} />
           </Sheet>
 
-          {energy !== null && (
-            <Sheet component="section" aria-label={`Average energy ${energy.toFixed(1)} of 5`} sx={{ gridColumn: { xs: "1 / -1", md: "span 1" }, p: 2, borderRadius: "xl", border: "1px solid var(--aura-line)", background: "color-mix(in oklab, #2e7d5b 30%, var(--al-theme-surface, transparent))" }}>
-              <Typography level="body-sm" color="neutral">Average energy</Typography>
-              <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "2rem", lineHeight: 1.1, mt: .5 }}>{energy.toFixed(1)}<Typography level="body-md" color="neutral"> / 5</Typography></Typography>
-              {previousEnergy !== null && <Typography level="body-xs" sx={{ mt: .25 }}>{formatDelta(energy - previousEnergy)} vs last {PERIOD_WORD[period]}</Typography>}
-            </Sheet>
-          )}
-
-          <Sheet component="section" aria-labelledby="mix-title" className="aura-panel" sx={{ gridColumn: { xs: "1 / -1", md: energy !== null ? "span 2" : "1 / -1" }, p: 2 }}>
+          <Sheet component="section" aria-labelledby="mix-title" className="aura-panel" sx={{ gridColumn: "1 / -1", p: 2 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <Typography id="mix-title" component="h2" level="title-md">Mood mix</Typography>
               <Typography level="body-xs" color="neutral">{mix.reduce((sum, [, count]) => sum + count, 0)} moods</Typography>
@@ -179,16 +168,5 @@ function FactorRow({ factor }: { factor: EnergyFactor }) {
         <Box sx={{ height: "100%", width: `${Math.max(8, Math.min(100, (Math.abs(factor.delta) / 2) * 100))}%`, bgcolor: factor.delta < -0.2 ? "#f48fb1" : same ? "var(--aura-line)" : "var(--al-theme-ink, #e8e9f3)", borderRadius: 99 }} />
       </Box>
     </Box>
-  );
-}
-
-/** A small stat: label, a large value, and one quiet caption. */
-function StatCard({ label, value, caption }: { label: string; value: string; caption: string }) {
-  return (
-    <Sheet component="section" aria-label={`${label}: ${value} ${caption}`} className="aura-panel" sx={{ p: 2 }}>
-      <Typography level="body-sm" color="neutral">{label}</Typography>
-      <Typography sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.9rem", lineHeight: 1.1, mt: .5 }}>{value}</Typography>
-      <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>{caption}</Typography>
-    </Sheet>
   );
 }
