@@ -12,11 +12,14 @@ import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { normalizeSpiritualPathway } from "@/features/auth/models/SpiritualPathway";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
+import { useCheckInWeather } from "@/hooks/useCheckInWeather";
 
 /** Hosts mood creation in a compact card while preserving the circular mood selector. */
 export default function MoodEntryForm() {
   // The banner shows the user's own pathway thumbnail when they have chosen a pathway.
-  const pathway = normalizeSpiritualPathway(useAppSelector(selectCurrentUser)?.selectedPathway);
+  const currentUser = useAppSelector(selectCurrentUser);
+  const pathway = normalizeSpiritualPathway(currentUser?.selectedPathway);
+  const checkInWeather = useCheckInWeather(currentUser);
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +48,7 @@ export default function MoodEntryForm() {
       if (moodEntryId === null) {
         setSaveFailed(false);
         setFeedback({ message: "Saving your check-in…", role: "status" });
-        const createdEntry = await MoodApi.logMood(data);
+        const createdEntry = await MoodApi.logMood({ ...data, weather: checkInWeather });
         moodEntryId = createdEntry.id;
         setSavedMoodId(moodEntryId);
         nextPhotoStatuses = photos.map(() => "pending");
