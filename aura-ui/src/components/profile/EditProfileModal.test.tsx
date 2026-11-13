@@ -11,6 +11,13 @@ const { mockGetCurrentUser, mockUpdateUser, mockUnwrap, mockGetReferenceData } =
   mockGetReferenceData: vi.fn(),
 }));
 
+// The preset catalog is local; profile tests never send birth details to a location service.
+vi.mock("countrycitystatejson/client", () => ({
+  getCountries: () => [{ name: "United States", shortName: "US" }],
+  getStatesByShort: () => ["Illinois"],
+  getCities: async () => ["Chicago"],
+}));
+
 vi.mock("@/store/authApi", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/store/authApi")>();
   return {
@@ -61,11 +68,17 @@ describe("EditProfileModal", () => {
     expect(mockUpdateUser).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("Birth time"), { target: { value: "08:30" } });
-    fireEvent.change(screen.getByLabelText("Birthplace"), { target: { value: "Chicago, US" } });
+    await user.click(screen.getByRole("combobox", { name: "Birth country" }));
+    await user.click(screen.getByRole("option", { name: "United States" }));
+    await user.click(screen.getByRole("combobox", { name: "Birth state or region" }));
+    await user.click(screen.getByRole("option", { name: "Illinois" }));
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Birth city" })).toBeEnabled());
+    await user.click(screen.getByRole("combobox", { name: "Birth city" }));
+    await user.click(screen.getByRole("option", { name: "Chicago" }));
     await user.click(screen.getByRole("button", { name: "Save Changes" }));
     await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({
       selectedPathway: "energy",
-      pathwayPreferences: expect.objectContaining({ saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, US" }),
+      pathwayPreferences: expect.objectContaining({ saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, Illinois, US" }),
     })));
   });
 

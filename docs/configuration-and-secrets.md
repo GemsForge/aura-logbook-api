@@ -223,3 +223,13 @@ Do not commit:
 - Access or refresh tokens
 
 If a secret is accidentally committed, revoke or rotate it immediately and remove it from the repository history through the project's approved remediation process.
+
+### Preset birthplace selections
+
+Profile → My Pathway → Astrology & Energy uses country, state/region, and city
+choices instead of a free-text birthplace. The UI stores `City, Full state/region
+name, Country code` in the existing profile field after the explicit save action.
+Changing country clears the downstream region/city; changing region clears city.
+Older saved birthplace strings remain supported and are preserved until the user
+chooses a replacement. The preset catalog does not replace the chart provider's
+unique-location validation. See [dependency provenance](../DEPENDENCIES.md#preset-birth-locations).
