@@ -8,6 +8,7 @@ export type PathwayActivityContent =
   | { practice: string; durationMinutes?: number; note?: string }
   | { practices: Record<string, boolean>; note?: string }
   | { practiceKeys: string[] }
+  | { insightType: string; prompt: string; responseText: string }
   | { insightType: string; response: InsightFeedbackValue };
 
 /** Private user activity returned by the pathway-activity API. */

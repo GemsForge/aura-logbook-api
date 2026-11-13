@@ -24,6 +24,7 @@ import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppDispatch } from "@/store/hooks";
 import { auraApi } from "@/store/auraApi";
+import { PathwayReflectionJournal } from "@/features/pathways/components/PathwayReflectionJournal";
 
 /** Counts moods by distinct check-in day so a busy day does not outweigh quieter days. */
 function topMoodByDay(entries: MoodEntry[]) {
@@ -158,6 +159,8 @@ export default function MoodHistoryPage() {
           </Sheet>
         </Box>
       )}
+
+      <PathwayReflectionJournal />
 
       {entryToEdit && <MoodUpdateModal entry={entryToEdit} onClose={() => setEntryToEdit(null)} onSuccess={fetchLogs} />}
       {entryToDelete && <DeleteConfirmDialog entry={entryToDelete} onClose={() => setEntryToDelete(null)} onConfirm={handleDelete} />}

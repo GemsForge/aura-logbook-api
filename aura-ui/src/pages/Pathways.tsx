@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import FormControl from "@mui/joy/FormControl";
@@ -42,7 +42,7 @@ export default function Pathways() {
   const { data: zodiac, isLoading: zodiacLoading } = useGetZodiacInsightQuery(undefined, { skip: !hasZodiac });
   const chakraEnabled = pathway === "energy" && (focus.includes("chakra-reference") || focus.includes("chakras"));
   const { data: referenceData, isLoading: chakraLoading, isError: chakraError } = useGetReferenceDataQuery(undefined, { skip: !chakraEnabled });
-  const chakras = referenceData?.chakras ?? [];
+  const chakras = useMemo(() => referenceData?.chakras ?? [], [referenceData?.chakras]);
   const chakraMoodPeriod = getRecentLocalDateRange(14);
   const { data: moodData } = useGetAllMoodsQuery(chakraMoodPeriod, { skip: !chakraEnabled });
   // moodApi's hook is loosely typed on master; pin the entry shape this view relies on.
