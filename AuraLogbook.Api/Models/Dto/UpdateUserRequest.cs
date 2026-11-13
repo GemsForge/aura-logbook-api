@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AuraLogbook.Api.Models;
 
 namespace AuraLogbook.Api.Models.Dto
 {
@@ -47,5 +48,7 @@ namespace AuraLogbook.Api.Models.Dto
         public string? TemperatureUnit { get; set; }
         /// <summary>Optional pathway change; omitting it preserves the user's saved pathway.</summary>
         public string? SelectedPathway { get; set; }
+        /// <summary>Optional saved pathway preferences; birth details are accepted only with explicit consent.</summary>
+        public PathwayPreferences? PathwayPreferences { get; set; }
 }
 }

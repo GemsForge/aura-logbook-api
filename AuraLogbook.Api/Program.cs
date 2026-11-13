@@ -14,6 +14,7 @@ using AuraLogbook.Api.Services.Spotify;
 using AuraLogbook.Api.Services.Email;
 using AuraLogbook.Api.Services.PasswordReset;
 using AuraLogbook.Api.Services.Faith;
+using AuraLogbook.Api.Services.Astrology;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -52,6 +53,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddCors();
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
+builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
+// Prefer the documented deployment secret name while retaining ASP.NET's section-based alias.
+builder.Services.PostConfigure<FreeAstroApiOptions>(options =>
+    options.ApiKey = builder.Configuration["FREE_ASTRO_API_KEY"] ?? options.ApiKey);
+builder.Services.Configure<AstrologyApiOptions>(builder.Configuration.GetSection(AstrologyApiOptions.SectionName));
 builder.Services.AddDataProtection();
 // Bound Spotify calls so a slow provider returns a recoverable error to the card.
 builder.Services.AddHttpClient("Spotify", client => client.Timeout = TimeSpan.FromSeconds(10));
@@ -85,6 +91,7 @@ builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddSingleton<JsonUserSeeder>();
 builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
+builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 
 // Repositories
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
@@ -135,6 +142,12 @@ builder.Services.AddSingleton<ISacredTextProvider, ApiBibleProvider>();
 builder.Services.AddSingleton<ISacredTextProvider, QuranProvider>();
 builder.Services.AddSingleton<ISacredTextProvider, SefariaProvider>();
 builder.Services.AddSingleton<SacredTextService>();
+// #373: FreeAstroAPI daily sign reading and moon-phase lookups; the key stays server-side and
+// one shared pacer keeps both services within the provider's free-tier request rate.
+builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
+builder.Services.AddSingleton<FreeAstroApiRequestPacer>();
+builder.Services.AddHttpClient<IMoonPhaseMoodInsightsService, FreeAstroMoonPhaseMoodInsightsService>();
+builder.Services.AddHttpClient<IDailyHoroscopeService, FreeAstroDailyHoroscopeService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IPasswordResetTokenRepository, SqlitePasswordResetTokenRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();

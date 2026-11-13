@@ -14,11 +14,20 @@ public sealed class PathwayPreferences
     /// <summary>Mindful Living check-in opener: <c>none</c>, <c>three-breaths</c> or <c>one-minute</c>.</summary>
     public string? CheckInOpener { get; set; }
 
+    /// <summary>True only when the user explicitly opts to retain birth time and birthplace for chart refreshes.</summary>
+    public bool SaveBirthDetails { get; set; }
+
+    /// <summary>Optional local birth time, retained only with explicit chart-detail consent.</summary>
+    public string? BirthTime { get; set; }
+
+    /// <summary>Optional birthplace label, retained only with explicit chart-detail consent.</summary>
+    public string? BirthPlace { get; set; }
+
     /// <summary>Focus keys each pathway's page offers.</summary>
     public static readonly IReadOnlyDictionary<SpiritualPathway, IReadOnlySet<string>> AllowedFocus =
         new Dictionary<SpiritualPathway, IReadOnlySet<string>>
         {
-            [SpiritualPathway.Energy] = new HashSet<string> { "moon-phases", "my-sign", "chakras", "crystals" },
+            [SpiritualPathway.Energy] = new HashSet<string> { "daily-astrology", "moon-phases", "my-sign", "chakras", "crystals" },
             [SpiritualPathway.Faith] = new HashSet<string> { "verse", "prayer", "reflection-question" },
             [SpiritualPathway.Mindfulness] = new HashSet<string> { "calm", "rest", "clarity", "gratitude", "self-kindness", "focus" },
         };
@@ -44,6 +53,14 @@ public sealed class PathwayPreferences
             return "Choose up to two intentions.";
         if (CheckInOpener is not null && (pathway != SpiritualPathway.Mindfulness || !AllowedOpeners.Contains(CheckInOpener)))
             return "Check-in openers are a Mindful Living choice: none, three-breaths or one-minute.";
+        if (BirthTime is { Length: > 16 } || BirthPlace is { Length: > 160 })
+            return "Birth details exceed the supported length.";
+        if (SaveBirthDetails && pathway != SpiritualPathway.Energy)
+            return "Saved birth details are available only for Astrology & Energy.";
+        if (SaveBirthDetails && (string.IsNullOrWhiteSpace(BirthTime) || string.IsNullOrWhiteSpace(BirthPlace)))
+            return "Provide both birth time and birthplace when choosing to save chart details.";
+        if (!SaveBirthDetails && (BirthTime is not null || BirthPlace is not null))
+            return "Choose to save birth details before providing them.";
         return null;
     }
 }
