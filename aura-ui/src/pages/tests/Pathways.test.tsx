@@ -51,14 +51,14 @@ describe("Pathways hub (#385)", () => {
     renderAt("/pathways", "mindfulness", ["practice-log"]);
 
     expect(screen.getByRole("heading", { name: "Practice log" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "A practical guide to mindfulness" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Mindfulness, in practice" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Sacred texts" })).not.toBeInTheDocument();
   });
 
   it("opens a single module from its navigation route", () => {
     renderAt("/pathways/mindfulness-guide", "mindfulness", ["mindfulness-guide", "practice-log"]);
 
-    expect(screen.getByRole("heading", { name: "A practical guide to mindfulness" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Mindfulness, in practice" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Practice log" })).not.toBeInTheDocument();
   });
 });
