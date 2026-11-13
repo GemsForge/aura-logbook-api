@@ -50,7 +50,8 @@ export function pathwayModuleKey(pathway?: string | null): keyof typeof PATHWAY_
 
 /**
  * Enables the current modules for profiles created before module preferences existed.
- * An explicit empty list stays off; old mindfulness intentions remain alongside the guide/log.
+ * An explicit empty list stays off. Old intention-only lists become module choices on the next save,
+ * so turning both new modules off cannot accidentally reactivate their legacy defaults.
  */
 export function resolvePathwayFocus(pathway: string | null | undefined, focus?: readonly string[] | null): string[] {
   const key = pathwayModuleKey(pathway);
@@ -59,6 +60,6 @@ export function resolvePathwayFocus(pathway: string | null | undefined, focus?: 
   if (focus == null) return defaults;
   const legacyIntentions = new Set(["calm", "rest", "clarity", "gratitude", "self-kindness", "focus"]);
   if (key === "mindfulness" && focus.length > 0 && focus.every((item) => legacyIntentions.has(item)))
-    return [...focus, ...defaults];
+    return defaults;
   return [...focus];
 }

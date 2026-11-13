@@ -95,6 +95,18 @@ describe("EditProfileModal", () => {
     })));
   });
 
+  it("lets a legacy mindful profile explicitly turn off both default modules", async () => {
+    mockGetCurrentUser.mockReturnValue({ data: { ...baseUser, selectedPathway: "mindfulness", pathwayPreferences: { focus: ["calm", "rest"] } }, isFetching: false });
+    renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("tab", { name: "My Pathway" }));
+    fireEvent.click(screen.getByLabelText("Show Mindful Living"));
+    fireEvent.click(screen.getByLabelText("Show Practice log"));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({
+      pathwayPreferences: expect.objectContaining({ focus: [] }),
+    })));
+  });
+
   it.each([
     { status: 400, data: "Provide both birth time and birthplace when choosing to save chart details." },
     { status: "PARSING_ERROR", originalStatus: 400, data: "Provide both birth time and birthplace when choosing to save chart details." },

@@ -4,7 +4,7 @@ import { resolvePathwayFocus } from "./pathwayResources";
 describe("module availability for existing profiles", () => {
   it("enables Mindful Living for older profiles without module preferences", () => {
     expect(resolvePathwayFocus("Mindful Living")).toEqual(["mindfulness-guide", "practice-log"]);
-    expect(resolvePathwayFocus("mindfulness", ["calm", "rest"])).toEqual(["calm", "rest", "mindfulness-guide", "practice-log"]);
+    expect(resolvePathwayFocus("mindfulness", ["calm", "rest"])).toEqual(["mindfulness-guide", "practice-log"]);
   });
   it("respects explicit off and individual module choices", () => {
     expect(resolvePathwayFocus("mindfulness", [])).toEqual([]);
