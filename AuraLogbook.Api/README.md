@@ -59,6 +59,15 @@ Use Swagger for the complete current route list and request/response schemas. Au
 
 Spotify account linking, current listening metadata and playlist cards are documented in [Spotify integration](../docs/spotify-integration.md), including local setup, OAuth recovery, typed API responses and token storage.
 
+Mood requests may include `occurredAt`, an ISO timestamp with the selected UTC offset
+(for example, `1998-01-01T23:30:00-08:00`), alongside `date: "1998-01-01"`.
+The timestamp's local date must match `date`; the instant cannot be in the future.
+The original offset is retained for timeline clocks and hour-of-day summaries.
+`CreatedAt` remains the immutable server save timestamp. Migration 034 adds a nullable
+`OccurredAt` column: legacy rows are not backfilled, omitted creates remain null,
+and omitted updates preserve any existing occurrence. Readers fall back to
+`CreatedAt` when no occurrence was recorded. Day-based counts continue using `date`.
+
 Mood create/update requests may include an optional `pathwayReflection` snapshot:
 
 ```json
