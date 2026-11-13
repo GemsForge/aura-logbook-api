@@ -14,6 +14,7 @@ using AuraLogbook.Api.Services.Spotify;
 using AuraLogbook.Api.Services.Email;
 using AuraLogbook.Api.Services.PasswordReset;
 using AuraLogbook.Api.Services.Faith;
+using AuraLogbook.Api.Services.Astrology;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -135,6 +136,12 @@ builder.Services.AddSingleton<ISacredTextProvider, ApiBibleProvider>();
 builder.Services.AddSingleton<ISacredTextProvider, QuranProvider>();
 builder.Services.AddSingleton<ISacredTextProvider, SefariaProvider>();
 builder.Services.AddSingleton<SacredTextService>();
+// #373: FreeAstroAPI daily sign reading and moon-phase lookups; the key stays server-side and
+// one shared pacer keeps both services within the provider's free-tier request rate.
+builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
+builder.Services.AddSingleton<FreeAstroApiRequestPacer>();
+builder.Services.AddHttpClient<IMoonPhaseMoodInsightsService, FreeAstroMoonPhaseMoodInsightsService>();
+builder.Services.AddHttpClient<IDailyHoroscopeService, FreeAstroDailyHoroscopeService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IPasswordResetTokenRepository, SqlitePasswordResetTokenRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();

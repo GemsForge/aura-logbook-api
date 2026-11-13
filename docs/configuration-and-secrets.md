@@ -50,6 +50,23 @@ Spotify__RedirectUri=https://your-domain.example/api/spotify/callback
 
 The redirect URI configured in Spotify's Developer Dashboard must exactly match the URI used by the running API.
 
+## Astrology providers
+
+FreeAstroAPI keys are used only by the API for the daily sign reading and
+date-specific moon phase lookups. Configure the key as an ASP.NET user secret
+for local development or as a deployment secret; never put it in `aura-ui` or
+committed configuration:
+
+```bash
+dotnet user-secrets --project AuraLogbook.Api set "FreeAstroApi:ApiKey" "your-api-key"
+```
+
+Deployment configuration uses `FreeAstroApi__ApiKey`. The API caches daily
+readings and date-level phase results and paces provider requests to fit the
+documented free-tier request limit. Without a key, the astrology endpoints
+return `503 Service Unavailable` and the UI can explain that the insight cannot
+be loaded.
+
 The Spotify authorization request asks for these read permissions:
 
 - `user-read-currently-playing` for playback metadata
