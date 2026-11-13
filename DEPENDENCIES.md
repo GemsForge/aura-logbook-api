@@ -117,3 +117,9 @@ The project currently uses this service for personal development. Before public 
 - Keep package version changes in the relevant project manifest and lockfile; update this document when a major dependency or service changes.
 - Confirm whether Jest-related frontend packages are still needed before removing them; this inventory is not authorization to remove dependencies.
 - This file summarizes direct and operational dependencies. It is not a software bill of materials and does not enumerate transitive packages or license texts.
+
+## Preset birth locations
+
+The profile birthplace selector uses [countrycitystatejson](https://github.com/khkwan0/countryCityStateJson), pinned to `26.11.1001` (MIT). It supplies country, state/province, and city choices locally through its browser-specific `countrycitystatejson/client` entry point. Cities load by country; do not import the full server dataset into the application bundle. No birthplace search is sent to an external service while selecting options. The existing server-side chart request still resolves the saved location with the selected astrology provider.
+
+Catalog coverage is finite and does not establish that a place is uniquely resolvable by the astrology provider. Preserve older saved locations and keep ambiguous provider matches unavailable rather than choosing a different birthplace.
