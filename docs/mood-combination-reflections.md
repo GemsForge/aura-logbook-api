@@ -6,7 +6,7 @@ Aura Logbook can show an optional, pathway-aware reflection when a signed-in use
 
 Curated source records live in `aura-ui/data/aura_logbook_mood_combinations.json`. Each record has a stable ID, two or three distinct mood names, and one non-empty interpretation for each supported pathway. The importer rejects duplicate IDs, duplicate mood sets, unknown moods, and incomplete pathway records. Mood order is normalized when the key is stored. The API composes a non-diagnostic pathway reflection when a valid set has no curated record, so new mood combinations do not display an empty state.
 
-Migration `018_mood_combination_interpretations.sql` creates the lookup table. API startup applies migrations but does not import reflections. Run the reflection-only seed after a fresh clone or after editing the JSON. It writes to the database selected by the API's Development connection string and never touches users or mood entries. From the repository root:
+Migration `018_mood_combination_interpretations.sql` creates the lookup table. API startup applies migrations and then imports the curated reflections, so a fresh clone or an edited JSON needs only an API restart. The import is idempotent, touches no users or mood entries, and keeps existing rows if the source is invalid. Turn it off with `Database:ImportReflectionsOnStartup=false`. To refresh a database without restarting, run the reflection-only seed. It writes to the database selected by the API's Development connection string and never touches users or mood entries. From the repository root:
 
 ```bash
 dotnet run --project Scripts/DatabaseSeeder/DatabaseSeeder.csproj -- --mode reflections

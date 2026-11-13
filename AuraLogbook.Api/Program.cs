@@ -84,6 +84,7 @@ builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection("Da
 builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddSingleton<JsonUserSeeder>();
+builder.Services.AddSingleton<ReflectionStartupImporter>();
 builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
 
 // Repositories
@@ -150,6 +151,8 @@ app.Logger.LogInformation(
     app.Environment.EnvironmentName,
     app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"));
 app.Services.GetRequiredService<DatabaseMigrator>().ApplyMigrations();
+// #365: curated reflections follow their JSON source on every start, so no manual seed step is needed.
+await app.Services.GetRequiredService<ReflectionStartupImporter>().ImportAsync();
 if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"))
     await app.Services.GetRequiredService<JsonUserSeeder>().SeedUsersAsync();
 app.UseCors(policy =>
