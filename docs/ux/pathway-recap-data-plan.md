@@ -98,6 +98,13 @@ Provider references:
 
 ## Storage responsibilities
 
+The [Daily Astrology experience](daily-astrology-experience.md) adds an explicit
+reading check-in: separate `hasRead` and `resonated` fields, each preserving an
+unanswered state, attached to the exact reading snapshot and analysis mode.
+Use those deliberate responses for reading/resonance metrics rather than page
+views. The horoscope's proposed binary response does not replace the approved
+three-choice feedback for other pathway insight types.
+
 1. **Versioned shared content snapshots:** retain the selected public source fields
    needed to reconstruct the content shown, subject to provider permissions.
    Deduplicate using provider, source item, effective date, sign where applicable,

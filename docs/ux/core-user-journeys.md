@@ -121,6 +121,14 @@ Breathing is available in each pathway as a shared module. Its dedicated view us
 
 ### Proposed recap history
 
+The requested richer [Daily Astrology experience](daily-astrology-experience.md)
+keeps sign identity, today's horoscope, current and natal Moon context, the sign
+wiki, meaningful birth-chart explanations, and a reading check-in on one page.
+The check-in records "I read today's horoscope" separately from optional Yes/No
+resonance and contributes reading-specific counts to Insights and recaps. This
+binary check-in applies to horoscope readings; other insight types retain their
+existing three-choice feedback. Untouched responses remain unknown.
+
 The [Pathway recap data plan](pathway-recap-data-plan.md) defines candidate durable
 inputs for weekly/monthly pathway recaps: versioned source content, private user
 activities linked to the exact reading or invitation, and shared mood/practice
