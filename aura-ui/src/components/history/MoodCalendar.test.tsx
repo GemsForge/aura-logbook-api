@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
+import dayjs from "dayjs";
 import { renderWithProviders } from "@/test/testUtilities";
 import MoodCalendar from "./MoodCalendar";
 
 vi.mock("@/store/auraApi", () => ({
-  useGetAuraSeasonsQuery: () => ({ data: { current: null, history: [{ key: "tide", name: "Steady Tide", startedOn: new Date().toISOString().slice(0, 10), endedOn: null }] } }),
+  useGetAuraSeasonsQuery: () => ({ data: { current: null, history: [{ key: "tide", name: "Steady Tide", startedOn: dayjs().format("YYYY-MM-DD"), endedOn: null }] } }),
 }));
 
 describe("MoodCalendar season labels", () => {

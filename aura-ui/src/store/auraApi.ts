@@ -54,10 +54,10 @@ export const auraApi = createApi({
       providesTags: ["AuraSeasons"],
     }),
     getZodiacInsight: build.query<ZodiacInsightResponse, void>({
-      // instead of build.query({ query: ... }), we call our existing Axios wrapper:
+      /** Loads the zodiac insight through the shared API client. */
       async queryFn() {
         try {
-          const data = await ZodiacApi.getInsight(); // your existing client method :contentReference[oaicite:0]{index=0}
+          const data = await ZodiacApi.getInsight();
           return { data };
         } catch (err: unknown) {
           const error = err instanceof Error ? err : new Error("Zodiac request failed");
@@ -72,8 +72,8 @@ export const auraApi = createApi({
           };
         }
       },
-      providesTags: ["Zodiac"], // so you can later invalidate it
-      keepUnusedDataFor: 600, // seconds in cache
+      providesTags: ["Zodiac"],
+      keepUnusedDataFor: 600,
     }),
     getMoodCombinationInterpretation: build.query<MoodCombinationInterpretation | null, { moods: MoodType[]; pathwayKey: number }>({
       query: ({ moods, pathwayKey }) => ({

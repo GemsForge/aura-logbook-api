@@ -82,15 +82,14 @@ describe("EditProfileModal", () => {
     ).toBeInTheDocument();
   });
 
-  it("saves the newly selected aura color with a percentage intensity", async () => {
+  it("saves the aura reveal preference", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     mockGetCurrentUser.mockReturnValue({
       data: {
         ...baseUser,
         avatar: "",
-        auraColor: "blue",
-        auraIntensity: 50,
+        auraRevealsEnabled: false,
       },
       isFetching: false,
     });
@@ -99,8 +98,7 @@ describe("EditProfileModal", () => {
 
     // Fields are grouped into sections; jsdom matches no media query, so the desktop tab nav renders.
     await user.click(await screen.findByRole("tab", { name: "Aura" }));
-    await user.click(await screen.findByRole("combobox", { name: "Aura Color" }));
-    await user.click(screen.getByRole("option", { name: /green/i }));
+    await user.click(await screen.findByRole("checkbox", { name: "Aura reveals" }));
 
     await user.click(
       await screen.findByRole("button", { name: "Save Changes" })
@@ -111,8 +109,7 @@ describe("EditProfileModal", () => {
         expect.objectContaining({
           id: 1,
           avatar: "",
-      auraColor: "green",
-          auraIntensity: 50,
+          auraRevealsEnabled: true,
         })
       )
     );
