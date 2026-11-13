@@ -51,7 +51,10 @@ public sealed class SacredTextOptions
 {
     public const string SectionName = "SacredText";
 
-    /// <summary>API.Bible key. When empty, the Christian passage is reported as unavailable.</summary>
+    /// <summary>
+    /// Optional API.Bible key. When empty, the Christian passage comes from the public-domain
+    /// World English Bible via bible-api.com, which needs no key or license agreement.
+    /// </summary>
     public string? ApiBibleKey { get; set; }
     /// <summary>API.Bible Bible ID for a translation whose license permits display in this app.</summary>
     public string? ApiBibleBibleId { get; set; }
@@ -60,6 +63,12 @@ public sealed class SacredTextOptions
     /// <summary>Quran.com translation resource ID (20 = Saheeh International).</summary>
     public int QuranTranslationId { get; set; } = 20;
     public string SefariaBaseUrl { get; set; } = "https://www.sefaria.org/api/v3";
+    /// <summary>Sefaria version pinned to a public-domain translation (JPS 1917) so no non-commercial license applies.</summary>
+    public string SefariaVersion { get; set; } = "english|The Holy Scriptures: A New Translation (JPS 1917)";
+    /// <summary>Keyless public-domain Bible source used when no API.Bible key is configured.</summary>
+    public string PublicDomainBibleBaseUrl { get; set; } = "https://bible-api.com";
+    /// <summary>bible-api.com translation ID; <c>web</c> is the public-domain World English Bible.</summary>
+    public string PublicDomainBibleTranslation { get; set; } = "web";
     /// <summary>How long a day's passage is cached, to respect provider rate limits.</summary>
     public TimeSpan CacheDuration { get; set; } = TimeSpan.FromHours(6);
 }
@@ -77,11 +86,11 @@ internal static class DailyReferences
     // Quran verse keys (SURAH:AYAH).
     public static readonly string[] Quran = ["2:286", "94:5", "13:28", "2:153", "93:3", "49:13", "39:53", "65:3"];
 
-    // Sefaria references.
+    // Sefaria references. Tanakh only, because the pinned public-domain JPS 1917 version covers the Tanakh.
     public static readonly (string Ref, string Display)[] Sefaria =
     [
-        ("Psalms.23.1", "Psalms 23:1"), ("Psalms.121.1", "Psalms 121:1"), ("Micah.6.8", "Micah 6:8"), ("Pirkei_Avot.1.14", "Pirkei Avot 1:14"),
-        ("Proverbs.3.17", "Proverbs 3:17"), ("Psalms.34.15", "Psalms 34:15"), ("Pirkei_Avot.2.16", "Pirkei Avot 2:16"), ("Isaiah.40.31", "Isaiah 40:31"),
+        ("Psalms.23.1", "Psalms 23:1"), ("Psalms.121.1", "Psalms 121:1"), ("Micah.6.8", "Micah 6:8"), ("Psalms.118.24", "Psalms 118:24"),
+        ("Proverbs.3.17", "Proverbs 3:17"), ("Psalms.34.15", "Psalms 34:15"), ("Ecclesiastes.3.1", "Ecclesiastes 3:1"), ("Isaiah.40.31", "Isaiah 40:31"),
     ];
 
     public static T For<T>(T[] items, DateOnly date) => items[date.DayNumber % items.Length];
@@ -119,7 +128,10 @@ internal static partial class ProviderText
     public static HttpRequestException Unusable(string provider) => new($"{provider} returned an unusable response.");
 }
 
-/// <summary>Bible text from API.Bible. Requires a server-side key and a licensed Bible ID.</summary>
+/// <summary>
+/// Bible text. Uses API.Bible when a key and licensed Bible ID are configured; otherwise the
+/// public-domain World English Bible from bible-api.com, so the Christian passage works with no key.
+/// </summary>
 public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options) : ISacredTextProvider
 {
     public string Framework => FaithFrameworks.Christian;
@@ -127,8 +139,9 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
     public async Task<SacredPassageDto?> GetDailyAsync(DateOnly date, CancellationToken cancellationToken)
     {
         var o = options.Value;
-        if (string.IsNullOrWhiteSpace(o.ApiBibleKey) || string.IsNullOrWhiteSpace(o.ApiBibleBibleId)) return null;
         var (id, display) = DailyReferences.For(DailyReferences.Bible, date);
+        if (string.IsNullOrWhiteSpace(o.ApiBibleKey) || string.IsNullOrWhiteSpace(o.ApiBibleBibleId))
+            return await GetPublicDomainAsync(o, display, cancellationToken);
         using var request = new HttpRequestMessage(HttpMethod.Get,
             $"{o.ApiBibleBaseUrl.TrimEnd('/')}/bibles/{Uri.EscapeDataString(o.ApiBibleBibleId)}/verses/{id}?content-type=text&include-notes=false&include-titles=false&include-verse-numbers=false");
         request.Headers.Add("api-key", o.ApiBibleKey);
@@ -140,6 +153,20 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         if (text.Length == 0) throw ProviderText.Unusable("API.Bible");
         return new SacredPassageDto(Framework, display, text, o.ApiBibleBibleId,
             string.IsNullOrWhiteSpace(copyright) ? "Scripture via API.Bible" : $"{copyright} Provided by API.Bible.",
+            $"https://www.bible.com/search/bible?q={Uri.EscapeDataString(display)}");
+    }
+
+    /// <summary>Fetches the World English Bible (public domain) from bible-api.com; no key required.</summary>
+    private async Task<SacredPassageDto> GetPublicDomainAsync(SacredTextOptions o, string display, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get,
+            $"{o.PublicDomainBibleBaseUrl.TrimEnd('/')}/{Uri.EscapeDataString(display)}?translation={Uri.EscapeDataString(o.PublicDomainBibleTranslation)}");
+        var root = await ProviderText.GetJsonAsync(factory.CreateClient(nameof(ApiBibleProvider)), request, cancellationToken);
+        var text = root.TryGetProperty("text", out var t) ? ProviderText.Clean(t.GetString() ?? "") : "";
+        if (text.Length == 0) throw ProviderText.Unusable("bible-api.com");
+        var translation = root.TryGetProperty("translation_name", out var name) ? name.GetString() ?? "World English Bible" : "World English Bible";
+        return new SacredPassageDto(Framework, display, text, translation,
+            $"{translation} (public domain), via bible-api.com.",
             $"https://www.bible.com/search/bible?q={Uri.EscapeDataString(display)}");
     }
 }
@@ -176,7 +203,7 @@ public sealed class SefariaProvider(IHttpClientFactory factory, IOptions<SacredT
     {
         var (reference, display) = DailyReferences.For(DailyReferences.Sefaria, date);
         using var request = new HttpRequestMessage(HttpMethod.Get,
-            $"{options.Value.SefariaBaseUrl.TrimEnd('/')}/texts/{reference}?version=english");
+            $"{options.Value.SefariaBaseUrl.TrimEnd('/')}/texts/{reference}?version={Uri.EscapeDataString(options.Value.SefariaVersion)}");
         var root = await ProviderText.GetJsonAsync(factory.CreateClient(nameof(SefariaProvider)), request, cancellationToken);
         if (!root.TryGetProperty("versions", out var versions) || versions.GetArrayLength() == 0)
             throw ProviderText.Unusable("Sefaria");

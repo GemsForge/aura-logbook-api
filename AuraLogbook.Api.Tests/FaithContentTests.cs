@@ -37,12 +37,19 @@ public sealed class FaithContentTests
     }
 
     [Fact]
-    public async Task Christian_passage_is_unavailable_without_a_server_side_key()
+    public async Task Christian_passage_uses_public_domain_web_without_a_key()
     {
-        var handler = new StubHandler(HttpStatusCode.OK, "{}");
+        var handler = new StubHandler(HttpStatusCode.OK,
+            """{"reference":"Psalms 23:1","text":"Yahweh is my shepherd:\nI shall lack nothing.\n","translation_name":"World English Bible"}""");
 
-        Assert.Null(await Service(handler, new SacredTextOptions()).GetDailyAsync("christian", Day, CancellationToken.None));
-        Assert.Equal(0, handler.Calls);
+        var passage = await Service(handler, new SacredTextOptions()).GetDailyAsync("christian", Day, CancellationToken.None);
+
+        Assert.NotNull(passage);
+        Assert.Equal("Yahweh is my shepherd: I shall lack nothing.", passage.Text);
+        Assert.Contains("public domain", passage.Attribution);
+        Assert.StartsWith("https://bible-api.com/", handler.LastRequest!.RequestUri!.ToString());
+        Assert.Contains("translation=web", handler.LastRequest.RequestUri.Query);
+        Assert.False(handler.LastRequest.Headers.Contains("api-key"));
     }
 
     [Fact]
@@ -91,6 +98,7 @@ public sealed class FaithContentTests
         Assert.Equal("JPS 1917", passage.Translation);
         Assert.Contains("Public Domain", passage.Attribution);
         Assert.StartsWith("https://www.sefaria.org/", passage.ReadingUrl);
+        Assert.Contains("JPS%201917", handler.LastRequest!.RequestUri!.AbsoluteUri);
     }
 
     [Fact]
