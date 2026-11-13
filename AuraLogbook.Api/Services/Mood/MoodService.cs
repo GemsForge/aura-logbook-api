@@ -123,9 +123,19 @@ public class MoodService : IMoodService
         if (existing == null || existing.UserId != userId)
             return (false, "Mood entry not found or access denied.");
 
+        var occurrence = dto.OccurredAt ?? existing.OccurredAt;
+        // A date-only edit keeps the recorded wall clock and offset on the newly chosen journal day.
+        // Validate the reconciled instant before changing the stored entry, including future-time guards.
+        if (dto.OccurredAt is null && occurrence is { } saved && DateOnly.FromDateTime(saved.DateTime) != dto.Date)
+        {
+            try { occurrence = new DateTimeOffset(dto.Date.ToDateTime(TimeOnly.FromDateTime(saved.DateTime)), saved.Offset); }
+            catch (ArgumentOutOfRangeException) { return (false, "The occurrence date and time are outside the supported range."); }
+        }
+        var reconciledError = ValidateOccurrence(new MoodEntryRequest { Date = dto.Date, OccurredAt = occurrence });
+        if (reconciledError is not null) return (false, reconciledError);
+
         existing.Date = dto.Date;
-        // Older clients omit occurrence time; keep it while preserving the original server creation timestamp.
-        if (dto.OccurredAt is not null) existing.OccurredAt = dto.OccurredAt;
+        existing.OccurredAt = occurrence;
         existing.Moods = dto.Moods;
         existing.Comment = dto.Comment;
         if (dto.ImpactTopics is not null)

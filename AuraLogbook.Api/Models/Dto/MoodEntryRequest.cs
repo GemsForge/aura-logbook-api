@@ -13,7 +13,7 @@ public class MoodEntryRequest
     [Required(ErrorMessage = "Date is required.")]
     public DateOnly Date { get; set; } = DateOnly.MaxValue;
 
-    /// <summary>Optional ISO occurrence timestamp with UTC offset; its local calendar date must match Date. Omitted updates preserve the saved value.</summary>
+    /// <summary>Optional ISO occurrence timestamp with UTC offset; its local calendar date must match Date. Omitted updates preserve the saved clock/offset, moving them to Date for a date-only edit.</summary>
     public DateTimeOffset? OccurredAt { get; set; }
 
     [StringLength(500, ErrorMessage = "Comment cannot exceed 500 characters.")]

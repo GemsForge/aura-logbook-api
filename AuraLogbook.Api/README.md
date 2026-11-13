@@ -65,7 +65,10 @@ The timestamp's local date must match `date`; the instant cannot be in the futur
 The original offset is retained for timeline clocks and hour-of-day summaries.
 `CreatedAt` remains the immutable server save timestamp. Migration 034 adds a nullable
 `OccurredAt` column: legacy rows are not backfilled, omitted creates remain null,
-and omitted updates preserve any existing occurrence. Readers fall back to
+and omitted same-day updates preserve any existing occurrence. A date-only edit
+moves the saved wall-clock time and offset to the selected date, rejecting a
+reconciled future instant before writing. It does not invent a clock for legacy
+rows with no occurrence. Readers fall back to
 `CreatedAt` when no occurrence was recorded. Day-based counts continue using `date`.
 
 Mood create/update requests may include an optional `pathwayReflection` snapshot:
