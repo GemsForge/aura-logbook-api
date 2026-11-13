@@ -523,6 +523,19 @@
       "png_export": "png/pathways/astrology-energy/chakra-symbols/chakra-throat.png"
     },
     {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg",
+      "name": "Chakra Body Map",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "reference-diagram",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Human silhouette for the chakra reference page, marking the seven centers.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-body-map.png"
+    },
+    {
       "filename": "pathways/faith-religion/faith-religion-olive-branch.png",
       "name": "Faith Religion Olive Branch",
       "collection": "pathways",

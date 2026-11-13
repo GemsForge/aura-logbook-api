@@ -7,7 +7,6 @@ import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import Typography from "@mui/joy/Typography";
 import { useParams } from "react-router-dom";
-import AccessibilityNewRounded from "@mui/icons-material/AccessibilityNewRounded";
 import IconButton from "@mui/joy/IconButton";
 import { ThemeBanner } from "@/components/ui/ThemeBanner";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
@@ -26,6 +25,17 @@ import { getDailyHoroscope, type DailyHoroscope } from "@/features/pathways/astr
 import { BirthChartReading } from "@/features/pathways/components/BirthChartReading";
 import { SacredTextView } from "@/features/pathways/components/SacredTextView";
 import { PathwayReflectionPrompt } from "@/features/pathways/components/PathwayReflectionPrompt";
+
+/** Vertical centers in the seated reference artwork, aligned with its seven embedded markers. */
+const CHAKRA_BODY_MAP_TOP: Record<string, number> = {
+  crown: 17.5,
+  "third-eye": 28,
+  throat: 38.5,
+  heart: 48.5,
+  "solar-plexus": 56.5,
+  sacral: 63.5,
+  root: 70.5,
+};
 
 /** Shows content for the single pathway configured in Profile → My Pathway. */
 export default function Pathways() {
@@ -58,6 +68,7 @@ export default function Pathways() {
     .sort((left, right) => right.matchingDayCount - left.matchingDayCount)[0];
   const currentChakra = chakras.find((chakra) => chakra.key === selectedChakra) ?? chakras[0];
   const chakraSymbol = currentChakra && referenceData?.graphics.find((graphic) => graphic.key === currentChakra.symbolAssetKey);
+  const chakraBodyMap = referenceData?.graphics.find((graphic) => graphic.key === "chakra-body-map");
   const selectedChakraColor = currentChakra && referenceData?.auras.find((aura) => aura.chakraKey === currentChakra.key);
   const faithTradition = preferences?.faithTradition ?? null;
   const faithResource = FAITH_RESOURCES.find((resource) => resource.key === faithTradition);
@@ -161,12 +172,12 @@ export default function Pathways() {
               <FormControl sx={{ mt: 1.5, maxWidth: 320 }}><FormLabel>Explore a center</FormLabel><Select value={currentChakra.key} onChange={(_, value) => value !== null && setSelectedChakra(value)}>
                 {chakras.map((chakra) => <Option key={chakra.key} value={chakra.key}>{chakra.displayName} · {chakra.sanskritName}</Option>)}
               </Select></FormControl>
-              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "104px 1fr", sm: "150px 1fr" }, alignItems: "start", gap: { xs: 1.5, sm: 2.5 }, mt: 2 }}>
-                <Box role="group" aria-label="Seven chakra centers along a human figure" sx={{ position: "relative", width: { xs: 104, sm: 140 }, height: { xs: 280, sm: 340 }, justifySelf: "center" }}>
-                  <AccessibilityNewRounded aria-hidden="true" sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", color: "text.primary", opacity: .2 }} />
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "120px 1fr", sm: "160px 1fr" }, alignItems: "start", gap: { xs: 1.5, sm: 2.5 }, mt: 2 }}>
+                <Box role="group" aria-label="Seven chakra centers on a seated human figure" sx={{ position: "relative", width: { xs: 120, sm: 160 }, height: { xs: 150, sm: 200 }, justifySelf: "center" }}>
+                  <Box component="img" src={chakraBodyMap?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"} alt={chakraBodyMap?.alternativeText ?? "Seated human silhouette with seven colored centers aligned along the spine"} sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
                   {chakras.map((chakra, index) => {
                     const color = referenceData?.auras.find((aura) => aura.chakraKey === chakra.key)?.baseHex ?? "currentColor";
-                    const top = chakras.length < 2 ? 50 : 8 + (chakras.length - index - 1) * (74 / (chakras.length - 1));
+                    const top = CHAKRA_BODY_MAP_TOP[chakra.key] ?? (chakras.length < 2 ? 50 : 8 + (chakras.length - index - 1) * (74 / (chakras.length - 1)));
                     return <IconButton key={chakra.key} size="sm" variant="plain" aria-label={`Select ${chakra.displayName} chakra`} aria-pressed={currentChakra.key === chakra.key} onClick={() => setSelectedChakra(chakra.key)} sx={{ position: "absolute", zIndex: 1, left: "50%", top: `${top}%`, transform: "translate(-50%, -50%)", width: 44, height: 44, p: 0, color, borderRadius: "50%", bgcolor: "transparent", "&::after": { content: '""', position: "absolute", width: 14, height: 14, borderRadius: "50%", bgcolor: color, border: "2px solid var(--al-theme-surface)", boxShadow: currentChakra.key === chakra.key ? "0 0 0 3px var(--al-theme-focus)" : "none" }, "&:hover": { bgcolor: "var(--aura-wash)" } }} />;
                   })}
                 </Box>
