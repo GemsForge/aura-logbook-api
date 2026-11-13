@@ -54,10 +54,12 @@ into the development `Users` table.
 
 Staging and production have startup seeding disabled. Their database connection
 strings and secrets should be supplied through deployment configuration rather
-than committed JSON files. Staging uses the SQLite repositories. Production
-currently selects legacy file repositories for users, moods, and zodiac
-insights while startup migrations and reflection storage still use SQLite;
-choose and test a consistent production storage arrangement before deployment.
+than committed JSON files. Every environment, including Production, uses the
+SQLite repositories for users, moods, and zodiac insights (#353); the JSON
+files are import and audit sources only. Production refuses to start unless
+`Database:ConnectionString` names its own durable SQLite file (not in-memory and
+not `auralogbook-dev.db`). See [Production cutover](#production-cutover-from-json-files)
+before switching an existing Production deployment.
 
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.
@@ -103,9 +105,8 @@ in spam.
 
 Outside Development the API never logs reset tokens or links. If the SMTP relay
 fails, the user still gets the generic confirmation and the API logs only the
-error type. Production users are stored in files while reset tokens live in
-SQLite with no foreign key; review that arrangement before enabling recovery in
-Production.
+error type. Production users and reset tokens now share the SQLite database
+(#353).
 
 FIT/Staging deployments should provide their own `Database:ConnectionString`
 through deployment configuration. The database health diagnostic is available
@@ -167,3 +168,62 @@ transaction.
 The API startup seeder is intentionally narrower: it upserts users from
 `users.json` for local Development startup. Use the dedicated seeder when
 rebuilding all active relational data.
+
+## Production cutover from JSON files
+
+Production now reads and writes users, moods, and zodiac insights only through
+SQLite. A deployment that still has JSON-backed data needs a one-time,
+operator-approved cutover. Nothing below runs automatically, and no live data
+is changed by the code. Do every step on copies first.
+
+**Storage requirements**
+
+- `Database__ConnectionString=Data Source=/<persistent-volume>/auralogbook.db`.
+  The file must live on a volume that survives restarts and redeploys. SQLite
+  allows one writer, so run a single API instance against it.
+- `Storage__PrivateMediaPath` on the same persistent volume, outside any
+  static web root. Private mood photos are bytes on disk plus metadata rows in
+  SQLite; both must be backed up together.
+
+**1. Inventory and back up**
+
+1. Stop writes (maintenance window or stop the API).
+2. Copy the live `users.json`, `moods.json`, and `zodiacInsights.json`, plus the
+   private media folder, to a dated backup location. Keep them unchanged; they
+   are the rollback source.
+3. If a SQLite file already exists, back it up as described in
+   [Database migration recovery](database-recovery.md).
+
+**2. Rehearse the import on a copy**
+
+```bash
+dotnet run --project Scripts/DatabaseSeeder/DatabaseSeeder.csproj -- \
+  --input /backup/users.json --moods /backup/moods.json --zodiac /backup/zodiacInsights.json \
+  --database /tmp/aura-cutover-rehearsal.db --report /tmp/aura-cutover-report.json
+```
+
+The seeder applies migrations, validates every user (an invalid record aborts
+the user import with no rows committed), keeps mood ownership by mapping legacy
+user IDs to stored IDs, upserts by email, and writes source-versus-stored
+counts. It exits non-zero if curated reflections do not reconcile.
+
+**3. Verify before cutover**
+
+- Report counts: source users and moods equal stored users and mood entries
+  (duplicate emails collapse to one user; investigate any difference).
+- `sqlite3 /tmp/aura-cutover-rehearsal.db "PRAGMA foreign_key_check;"` returns
+  no rows.
+- Start the API against the rehearsal file, sign in as a known account, and
+  confirm its entries and photos appear.
+
+**4. Cut over (requires explicit approval)**
+
+Run the same seeder command against the Production database path, re-check the
+counts, then start the new API version with the durable connection string.
+
+**5. Roll back**
+
+Stop the API, redeploy the previous version, and restore the backed-up JSON
+files and media folder. Keep the SQLite file for diagnosis instead of deleting
+it.
+

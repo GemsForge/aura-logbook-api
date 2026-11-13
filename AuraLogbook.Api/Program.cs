@@ -95,17 +95,11 @@ builder.Services.AddSingleton<ReflectionStartupImporter>();
 builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
 builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 
-// Repositories
-if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
-{
-    builder.Services.AddScoped<IFileUserRepository, SqliteUserRepository>();
-    builder.Services.AddScoped<IFileMoodRepository, SqliteMoodRepository>();
-}
-else
-{
-    builder.Services.AddScoped<IFileUserRepository, FileUserRepository>();
-    builder.Services.AddScoped<IFileMoodRepository, FileMoodRepository>();
-}
+// Repositories: #353 one relational path for users, moods, and zodiac insights in every environment.
+if (builder.Environment.IsProduction() &&
+    JournalPersistence.ValidateProductionConnection(builder.Configuration["Database:ConnectionString"]) is { } productionDatabaseError)
+    throw new InvalidOperationException(productionDatabaseError);
+builder.Services.AddRelationalJournalRepositories();
 // Keep media metadata relational while image bytes stay in private, non-static storage.
 builder.Services.AddScoped<IMoodMediaRepository, SqliteMoodMediaRepository>();
 builder.Services.AddSingleton<IMoodMediaFileStore, PrivateMoodMediaFileStore>();
