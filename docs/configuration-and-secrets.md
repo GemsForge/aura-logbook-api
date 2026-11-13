@@ -90,6 +90,28 @@ hosting platform's secret store. Development ignores SMTP settings and logs
 mail instead. See [Runtime environments](runtime-environments.md#password-recovery)
 for how recovery is enabled per environment.
 
+## Sacred-text providers (#392)
+
+The Faith & Religion pathway shows a neutral Word of the Day with no provider or key. A sacred-text
+passage is returned only for the one framework the client requests (`GET /api/faith/passage?framework=christian|muslim|jewish`);
+any other value returns `204 No Content`.
+
+| Framework | Provider | Key needed |
+|---|---|---|
+| `christian` | API.Bible | Yes: `SacredText__ApiBibleKey` (secret) and `SacredText__ApiBibleBibleId` |
+| `muslim` | Quran.com API (Quran Foundation) | No |
+| `jewish` | Sefaria | No |
+
+```bash
+SacredText__ApiBibleKey=your-api-bible-key
+SacredText__ApiBibleBibleId=id-of-a-translation-licensed-for-display
+```
+
+Without the API.Bible values the Christian passage reports as unavailable (`204`). Keys stay
+server-side. Each day's passage is cached (`SacredText__CacheDuration`, default 6 hours) to respect
+provider rate limits. Review each provider's translation license and attribution terms before
+enabling a translation in production; the attribution returned by the API must be shown with the text.
+
 ## What not to commit
 
 Do not commit:

@@ -13,6 +13,7 @@ using AuraLogbook.Api.Configuration;
 using AuraLogbook.Api.Services.Spotify;
 using AuraLogbook.Api.Services.Email;
 using AuraLogbook.Api.Services.PasswordReset;
+using AuraLogbook.Api.Services.Faith;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -126,6 +127,14 @@ builder.Services.Configure<PasswordResetOptions>(resetSection);
 builder.Services.PostConfigure<PasswordResetOptions>(o =>
     o.Enabled = PasswordResetOptions.IsEffectivelyEnabled(o.Enabled, emailSenderAvailable, o.ResetUrlBase));
 builder.Services.AddMemoryCache();
+// #392: one sacred-text provider per supported framework; keys come from configuration/secrets only.
+builder.Services.Configure<SacredTextOptions>(builder.Configuration.GetSection(SacredTextOptions.SectionName));
+foreach (var providerName in new[] { nameof(ApiBibleProvider), nameof(QuranProvider), nameof(SefariaProvider) })
+    builder.Services.AddHttpClient(providerName, client => client.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddSingleton<ISacredTextProvider, ApiBibleProvider>();
+builder.Services.AddSingleton<ISacredTextProvider, QuranProvider>();
+builder.Services.AddSingleton<ISacredTextProvider, SefariaProvider>();
+builder.Services.AddSingleton<SacredTextService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IPasswordResetTokenRepository, SqlitePasswordResetTokenRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
