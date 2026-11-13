@@ -24,6 +24,7 @@ import { InsightFeedback } from "@/features/pathways/components/InsightFeedback"
 import { MoonPhaseMoodInsights } from "@/features/pathways/components/MoonPhaseMoodInsights";
 import { getDailyHoroscope, type DailyHoroscope } from "@/features/pathways/astrologyApi";
 import { BirthChartReading } from "@/features/pathways/components/BirthChartReading";
+import { SacredTextView } from "@/features/pathways/components/SacredTextView";
 
 /** Shows content for the single pathway configured in Profile → My Pathway. */
 export default function Pathways() {
@@ -180,17 +181,10 @@ export default function Pathways() {
     </Box>}
 
     {pathway === "faith" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
-      {(!moduleKey || showModule("sacred-texts")) && <Box component="section" id="word-of-day" aria-labelledby="word-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
-        <Typography id="word-title" component="h2" level="title-lg">Word of the Day</Typography>
-        <Typography level="h3" sx={{ mt: 1 }}>Patience</Typography>
-        <Typography level="body-sm" color="neutral">Staying with a process without demanding an immediate answer.</Typography>
-        <Typography level="body-md" sx={{ mt: 1.5 }}>Where could patience help today?</Typography>
-        <InsightFeedback pathway="faith" moduleKey="faith-practice-check-in" insightType="faith-practice" />
-      </Box>}
       {(focus.includes("sacred-texts") || focus.includes("verse")) && showModule("sacred-texts") ? <Box component="section" id="sacred-texts" aria-labelledby="sacred-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="sacred-title" component="h2" level="title-lg">Sacred texts</Typography>
-        {!faithResource ? <Typography level="body-sm" color="neutral" sx={{ mt: .75 }}>Choose a supported framework in Profile settings to show its text.</Typography>
-          : <><Typography level="body-sm" sx={{ mt: .75 }}>Framework: {faithResource.key}</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .75 }}>Its daily passage will appear here with source and translation details.</Typography><Button component="a" href={faithResource.url} target="_blank" rel="noreferrer" size="sm" variant="plain" sx={{ mt: .5 }}>{faithResource.name}</Button></>}
+        <SacredTextView framework={faithResource?.key} publisher={faithResource} />
+        <InsightFeedback pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" />
       </Box> : null}
       {focus.includes("faith-practice-check-in") && showModule("faith-practice-check-in") && <Box component="section" id="faith-practice-check-in" aria-labelledby="faith-practice-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="faith-practice-title" component="h2" level="title-lg">Faith practice check-in</Typography>
