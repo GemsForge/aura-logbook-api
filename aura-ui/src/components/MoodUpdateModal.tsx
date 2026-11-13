@@ -39,6 +39,7 @@ export default function MoodUpdateModal({
   /** Prevents an update retry from resubmitting the mood after a partial photo-upload failure. */
   const handleSubmit = async (data: {
     date: string;
+    occurredAt?: string;
     moods: MoodType[];
     impactTopics: string[];
     comment?: string;
@@ -53,6 +54,7 @@ export default function MoodUpdateModal({
         if (!data.moods.length || !data.date) throw new Error("Mood and date are required.");
         await MoodApi.updateMood(entry.id, {
           date: data.date,
+          ...(data.occurredAt ? { occurredAt: data.occurredAt } : {}),
           moods: data.moods,
           impactTopics: data.impactTopics,
           comment: data.comment ?? "",

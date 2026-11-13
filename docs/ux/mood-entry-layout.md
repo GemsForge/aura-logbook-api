@@ -13,7 +13,8 @@ on Daily Astrology. See [Core user journeys](core-user-journeys.md#2-record-a-mo
 - Keep the Markdown note editor compact (140px initial height). Place the photo icon and compact save action on the same bottom row.
 - Match the Daily Astrology invitation using one shared source. Count actual matching mood days, never infer that a chakra caused a mood.
 - `Resonates / Maybe / Not for me` are optional controlled choices. Save the selected response and invitation atomically with the mood; restore them on edit.
-- New entries default to today and allow an earlier local journal date; future or invalid dates cannot be submitted. The API creation timestamp stays separate.
+- Put a compact date-and-time picker inline beside New entry at the top right, replacing the static date/time. Use no floating label, a named accessible control, 32px height and 12px text (168px wide on phones / 190px desktop). Keep an inline control in edit modals. Save the chosen occurrence with its UTC offset, validate its local day against the journal date, and keep the API creation timestamp separate. Timeline clocks and hour-based insights use the occurrence, with a creation-time fallback for older entries.
+- Keep the date/time popup compact: one time list beside a smaller calendar, rather than separate hour/minute/AM-PM columns. Five-minute chooser steps must still allow exact manual minutes.
 - Keep loading, errors, date editing, save failures, and photo retries usable. Do not attach a stale choice to replacement invitation text.
 - Check 320, 768, 1024 and 1440px in Chromium, including scroll, overflow, identical invitation text and save payload. API persistence is separately verified against SQLite; browser provider responses are fixtures.
 

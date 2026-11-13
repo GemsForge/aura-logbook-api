@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import dayjs from "dayjs";
-import type { TextareaHTMLAttributes } from "react";
+import { useState, type TextareaHTMLAttributes } from "react";
 import { renderWithProviders } from "@/test/testUtilities";
 import { testReferenceData } from "@/test/referenceDataFixtures";
 import MoodEntryFormFields from "./MoodEntryFormFields";
@@ -79,7 +79,7 @@ describe("MoodEntryFormFields", () => {
     expect(empoweredImage).toHaveAttribute("alt", "");
     expect(empoweredImage).toHaveStyle({ width: "20px", height: "20px" });
     expect(empoweredChoice).toHaveAttribute("data-mood-color", "#4caf50");
-    expect(screen.queryByLabelText("Date")).not.toBeInTheDocument();
+    expect(screen.queryByText("Date", { selector: "label" })).not.toBeInTheDocument();
     await user.click(empoweredChoice);
     expect(empoweredChoice).toHaveAttribute("aria-pressed", "true");
     await user.type(screen.getByRole("textbox", { name: "Reflection" }), "  A good day  ");
@@ -92,6 +92,51 @@ describe("MoodEntryFormFields", () => {
       impactTopics: [],
       comment: "A good day",
     }, []);
+  });
+
+  it("syncs the header journal date into submission without rendering a duplicate inline picker", async () => {
+    const onSubmit = vi.fn();
+    const pastDate = dayjs().subtract(7, "day").format("YYYY-MM-DD");
+    function ControlledDate() {
+      const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
+      return <><button type="button" onClick={() => setDate(pastDate)}>Earlier day</button><MoodEntryFormFields journalDate={date} onSubmit={onSubmit} /></>;
+    }
+    renderWithProviders(<ControlledDate />);
+    fireEvent.click(screen.getByRole("button", { name: "Centered" }));
+    fireEvent.click(screen.getByRole("button", { name: "Earlier day" }));
+    expect(screen.queryByText("Date", { selector: "label" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "How were you feeling?" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Submit Entry" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ date: pastDate }), []));
+  });
+
+  it("saves the selected occurrence time and original offset from the header", async () => {
+    const onSubmit = vi.fn();
+    const occurredAt = "1998-01-01T23:13:00-08:00";
+    renderWithProviders(<MoodEntryFormFields journalDate="1998-01-01" journalOccurredAt={occurredAt} onSubmit={onSubmit} />);
+    fireEvent.click(screen.getByRole("button", { name: "Centered" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit Entry" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ date: "1998-01-01", occurredAt }), []));
+  });
+
+  it("edits an occurrence clock while preserving the original recorded offset", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    renderWithProviders(<MoodEntryFormFields entry={{ id: 7, userId: 1, date: "1998-01-01", occurredAt: "1998-01-01T17:45:00+05:30", moods: ["Centered"], createdAt: "2026-11-13T12:00:00Z" }} onSubmit={onSubmit} />);
+    const hours = within(screen.getByRole("group", { name: "Entry date and time" })).getByRole("spinbutton", { name: "Hours" });
+    await user.click(hours);
+    await user.keyboard("{ArrowUp}");
+    fireEvent.click(screen.getByRole("button", { name: "Update Entry" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ date: "1998-01-01", occurredAt: "1998-01-01T18:45:00+05:30" }), []));
+  });
+
+  it("rejects a future date received from the header instead of submitting the mood", async () => {
+    const onSubmit = vi.fn();
+    renderWithProviders(<MoodEntryFormFields journalDate={dayjs().add(1, "day").format("YYYY-MM-DD")} onSubmit={onSubmit} />);
+    fireEvent.click(screen.getByRole("button", { name: "Centered" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit Entry" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Date cannot be in the future");
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("submits optional impact topics and restores saved ones when editing (#384)", async () => {
@@ -157,7 +202,7 @@ describe("MoodEntryFormFields", () => {
 
     expect(screen.getByRole("button", { name: /centered/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("1 selected")).toBeInTheDocument();
-    expect(screen.getByText("Date", { selector: "label" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Entry date and time" })).toBeInTheDocument();
   });
 
   it("renders a pathway interpretation when two authored moods are selected", async () => {

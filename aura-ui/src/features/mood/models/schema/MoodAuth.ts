@@ -12,6 +12,9 @@ export interface MoodEntryRequest {
   /** Date of the entry in 'YYYY-MM-DD' format */
   date: string;
 
+  /** Optional ISO occurrence instant with original offset; local date must match date. */
+  occurredAt?: string;
+
   /** Optional comment about the mood entry */
   comment?: string;
 

@@ -26,6 +26,11 @@ describe("MoodCard", () => {
     expect(screen.getByText("Feeling grounded.")).toBeInTheDocument();
   });
 
+  it("shows the selected occurrence clock instead of the server save clock", () => {
+    renderWithProviders(<MoodCard entry={{ ...entry, occurredAt: "2026-10-15T17:45:00+05:30" }} onEdit={vi.fn()} onDelete={vi.fn()} />);
+    expect(screen.getByText("5:45 PM")).toBeVisible();
+  });
+
   it("sends the entry to the edit and delete callbacks", () => {
     const onEdit = vi.fn();
     const onDelete = vi.fn();

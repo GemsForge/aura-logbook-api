@@ -68,6 +68,8 @@ public class MoodService : IMoodService
     /// </summary>
     public async Task<(bool Success, string Message, int EntryId)> CreateMoodAsync(int userId, MoodEntryRequest dto)
     {
+        var occurrenceError = ValidateOccurrence(dto);
+        if (occurrenceError is not null) return (false, occurrenceError, 0);
         var impactError = ValidateImpactTopics(dto.ImpactTopics);
         if (impactError is not null) return (false, impactError, 0);
         var reflectionError = ValidatePathwayReflection(dto.PathwayReflection);
@@ -78,6 +80,7 @@ public class MoodService : IMoodService
         {
             UserId = userId,
             Date = dto.Date,
+            OccurredAt = dto.OccurredAt,
             Moods = dto.Moods,
             Comment = dto.Comment,
             ImpactTopics = dto.ImpactTopics ?? [],
@@ -108,6 +111,8 @@ public class MoodService : IMoodService
     /// </summary>
     public async Task<(bool Success, string Message)> UpdateMoodAsync(int userId, int moodId, MoodEntryRequest dto)
     {
+        var occurrenceError = ValidateOccurrence(dto);
+        if (occurrenceError is not null) return (false, occurrenceError);
         var impactError = ValidateImpactTopics(dto.ImpactTopics);
         if (impactError is not null) return (false, impactError);
         var reflectionError = ValidatePathwayReflection(dto.PathwayReflection);
@@ -119,6 +124,8 @@ public class MoodService : IMoodService
             return (false, "Mood entry not found or access denied.");
 
         existing.Date = dto.Date;
+        // Older clients omit occurrence time; keep it while preserving the original server creation timestamp.
+        if (dto.OccurredAt is not null) existing.OccurredAt = dto.OccurredAt;
         existing.Moods = dto.Moods;
         existing.Comment = dto.Comment;
         if (dto.ImpactTopics is not null)
@@ -129,6 +136,17 @@ public class MoodService : IMoodService
 
         var result = await _moodRepo.UpdateAsync(existing);
         return result ? (true, "Mood entry updated.") : (false, "Failed to update mood.");
+    }
+
+    /// <summary>Validates the user's local date against the supplied offset without converting it to the server's day.</summary>
+    private static string? ValidateOccurrence(MoodEntryRequest request)
+    {
+        if (request.OccurredAt is not { } occurredAt) return null;
+        if (DateOnly.FromDateTime(occurredAt.DateTime) != request.Date)
+            return "The occurrence date and time must match the journal date.";
+        if (occurredAt > DateTimeOffset.UtcNow)
+            return "The occurrence date and time cannot be in the future.";
+        return null;
     }
 
     /// <summary>Bounds the private snapshot and accepts only explicit responses for supported interpretive lenses.</summary>

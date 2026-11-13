@@ -1,5 +1,6 @@
 import dayjs, { type Dayjs } from "dayjs";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import { moodOccurrenceTime } from "@/features/mood/moodOccurrenceTime";
 import type { MoodDefinition } from "@/store/referenceDataApi";
 
 /** Insights filter periods. Week is the last seven days; month and year are the current calendar month and year. */
@@ -55,9 +56,9 @@ export function averageEnergy(entries: MoodEntry[], moods: MoodDefinition[]): nu
   return entries.length ? entries.reduce((sum, entry) => sum + entryEnergy(entry, moods), 0) / entries.length : null;
 }
 
-/** Local time an entry was logged; falls back to noon on its date for entries without a timestamp. */
+/** Recorded occurrence at its saved offset; legacy entries retain creation-time or noon fallback. */
 export function loggedAt(entry: MoodEntry): Dayjs {
-  return entry.createdAt ? dayjs(entry.createdAt) : dayjs(entry.date).hour(12);
+  return moodOccurrenceTime(entry);
 }
 
 /** One point on the aura ribbon: horizontal position 0–1, energy 1–5 (null = no check-in, drawn as a gap), and a hover label. */

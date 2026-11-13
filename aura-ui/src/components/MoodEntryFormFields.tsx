@@ -7,7 +7,8 @@ import AddPhotoAlternateOutlined from "@mui/icons-material/AddPhotoAlternateOutl
 import IconButton from "@mui/joy/IconButton";
 import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
-import { DatePicker } from "@mui/x-date-pickers";
+import { MoodDateTimeField } from "@/components/mood/MoodDateTimeField";
+import { MOOD_OCCURRENCE_FORMAT, editableMoodOccurrence, parseMoodOccurrence } from "@/features/mood/moodOccurrenceTime";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -34,6 +35,7 @@ import { MOOD_IMPACT_TOPICS } from "@/features/mood/impactTopics";
 
 type MoodEntryFormValues = {
   date: string;
+  occurredAt?: string;
   moods: MoodType[];
   impactTopics: string[];
   comment?: string;
@@ -59,10 +61,15 @@ const promptPathwayByUserPathway: Record<SpiritualPathway, string> = {
 
 interface Props {
   entry?: MoodEntry;
+  /** Controlled new-entry date from the page header; edit modals keep their own inline date field. */
+  journalDate?: string;
+  /** Explicit occurrence instant from the compact page-header control, including its local UTC offset. */
+  journalOccurredAt?: string;
   showSubmitButton?: boolean;
   /** Reports normalized mood data and prepared photos without putting image bytes in the mood request. */
   onSubmit: (data: {
     date: string;
+    occurredAt?: string;
     moods: MoodType[];
     impactTopics: string[];
     comment?: string;
@@ -82,7 +89,7 @@ interface Props {
   photoStatuses?: Array<"pending" | "uploaded" | "failed">;
 }
 
-export default function MoodEntryFormFields({ entry, showSubmitButton = true, onSubmit, disabled = false, isSubmitting = false, submitLabel, statusMessage, statusRole = "status", photoStatuses = [] }: Props) {
+export default function MoodEntryFormFields({ entry, journalDate, journalOccurredAt, showSubmitButton = true, onSubmit, disabled = false, isSubmitting = false, submitLabel, statusMessage, statusRole = "status", photoStatuses = [] }: Props) {
   const dailyReflection = useDailyPathwayReflection();
   const [reflectionChoice, setReflectionChoice] = useState<{ sourceId: string; text: string; response: MoodReflectionResponse } | null>(entry?.pathwayReflection ? { sourceId: entry.pathwayReflection.sourceId, text: entry.pathwayReflection.text, response: entry.pathwayReflection.response } : null);
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
@@ -99,13 +106,15 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
     watch,
     setValue,
     reset,
+    trigger,
     formState: { errors },
   } = useForm<MoodEntryFormValues>({
     resolver: yupResolver(moodEntrySchema) as Resolver<MoodEntryFormValues>,
     defaultValues: {
       date: entry
         ? dayjs(entry.date).format("YYYY-MM-DD")
-        : dayjs().format("YYYY-MM-DD"),
+        : journalDate ?? dayjs().format("YYYY-MM-DD"),
+      occurredAt: entry?.occurredAt ?? journalOccurredAt,
       moods: entry?.moods ?? (preselectedMood ? [preselectedMood] : []),
       impactTopics: entry?.impactTopics ?? [],
       comment: entry?.comment ?? "",
@@ -118,13 +127,24 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
     setReflectionChoice(entry.pathwayReflection ? { sourceId: entry.pathwayReflection.sourceId, text: entry.pathwayReflection.text, response: entry.pathwayReflection.response } : null);
     reset({
       date: dayjs(entry.date).format("YYYY-MM-DD"),
+      occurredAt: entry.occurredAt ?? undefined,
       moods: entry.moods ?? [],
       impactTopics: entry.impactTopics ?? [],
       comment: entry.comment ?? "",
     });
   }, [entry, reset]);
 
+  // Header date changes flow through RHF, so the same date guards apply before a new entry saves.
+  useEffect(() => {
+    if (!entry && journalDate !== undefined) {
+      setValue("date", journalDate);
+      setValue("occurredAt", journalOccurredAt);
+      void trigger(["date", "occurredAt"]);
+    }
+  }, [entry, journalDate, journalOccurredAt, setValue, trigger]);
+
   const selectedMoods = watch("moods");
+  const selectedDate = watch("date");
   const showPhotos = photosOpen || Boolean(entry) || selectedPhotos.length > 0;
   // Labels and enum keys resolve the same way as on Today and in the banner art.
   const userPathway = normalizeSpiritualPathway(currentUser?.selectedPathway) ?? "mindfulness";
@@ -174,8 +194,9 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
 
   const onFormSubmit = (data: MoodEntryFormValues) => {
     void onSubmit({
-      // New entries always use today's local date; edits keep the date selected for that entry.
-      date: dayjs(entry ? data.date : undefined).format("YYYY-MM-DD"),
+      // The journal date is user-selected; the API records the actual creation timestamp separately.
+      date: data.date,
+      ...(data.occurredAt ? { occurredAt: data.occurredAt } : {}),
       moods: data.moods,
       impactTopics: data.impactTopics,
       comment: data.comment?.trim() || undefined,
@@ -189,29 +210,27 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
 
       <CurrentAuraMark />
       <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} flexWrap="wrap">
-        {entry ? (
-          <Controller
-            name="date"
+        {entry ? <Controller
+            name="occurredAt"
             control={control}
-            render={({ field }) => (
-              <DatePicker
-                label="Date"
-                disabled={disabled || isSubmitting}
-                value={dayjs(field.value)}
-                onChange={(newDate) => newDate && field.onChange(newDate.format("YYYY-MM-DD"))}
-                format="MMM D, YYYY"
-                slotProps={{ textField: { size: "small", sx: { width: 172 } } }}
-              />
-            )}
-          />
-        ) : <Box><Typography component="h2" level="title-md">How are you feeling today?</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .25 }}>{getCheckInSubtext(currentUser?.selectedPathway)}</Typography></Box>}
+            render={({ field }) => <MoodDateTimeField
+              value={parseMoodOccurrence(field.value) ?? editableMoodOccurrence(entry)}
+              onChange={(moment) => {
+                const validMoment = moment?.isValid() ? moment : null;
+                field.onChange(validMoment?.format(MOOD_OCCURRENCE_FORMAT) ?? "");
+                setValue("date", validMoment?.format("YYYY-MM-DD") ?? "", { shouldValidate: true });
+              }}
+              disabled={disabled || isSubmitting}
+              error={Boolean(errors.date || errors.occurredAt)}
+            />}
+          /> : <Box><Typography component="h2" level="title-md">{selectedDate === dayjs().format("YYYY-MM-DD") ? "How are you feeling today?" : "How were you feeling?"}</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .25 }}>{getCheckInSubtext(currentUser?.selectedPathway)}</Typography></Box>}
         <Typography level="body-sm" color={selectedMoods.length > 0 ? "primary" : "neutral"}>
           {selectedMoods.length === 0 ? "Nothing selected" : `${selectedMoods.length} selected`}
         </Typography>
       </Stack>
-      {errors.date && (
-        <Typography color="danger" level="body-sm">
-          {errors.date.message}
+      {(errors.date || errors.occurredAt) && (
+        <Typography role="alert" color="danger" level="body-sm">
+          {errors.date?.message ?? errors.occurredAt?.message}
         </Typography>
       )}
 

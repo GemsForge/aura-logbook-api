@@ -13,7 +13,9 @@ export interface MoodEntry {
   impactTopics?: string[];
   /** Invitation snapshot and explicit response saved with this private mood entry. */
   pathwayReflection?: MoodPathwayReflection | null;
-  createdAt: string; // ISO timestamp (e.g., "2025-06-21T14:32:00Z")
+  /** User-selected occurrence with its original UTC offset; missing on legacy entries. */
+  occurredAt?: string | null;
+  createdAt: string; // Immutable server audit timestamp (e.g., "2025-06-21T14:32:00Z")
   /** JSON weather snapshot captured at check-in ({ description, iconCode, temperature, unit }), when available. */
   weatherSnapshot?: string | null;
   /** JSON snapshot of the Spotify track playing at check-in ({ name, artists }), when available. */

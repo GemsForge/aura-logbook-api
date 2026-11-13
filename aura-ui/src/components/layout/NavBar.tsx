@@ -24,7 +24,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { getProfileCompletion } from "@/util/profile";
 
-/** Keeps navigation compact and the approved logo prominent across viewport sizes. */
+/** Keeps navigation compact; app-header confines desktop brand sizing to this bar. */
 const NavBar = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
@@ -60,7 +60,7 @@ const NavBar = () => {
   };
 
   return (
-    <Sheet component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--al-theme-border)", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 86%, transparent)", backdropFilter: "blur(24px)" }}>
+    <Sheet className="app-header" component="header" variant="plain" sx={{ position: "sticky", top: 0, zIndex: 1100, borderBottom: "1px solid", borderColor: "var(--al-theme-border)", backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 86%, transparent)", backdropFilter: "blur(24px)" }}>
       <Box sx={{ display: "flex", alignItems: "center", minHeight: { xs: 64, md: 86 }, px: { xs: 1.5, md: 3 }, gap: { xs: 1, md: 1.5 } }}>
         <IconButton aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenuOpen((open) => !open)} sx={{ display: { xs: isAuthenticated ? "inline-flex" : "none", md: "none" } }}>
           {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}

@@ -1,3 +1,4 @@
+import { compareMoodOccurrence, moodOccurrenceTime } from "@/features/mood/moodOccurrenceTime";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Box from "@mui/joy/Box";
@@ -24,8 +25,8 @@ import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppDispatch } from "@/store/hooks";
 import { auraApi } from "@/store/auraApi";
 
-/** Orders entries oldest to newest by day, then by logged time, for Earlier/Later stepping. */
-const byTime = (a: MoodEntry, b: MoodEntry) => a.date.localeCompare(b.date) || (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
+/** Orders journal days and recorded moments for Earlier/Later stepping, with legacy audit-time fallback. */
+const byTime = compareMoodOccurrence;
 
 /**
  * Reading view for one reflection at `/history/:id`: a narrow serif column with the full writing, its moods,
@@ -66,7 +67,7 @@ export default function ReflectionRead() {
     const aura = referenceData?.auras.find((definition) => definition.key === moodDefinition(mood)?.auraColorKeys[0]);
     return aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)";
   };
-  const time = entry.createdAt ? dayjs(entry.createdAt).format("h:mm A") : null;
+  const time = moodOccurrenceTime(entry).format("h:mm A");
   const song = parseSnapshot<{ name?: string; artists?: string }>(entry.musicTrack);
   const weather = parseSnapshot<{ description?: string; iconCode?: string; temperature?: number; unit?: string }>(entry.weatherSnapshot);
   const clear = !!weather && (/clear/i.test(weather.description ?? "") || (weather.iconCode ?? "").startsWith("01"));

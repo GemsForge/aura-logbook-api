@@ -4,7 +4,7 @@ import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
-import dayjs from "dayjs";
+import { moodOccurrenceTime } from "@/features/mood/moodOccurrenceTime";
 import { Link as RouterLink } from "react-router-dom";
 import { MoodTag } from "./MoodTag";
 import MarkdownReflection from "../MarkdownReflection";
@@ -29,7 +29,8 @@ export function MoodCard({
   const { data: referenceData } = useGetReferenceDataQuery();
   const moodDefinition = referenceData?.moods.find((definition) => definition.key === entry.moods[0]);
   const aura = referenceData?.auras.find((definition) => definition.key === moodDefinition?.auraColorKeys[0]);
-  const time = entry.createdAt ? dayjs(entry.createdAt).format("h:mm A") : dayjs(entry.date).format("MMM D");
+  // The timeline clock follows the recorded moment, not the later server save time.
+  const time = moodOccurrenceTime(entry).format("h:mm A");
   return (
     <Box component="article" aria-label={`${time} reflection: ${entry.moods.join(", ")}`} sx={{ pl: 1.5, py: .25, borderLeft: "3px solid", borderColor: aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)" }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>

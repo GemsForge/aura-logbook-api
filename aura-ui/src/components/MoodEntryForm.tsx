@@ -6,6 +6,8 @@ import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import dayjs from "dayjs";
+import { MoodDateTimeField } from "@/components/mood/MoodDateTimeField";
+import { MOOD_OCCURRENCE_FORMAT, parseMoodOccurrence } from "@/features/mood/moodOccurrenceTime";
 import Typography from "@mui/joy/Typography";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
@@ -14,13 +16,16 @@ import { moodApi } from "@/store/moodApi";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
 import { useCheckInWeather } from "@/hooks/useCheckInWeather";
 
-/** Hosts a same-day mood entry with its creation time and compact journaling form. */
+/** Owns the header journal-date selection while the API keeps the actual creation timestamp separate. */
 export default function MoodEntryForm() {
   const currentUser = useAppSelector(selectCurrentUser);
   const dispatch = useAppDispatch();
   const checkInWeather = useCheckInWeather(currentUser);
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [journalOccurredAt, setJournalOccurredAt] = useState(dayjs().startOf("minute").format(MOOD_OCCURRENCE_FORMAT));
+  const selectedMoment = parseMoodOccurrence(journalOccurredAt);
+  const journalDate = selectedMoment?.format("YYYY-MM-DD") ?? "";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedMoodId, setSavedMoodId] = useState<number | null>(null);
   const [photoStatuses, setPhotoStatuses] = useState<Array<"pending" | "uploaded" | "failed">>([]);
@@ -31,6 +36,7 @@ export default function MoodEntryForm() {
   /** Saves one entry first, then uploads its private photos with retry state tied to that entry ID. */
   const handleSubmit = async (data: {
     date: string;
+    occurredAt?: string;
     moods: MoodType[];
     impactTopics: string[];
     comment?: string;
@@ -112,11 +118,18 @@ export default function MoodEntryForm() {
 
   return (
     <Box className="signed-in-content" sx={{ maxWidth: 1200, mx: "auto", py: { xs: 0, md: 1 } }}>
-      <Box component="header" sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 1 }}>
-        <Typography component="h1" level="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "2rem !important", fontWeight: 500 }}>New entry</Typography>
-        <Typography level="body-xs" color="neutral">{dayjs().format("ddd, MMM D · h:mm A")}</Typography>
+      <Box component="header" sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+        <Typography component="h1" level="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.5rem !important", sm: "2rem !important" }, fontWeight: 500 }}>New entry</Typography>
+        {/* The occurrence date and time are editable here; a saved entry stays locked during photo retries. */}
+        <MoodDateTimeField
+          value={selectedMoment}
+          onChange={(date) => setJournalOccurredAt(date?.isValid() ? date.format(MOOD_OCCURRENCE_FORMAT) : "")}
+          disabled={isSubmitting || savedMoodId !== null}
+        />
       </Box>
         <MoodEntryFormFields
+          journalDate={journalDate}
+          journalOccurredAt={journalOccurredAt}
           onSubmit={handleSubmit}
           disabled={savedMoodId !== null}
           isSubmitting={isSubmitting}

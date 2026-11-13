@@ -4,6 +4,8 @@ public class MoodEntry
     public int Id { get; set; }
     public int UserId { get; set; }
     public DateOnly Date { get; set; }
+    /// <summary>User-selected occurrence instant and original UTC offset; null for legacy entries without an occurrence time.</summary>
+    public DateTimeOffset? OccurredAt { get; set; }
     /// <summary>Gets or sets database-defined mood keys recorded for this entry.</summary>
     public List<string> Moods { get; set; } = new();
     public string? Comment { get; set; }
@@ -19,5 +21,6 @@ public class MoodEntry
     public string? MusicTrack { get; set; }
     /// <summary>Number of private photos attached to the entry; read-only, computed when entries are listed.</summary>
     public int PhotoCount { get; set; }
+    /// <summary>Immutable server creation timestamp; changing the journal date/time does not rewrite this audit value.</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -42,8 +42,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .signed-in-shell { --joy-spacing: 6px; }
   .signed-in-container { max-width: 87.5rem !important; margin-top: 1rem !important; margin-bottom: .75rem !important; }
   .signed-in-shell .signed-in-grid { grid-template-columns: 9.25rem minmax(0, 1fr); gap: 1.25rem; }
-  .signed-in-shell header > div { min-height: 4.5rem; }
-  .signed-in-shell header [data-testid="prism-mark"] { width: 3.75rem !important; height: 3.75rem !important; }
+  /* Scope brand sizing to the app header; entry-header controls keep their own compact height. */
+  .signed-in-shell .app-header > div { min-height: 4.5rem; }
+  .signed-in-shell .app-header [data-testid="prism-mark"] { width: 3.75rem !important; height: 3.75rem !important; }
   .signed-in-content { width: 100%; max-width: 75rem !important; margin-left: auto; margin-right: auto; }
   .signed-in-content h1 { font-size: 1.5rem !important; }
   .signed-in-content h2 { font-size: 1rem !important; }

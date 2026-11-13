@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import type { MoodDefinition } from "@/store/referenceDataApi";
-import { averageEnergy, energyFactors, entriesInRange, liveliestTime, periodRange, ribbonPoints, topMood } from "./insightMetrics";
+import { loggedAt, averageEnergy, energyFactors, entriesInRange, liveliestTime, periodRange, ribbonPoints, topMood } from "./insightMetrics";
 
 const moods = [
   { key: "Weary", energyLevel: 1 },
@@ -49,6 +49,14 @@ describe("insightMetrics", () => {
     // One photo is not a pattern; no music was captured at all.
     expect(factors.map((factor) => factor.key)).not.toContain("photo");
     expect(factors.map((factor) => factor.key)).not.toContain("music");
+  });
+
+  it("uses the recorded occurrence hour and offset for timeline points and time-of-day metrics", () => {
+    const loggedLater = entry("2026-11-11", 8, "Empowered", { occurredAt: "2026-11-11T19:30:00+05:30" });
+    expect(loggedAt(loggedLater).hour()).toBe(19);
+    const point = ribbonPoints("week", [loggedLater], periodRange("week", today), moods).find((item) => item.energy !== null)!;
+    expect(point.label).toContain("7:30 PM");
+    expect(point.x).toBeCloseTo((6 + 19.5 / 24) / 7);
   });
 
   it("names the liveliest part of the day only with three or more check-ins there", () => {
