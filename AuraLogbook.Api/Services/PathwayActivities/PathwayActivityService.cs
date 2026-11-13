@@ -73,6 +73,8 @@ public sealed class PathwayActivityService : IPathwayActivityService
                 => ValidateMindfulPractice(request.Content, properties),
             "faith-practice-check-in" when request.Pathway == SpiritualPathwayKeys.Faith && request.ModuleKey == "faith-practice-check-in"
                 => ValidateFaithCheckIn(request.Content, properties),
+            "faith-practice-preferences" when request.Pathway == SpiritualPathwayKeys.Faith && request.ModuleKey == "faith-practice-check-in"
+                => ValidateFaithPracticePreferences(request.Content, properties),
             "insight-feedback" => ValidateInsightFeedback(request.Pathway, request.Content, properties),
             _ => "Choose a supported pathway activity type."
         };
@@ -102,6 +104,28 @@ public sealed class PathwayActivityService : IPathwayActivityService
         foreach (var practice in practices.EnumerateObject())
             if (!allowedPractices.Contains(practice.Name) || practice.Value.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
                 return "Choose supported faith practices with a did/didn't value.";
+        return null;
+    }
+
+    /// <summary>Validates the private list of faith practices a user has chosen to track.</summary>
+    private static string? ValidateFaithPracticePreferences(JsonElement content, HashSet<string> properties)
+    {
+        var allowedPractices = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "sacred-text-reading", "prayer", "contemplation", "worship-or-gathering", "gratitude", "service-or-care"
+        };
+        if (properties.Count != 1 || !properties.SetEquals(["practiceKeys"])
+            || !content.TryGetProperty("practiceKeys", out var keys) || keys.ValueKind != JsonValueKind.Array)
+            return "Choose a supported list of faith practices to track.";
+
+        var selected = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var key in keys.EnumerateArray())
+        {
+            if (key.ValueKind != JsonValueKind.String || !allowedPractices.Contains(key.GetString() ?? "")
+                || !selected.Add(key.GetString() ?? ""))
+                return "Choose each supported faith practice no more than once.";
+        }
+
         return null;
     }
 
