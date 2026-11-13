@@ -145,12 +145,13 @@ public sealed class InterfaceModeTests
         Assert.False(wrongPathway.Success);
     }
 
-    /// <summary>#385: birth details are refused unless the user explicitly chose to save them.</summary>
+    /// <summary>#385: chart details require explicit consent and both time and birthplace.</summary>
     [Fact]
     public void Birth_details_require_explicit_save_choice()
     {
         Assert.NotNull(new PathwayPreferences { BirthPlace = "Lisbon" }.Validate(SpiritualPathway.Energy));
-        Assert.Null(new PathwayPreferences { SaveBirthDetails = true, BirthPlace = "Lisbon" }.Validate(SpiritualPathway.Energy));
+        Assert.NotNull(new PathwayPreferences { SaveBirthDetails = true, BirthPlace = "Lisbon" }.Validate(SpiritualPathway.Energy));
+        Assert.Null(new PathwayPreferences { SaveBirthDetails = true, BirthTime = "08:30", BirthPlace = "Lisbon" }.Validate(SpiritualPathway.Energy));
         Assert.NotNull(new PathwayPreferences { FaithTradition = "unknown" }.Validate(SpiritualPathway.Faith));
     }
 }
