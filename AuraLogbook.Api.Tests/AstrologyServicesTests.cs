@@ -60,6 +60,20 @@ public sealed class AstrologyServicesTests
     }
 
     [Fact]
+    public async Task Shared_pacer_keeps_response_spacing_and_releases_the_gate_after_cancellation()
+    {
+        var pacer = new FreeAstroApiRequestPacer();
+        var first = await pacer.EnterAsync(CancellationToken.None);
+        // A slow provider response must still be followed by a full rate-limit interval.
+        await Task.Delay(TimeSpan.FromMilliseconds(1100));
+        await first.DisposeAsync();
+        using var cancelledWait = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await pacer.EnterAsync(cancelledWait.Token));
+
+        await using var next = await pacer.EnterAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Moon_phase_counts_group_entries_by_phase_and_report_unresolved_dates()
     {
         var day1 = new DateOnly(2026, 11, 1);
