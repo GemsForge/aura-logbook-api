@@ -46,41 +46,45 @@ Final optional card: "Want insights tied to your sign? Add your birthday." (Show
 - Reveal copy: "You seem drawn to **{pathway}**" + "a little {runner-up} too" when runner-up > 0.
 - Changeable anytime in Settings.
 
-## 3. Hue anchors (OKLCH hue degrees)
+## 3. Palette hue source
 
-| Anchor | Hue | Anchor | Hue |
-|---|---|---|---|
-| Red | 29 | Teal | 190 |
-| Orange | 55 | Blue | 250 |
-| Gold | 85 | Indigo | 275 |
-| Green | 145 | Violet | 305 |
-| | | Rose | 350 |
+The active reference catalog is authoritative: `MoodAuraMappings` chooses a mood's
+primary color using the same alphabetical association order as the reference endpoint.
+Its `AuraColorShades` 500 shade, falling back to `AuraColorDefinitions.BaseHex`, is the
+same sRGB value displayed by the mood control. Convert that value to OKLab, then use
+its a/b polar angle as the OKLCH hue. Explicit neutral and achromatic colors have no hue.
+No separate hardcoded mood-to-hue mapping or profile/onboarding color overrides it.
 
 ## 4. Quiz color
 
 Quiz answers choose a reflection pathway; their colored answer markers are decorative and do not seed the aura. The onboarding color-moment step is removed so users do not choose the color that later appears as check-in-derived.
 
-## 5. Mood → hue weights (ongoing check-ins)
+## 5. Mood colors and chroma attenuation
 
-Chroma factor scales how saturated the contribution is; low-energy moods mute the aura.
+Runtime hues come from the visible database palette (§3). The baseline catalog below
+illustrates those associations; changing an active color or mapping changes both the
+mood control and subsequent aura calculations. Existing per-mood chroma attenuation
+is retained. New configured moods default to factor 1.0; missing/inactive mappings
+contribute no guessed hue. A neutral association mutes the blend without moving it.
 
-| Mood | Hue | Chroma factor |
+| Mood | Baseline visible color | Chroma factor |
 |---|---|---|
-| Empowered | Orange 40 | 1.0 |
-| Centered | Blue 250 | 0.8 |
-| Harmonious | Green 145 | 0.9 |
-| Flowing | Teal 190 | 0.9 |
-| Weary | Indigo 275 | 0.4 |
-| Tense | Red 25 | 0.7 |
-| Frustrated | Red 29 | 0.9 |
-| Restless | Orange 60 | 0.7 |
-| Disconnected | Blue 260 | 0.3 |
-| Heavy | Indigo 280 | 0.4 |
-| Charged | Rose 350 | 1.0 |
-| Scattered | Gold 95 | 0.5 |
-| Abundant | Gold 85 | 1.0 |
-| Visionary | Violet 305 | 1.0 |
-| Neutral | — (no hue) | lowers overall chroma only |
+| Empowered | Yellow | 1.0 |
+| Centered | Yellow | 0.8 |
+| Harmonious | Blue | 0.9 |
+| Flowing | Orange | 0.9 |
+| Weary | Gray (neutral) | 0.4 |
+| Tense | Red | 0.7 |
+| Frustrated | Red | 0.9 |
+| Blocked | Red | 1.0 |
+| Restless | Indigo | 0.7 |
+| Disconnected | Indigo | 0.3 |
+| Heavy | Blue | 0.4 |
+| Charged | Red | 1.0 |
+| Scattered | Violet | 0.5 |
+| Abundant | Green | 1.0 |
+| Visionary | Pink | 1.0 |
+| Neutral | Gray (neutral) | 0.0 |
 
 ## 6. Pathway and color boundary
 
@@ -153,19 +157,17 @@ Pathway framing (same key, different voice):
 Each season ships with: one reflection prompt per pathway and one gentle next step.
 Season history is shown on the calendar as ribbons spanning the days it held.
 
-## 11. Mood-combination hue nuance
+## 11. Combination inputs
 
-Builds on `MoodCombinationInterpretations` (migration 018). When a check-in's selected moods
-match a `MoodSetKey`, the combination replaces the individual mood hues for that entry:
+Combined selections blend their individual visible palette colors with the existing
+per-mood chroma factors and date decay. The current-aura and season endpoints do not
+apply legacy `MoodCombinationHues` hue, chroma, or weight overrides. This prevents an
+authored hidden color from replacing the colors the user selected.
 
-- New reference table `MoodCombinationHues (MoodSetKey PK, Hue, ChromaFactor, Weight)` —
-  pathway-independent, so one hue per combination; interpretation text stays per pathway.
-- Default when no hue row exists: blend the individual moods (§5), so unseeded combos still work.
-- The check-in confirmation shows the combination's **hue swatch + its existing pathway
-  interpretation together**, e.g. Tense + Visionary → electric violet-red (≈ 330, chroma 1.0)
-  with the pathway's reflective insight.
-- Weight 1.25 vs single moods, so meaningful pairs nudge the aura a bit more.
-- "Why this color?" lists them: "Tense + Visionary on Tuesday".
+Existing pathway interpretation text and stored combination metadata remain available;
+this change does not rewrite those references or private journal entries. The aura's
+contributors can name up to three recent selected combinations as factual evidence,
+without assigning those combinations a separate aura color.
 
 ## 12. Color presentation
 

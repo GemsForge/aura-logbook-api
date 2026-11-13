@@ -4,10 +4,11 @@ using AuraLogbook.Api.Services.Aura;
 
 namespace AuraLogbook.Api.Tests;
 
-/// <summary>#343: the derived aura blend, decay and pathway base layer.</summary>
+/// <summary>Protects the palette-derived blend, decay, neutrality, and independence from pathway/onboarding choices.</summary>
 public sealed class AuraEngineTests
 {
     private static readonly DateOnly Today = new(2026, 7, 15); // Ordinary Time
+    private static readonly IReadOnlyDictionary<string, double?> Palette = AuraTestPalette.Visible;
 
     private static User NewUser(SpiritualPathway pathway = SpiritualPathway.Mindfulness) =>
         new() { Id = 1, Email = "a@example.test", SelectedPathway = pathway switch
@@ -22,7 +23,7 @@ public sealed class AuraEngineTests
     [Fact]
     public void Nothing_to_blend_returns_a_neutral_aura()
     {
-        var aura = AuraEngine.Compute(NewUser(), [], Today);
+        var aura = AuraEngine.Compute(NewUser(), [], Today, Palette);
 
         Assert.Null(aura.Hue);
         Assert.Equal(0, aura.Intensity);
@@ -30,11 +31,12 @@ public sealed class AuraEngineTests
     }
 
     [Fact]
-    public void Single_mood_sets_the_hue_and_full_strength()
+    public void Single_mood_uses_its_visible_hue_and_existing_chroma_factor()
     {
-        var aura = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Centered)], Today);
+        var aura = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Centered)], Today, Palette);
 
-        Assert.Equal(AuraHueTables.Blue, aura.Hue!.Value, 1);
+        Assert.InRange(aura.Hue!.Value, 95, 115); // Centered is visibly yellow.
+        Assert.Equal(0.8, aura.Strength);
         Assert.Contains("1 check-in in the last 30 days, mostly Centered", aura.Contributors);
     }
 
@@ -42,10 +44,10 @@ public sealed class AuraEngineTests
     [Fact]
     public void Onboarding_color_does_not_change_a_mood_aura()
     {
-        var plain = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Abundant)], Today);
+        var plain = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Abundant)], Today, Palette);
         var user = NewUser();
         user.OnboardingColorHue = 265; // roughly opposite of Gold 85°
-        var withColor = AuraEngine.Compute(user, [Entry(Today, MoodType.Abundant)], Today);
+        var withColor = AuraEngine.Compute(user, [Entry(Today, MoodType.Abundant)], Today, Palette);
 
         Assert.Equal(plain.Hue, withColor.Hue);
         Assert.Equal(plain.Strength, withColor.Strength);
@@ -55,8 +57,8 @@ public sealed class AuraEngineTests
     [Fact]
     public void Neutral_mutes_strength_without_moving_the_hue()
     {
-        var plain = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Visionary)], Today);
-        var muted = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Visionary, MoodType.Neutral)], Today);
+        var plain = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Visionary)], Today, Palette);
+        var muted = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Visionary, MoodType.Neutral)], Today, Palette);
 
         Assert.Equal(plain.Hue!.Value, muted.Hue!.Value, 1);
         Assert.True(muted.Strength < plain.Strength);
@@ -65,26 +67,27 @@ public sealed class AuraEngineTests
     [Fact]
     public void Hue_wraps_around_zero()
     {
-        var aura = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Charged, MoodType.Frustrated)], Today); // 350° and 29°
+        var aura = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Charged, MoodType.Frustrated)], Today,
+            new Dictionary<string, double?> { [MoodType.Charged] = 350, [MoodType.Frustrated] = 29 }); // Synthetic wrap-around inputs protect circular averaging.
 
         Assert.True(aura.Hue is < 15 or > 345, $"hue was {aura.Hue}");
     }
 
     [Fact]
-    public void Recent_moods_outweigh_the_decayed_onboarding_seed()
+    public void Recent_visible_moods_are_independent_of_old_onboarding_color()
     {
         var user = NewUser();
         user.OnboardingCompletedAt = "2026-06-01T00:00:00Z"; // ~6 half-lives ago
         user.OnboardingColorHue = (int)AuraHueTables.Gold;
-        var aura = AuraEngine.Compute(user, [Entry(Today, MoodType.Centered)], Today);
+        var aura = AuraEngine.Compute(user, [Entry(Today, MoodType.Centered)], Today, Palette);
 
-        Assert.InRange(aura.Hue!.Value, 230, 260);
+        Assert.InRange(aura.Hue!.Value, 95, 115);
     }
 
     [Fact]
     public void Old_moods_outside_the_window_are_ignored()
     {
-        var aura = AuraEngine.Compute(NewUser(), [Entry(Today.AddDays(-31), MoodType.Charged)], Today);
+        var aura = AuraEngine.Compute(NewUser(), [Entry(Today.AddDays(-31), MoodType.Charged)], Today, Palette);
 
         Assert.Null(aura.Hue);
     }
@@ -95,8 +98,8 @@ public sealed class AuraEngineTests
     {
         var energy = NewUser(SpiritualPathway.Energy);
         energy.Birthday = new DateOnly(1994, 9, 12); // Virgo, Earth
-        var energyAura = AuraEngine.Compute(energy, [], Today);
-        var faithAura = AuraEngine.Compute(NewUser(SpiritualPathway.Faith), [], new DateOnly(2026, 3, 1)); // Lent 2026
+        var energyAura = AuraEngine.Compute(energy, [], Today, Palette);
+        var faithAura = AuraEngine.Compute(NewUser(SpiritualPathway.Faith), [], new DateOnly(2026, 3, 1), Palette); // Lent 2026
 
         Assert.Null(energyAura.Hue);
         Assert.Empty(energyAura.Contributors);
@@ -111,7 +114,7 @@ public sealed class AuraEngineTests
         var user = NewUser();
         user.OnboardingAnswers = [new OnboardingAnswer { QuestionNumber = 1, Pathway = SpiritualPathway.Mindfulness }];
         user.OnboardingColorHue = 210;
-        var aura = AuraEngine.Compute(user, [], Today);
+        var aura = AuraEngine.Compute(user, [], Today, Palette);
 
         Assert.Null(aura.Hue);
         Assert.Empty(aura.Contributors);
@@ -135,33 +138,26 @@ public sealed class AuraEngineTests
         Assert.Equal(season, LiturgicalSeason.For(DateOnly.Parse(date)).Name);
 }
 
-/// <summary>#345: authored mood-combination hues replace the individual mood hues for an entry.</summary>
+/// <summary>Combined selections retain their individual visible colors instead of hidden authored-hue substitutions.</summary>
 public sealed class AuraCombinationTests
 {
-    private static readonly DateOnly Today = new(2026, 7, 15); // a Wednesday
-    private static readonly IReadOnlyDictionary<string, AuraLogbook.Api.Repositories.CombinationHue> Hues =
-        new Dictionary<string, AuraLogbook.Api.Repositories.CombinationHue> { ["Tense|Visionary"] = new(330, 1.0, 1.25) };
-
-    private static User NewUser() => new() { Id = 1, Email = "c@example.test", OnboardingCompletedAt = "2026-07-15T00:00:00Z" };
+    private static readonly DateOnly Today = new(2026, 7, 15);
+    private static User NewUser() => new() { Id = 1, Email = "c@example.test" };
 
     [Fact]
-    public void Matching_combination_uses_its_own_hue_and_is_named()
+    public void A_combination_of_yellow_moods_stays_yellow_and_is_named()
     {
-        var entry = new MoodEntry { Date = Today, Moods = [MoodType.Visionary, MoodType.Tense] };
-        var aura = AuraEngine.Compute(NewUser(), [entry], Today, Hues);
-
-        Assert.Equal(330, aura.Hue!.Value, 1);
-        Assert.Contains("Visionary + Tense on Wednesday", aura.Contributors);
+        var entry = new MoodEntry { Date = Today, Moods = [MoodType.Centered, MoodType.Empowered] };
+        var aura = AuraEngine.Compute(NewUser(), [entry], Today, AuraTestPalette.Visible);
+        Assert.InRange(aura.Hue!.Value, 95, 115);
+        Assert.Contains("Centered + Empowered on Wednesday", aura.Contributors);
     }
 
     [Fact]
-    public void Unmatched_combination_falls_back_to_individual_moods()
+    public void Unknown_historical_mappings_do_not_get_a_guessed_hue_or_throw()
     {
-        var entry = new MoodEntry { Date = Today, Moods = [MoodType.Centered, MoodType.Harmonious] };
-        var withTable = AuraEngine.Compute(NewUser(), [entry], Today, Hues);
-        var without = AuraEngine.Compute(NewUser(), [entry], Today);
-
-        Assert.Equal(without.Hue!.Value, withTable.Hue!.Value, 3);
-        Assert.DoesNotContain(withTable.Contributors, c => c.Contains(" on "));
+        var entry = new MoodEntry { Date = Today, Moods = [MoodType.Empowered, "RetiredMood"] };
+        var aura = AuraEngine.Compute(NewUser(), [entry], Today, AuraTestPalette.Visible);
+        Assert.InRange(aura.Hue!.Value, 95, 115);
     }
 }

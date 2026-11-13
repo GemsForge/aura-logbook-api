@@ -1,7 +1,5 @@
-using AuraLogbook.Api.Data.Database;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
-using AuraLogbook.Api.Repositories;
 
 namespace AuraLogbook.Api.Services.Aura;
 
@@ -35,9 +33,8 @@ public static class AuraEngine
     public const int MaxCombinationContributors = 3;
 
     /// <summary>Computes a mood-derived aura as of <paramref name="today"/>; <paramref name="user"/> is retained for API compatibility.</summary>
-    /// <param name="combinationHues">Authored combination hues (#345); a matching entry uses its combination hue
-    /// instead of the individual mood hues.</param>
-    public static AuraDto Compute(User user, IEnumerable<MoodEntry> moods, DateOnly today, IReadOnlyDictionary<string, CombinationHue>? combinationHues = null)
+    /// <param name="moodHues">Primary visible palette hues loaded from the reference-data store; absent mappings contribute no guessed hue.</param>
+    public static AuraDto Compute(User user, IEnumerable<MoodEntry> moods, DateOnly today, IReadOnlyDictionary<string, double?> moodHues)
     {
         var blend = new Blend();
         var contributors = new List<string>();
@@ -52,20 +49,15 @@ public static class AuraEngine
             foreach (var mood in entry.Moods) counts[mood] = counts.GetValueOrDefault(mood) + 1;
 
             var distinct = entry.Moods.Distinct().ToList();
-            if (distinct.Count is 2 or 3 && combinationHues is not null
-                && combinationHues.TryGetValue(MoodCombinationImporter.CreateMoodSetKey(distinct), out var combo))
-            {
-                blend.Add(combo.Hue, combo.Weight * decay, combo.ChromaFactor);
-                if (combinationLines.Count < MaxCombinationContributors)
-                    combinationLines.Add($"{string.Join(" + ", distinct)} on {entry.Date.DayOfWeek}");
-                continue;
-            }
+            // Keep selected combinations visible as evidence, without replacing their displayed palette colors.
+            if (distinct.Count is 2 or 3 && combinationLines.Count < MaxCombinationContributors)
+                combinationLines.Add($"{string.Join(" + ", distinct)} on {entry.Date.DayOfWeek}");
 
             foreach (var mood in entry.Moods)
             {
-                var (hue, chroma) = AuraHueTables.Moods[mood];
-                if (hue is { } h) blend.Add(h, decay, chroma);
-                else blend.Weight += decay; // Neutral mutes the blend without moving the hue.
+                if (!moodHues.TryGetValue(mood, out var hue)) continue;
+                if (hue is { } h) blend.Add(h, decay, AuraHueTables.ChromaFor(mood));
+                else blend.Weight += decay; // A neutral palette association mutes without moving the hue.
             }
         }
         if (recent.Count > 0)

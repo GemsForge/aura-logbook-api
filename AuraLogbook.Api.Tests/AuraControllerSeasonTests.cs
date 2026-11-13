@@ -16,7 +16,7 @@ public sealed class AuraControllerSeasonTests
 {
     private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-    private static MoodEntry Entry(DateOnly date) => new() { UserId = 41, Date = date, Moods = [MoodType.Centered] };
+    private static MoodEntry Entry(DateOnly date) => new() { UserId = 41, Date = date, Moods = [MoodType.Harmonious] };
 
     private static (AuraController Controller, Mock<IAuraSeasonRepository> Seasons) CreateController(User user, IReadOnlyList<MoodEntry> entries, AuraSeasonSpan? latest, bool reveals = true)
     {
@@ -25,12 +25,12 @@ public sealed class AuraControllerSeasonTests
         users.Setup(repository => repository.GetByIdAsync(41)).ReturnsAsync(user);
         var moods = new Mock<IFileMoodRepository>();
         moods.Setup(repository => repository.GetAllByUserAsync(41)).ReturnsAsync(entries.ToList());
-        var combinations = new Mock<IMoodCombinationRepository>();
-        combinations.Setup(repository => repository.GetHuesAsync()).ReturnsAsync(new Dictionary<string, CombinationHue>());
+        var colors = new Mock<IAuraColorSource>();
+        colors.Setup(repository => repository.GetMoodHuesAsync()).ReturnsAsync(AuraTestPalette.Visible);
         var seasons = new Mock<IAuraSeasonRepository>();
         seasons.Setup(repository => repository.GetLatestAsync(41)).ReturnsAsync(latest);
         seasons.Setup(repository => repository.GetHistoryAsync(41)).ReturnsAsync(latest is null ? [] : [latest]);
-        var controller = new AuraController(users.Object, moods.Object, combinations.Object, seasons.Object)
+        var controller = new AuraController(users.Object, moods.Object, colors.Object, seasons.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -43,7 +43,7 @@ public sealed class AuraControllerSeasonTests
         return (controller, seasons);
     }
 
-    private static List<MoodEntry> FiveCenteredDays() => Enumerable.Range(0, 5).Select(offset => Entry(Today.AddDays(-offset))).ToList();
+    private static List<MoodEntry> FiveBlueDays() => Enumerable.Range(0, 5).Select(offset => Entry(Today.AddDays(-offset))).ToList();
 
     [Fact]
     public async Task A_held_different_key_starts_a_new_span_and_returns_pathway_copy()
@@ -57,9 +57,10 @@ public sealed class AuraControllerSeasonTests
         var users = new Mock<IFileUserRepository>();
         users.Setup(repository => repository.GetByIdAsync(41)).ReturnsAsync(FaithUser());
         var moods = new Mock<IFileMoodRepository>();
-        moods.Setup(repository => repository.GetAllByUserAsync(41)).ReturnsAsync(FiveCenteredDays());
-        var combinations = new Mock<IMoodCombinationRepository>();
-        var controller = new AuraController(users.Object, moods.Object, combinations.Object, seasons.Object)
+        moods.Setup(repository => repository.GetAllByUserAsync(41)).ReturnsAsync(FiveBlueDays());
+        var colors = new Mock<IAuraColorSource>();
+        colors.Setup(repository => repository.GetMoodHuesAsync()).ReturnsAsync(AuraTestPalette.Visible);
+        var controller = new AuraController(users.Object, moods.Object, colors.Object, seasons.Object)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(JwtRegisteredClaimNames.Sub, "41")], "test")) } },
         };
@@ -75,7 +76,7 @@ public sealed class AuraControllerSeasonTests
     [Fact]
     public async Task Disabled_reveals_return_no_copy_or_history_and_do_not_persist_transitions()
     {
-        var (controller, seasons) = CreateController(new User { Id = 41, Email = "test@example.com" }, FiveCenteredDays(), null, reveals: false);
+        var (controller, seasons) = CreateController(new User { Id = 41, Email = "test@example.com" }, FiveBlueDays(), null, reveals: false);
 
         var response = await controller.GetSeasons();
         var result = Assert.IsType<AuraSeasonResponseDto>(Assert.IsType<OkObjectResult>(response.Result).Value);

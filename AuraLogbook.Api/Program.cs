@@ -104,6 +104,8 @@ builder.Services.AddScoped<IMoodMediaRepository, SqliteMoodMediaRepository>();
 builder.Services.AddSingleton<IMoodMediaFileStore, PrivateMoodMediaFileStore>();
 builder.Services.AddScoped<IReflectionRepository, SqliteReflectionRepository>();
 builder.Services.AddScoped<IMoodCombinationRepository, SqliteMoodCombinationRepository>();
+// Aura derivation uses the same persisted palette mappings shown by reference-data clients.
+builder.Services.AddScoped<IAuraColorSource, SqliteAuraColorSource>();
 builder.Services.AddScoped<IAuraSeasonRepository, SqliteAuraSeasonRepository>();
 // #389: private, pathway-tagged practice and insight-feedback records.
 builder.Services.AddScoped<IPathwayActivityRepository, SqlitePathwayActivityRepository>();
