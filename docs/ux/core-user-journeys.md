@@ -119,6 +119,15 @@ Breathing is available in each pathway as a shared module. Its dedicated view us
 - Across every pathway, offer optional **Resonates / Maybe / Not for me** feedback. Use feedback only to tune future suggestions of the same insight type. Offer **Save to journal** for written reflections; do not save them without an explicit action. Saved pathway reflections use the private `pathway-reflection` activity type and appear in Reflections with edit and delete controls.
 - Faith practice insights summarize only the user’s own opt-in daily check-ins. Do not infer belief, commitment, or spiritual wellbeing from a missed practice; offer optional feedback on a faith insight and tune only later faith-practice insights.
 
+### Proposed recap history
+
+The [Pathway recap data plan](pathway-recap-data-plan.md) defines candidate durable
+inputs for weekly/monthly pathway recaps: versioned source content, private user
+activities linked to the exact reading or invitation, and shared mood/practice
+context. This is a proposed extension; existing provider caches remain in memory
+until retention, chart-history consent, and provider storage permissions are
+settled. Explicit **Save to journal** behavior remains part of that plan.
+
 ### Milestone-level acceptance checks
 
 1. Profile settings select one primary pathway and configure its modules; the navigation displays only enabled modules for that pathway under the nested pathway heading.
