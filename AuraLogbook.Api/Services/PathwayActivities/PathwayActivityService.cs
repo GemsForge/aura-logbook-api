@@ -111,7 +111,7 @@ public sealed class PathwayActivityService : IPathwayActivityService
         var allowedTypes = pathway switch
         {
             SpiritualPathwayKeys.Mindfulness => new HashSet<string>(StringComparer.Ordinal) { "mindfulness-concept", "practice-pattern" },
-            SpiritualPathwayKeys.Energy => new HashSet<string>(StringComparer.Ordinal) { "horoscope", "moon-phase", "chakra-theme", "chakra-mood-pattern", "aura-color" },
+            SpiritualPathwayKeys.Energy => new HashSet<string>(StringComparer.Ordinal) { "horoscope", "moon-phase", "chakra-theme", "chakra-mood-pattern", "aura-color", "birth-chart-placement" },
             SpiritualPathwayKeys.Faith => new HashSet<string>(StringComparer.Ordinal) { "faith-practice" },
             _ => new HashSet<string>(StringComparer.Ordinal)
         };
