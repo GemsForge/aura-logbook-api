@@ -16,13 +16,13 @@ public sealed class BirthChartController : ControllerBase
 {
     private readonly IBirthChartService _birthChart;
     private readonly IFileUserRepository _users;
-    private readonly AstrologyApiOptions _options;
+    private readonly FreeAstrologyApiOptions _options;
 
     /// <summary>Creates the authenticated chart endpoint with the saved-profile and provider services.</summary>
     public BirthChartController(
         IBirthChartService birthChart,
         IFileUserRepository users,
-        IOptions<AstrologyApiOptions> options)
+        IOptions<FreeAstrologyApiOptions> options)
     {
         _birthChart = birthChart;
         _users = users;

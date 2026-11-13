@@ -58,7 +58,7 @@ builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection
 // Prefer the documented deployment secret name while retaining ASP.NET's section-based alias.
 builder.Services.PostConfigure<FreeAstroApiOptions>(options =>
     options.ApiKey = builder.Configuration["FREE_ASTRO_API_KEY"] ?? options.ApiKey);
-builder.Services.Configure<AstrologyApiOptions>(builder.Configuration.GetSection(AstrologyApiOptions.SectionName));
+builder.Services.Configure<FreeAstrologyApiOptions>(builder.Configuration.GetSection(FreeAstrologyApiOptions.SectionName));
 builder.Services.AddDataProtection();
 // Bound Spotify calls so a slow provider returns a recoverable error to the card.
 builder.Services.AddHttpClient("Spotify", client => client.Timeout = TimeSpan.FromSeconds(10));
@@ -93,7 +93,6 @@ builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddSingleton<JsonUserSeeder>();
 builder.Services.AddSingleton<ReflectionStartupImporter>();
 builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
-builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 
 // Repositories: #353 one relational path for users, moods, and zodiac insights in every environment.
 if (builder.Environment.IsProduction() &&
@@ -121,7 +120,9 @@ builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodMediaService, MoodMediaService>();
 builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
 builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
-builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
+// Birth-chart geocoding and calculation share the selected provider’s request limit.
+builder.Services.AddSingleton<FreeAstrologyApiRequestPacer>();
+builder.Services.AddHttpClient<IBirthChartService, FreeAstrologyBirthChartService>();
 builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();
 builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 

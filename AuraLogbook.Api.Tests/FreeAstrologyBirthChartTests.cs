@@ -1,0 +1,185 @@
+using System.Net;
+using System.Security.Claims;
+using System.Text.Json;
+using AuraLogbook.Api.Controllers;
+using AuraLogbook.Api.Models;
+using AuraLogbook.Api.Repositories;
+using AuraLogbook.Api.Services.Astrology;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Moq;
+
+namespace AuraLogbook.Api.Tests;
+
+/// <summary>Verifies the selected chart provider, historical time mapping, normalized UI data, and consent gate.</summary>
+public sealed class FreeAstrologyBirthChartTests
+{
+    private const string Geo = """[{"location_name":"New York","complete_name":"New York, New York, United States","country":"United States","administrative_zone_1":"New York","latitude":40.71,"longitude":-74.01,"timezone":"America/New_York","timezone_offset":-5}]""";
+    private const string Planets = """{"statusCode":200,"output":[{"planet":{"en":"Sun"},"zodiac_sign":{"name":{"en":"Cancer"}},"normDegree":12.5},{"planet":{"en":"Ascendant"},"zodiac_sign":{"name":{"en":"Libra"}},"normDegree":20}]}""";
+
+    /// <summary>Uses only synthetic birth details and fake credentials; no external requests are made.</summary>
+    private static FreeAstrologyBirthChartService Service(Handler handler, string key = "test-key") =>
+        new(new HttpClient(handler), Options.Create(new FreeAstrologyApiOptions { ApiKey = key }),
+            new MemoryCache(new MemoryCacheOptions()), new FreeAstrologyApiRequestPacer(), NullLogger<FreeAstrologyBirthChartService>.Instance);
+
+    [Theory]
+    [InlineData(1, -5)]
+    [InlineData(7, -4)]
+    public async Task Sends_selected_provider_key_maps_birth_date_offset_normalizes_and_caches(int month, double offset)
+    {
+        var handler = new Handler(Geo, Planets);
+        var service = Service(handler);
+        var birthday = new DateOnly(1998, month, 3);
+        var result = await service.GetNatalChartAsync(birthday, "10:30", "New York, US", default);
+        var repeat = await service.GetNatalChartAsync(birthday, "10:30", "New York, US", default);
+
+        Assert.NotNull(result);
+        Assert.Equal("FreeAstrologyAPI", result.Provider);
+        Assert.Same(result, repeat);
+        Assert.Equal(2, handler.Calls.Count);
+        Assert.Equal("https://json.freeastrologyapi.com/geo-details", handler.Calls[0].Url);
+        Assert.Equal("https://json.freeastrologyapi.com/western/planets", handler.Calls[1].Url);
+        Assert.All(handler.Calls, call => Assert.Equal("test-key", call.Key));
+        var sent = handler.Calls[1].Body;
+        Assert.Equal(1998, sent.GetProperty("year").GetInt32());
+        Assert.Equal(month, sent.GetProperty("month").GetInt32());
+        Assert.Equal(3, sent.GetProperty("date").GetInt32());
+        Assert.Equal(10, sent.GetProperty("hours").GetInt32());
+        Assert.Equal(30, sent.GetProperty("minutes").GetInt32());
+        Assert.Equal(40.71, sent.GetProperty("latitude").GetDouble());
+        Assert.Equal(-74.01, sent.GetProperty("longitude").GetDouble());
+        Assert.Equal(offset, sent.GetProperty("timezone").GetDouble());
+        Assert.Equal("tropical", sent.GetProperty("config").GetProperty("ayanamsha").GetString());
+        var sun = result.Chart.GetProperty("placements")[0];
+        Assert.Equal("Sun", sun.GetProperty("name").GetString());
+        Assert.Equal("Cancer", sun.GetProperty("sign").GetString());
+        Assert.Equal(12.5, sun.GetProperty("degree").GetDouble());
+    }
+
+    [Theory]
+    [InlineData("", "10:30")]
+    [InlineData("test-key", "not a time")]
+    public async Task Missing_key_or_invalid_time_does_not_contact_provider(string key, string time)
+    {
+        var handler = new Handler(Geo, Planets);
+        Assert.Null(await Service(handler, key).GetNatalChartAsync(new(1998, 7, 3), time, "New York, US", default));
+        Assert.Empty(handler.Calls);
+    }
+
+    [Theory]
+    [InlineData(2026, 3, 8, "02:30")]
+    [InlineData(2026, 11, 1, "01:30")]
+    public async Task Dst_gaps_and_overlaps_do_not_guess_a_birth_instant(int year, int month, int day, string time)
+    {
+        var handler = new Handler(Geo, Planets);
+        Assert.Null(await Service(handler).GetNatalChartAsync(new(year, month, day), time, "New York, US", default));
+        Assert.Single(handler.Calls);
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("invalid json")]
+    [InlineData("{\"statusCode\":429}")]
+    [InlineData("{\"statusCode\":\"error\"}")]
+    public async Task Invalid_or_empty_locations_fail_without_a_planet_lookup(string geo)
+    {
+        var handler = new Handler(geo, Planets);
+        Assert.Null(await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", "New York, US", default));
+        Assert.Single(handler.Calls);
+    }
+
+    [Fact]
+    public async Task Ambiguous_locations_fail_without_selecting_the_first_result()
+    {
+        var second = Geo.Replace("40.71", "41.71");
+        var handler = new Handler(Geo[..^1] + "," + second[1..], Planets);
+        Assert.Null(await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", "New York, US", default));
+        Assert.Single(handler.Calls);
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("{\"statusCode\":200,\"output\":[]}")]
+    [InlineData("{\"statusCode\":429,\"output\":[]}")]
+    public async Task Unusable_chart_responses_are_not_returned_as_success(string planets)
+    {
+        var handler = new Handler(Geo, planets);
+        Assert.Null(await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", "New York, US", default));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    public async Task Provider_rejections_do_not_retry_or_spend_more_requests(HttpStatusCode status)
+    {
+        var handler = new Handler(Geo, Planets) { Status = status };
+        Assert.Null(await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", "New York, US", default));
+        Assert.Single(handler.Calls);
+    }
+
+    [Fact]
+    public async Task Caller_cancellation_propagates()
+    {
+        var handler = new Handler(Geo, Planets);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", "New York, US", cancelled.Token));
+        Assert.Empty(handler.Calls);
+    }
+
+    [Fact]
+    public async Task Controller_requires_explicit_saved_details_before_contacting_selected_provider()
+    {
+        var charts = new Mock<IBirthChartService>();
+        var users = new Mock<IFileUserRepository>();
+        users.Setup(u => u.GetByIdAsync(7)).ReturnsAsync(new User
+        {
+            Id = 7, SelectedPathway = SpiritualPathwayKeys.Energy, Birthday = new(1998, 7, 3),
+            PathwayPreferences = new() { Focus = ["daily-astrology"], SaveBirthDetails = false }
+        });
+        var controller = new BirthChartController(charts.Object, users.Object, Options.Create(new FreeAstrologyApiOptions { ApiKey = "test-key" }))
+        {
+            ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "test")) } }
+        };
+        Assert.IsType<BadRequestObjectResult>(await controller.GetBirthChart(default));
+        charts.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Controller_returns_selected_provider_chart_for_opted_in_user()
+    {
+        var handler = new Handler(Geo, Planets);
+        var users = new Mock<IFileUserRepository>();
+        users.Setup(u => u.GetByIdAsync(7)).ReturnsAsync(new User
+        {
+            Id = 7, SelectedPathway = SpiritualPathwayKeys.Energy, Birthday = new(1998, 7, 3),
+            PathwayPreferences = new() { Focus = ["daily-astrology"], SaveBirthDetails = true, BirthTime = "10:30", BirthPlace = "New York, US" }
+        });
+        var controller = new BirthChartController(Service(handler), users.Object, Options.Create(new FreeAstrologyApiOptions { ApiKey = "test-key" }))
+        {
+            ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "test")) } }
+        };
+        var response = Assert.IsType<OkObjectResult>(await controller.GetBirthChart(default));
+        var chart = Assert.IsType<AuraLogbook.Api.Models.Dto.NatalChartDto>(response.Value);
+        Assert.Equal("FreeAstrologyAPI", chart.Provider);
+        Assert.Equal("Cancer", chart.Chart.GetProperty("placements")[0].GetProperty("sign").GetString());
+        Assert.Equal(2, handler.Calls.Count);
+    }
+
+    /// <summary>Records sanitized requests against documented response fixtures without accessing any live account.</summary>
+    private sealed class Handler(string geo, string planets) : HttpMessageHandler
+    {
+        public List<(string Url, string Key, JsonElement Body)> Calls { get; } = [];
+        public HttpStatusCode Status { get; init; } = HttpStatusCode.OK;
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
+            Calls.Add((request.RequestUri!.AbsoluteUri, request.Headers.GetValues("x-api-key").Single(), body.RootElement.Clone()));
+            return new HttpResponseMessage(Status) { Content = new StringContent(request.RequestUri.AbsolutePath == "/geo-details" ? geo : planets) };
+        }
+    }
+}
