@@ -42,6 +42,7 @@ describe("MindfulnessGuide", () => {
   it("keeps the optional reflection unsaved until its explicit journal action", async () => {
     const user = userEvent.setup();
     renderWithProviders(<MindfulnessGuide />);
+    await user.click(screen.getByText("Add a reflection"));
     await user.type(screen.getByRole("textbox", { name: "Your reflection" }), "A pause before lunch.");
     expect(PathwayActivityApi.create).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Save to journal" }));
@@ -50,5 +51,20 @@ describe("MindfulnessGuide", () => {
       content: expect.objectContaining({ insightType: "mindfulness-concept", responseText: "A pause before lunch." }),
     }));
     expect(await screen.findByText("Saved to your journal.")).toBeVisible();
+  });
+
+  it("begins a local practice without recording completion and resets the cue when the topic changes", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MindfulnessGuide />);
+    expect(screen.queryByText("Take your time. When your attention wanders, gently return.")).not.toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Begin practice" }));
+    expect(screen.getByText("Take your time. When your attention wanders, gently return.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Finish practice" })).toHaveAttribute("aria-expanded", "true");
+    expect(PathwayActivityApi.create).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "DBT skills" }));
+    await user.click(screen.getByRole("button", { name: "Describe" }));
+    expect(screen.getByRole("button", { name: "Begin practice" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("Put an observation into words. Separate what you notice from the conclusions you draw about it.")).toBeVisible();
+    expect(screen.queryByText(/Dialectical Behavior Therapy describes three/)).not.toBeInTheDocument();
   });
 });

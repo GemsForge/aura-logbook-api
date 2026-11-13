@@ -45,6 +45,7 @@ describe("MindfulPracticeLog", () => {
   it("retains the draft on a save failure and prevents an invalid duration", async () => {
     const user = userEvent.setup();
     renderWithProviders(<MindfulPracticeLog />);
+    await user.click(screen.getByText("Add a note"));
     await user.type(screen.getByRole("textbox", { name: "Note (optional)" }), "A quiet moment.");
     await user.type(screen.getByRole("spinbutton", { name: "Minutes (optional)" }), "0");
     expect(screen.getByRole("button", { name: "Save practice" })).toBeDisabled();
