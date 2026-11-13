@@ -102,6 +102,7 @@ describe("SacredTextView daily reading", () => {
     mocks.query.mockReturnValue({ currentData: bible, isLoading: false });
     render(<SacredTextView framework="christian" />);
     await waitFor(() => expect(mocks.getMine).toHaveBeenCalled());
+    fireEvent.click(screen.getByText("Add a reflection"));
     fireEvent.change(screen.getByRole("textbox", { name: "Your reflection" }), { target: { value: "A private thought." } });
     expect(mocks.create).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Save to journal" }));

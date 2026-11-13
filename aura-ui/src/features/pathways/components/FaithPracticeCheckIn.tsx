@@ -30,8 +30,13 @@ export function FaithPracticeCheckIn() {
   const [items, setItems] = useState<PathwayActivity[]>([]);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editingChoices, setEditingChoices] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const [checkIns, preferences] = await Promise.all([
         PathwayActivityApi.getMine({ pathway: "faith", moduleKey: "faith-practice-check-in", activityType: "faith-practice-check-in" }),
@@ -46,7 +51,8 @@ export function FaithPracticeCheckIn() {
         setPreferencesSaved(true);
       }
     }
-    catch { setMessage("Your practice history isn’t available right now."); }
+    catch { setLoadError(true); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
 
@@ -67,6 +73,7 @@ export function FaithPracticeCheckIn() {
       }
       setSavedKeys([...selectedKeys]);
       setPreferencesSaved(true);
+      setEditingChoices(false);
       setPractices({});
       setMessage("Your practice choices are saved.");
     } catch { setMessage("Couldn’t save your practice choices. Try again."); }
@@ -97,9 +104,46 @@ export function FaithPracticeCheckIn() {
     return next;
   });
 
+  // Returning users start with their daily answers; editing the tracked set is a separate action.
+  if (loading) return <Typography role="status" level="body-sm" sx={{ py: 2 }}>Loading your practice check-in…</Typography>;
+  if (loadError) return <Box sx={{ py: 2 }}>
+    <Typography role="status" level="body-sm">Your practice history isn’t available right now.</Typography>
+    <Button size="sm" variant="plain" onClick={() => void load()} sx={{ mt: 1, minHeight: 44 }}>Try again</Button>
+  </Box>;
+
   return <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.3fr) minmax(0, 1fr)" }, gap: { xs: 3, md: 4 }, mt: 1.5, color: "var(--al-theme-ink)", "& button": { minHeight: 44 } }}>
     <Box sx={{ minWidth: 0 }}>
-      <Typography level="body-sm" sx={{ mb: 2, color: "var(--al-theme-ink-muted)" }}>Choose what matters to you. Only you can see these check-ins.</Typography>
+      {preferencesSaved && <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+        <Button size="sm" variant="plain" aria-expanded={editingChoices} aria-controls="faith-practice-choices" onClick={() => setEditingChoices((current) => !current)}>
+          {editingChoices ? "Close practice choices" : "Edit practices"}
+        </Button>
+      </Box>}
+      {preferencesSaved && preferencesChanged && <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Save your updated choices before recording today’s check-in.</Typography>}
+      {preferencesSaved && !preferencesChanged && selectedKeys.length > 0 && <Box sx={{ mt: 1 }}>
+        <Typography component="h3" level="title-md">Today’s check-in</Typography>
+        <Typography level="body-xs" sx={{ mt: .5, mb: 1, color: "var(--al-theme-ink-muted)" }}>Leave any practice unanswered. Nothing is saved until you choose Save today.</Typography>
+        {selectedKeys.map((key) => {
+          const label = practiceOptions.find((option) => option.key === key)?.label ?? key;
+          return <Box key={key} sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 1, py: 1, borderBottom: "1px solid var(--al-theme-border)" }}>
+            <Typography level="body-sm">{label}</Typography>
+            {/* Pressing the selected answer again clears it; untouched practices remain unknown. */}
+            <Box role="group" aria-label={label} sx={{ display: "flex", flexWrap: "wrap", gap: .5 }}>
+              <Button size="sm" variant={practices[key] === true ? "soft" : "plain"} aria-pressed={practices[key] === true} onClick={() => setChoice(key, true, practices[key] !== true)}>Did</Button>
+              <Button size="sm" variant={practices[key] === false ? "soft" : "plain"} aria-pressed={practices[key] === false} onClick={() => setChoice(key, false, practices[key] !== false)}>Didn’t today</Button>
+            </Box>
+          </Box>;
+        })}
+        <Box component="details" sx={{ mt: 1, "& summary": { cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center", fontSize: "var(--joy-fontSize-sm)", color: "var(--al-theme-accent)", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } } }}>
+          <Box component="summary">Add a note</Box>
+          <FormControl>
+            <FormLabel htmlFor="faith-practice-note">Optional note</FormLabel>
+            <Textarea size="sm" minRows={2} maxRows={4} value={note} onChange={(event) => setNote(event.target.value)} slotProps={{ textarea: { id: "faith-practice-note", maxLength: 500 } }} />
+          </FormControl>
+        </Box>
+        <Button size="sm" variant="solid" disabled={saving || (!Object.keys(practices).length && !note.trim())} onClick={() => void save()} sx={{ mt: 1 }}>Save today</Button>
+      </Box>}
+      {preferencesSaved && !preferencesChanged && selectedKeys.length === 0 && <Typography level="body-sm" sx={{ mt: 2 }}>You chose not to track any practices right now. Choose Edit practices whenever you want to change that.</Typography>}
+      {(!preferencesSaved || editingChoices) && <Box id="faith-practice-choices" sx={{ mt: preferencesSaved ? 3 : 0 }}>
       <Box component="fieldset" sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
         <Typography component="legend" level="title-md" sx={{ mb: 1 }}>Choose the practices you want to track</Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }, gap: .5 }}>
@@ -110,40 +154,20 @@ export function FaithPracticeCheckIn() {
         </Box>
       </Box>
       <Button size="sm" variant="soft" disabled={saving} onClick={() => void savePreferences()} sx={{ mt: 1 }}>Save practice choices</Button>
-      {preferencesSaved && preferencesChanged && <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Save your updated choices before recording today’s check-in.</Typography>}
-      {preferencesSaved && !preferencesChanged && selectedKeys.length > 0 && <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid var(--al-theme-border)" }}>
-        <Typography component="h3" level="title-md">Today’s check-in</Typography>
-        <Typography level="body-xs" sx={{ mt: .5, mb: 1, color: "var(--al-theme-ink-muted)" }}>Leave any practice unanswered. Nothing is saved until you choose Save today.</Typography>
-        {selectedKeys.map((key) => {
-          const label = practiceOptions.find((option) => option.key === key)?.label ?? key;
-          return <Box key={key} sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 1, py: 1 }}>
-            <Typography level="body-sm">{label}</Typography>
-            {/* Pressing the selected answer again clears it; untouched practices remain unknown. */}
-            <Box role="group" aria-label={label} sx={{ display: "flex", flexWrap: "wrap", gap: .5 }}>
-              <Button size="sm" variant={practices[key] === true ? "soft" : "plain"} aria-pressed={practices[key] === true} onClick={() => setChoice(key, true, practices[key] !== true)}>Did</Button>
-              <Button size="sm" variant={practices[key] === false ? "soft" : "plain"} aria-pressed={practices[key] === false} onClick={() => setChoice(key, false, practices[key] !== false)}>Didn’t today</Button>
-            </Box>
-          </Box>;
-        })}
-        <FormControl sx={{ mt: 1 }}>
-          <FormLabel htmlFor="faith-practice-note">Optional note</FormLabel>
-          <Textarea id="faith-practice-note" size="sm" minRows={2} maxRows={4} value={note} onChange={(event) => setNote(event.target.value)} slotProps={{ textarea: { maxLength: 500 } }} />
-        </FormControl>
-        <Button size="sm" variant="solid" disabled={saving || (!Object.keys(practices).length && !note.trim())} onClick={() => void save()} sx={{ mt: 1 }}>Save today</Button>
       </Box>}
-      {preferencesSaved && !preferencesChanged && selectedKeys.length === 0 && <Typography level="body-sm" sx={{ mt: 2 }}>You chose not to track any practices right now. You can change this selection above.</Typography>}
       {message && <Typography role="status" level="body-sm" sx={{ mt: 1 }}>{message}</Typography>}
     </Box>
     <Box component="aside" aria-label="Faith practice frequency" sx={{ minWidth: 0 }}>
+      <Box component="img" src="/theme-assets/pathways/faith-religion/faith-religion-olive-branch.png" alt="" sx={{ display: "block", width: { xs: 96, md: 144 }, height: { xs: 72, md: 108 }, objectFit: "contain", mb: 1 }} />
       <Typography component="h3" level="title-md">Your practice, at your pace</Typography>
-      <Typography level="body-sm" sx={{ mt: .75, color: "var(--al-theme-ink-muted)" }}>A record of the moments you choose to notice. There’s no right number of practices to keep.</Typography>
+      <Typography level="body-sm" sx={{ mt: .75, color: "var(--al-theme-ink-muted)" }}>Only the moments you choose to record.</Typography>
       {preferencesSaved && !preferencesChanged && selectedKeys.length > 0 ? <InsightFeedback pathway="faith" moduleKey="faith-practice-check-in" insightType="faith-practice" hideContentWhenNotForMe>
         <Box sx={{ mb: 2 }}>
           <Typography component="h4" level="title-sm">Your check-ins</Typography>
           {selectedKeys.map((key) => {
             const option = practiceOptions.find((item) => item.key === key);
             const Icon = option?.icon ?? SpaRounded;
-            return <Box key={key} sx={{ display: "flex", alignItems: "center", gap: 1, py: 1 }}>
+            return <Box key={key} sx={{ display: "flex", alignItems: "center", gap: 1, py: 1, borderBottom: "1px solid var(--al-theme-border)" }}>
               <Icon aria-hidden="true" sx={{ fontSize: 20, color: "var(--al-theme-ink-muted)" }} />
               <Box sx={{ minWidth: 0 }}>
                 <Typography level="body-sm">{option?.label ?? key}</Typography>

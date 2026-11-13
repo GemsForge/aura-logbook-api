@@ -55,8 +55,22 @@ describe("FaithPracticeCheckIn explicit recording", () => {
     expect(counts.queryByText("Gratitude")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save today" })).toBeDisabled();
     expect(mocks.create).not.toHaveBeenCalled();
+    expect(screen.queryByRole("checkbox", { name: "Gratitude" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Edit practices" }));
+    expect(screen.getByRole("button", { name: "Close practice choices" })).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(screen.getByRole("checkbox", { name: "Gratitude" }));
     expect(screen.queryByRole("heading", { name: "Today’s check-in" })).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Save your updated choices");
+  });
+  it("keeps failed preference loads distinct from first-time setup and lets the user retry", async () => {
+    mocks.getMine.mockRejectedValue(new Error("Offline"));
+    render(<FaithPracticeCheckIn />);
+    await screen.findByText("Your practice history isn’t available right now.");
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save practice choices" })).not.toBeInTheDocument();
+    mocks.getMine.mockResolvedValue([]);
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByRole("checkbox", { name: "Prayer or supplication" });
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 });

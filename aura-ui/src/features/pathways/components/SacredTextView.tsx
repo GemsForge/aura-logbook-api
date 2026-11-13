@@ -36,57 +36,59 @@ export function SacredTextView({ framework, publisher }: SacredTextViewProps) {
     ? `As you read ${reading.reference}, what stands out to you?`
     : `What, if anything, does this invitation bring to mind? “${quote.text}”`;
 
-  return <Box className="aura-highlight" component="section" aria-labelledby="daily-reading-title"
-    sx={{ p: { xs: 2, sm: 3 }, mt: 1, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm", color: "var(--al-theme-ink)", "& button, & a": { minHeight: 44 } }}>
-    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.4fr) minmax(0, 1fr)" }, gap: { xs: 3, md: 4 }, alignItems: "start" }}>
+  // Both existing illustrations are non-denominational: the book accompanies supported
+  // readings; the olive branch keeps the unselected-framework quote visually neutral.
+  const artwork = selectedFramework ? "faith-religion-open-book.png" : "faith-religion-olive-branch.png";
+
+  return <Box component="section" aria-labelledby="daily-reading-title"
+    sx={{ minWidth: 0, color: "var(--al-theme-ink)", "& button, & a": { minHeight: 44 } }}>
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 2 }}>
       <Box sx={{ minWidth: 0 }}>
         <Typography component="h2" id="daily-reading-title" level="title-lg">{heading}</Typography>
         <Typography level="body-sm" sx={{ mt: .5, color: "var(--al-theme-ink-muted)" }}>
-          {selectedFramework ? readingNames[selectedFramework] : `${quote.theme} · A moment for reflection`}
+          {selectedFramework ? readingNames[selectedFramework] : quote.theme}
         </Typography>
-        {loading ? <Box role="status" sx={{ mt: 3 }}>
-          <Typography level="body-sm">Loading today’s passage…</Typography>
-          <Skeleton variant="text" level="h3" sx={{ mt: 1 }} />
-          <Skeleton variant="text" level="h3" />
-          <Skeleton variant="text" level="body-sm" width="65%" />
-        </Box> : hasReading ? <Box component="figure" sx={{ m: 0, mt: { xs: 2, sm: 3 } }}>
+      </Box>
+      <Box component="img" src={`/theme-assets/pathways/faith-religion/${artwork}`} alt=""
+        sx={{ width: { xs: 88, sm: 132 }, height: { xs: 66, sm: 99 }, objectFit: "contain", flexShrink: 0 }} />
+    </Box>
+    {loading ? <Box role="status" sx={{ py: 3 }}>
+      <Typography level="body-sm">Loading today’s passage…</Typography>
+      <Skeleton variant="text" level="h3" sx={{ mt: 1 }} />
+      <Skeleton variant="text" level="h3" />
+      <Skeleton variant="text" level="body-sm" width="65%" />
+    </Box> : hasReading ? <>
+      <Box className="aura-highlight" component="figure" sx={{ m: 0, px: { xs: 2, sm: 4 }, py: { xs: 3, sm: 4 }, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+        <Box sx={{ maxWidth: 680, mx: "auto" }}>
+          <Typography component="p" level="title-md" sx={{ mb: 2 }}>{reading?.reference ?? quote.author}</Typography>
           <Box component="blockquote" sx={{ m: 0 }}>
-            <Typography component="p" sx={{ fontFamily: "var(--aura-font-display, Georgia, 'Times New Roman', serif)", fontSize: { xs: "var(--joy-fontSize-xl2)", sm: "var(--joy-fontSize-xl3)" }, lineHeight: 1.65, color: "var(--al-theme-ink)", overflowWrap: "anywhere" }}>
+            <Typography component="p" sx={{ fontFamily: "var(--aura-font-display, Georgia, 'Times New Roman', serif)", fontSize: { xs: "var(--joy-fontSize-xl2)", sm: "var(--joy-fontSize-xl3)" }, lineHeight: 1.8, color: "var(--al-theme-ink)", overflowWrap: "anywhere" }}>
               “{reading?.text ?? quote.text}”
             </Typography>
           </Box>
-          <Box component="figcaption" sx={{ mt: 2 }}>
-            <Typography level="title-sm">{reading?.reference ?? quote.author}</Typography>
-            {reading && <>
-              <Typography level="body-xs" sx={{ mt: .5, color: "var(--al-theme-ink-muted)" }}>{reading.translation}</Typography>
-              <Typography level="body-xs" sx={{ mt: .5, color: "var(--al-theme-ink-muted)", overflowWrap: "anywhere" }}>{reading.attribution}</Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                <Button component="a" href={reading.readingUrl} target="_blank" rel="noreferrer" size="sm" variant="plain" endDecorator={<OpenInNewRounded />} sx={{ whiteSpace: "normal" }}>
-                  Read passage at source
-                </Button>
-                {selectedPublisher && <Button component="a" href={selectedPublisher.url} target="_blank" rel="noreferrer" size="sm" variant="plain" sx={{ whiteSpace: "normal" }}>
-                  Open {selectedPublisher.name}
-                </Button>}
-              </Box>
-            </>}
-          </Box>
-        </Box> : <Box sx={{ mt: 3 }}>
-          <Typography role="status" level="body-sm">A passage for your selected framework is unavailable right now.</Typography>
-          <Button size="sm" variant="plain" onClick={() => void passage.refetch()} sx={{ mt: 1 }}>Try again</Button>
-        </Box>}
+          {reading && <Box component="figcaption" sx={{ mt: 3 }}>
+            <Typography level="body-xs" sx={{ color: "var(--al-theme-ink-muted)" }}>{reading.translation}</Typography>
+            <Typography level="body-xs" sx={{ mt: .5, color: "var(--al-theme-ink-muted)", overflowWrap: "anywhere" }}>{reading.attribution}</Typography>
+          </Box>}
+        </Box>
       </Box>
-      <Box sx={{ minWidth: 0 }}>
-        <Box component="img" src="/theme-assets/pathways/faith-religion/faith-religion-open-book.png"
-          alt="An open book resting in a gentle pool of warm light."
-          sx={{ display: "block", width: "100%", maxWidth: { xs: 180, sm: 280, md: 320 }, mx: "auto", aspectRatio: "4 / 3", objectFit: "cover", borderRadius: "sm" }} />
-        {!loading && hasReading && <Box sx={{ mt: 2 }}>
-          <Typography component="h3" level="title-md">Make room for a thought</Typography>
-          <Typography level="body-xs" sx={{ mt: .5, color: "var(--al-theme-ink-muted)" }}>Optional. Your words stay private.</Typography>
-          {/* The API's existing word-of-day type scopes journal responses and feedback to daily faith readings. */}
-          <PathwayReflectionPrompt key={selectedFramework ?? quote.id} pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" prompt={prompt} />
-          <InsightFeedback key={selectedFramework ?? quote.id} pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" />
-        </Box>}
+      {reading && <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, py: 1.5, borderBottom: "1px solid var(--al-theme-border)" }}>
+        {/* The full embedded reader is separate work; these remain honest, explicitly external actions. */}
+        <Button component="a" href={reading.readingUrl} target="_blank" rel="noreferrer" size="sm" variant="soft" endDecorator={<OpenInNewRounded />} sx={{ whiteSpace: "normal" }}>
+          Read passage at source
+        </Button>
+        {selectedPublisher && <Button component="a" href={selectedPublisher.url} target="_blank" rel="noreferrer" size="sm" variant="plain" sx={{ whiteSpace: "normal" }}>
+          Open {selectedPublisher.name}
+        </Button>}
+      </Box>}
+      <Box sx={{ mt: 2, maxWidth: 680 }}>
+        {/* Keep the existing activity identity so prior reading feedback and journal entries remain compatible. */}
+        <InsightFeedback key={selectedFramework ?? quote.id} pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" />
+        <PathwayReflectionPrompt key={selectedFramework ?? quote.id} pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" prompt={prompt} />
       </Box>
-    </Box>
+    </> : <Box sx={{ py: 3 }}>
+      <Typography role="status" level="body-sm">A passage for your selected framework is unavailable right now.</Typography>
+      <Button size="sm" variant="plain" onClick={() => void passage.refetch()} sx={{ mt: 1 }}>Try again</Button>
+    </Box>}
   </Box>;
 }
