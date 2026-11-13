@@ -27,6 +27,8 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # #286: bounded so a stuck API call or runner can never hold the job open.
+    timeout-minutes: 10
     steps:
       - uses: actions/github-script@v8
         env:

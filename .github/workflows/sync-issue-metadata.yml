@@ -88,6 +88,8 @@ jobs:
   sync:
     name: Maintain issue relationships and metadata
     runs-on: ubuntu-latest
+    # #286: bounded so a stuck API call or runner can never hold the job open.
+    timeout-minutes: 10
     steps:
       - name: Synchronize metadata from the working issue
         uses: actions/github-script@v8
