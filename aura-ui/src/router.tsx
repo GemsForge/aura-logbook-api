@@ -15,6 +15,7 @@ import Insights from "./pages/Insights";
 import ReflectionRead from "./pages/ReflectionRead";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import BreathingTimer from "./pages/pathways/BreathingTimer";
 import { passwordResetEnabled } from "./features/auth/models/PasswordResetSchema";
 
 export const router = createBrowserRouter([
@@ -51,6 +52,8 @@ export const router = createBrowserRouter([
               { path: "history/:id", element: <ReflectionRead /> },
               { path: "gallery", element: <MediaGallery /> },
               { path: "insights", element: <Insights /> },
+              // #386: shared breathing guide, reachable from any pathway; navigation entry arrives with #385.
+              { path: "pathways/breathing", element: <BreathingTimer /> },
             ],
           },
         ],
