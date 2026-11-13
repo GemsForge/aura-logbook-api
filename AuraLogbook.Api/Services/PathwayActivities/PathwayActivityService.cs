@@ -136,7 +136,7 @@ public sealed class PathwayActivityService : IPathwayActivityService
         {
             SpiritualPathwayKeys.Mindfulness => new HashSet<string>(StringComparer.Ordinal) { "mindfulness-concept", "practice-pattern" },
             SpiritualPathwayKeys.Energy => new HashSet<string>(StringComparer.Ordinal) { "horoscope", "moon-phase", "chakra-theme", "chakra-mood-pattern", "aura-color", "birth-chart-placement" },
-            SpiritualPathwayKeys.Faith => new HashSet<string>(StringComparer.Ordinal) { "faith-practice" },
+            SpiritualPathwayKeys.Faith => new HashSet<string>(StringComparer.Ordinal) { "faith-practice", "word-of-day" },
             _ => new HashSet<string>(StringComparer.Ordinal)
         };
         if (properties.Count != 2 || !properties.SetEquals(["insightType", "response"])
