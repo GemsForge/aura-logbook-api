@@ -9,6 +9,8 @@ public class MoodEntry
     public string? Comment { get; set; }
     /// <summary>Context topics the user chose as impactful for this entry, without causal interpretation.</summary>
     public List<string> ImpactTopics { get; set; } = [];
+    /// <summary>Optional snapshot of the pathway invitation and explicit response recorded with this entry.</summary>
+    public MoodPathwayReflection? PathwayReflection { get; set; }
     public string? AuraColor { get; set; }
     public int? AuraIntensity { get; set; }
     public string? ChakraKey { get; set; }

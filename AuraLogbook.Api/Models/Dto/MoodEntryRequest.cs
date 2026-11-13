@@ -19,6 +19,9 @@ public class MoodEntryRequest
     /// <summary>User-selected topics that had the biggest impact on this check-in; they are not treated as mood causes.</summary>
     public List<string>? ImpactTopics { get; set; }
 
+    /// <summary>Optional interpretive invitation and explicit response saved atomically with the mood entry.</summary>
+    public MoodPathwayReflection? PathwayReflection { get; set; }
+
     /// <summary>Optional current weather the client showed at check-in; stored as a snapshot for Insights patterns.</summary>
     public WeatherDto? Weather { get; set; }
 }

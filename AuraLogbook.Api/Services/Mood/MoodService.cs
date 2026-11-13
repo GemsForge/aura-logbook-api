@@ -70,6 +70,8 @@ public class MoodService : IMoodService
     {
         var impactError = ValidateImpactTopics(dto.ImpactTopics);
         if (impactError is not null) return (false, impactError, 0);
+        var reflectionError = ValidatePathwayReflection(dto.PathwayReflection);
+        if (reflectionError is not null) return (false, reflectionError, 0);
         if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
             return (false, "Select one or more active moods.", 0);
         var moodEntry = new MoodEntry
@@ -79,6 +81,7 @@ public class MoodService : IMoodService
             Moods = dto.Moods,
             Comment = dto.Comment,
             ImpactTopics = dto.ImpactTopics ?? [],
+            PathwayReflection = dto.PathwayReflection,
             WeatherSnapshot = dto.Weather is null ? null : JsonSerializer.Serialize(new { description = dto.Weather.Description, iconCode = dto.Weather.IconCode, temperature = dto.Weather.Temperature, unit = dto.Weather.Unit }),
             MusicTrack = await CaptureMusicAsync(userId),
             CreatedAt = DateTime.UtcNow
@@ -107,6 +110,8 @@ public class MoodService : IMoodService
     {
         var impactError = ValidateImpactTopics(dto.ImpactTopics);
         if (impactError is not null) return (false, impactError);
+        var reflectionError = ValidatePathwayReflection(dto.PathwayReflection);
+        if (reflectionError is not null) return (false, reflectionError);
         if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
             return (false, "Select one or more active moods.");
         var existing = await _moodRepo.GetByIdAsync(moodId);
@@ -118,9 +123,25 @@ public class MoodService : IMoodService
         existing.Comment = dto.Comment;
         if (dto.ImpactTopics is not null)
             existing.ImpactTopics = dto.ImpactTopics;
+        // Older clients omit this field; preserve the historical invitation and response on those updates.
+        if (dto.PathwayReflection is not null)
+            existing.PathwayReflection = dto.PathwayReflection;
 
         var result = await _moodRepo.UpdateAsync(existing);
         return result ? (true, "Mood entry updated.") : (false, "Failed to update mood.");
+    }
+
+    /// <summary>Bounds the private snapshot and accepts only explicit responses for supported interpretive lenses.</summary>
+    private static string? ValidatePathwayReflection(MoodPathwayReflection? reflection)
+    {
+        if (reflection is null) return null;
+        if (string.IsNullOrWhiteSpace(reflection.SourceId) || reflection.SourceId.Length > 160 ||
+            string.IsNullOrWhiteSpace(reflection.Text) || reflection.Text.Length > 1500 ||
+            reflection.Pathway is not ("mindfulness" or "energy" or "faith") ||
+            reflection.InsightType is not ("pathway-prompt" or "chakra-mood-pattern" or "mood-combination") ||
+            reflection.Response is not ("resonates" or "maybe" or "not-for-me"))
+            return "Choose a supported pathway reflection response.";
+        return null;
     }
 
     /// <summary>Rejects unrecognized or repeated context labels while allowing an empty selection.</summary>
