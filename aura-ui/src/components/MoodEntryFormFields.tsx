@@ -25,11 +25,13 @@ import MDEditor from "@uiw/react-md-editor";
 import MoodPhotoPicker from "@/components/MoodPhotoPicker";
 import { getCheckInSubtext } from "@/features/mood/checkInCopy";
 import { getMoodPillSx } from "@/components/mood/moodPillStyles";
+import { MOOD_IMPACT_TOPICS } from "@/features/mood/impactTopics";
 
 
 type MoodEntryFormValues = {
   date: string;
   moods: MoodType[];
+  impactTopics: string[];
   comment?: string;
 };
 
@@ -58,6 +60,7 @@ interface Props {
   onSubmit: (data: {
     date: string;
     moods: MoodType[];
+    impactTopics: string[];
     comment?: string;
   }, photos: File[]) => void | Promise<void>;
   /** Locks entry fields after mood creation to prevent photo retries from creating another entry. */
@@ -97,6 +100,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
         ? dayjs(entry.date).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
       moods: entry?.moods ?? (preselectedMood ? [preselectedMood] : []),
+      impactTopics: entry?.impactTopics ?? [],
       comment: entry?.comment ?? "",
     },
   });
@@ -107,6 +111,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
     reset({
       date: dayjs(entry.date).format("YYYY-MM-DD"),
       moods: entry.moods ?? [],
+      impactTopics: entry.impactTopics ?? [],
       comment: entry.comment ?? "",
     });
   }, [entry, reset]);
@@ -157,6 +162,7 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
       // New entries always use today's local date; edits keep the date selected for that entry.
       date: dayjs(entry ? data.date : undefined).format("YYYY-MM-DD"),
       moods: data.moods,
+      impactTopics: data.impactTopics,
       comment: data.comment?.trim() || undefined,
     }, selectedPhotos);
   };
@@ -249,6 +255,17 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
         })}
       </Box>
       {errors.moods && <Typography id="mood-error" role="alert" color="danger" level="body-sm">{errors.moods.message as string}</Typography>}
+
+      {/* #384: optional, pathway-neutral context. Topics are what the user felt mattered, never a cause we assign. */}
+      <Controller name="impactTopics" control={control} render={({ field }) => <Box component="fieldset" sx={{ border: 0, p: 0, m: 0 }}>
+        <Typography component="legend" level="title-sm">What’s having the biggest impact on you? (optional)</Typography>
+        <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>Choose any that fit. This is your context, not a cause assigned to your mood.</Typography>
+        <Box role="group" aria-label="Impact topics" sx={{ display: "flex", flexWrap: "wrap", gap: .25, mt: .75 }}>
+          {MOOD_IMPACT_TOPICS.map((topic) => <Checkbox key={topic} size="sm" label={topic}
+            checked={(field.value ?? []).includes(topic)} disabled={disabled || isSubmitting}
+            onChange={(event) => field.onChange(event.target.checked ? [...(field.value ?? []), topic] : (field.value ?? []).filter((selected) => selected !== topic))} />)}
+        </Box>
+      </Box>} />
 
       <Typography level="body-xs" color="neutral">Color meanings are optional personal reflection, not a health assessment.</Typography>
 

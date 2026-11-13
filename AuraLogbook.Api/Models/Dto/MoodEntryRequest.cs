@@ -16,6 +16,9 @@ public class MoodEntryRequest
     [StringLength(500, ErrorMessage = "Comment cannot exceed 500 characters.")]
     public string? Comment { get; set; }
 
+    /// <summary>User-selected topics that had the biggest impact on this check-in; they are not treated as mood causes.</summary>
+    public List<string>? ImpactTopics { get; set; }
+
     /// <summary>Optional current weather the client showed at check-in; stored as a snapshot for Insights patterns.</summary>
     public WeatherDto? Weather { get; set; }
 }

@@ -12,6 +12,9 @@ import type { RootState } from "./store";
 import { logout } from "./slices/authSlice";
 import { auraApi } from "./auraApi";
 
+/** The auth state needed by this API, kept local to avoid a store/API type cycle. */
+type MoodApiState = { auth: { token: string | null } };
+
 /** Refreshes derived color after journal mutations so the visible accent follows the latest entries. */
 // Typed to the one action it sends, not AppDispatch: AppDispatch depends on moodApi's own type and made it circular.
 async function refreshDerivedAura(dispatch: (action: ReturnType<typeof auraApi.util.invalidateTags>) => unknown, queryFulfilled: Promise<unknown>) {
@@ -26,7 +29,7 @@ async function refreshDerivedAura(dispatch: (action: ReturnType<typeof auraApi.u
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL + "/Mood",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
+    const token = (getState() as MoodApiState).auth.token;
     if (token) headers.set("Authorization", `Bearer ${token}`);
     return headers;
   },

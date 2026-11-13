@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import dayjs from "dayjs";
@@ -48,7 +48,8 @@ describe("MoodEntryFormFields", () => {
 
     expect(document.getElementById("mood-form")).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Choose one or more moods" })).toBeInTheDocument();
-    expect(screen.getAllByRole("checkbox")).toHaveLength(testReferenceData.moods.length);
+    // Scoped to the mood group: the optional impact-topic checkboxes (#384) live in their own group.
+    expect(within(screen.getByRole("group", { name: "Choose one or more moods" })).getAllByRole("checkbox")).toHaveLength(testReferenceData.moods.length);
     expect(Array.from(screen.getByRole("group", { name: "Choose one or more moods" }).querySelectorAll("label"))
       .map((label) => label.textContent?.trim()))
       .toEqual(testReferenceData.moods.map(({ displayName }) => displayName).sort((left, right) => left.localeCompare(right)));
@@ -68,8 +69,37 @@ describe("MoodEntryFormFields", () => {
     expect(onSubmit).toHaveBeenCalledWith({
       date: dayjs().format("YYYY-MM-DD"),
       moods: ["Empowered"],
+      impactTopics: [],
       comment: "A good day",
     }, []);
+  });
+
+  it("submits optional impact topics and restores saved ones when editing (#384)", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    renderWithProviders(<MoodEntryFormFields onSubmit={onSubmit} />);
+
+    const topics = screen.getByRole("group", { name: "Impact topics" });
+    expect(screen.getByText(/biggest impact on you\? \(optional\)/)).toBeInTheDocument();
+    expect(topics.querySelectorAll('input[type="checkbox"]')).toHaveLength(18);
+    await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
+    await user.click(screen.getByRole("checkbox", { name: "Work" }));
+    await user.click(screen.getByRole("checkbox", { name: "Family" }));
+    await user.click(screen.getByRole("checkbox", { name: "Work" }));
+    await user.click(screen.getByRole("button", { name: "Submit Entry" }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].impactTopics).toEqual(["Family"]);
+  });
+
+  it("checks topics saved on an entry being edited", () => {
+    renderWithProviders(<MoodEntryFormFields
+      entry={{ id: 7, userId: 1, date: "2026-11-10", moods: ["Centered"], impactTopics: ["Money"], createdAt: "2026-11-10T10:00:00Z" }}
+      onSubmit={vi.fn()}
+    />);
+
+    expect(screen.getByRole("checkbox", { name: "Money" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Work" })).not.toBeChecked();
   });
 
   it("offers another prompt from the active pathway", async () => {
