@@ -91,7 +91,7 @@ for (const interfaceMode of ["light", "dark"]) {
     const todayColor = await orb.evaluate((element) => getComputedStyle(element).backgroundImage);
     await page.getByRole("button", { name: "Why this color?" }).click();
     await expect(page.getByRole("dialog")).toContainText("Clear expression.");
-    await expect(page.getByRole("dialog")).toContainText("In your check-ins: Scattered");
+    await expect(page.getByRole("dialog")).toContainText("Recorded: Scattered");
     await page.getByText("How this color took shape", { exact: true }).click();
     await expect(page.getByRole("dialog")).toContainText("Recent check-ins");
     await page.keyboard.press("Escape");

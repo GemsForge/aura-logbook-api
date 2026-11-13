@@ -13,7 +13,7 @@ import type { MoodEntry } from "@/features/mood/models/schema/MoodEntry";
 import dayjs from "dayjs";
 
 /**
- * Connects the saved aura to the app's own color descriptions and recorded moods, with an optional reflection.
+ * Pairs the saved aura with concise authored associations, actual entry counts, and recorded mood names.
  * Associations come from reference data, never a guessed interpretation of a blended hue. Private history loads only on open.
  */
 export function WhyThisColor() {
@@ -34,23 +34,21 @@ export function WhyThisColor() {
         {color && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
             <Box aria-label="Current reflected color" role="img" sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: color, border: "1px solid", borderColor: "divider" }} />
-            <Typography level="body-sm" color="neutral">A visual thread through your recent check-ins</Typography>
+            <Typography level="body-sm" color="neutral">Your current aura</Typography>
           </Box>
         )}
-        <Typography level="body-md">Your aura gives what you’ve been recording a color you can return to. It can help you notice recurring themes and decide what you want to carry forward.</Typography>
-        <Typography component="h3" level="title-sm" sx={{ mt: 2 }}>Color connections</Typography>
+        <Typography component="h3" level="title-sm">Colors in your logs · last 30 days</Typography>
         {isFetching || referenceLoading ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Loading your color context…</Typography>
           : referenceError || entriesError ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Color connections aren’t available right now. <Link component="button" onClick={() => { void reloadReference(); void reloadEntries(); }}>Try again</Link></Typography>
           : contexts.length > 0 ? <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
-            {contexts.map(({ aura: definition, moods }) => <Box key={definition.key} sx={{ pl: 1.5, borderLeft: `3px solid ${definition.baseHex}` }}>
-              <Typography level="title-sm">{definition.displayName}</Typography>
+            {contexts.map(({ aura: definition, moods, count }) => <Box key={definition.key} sx={{ pl: 1.5, borderLeft: `3px solid ${definition.baseHex}` }}>
+              <Typography level="title-sm">{definition.displayName} <Typography component="span" level="body-xs" color="neutral">· {count} {count === 1 ? "check-in" : "check-ins"}</Typography></Typography>
               <Typography level="body-sm">{definition.description}</Typography>
-              <Typography level="body-xs" color="neutral">In your check-ins: {moods.join(", ")}</Typography>
+              <Typography level="body-xs" color="neutral">Recorded: {moods.join(", ")}</Typography>
             </Box>)}
-          </Box> : <Typography level="body-sm" sx={{ mt: 1 }}>As you check in, the color associations connected with your recorded moods will appear here.</Typography>}
-        <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>These are Aura’s color associations. You decide whether they fit your experience.</Typography>
-        <Box component="blockquote" sx={{ m: 0, my: 2, p: 1.5, bgcolor: "var(--aura-wash)", fontFamily: "var(--joy-fontFamily-display)" }}>What does this color bring to mind—and what would you like to make more room for?</Box>
-        <Box component="details">
+          </Box> : <Typography level="body-sm" sx={{ mt: 1 }}>{entries.length === 0 ? "No check-ins in this period yet." : "No color associations are available for these check-ins."}</Typography>}
+        <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>Meanings from Aura’s guide. Keep what fits.</Typography>
+        <Box component="details" sx={{ mt: 1.5 }}>
           <Typography component="summary" level="body-sm" sx={{ cursor: "pointer", py: .5 }}>How this color took shape</Typography>
           {contributors.length > 0 ? <List marker="disc">{contributors.map((c) => <ListItem key={c}>{c}</ListItem>)}</List>
             : <Typography level="body-sm" sx={{ mt: 1 }}>Your color takes shape as you check in and can shift with what you record.</Typography>}

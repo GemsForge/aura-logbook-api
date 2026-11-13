@@ -178,13 +178,13 @@ The onboarding orb is decorative and does not preview or set the user's aura. Th
 - **Combination moment:** brief shimmer in the combination hue after check-in.
 - Implementation: CSS custom properties driven from the derived aura response; canvas only if needed.
 - Shared journal surfaces (`.aura-panel` and `.aura-highlight`) use one subtle aura wash without changing their border, spacing, or radius. The mood-entry form and Today reuse `CurrentAuraMark` for the existing derived color. Draft mood choices do not recalculate it.
-- New entry displays the orb with “Your current aura” and no explanation link. Today retains “Why this color?”; its dialog connects the app's existing color descriptions to colors actually associated with recent recorded moods, offers a reflective question, and keeps calculation contributors in expandable details. A blended hue is not assigned a guessed color personality or chakra diagnosis.
+- New entry displays the orb with “Your current aura” and no explanation link. Today retains “Why this color?”; its concise dialog pairs actual check-in counts and recorded mood names from the last 30 days with the app's existing color descriptions, and keeps calculation contributors in expandable details. A blended hue is not assigned a guessed color personality or chakra diagnosis.
 - **`prefers-reduced-motion`:** static gradient, no breathing, instant transitions.
 - Decorative: `aria-hidden`; the reveal text carries the meaning.
 
 ## Guardrails
 
-- **Why this color?** sheet: show the current color swatch and list the mood check-ins that contributed to it.
+- **Why this color?** sheet: show the current color, recorded check-in counts per represented color, mood names, and the app's authored association. Count a color once per entry; cards may overlap when one entry includes moods from multiple colors. Migration 033 replaces only generic placeholder descriptions with the existing migration-010 copy, preserving customized definitions.
 - **Aura reveals** toggle in Settings (off → neutral theme accents, no reveal copy).
 - Color meanings are our own copy; no third-party color-test mappings.
 
