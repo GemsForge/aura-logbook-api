@@ -3,6 +3,7 @@ import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import { getNatalChart, type NatalChart } from "@/features/pathways/astrologyApi";
 import { InsightFeedback } from "@/features/pathways/components/InsightFeedback";
+import { PathwayReflectionPrompt } from "@/features/pathways/components/PathwayReflectionPrompt";
 
 const chartPoints = new Set(["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "ascendant", "north node", "true node"]);
 
@@ -46,8 +47,9 @@ export function BirthChartReading({ enabled }: { enabled: boolean }) {
               </Box>)}
             </Box>
             <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>{chart?.provider} · A symbolic reference for reflection, not a prediction or diagnosis.</Typography>
-            <Typography level="body-sm" sx={{ mt: .75 }}>Which placements, if any, feel familiar or worth exploring?</Typography>
-            <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="birth-chart-placement" />
+            <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="birth-chart-placement" hideContentWhenNotForMe>
+              <PathwayReflectionPrompt pathway="energy" moduleKey="daily-astrology" insightType="birth-chart-placement" prompt="Which placements, if any, feel familiar or worth exploring?" />
+            </InsightFeedback>
           </>}
   </Box>;
 }

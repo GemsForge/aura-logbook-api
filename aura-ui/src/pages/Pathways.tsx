@@ -25,6 +25,7 @@ import { MoonPhaseMoodInsights } from "@/features/pathways/components/MoonPhaseM
 import { getDailyHoroscope, type DailyHoroscope } from "@/features/pathways/astrologyApi";
 import { BirthChartReading } from "@/features/pathways/components/BirthChartReading";
 import { SacredTextView } from "@/features/pathways/components/SacredTextView";
+import { PathwayReflectionPrompt } from "@/features/pathways/components/PathwayReflectionPrompt";
 
 /** Shows content for the single pathway configured in Profile → My Pathway. */
 export default function Pathways() {
@@ -118,7 +119,9 @@ export default function Pathways() {
           <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>These are plain-language summaries of DBT terms, offered for learning rather than treatment.</Typography>
         </Box>
         <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>An educational overview, not therapy.</Typography>
-        <InsightFeedback pathway="mindfulness" moduleKey="mindfulness-guide" insightType="mindfulness-concept" />
+        <InsightFeedback pathway="mindfulness" moduleKey="mindfulness-guide" insightType="mindfulness-concept" hideContentWhenNotForMe>
+          <PathwayReflectionPrompt pathway="mindfulness" moduleKey="mindfulness-guide" insightType="mindfulness-concept" prompt="What kind of mindful moment would you like to make room for?" />
+        </InsightFeedback>
       </Box>}
       {focus.includes("practice-log") && showModule("practice-log") && <Box component="section" id="practice-log" aria-labelledby="practice-log-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="practice-log-title" component="h2" level="title-lg">Practice log</Typography>
@@ -134,10 +137,16 @@ export default function Pathways() {
           : zodiacLoading ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Loading your sign…</Typography>
             : zodiac ? <><Typography level="title-md" sx={{ mt: 1, textTransform: "capitalize" }}>{zodiac.sign} · {zodiac.element}</Typography>
               {horoscopeLoading ? <Typography role="status" level="body-sm" sx={{ mt: .75 }}>Loading today’s reading…</Typography>
-                : dailyHoroscope ? <><Typography level="body-md" sx={{ mt: .75 }}>{dailyHoroscope.text}</Typography><Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>Daily horoscope · {dailyHoroscope.provider} · {dailyHoroscope.date}</Typography><Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>A reflective lens, not a prediction or explanation of your mood.</Typography></>
+                : dailyHoroscope ? <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="horoscope" hideContentWhenNotForMe>
+                  <>
+                    <Typography level="body-md" sx={{ mt: .75 }}>{dailyHoroscope.text}</Typography>
+                    <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>Daily horoscope · {dailyHoroscope.provider} · {dailyHoroscope.date}</Typography>
+                    <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>A reflective lens, not a prediction or explanation of your mood.</Typography>
+                    <PathwayReflectionPrompt pathway="energy" moduleKey="daily-astrology" insightType="horoscope" prompt="What, if anything, would you like to carry into today?" />
+                  </>
+                </InsightFeedback>
                   : horoscopeUnavailable ? <Typography role="status" level="body-sm" sx={{ mt: .75 }}>Today’s reading is unavailable right now.</Typography> : null}</>
               : <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Your sign reflection is unavailable right now.</Typography>}
-        {zodiac && <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="horoscope" />}
         {preferences?.saveBirthDetails && preferences.birthTime && preferences.birthPlace
           ? <BirthChartReading enabled={Boolean(user?.birthday)} />
           : <MiniFeature title="Birth chart" text="Save birth time and place in Profile for an optional chart." />}
@@ -167,19 +176,23 @@ export default function Pathways() {
                     <Typography level="title-md">{currentChakra.displayName} · {currentChakra.sanskritName}</Typography>
                   </Box>
                   <Typography level="body-sm" color="neutral" sx={{ display: "flex", alignItems: "center", gap: .6, mt: .35 }}><Box aria-hidden="true" sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: selectedChakraColor?.baseHex ?? "currentColor" }} />{currentChakra.bodyLocation} · {currentChakra.colorAssociation}{currentChakra.elementAssociation ? ` · ${currentChakra.elementAssociation}` : ""}</Typography>
-                  <Typography level="body-sm" sx={{ mt: .75 }}>{currentChakra.description} {currentChakra.interpretiveTheme}.</Typography>
-                  <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>Contemporary psychological pairing: {currentChakra.challengeAssociation}.</Typography>
+                  <Typography level="body-sm" sx={{ mt: .75 }}>{currentChakra.description}</Typography>
                 </Box>
               </Box>
-              <Typography level="body-md" sx={{ mt: 1.25 }}>{currentChakra.reflectionPrompt}</Typography>
-              <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>One interpretive lens; not a diagnosis or universal teaching.</Typography>
-              <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" />
+              <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" hideContentWhenNotForMe>
+                <>
+                  <Typography level="body-sm" sx={{ mt: 1 }}>{currentChakra.interpretiveTheme}. Contemporary psychological pairing: {currentChakra.challengeAssociation}.</Typography>
+                  <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>One interpretive lens; not a diagnosis or universal teaching.</Typography>
+                  <PathwayReflectionPrompt pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" prompt={currentChakra.reflectionPrompt} />
+                </>
+              </InsightFeedback>
               {chakraMoodInsight && <Box component="aside" aria-label="Optional mood and chakra reflection" sx={{ mt: 2, pt: 1.25, borderTop: "1px solid var(--al-theme-border)" }}>
                 <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-mood-pattern" hideContentWhenNotForMe>
                 <>
                 <Typography level="title-sm">A pattern to explore</Typography>
                 <Typography level="body-sm" sx={{ mt: .5 }}>You logged {chakraMoodInsight.chakra.moodAssociationKeys.map((key) => referenceData?.moods.find((mood) => mood.key.toLowerCase() === key.toLowerCase())?.displayName ?? key.toLowerCase()).join(" or ")} on {chakraMoodInsight.matchingDayCount} different days in the past two weeks. Would the {chakraMoodInsight.chakra.interpretiveTheme.toLowerCase()} theme associated with {chakraMoodInsight.chakra.displayName} · {chakraMoodInsight.chakra.sanskritName} connect with your experience?</Typography>
                 <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>These entries may simply coincide. You decide whether the connection is meaningful.</Typography>
+                <PathwayReflectionPrompt pathway="energy" moduleKey="chakra-reference" insightType="chakra-mood-pattern" prompt="Would you like to note what, if anything, this pattern means to you?" />
                 </>
                 </InsightFeedback>
               </Box>}
@@ -191,13 +204,11 @@ export default function Pathways() {
       {(focus.includes("sacred-texts") || focus.includes("verse")) && showModule("sacred-texts") ? <Box component="section" id="sacred-texts" aria-labelledby="sacred-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="sacred-title" component="h2" level="title-lg">Sacred texts</Typography>
         <SacredTextView framework={faithResource?.key} publisher={faithResource} />
-        <InsightFeedback pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" />
       </Box> : null}
       {focus.includes("faith-practice-check-in") && showModule("faith-practice-check-in") && <Box component="section" id="faith-practice-check-in" aria-labelledby="faith-practice-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="faith-practice-title" component="h2" level="title-lg">Faith practice check-in</Typography>
         <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Choose the practices you want to track. No score or streak.</Typography>
         <FaithPracticeCheckIn />
-        <InsightFeedback pathway="faith" moduleKey="faith-practice-check-in" insightType="faith-practice" />
       </Box>}
     </Box>}
   </Box>;

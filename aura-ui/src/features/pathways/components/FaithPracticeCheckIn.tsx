@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Box, Button, Checkbox, FormControl, FormControlLabel, FormLabel, TextField, Typography } from "@mui/material";
 import { localActivityDate, PathwayActivityApi, type PathwayActivity } from "../pathwayActivityApi";
+import { InsightFeedback } from "./InsightFeedback";
+import { PathwayReflectionPrompt } from "./PathwayReflectionPrompt";
 
 const practiceOptions = [
   { key: "sacred-text-reading", label: "Sacred-text reading" },
@@ -114,12 +116,17 @@ export function FaithPracticeCheckIn() {
     </>}
     {message && <Typography role="status" variant="caption">{message}</Typography>}
     {preferencesSaved && !preferencesChanged && selectedKeys.length > 0 && <Box component="section" aria-label="Faith practice frequency" sx={{ mt: 1 }}>
-      <Typography variant="subtitle2">Your check-ins</Typography>
-      {selectedKeys.map((key) => {
-        const label = practiceOptions.find((option) => option.key === key)?.label ?? key;
-        return <Typography key={key} variant="caption" display="block" color="text.secondary">{label} · Did {counts[key].did} days · Didn’t {counts[key].didnt} days</Typography>;
-      })}
-      <Typography variant="caption" color="text.secondary">Counts reflect only check-ins you saved. No score or streak.</Typography>
+      <InsightFeedback pathway="faith" moduleKey="faith-practice-check-in" insightType="faith-practice" hideContentWhenNotForMe>
+        <>
+          <Typography variant="subtitle2">Your check-ins</Typography>
+          {selectedKeys.map((key) => {
+            const label = practiceOptions.find((option) => option.key === key)?.label ?? key;
+            return <Typography key={key} variant="caption" display="block" color="text.secondary">{label} · Did {counts[key].did} days · Didn’t {counts[key].didnt} days</Typography>;
+          })}
+          <Typography variant="caption" color="text.secondary">Counts reflect only check-ins you saved. No score or streak.</Typography>
+          <PathwayReflectionPrompt pathway="faith" moduleKey="faith-practice-check-in" insightType="faith-practice" prompt="Would you like to reflect on any of these practices?" />
+        </>
+      </InsightFeedback>
     </Box>}
   </Box>;
 }

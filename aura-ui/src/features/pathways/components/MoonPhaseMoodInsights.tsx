@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/joy";
 import { InsightFeedback } from "./InsightFeedback";
+import { PathwayReflectionPrompt } from "./PathwayReflectionPrompt";
 import { getMoonPhaseMoodInsights, type MoonPhaseMoodInsights as MoonInsights } from "../astrologyApi";
 
 /**
@@ -40,9 +41,13 @@ export function MoonPhaseMoodInsights() {
                 <Typography level="body-xs" color="neutral" sx={{ gridColumn: "1 / -1" }}>{Object.entries(item.moodCounts).slice(0, 4).map(([key, count]) => `${formatMood(key)} ${count}`).join(" · ")}</Typography>
               </Box>)}
             </Box>
-            <Typography level="body-sm" sx={{ mt: 1.25 }}>Seeing these counts together, does any pattern feel meaningful to you?</Typography>
-            {data.datesWithoutPhaseData > 0 && <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>Phase data was unavailable for {data.datesWithoutPhaseData} {data.datesWithoutPhaseData === 1 ? "date" : "dates"}.</Typography>}
-            <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="moon-phase" />
+            <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="moon-phase" hideContentWhenNotForMe>
+              <>
+                <Typography level="body-sm" sx={{ mt: 1.25 }}>Seeing these counts together, does any pattern feel meaningful to you?</Typography>
+                <PathwayReflectionPrompt pathway="energy" moduleKey="daily-astrology" insightType="moon-phase" prompt="What, if anything, do these counts bring up for you?" />
+                {data.datesWithoutPhaseData > 0 && <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>Phase data was unavailable for {data.datesWithoutPhaseData} {data.datesWithoutPhaseData === 1 ? "date" : "dates"}.</Typography>}
+              </>
+            </InsightFeedback>
           </>
             : <Typography role="status" level="body-sm" sx={{ mt: 1 }}>No phase counts are available for this period.</Typography>}
   </Box>;

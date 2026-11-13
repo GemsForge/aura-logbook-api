@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from "@mui/joy";
 import { useGetFaithWordOfDayQuery, useGetSacredPassageQuery } from "@/store/auraApi";
 import { PathwayReflectionPrompt } from "./PathwayReflectionPrompt";
+import { InsightFeedback } from "./InsightFeedback";
 
 type SacredFramework = "christian" | "muslim" | "jewish";
 
@@ -20,11 +21,13 @@ export function SacredTextView({ framework, publisher }: SacredTextViewProps) {
     <Box component="section" aria-labelledby="word-of-day-title">
       <Typography id="word-of-day-title" component="h3" level="title-lg">Word of the Day</Typography>
       {word.isLoading ? <Typography role="status" level="body-sm" sx={{ mt: .5 }}>Loading today’s word…</Typography>
-        : word.data ? <>
-          <Typography level="h3" sx={{ mt: .75 }}>{word.data.word}</Typography>
-          <Typography level="body-sm" color="neutral" sx={{ mt: .35 }}>{word.data.reflection}</Typography>
-          <PathwayReflectionPrompt pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" prompt={word.data.reflection} />
-        </>
+        : word.data ? <InsightFeedback pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" hideContentWhenNotForMe>
+          <>
+            <Typography level="h3" sx={{ mt: .75 }}>{word.data.word}</Typography>
+            <Typography level="body-sm" color="neutral" sx={{ mt: .35 }}>{word.data.reflection}</Typography>
+            <PathwayReflectionPrompt pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" prompt={word.data.reflection} />
+          </>
+        </InsightFeedback>
           : <Typography role="status" level="body-sm" sx={{ mt: .5 }}>Today’s word is unavailable right now.</Typography>}
     </Box>
 

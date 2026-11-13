@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, Textarea, Typography } from "@mui/joy";
 import { localActivityDate, PathwayActivityApi, type PathwayKey } from "../pathwayActivityApi";
 
@@ -12,6 +12,11 @@ export function PathwayReflectionPrompt({ pathway, moduleKey, insightType, promp
   const [responseText, setResponseText] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setResponseText("");
+    setMessage("");
+  }, [pathway, moduleKey, insightType, prompt]);
 
   const save = async () => {
     const response = responseText.trim();
