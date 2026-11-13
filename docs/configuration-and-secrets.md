@@ -53,9 +53,16 @@ The redirect URI configured in Spotify's Developer Dashboard must exactly match 
 ## Astrology providers
 
 FreeAstroAPI keys are used only by the API for the daily sign reading and
-date-specific moon phase lookups. Configure the key as an ASP.NET user secret
-for local development or as a deployment secret; never put it in `aura-ui` or
-committed configuration:
+date-specific moon phase lookups. For the combined local `npm run dev` launcher,
+store `FREE_ASTRO_API_KEY=your-api-key` in the Git-ignored
+`AuraLogbook.Api/.env.local`. The launcher reads only that credential from the
+backend file and passes it only to the API child, excluding it from Vite's
+environment. A nonempty exported `FREE_ASTRO_API_KEY` takes precedence over the
+local file. Restart the local stack after changing it.
+
+When starting the API directly, export `FREE_ASTRO_API_KEY` in its environment
+or use an ASP.NET user secret. Never put the key in `aura-ui`, `VITE_` variables,
+or committed configuration:
 
 ```bash
 dotnet user-secrets --project AuraLogbook.Api set "FreeAstroApi:ApiKey" "your-api-key"
@@ -69,6 +76,15 @@ readings and date-level phase results and paces provider requests to fit the
 documented free-tier request limit. Without a key, the astrology endpoints
 return `503 Service Unavailable` and the UI can explain that the insight cannot
 be loaded.
+
+Integration references are the provider's current
+[endpoint map](https://www.freeastroapi.com/llms.txt),
+[daily-sign documentation](https://www.freeastroapi.com/docs/western/daily-sign),
+and [moon-phase documentation](https://www.freeastroapi.com/docs/utilities/moon-phase).
+The server uses `GET /api/v2/horoscope/daily/sign` and
+`GET /api/v1/moon/phase` with the `x-api-key` header. Live requests for a sample
+sign and date were verified on November 13, 2026; browser acceptance for the
+signed-in profile is a separate check.
 
 ## Optional natal chart provider
 

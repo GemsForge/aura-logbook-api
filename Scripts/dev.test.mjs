@@ -50,6 +50,34 @@ test("service plan passes the resolved environment to the API", () => {
   assert.equal(plan[0].env.ASPNETCORE_ENVIRONMENT, "Staging");
 });
 
+test("local FreeAstroAPI key reaches only the backend child", () => {
+  const root = mkdtempSync(join(tmpdir(), "aura-backend-env-"));
+  mkdirSync(join(root, "AuraLogbook.Api"));
+  writeFileSync(join(root, "AuraLogbook.Api", ".env.local"), 'FREE_ASTRO_API_KEY="fake-local-key"\nVITE_UNRELATED=ignored\n');
+  try {
+    const [api, ui] = createServicePlan({ root, env: {} });
+    assert.equal(api.env.FREE_ASTRO_API_KEY, "fake-local-key");
+    assert.equal(ui.env.FREE_ASTRO_API_KEY, undefined);
+    assert.equal(ui.env.VITE_UNRELATED, undefined);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("exported backend key overrides the local file and is excluded from Vite", () => {
+  const root = mkdtempSync(join(tmpdir(), "aura-backend-env-"));
+  mkdirSync(join(root, "AuraLogbook.Api"));
+  writeFileSync(join(root, "AuraLogbook.Api", ".env.local"), "FREE_ASTRO_API_KEY=fake-local-key\n");
+  try {
+    const [api, ui] = createServicePlan({ root, env: { FREE_ASTRO_API_KEY: "fake-exported-key", FreeAstroApi__ApiKey: "fake-alias" } });
+    assert.equal(api.env.FREE_ASTRO_API_KEY, "fake-exported-key");
+    assert.equal(ui.env.FREE_ASTRO_API_KEY, undefined);
+    assert.equal(ui.env.FreeAstroApi__ApiKey, undefined);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("service plan supports alternate ports for parallel local instances", () => {
   const plan = createServicePlan({ root: "/repo", platform: "linux", env: { AURA_API_PORT: "5082", AURA_UI_PORT: "58408" } });
 
