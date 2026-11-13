@@ -83,6 +83,67 @@ public sealed class MoodCombinationImporterTests : IDisposable
         Assert.Equal(0L, Scalar(connection, "SELECT COUNT(*) FROM MoodCombinationInterpretations;"));
     }
 
+    /// <summary>
+    /// Guards the reflection-only seeder mode (#365): importing curated reflections repeatedly leaves
+    /// user and mood-entry data byte-for-byte unchanged and stores exactly the source-defined rows.
+    /// </summary>
+    [Fact]
+    public async Task Reflection_only_import_preserves_users_and_mood_entries()
+    {
+        await using var connection = OpenMigratedDatabase();
+        using (var seed = connection.CreateCommand())
+        {
+            seed.CommandText = """
+                INSERT INTO Users (Id, Email, PasswordHash, AuraColor, AuraIntensity, SelectedPathway, CreatedAt, UpdatedAt)
+                VALUES (900, 'keep@example.test', 'hash', 'blue', 40, 1, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z');
+                INSERT INTO MoodEntries (Id, UserId, EntryDate, Comment, CreatedAt, UpdatedAt)
+                VALUES (901, 900, '2026-01-02', 'keep me', '2026-01-02T00:00:00Z', '2026-01-02T00:00:00Z');
+                """;
+            seed.ExecuteNonQuery();
+        }
+        const string snapshotSql = """
+            SELECT (SELECT group_concat(Id || Email || PasswordHash || UpdatedAt, ';') FROM Users) || '|' ||
+                   (SELECT group_concat(Id || UserId || EntryDate || Comment || UpdatedAt, ';') FROM MoodEntries);
+            """;
+        var before = Text(connection, snapshotSql);
+
+        var first = await MoodCombinationImporter.ImportAsync(connection, _sourcePath);
+        var second = await MoodCombinationImporter.ImportAsync(connection, _sourcePath);
+
+        Assert.Equal(before, Text(connection, snapshotSql));
+        Assert.True(second.MatchesSource);
+        Assert.Equal(first, second);
+        Assert.Equal(second.Interpretations, Scalar(connection, "SELECT COUNT(*) FROM MoodCombinationInterpretations;"));
+    }
+
+    /// <summary>Resolves a relative Development connection string against the API content root.</summary>
+    [Fact]
+    public void Data_source_resolver_matches_the_api_development_database()
+    {
+        var settingsPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "AuraLogbook.Api", "appsettings.Development.json"));
+
+        var resolved = SqliteDataSourceResolver.ResolveDatabasePath(settingsPath);
+
+        Assert.Equal(Path.Combine(Path.GetDirectoryName(settingsPath)!, "Data", "auralogbook-dev.db"), resolved);
+    }
+
+    /// <summary>Rejects settings that do not select a file-based SQLite database.</summary>
+    [Fact]
+    public void Data_source_resolver_rejects_in_memory_databases()
+    {
+        var settingsPath = Path.Combine(Path.GetTempPath(), $"aura-settings-{Guid.NewGuid():N}.json");
+        File.WriteAllText(settingsPath, """{"Database":{"ConnectionString":"Data Source=:memory:"}}""");
+        try
+        {
+            Assert.Throws<InvalidDataException>(() => SqliteDataSourceResolver.ResolveDatabasePath(settingsPath));
+        }
+        finally
+        {
+            File.Delete(settingsPath);
+        }
+    }
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
@@ -119,6 +180,13 @@ public sealed class MoodCombinationImporterTests : IDisposable
         using var command = connection.CreateCommand();
         command.CommandText = sql;
         return Convert.ToInt64(command.ExecuteScalar());
+    }
+
+    private static string? Text(SqliteConnection connection, string sql)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        return command.ExecuteScalar() as string;
     }
 
     private sealed class TestConnectionFactory(string path) : IDbConnectionFactory
