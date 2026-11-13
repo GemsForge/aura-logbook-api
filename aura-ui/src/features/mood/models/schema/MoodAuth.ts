@@ -14,6 +14,9 @@ export interface MoodEntryRequest {
   /** Optional comment about the mood entry */
   comment?: string;
 
+  /** User-selected context topics that mattered to this check-in, not inferred causes. */
+  impactTopics?: string[];
+
   weather?: WeatherDto;
 }
 

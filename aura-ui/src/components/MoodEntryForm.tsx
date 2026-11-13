@@ -34,6 +34,7 @@ export default function MoodEntryForm() {
   const handleSubmit = async (data: {
     date: string;
     moods: MoodType[];
+    impactTopics: string[];
     comment?: string;
   }, photos: File[]) => {
     if (submitInProgress.current) return;

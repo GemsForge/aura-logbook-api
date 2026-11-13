@@ -36,6 +36,7 @@ export default function MoodUpdateModal({
   const handleSubmit = async (data: {
     date: string;
     moods: MoodType[];
+    impactTopics: string[];
     comment?: string;
   }, photos: File[]) => {
     if (updateStarted.current) return;
@@ -48,6 +49,7 @@ export default function MoodUpdateModal({
         await MoodApi.updateMood(entry.id, {
           date: data.date,
           moods: data.moods,
+          impactTopics: data.impactTopics,
           comment: data.comment ?? "",
         });
         setEntrySaved(true);
