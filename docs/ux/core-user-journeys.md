@@ -116,6 +116,10 @@ Mindful Living’s guide and practice log are enabled for older profiles whose p
 
 ### Pathway artwork
 
+The [pathway module presentation](pathway-module-studio.md) documents the
+implemented reading/practice hierarchy, existing artwork use, compact controls,
+and progressive disclosure for optional writing.
+
 - Create a coordinated, individually usable set of **seven chakra illustrations** and **twelve zodiac-sign illustrations** for the Astrology & Energy pathway. The chakra set should complement the chakra wiki’s human body map and its center-specific names and color associations; the zodiac set should make each sign recognizable without depending on color alone.
 - Match the existing Aura visual direction with polished, distinctive artwork rather than generic icons. Keep chakra and zodiac art pathway-specific and register every asset, intended use, and accessibility description in the asset manifest and preview contact sheet.
 - The repository already contains seven chakra-symbol SVGs and shared Astrology & Energy moon/orbit/crystal artwork, and the twelve zodiac-sign illustrations now used by the sign reading. Review the current chakra symbols beside the new illustrations before replacing active references; preserve the existing source assets until the replacement set is accepted and integrated.
