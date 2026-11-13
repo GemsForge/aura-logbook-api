@@ -108,7 +108,7 @@ export default function Pathways() {
     </Box>}
 
     {pathway === "mindfulness" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
-      {focus.includes("mindfulness-guide") && showModule("mindfulness-guide") && <Box component="section" id="mindfulness-guide" aria-labelledby="mindfulness-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
+      {focus.includes("mindfulness-guide") && showModule("mindfulness-guide") && <Box className="aura-highlight" component="section" id="mindfulness-guide" aria-labelledby="mindfulness-title" sx={{ p: 2.5, my: 1, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         <Typography id="mindfulness-title" component="h2" level="title-lg">Mindfulness, in practice</Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" }, gap: 2, mt: 1.5 }}>
           <GuideItem title="Notice now" text="Bring attention to what is here: thoughts, sensations, feelings, or surroundings." />
@@ -132,7 +132,7 @@ export default function Pathways() {
           <PathwayReflectionPrompt pathway="mindfulness" moduleKey="mindfulness-guide" insightType="mindfulness-concept" prompt="What kind of mindful moment would you like to make room for?" />
         </InsightFeedback>
       </Box>}
-      {focus.includes("practice-log") && showModule("practice-log") && <Box component="section" id="practice-log" aria-labelledby="practice-log-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
+      {focus.includes("practice-log") && showModule("practice-log") && <Box className="aura-highlight" component="section" id="practice-log" aria-labelledby="practice-log-title" sx={{ p: 2.5, my: 1, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         <Typography id="practice-log-title" component="h2" level="title-lg">Practice log</Typography>
         <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>A personal record of what you tried, without scores or streaks.</Typography>
         <MindfulPracticeLog />
@@ -236,7 +236,7 @@ export default function Pathways() {
         <Typography id="sacred-title" component="h2" level="title-lg">Sacred texts</Typography>
         <SacredTextView framework={faithResource?.key} publisher={faithResource} />
       </Box> : null}
-      {focus.includes("faith-practice-check-in") && showModule("faith-practice-check-in") && <Box component="section" id="faith-practice-check-in" aria-labelledby="faith-practice-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
+      {focus.includes("faith-practice-check-in") && showModule("faith-practice-check-in") && <Box className="aura-highlight" component="section" id="faith-practice-check-in" aria-labelledby="faith-practice-title" sx={{ p: 2.5, my: 1, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         <Typography id="faith-practice-title" component="h2" level="title-lg">Faith practice check-in</Typography>
         <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Choose the practices you want to track. No score or streak.</Typography>
         <FaithPracticeCheckIn />

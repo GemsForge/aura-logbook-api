@@ -52,7 +52,8 @@ export function ThemeBanner({ title, description, illustration, children, art }:
           pointerEvents: "none",
           background: "linear-gradient(90deg, var(--al-theme-banner-scrim, rgba(23, 15, 38, .92)) 0%, var(--al-theme-banner-scrim, rgba(23, 15, 38, .92)) 55%, transparent 100%)",
         },
-        boxShadow: "0 12px 38px var(--al-theme-glow, transparent)",
+        // Keep page introductions on the same under-glow as their content sections.
+        boxShadow: "var(--aura-section-shadow)",
       }}>
       <Box
         component="img"

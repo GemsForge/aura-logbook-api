@@ -30,7 +30,7 @@ export default function BreathingTimer() {
   const reset = () => { setRunning(false); setElapsed(0); setSessionStarted(false); };
   const cadenceAnimation = cadence === "4-6" ? "breathe-46" : "breathe-33";
 
-  return <Box className="signed-in-content" sx={{ maxWidth: 900, mx: "auto", my: { xs: 1, md: 4 }, p: { xs: 2, sm: 4 }, textAlign: "center", bgcolor: "var(--al-theme-surface-raised)", border: "1px solid var(--al-theme-border)" }}>
+  return <Box className="signed-in-content aura-highlight" sx={{ maxWidth: 900, mx: "auto", my: { xs: 1, md: 4 }, p: { xs: 2, sm: 4 }, textAlign: "center", bgcolor: "var(--al-theme-surface-raised)", border: "1px solid var(--al-theme-border)" }}>
     <Typography variant="overline" sx={{ fontSize: ".65rem", letterSpacing: ".12em" }}>A shared practice</Typography>
     <Typography component="h1" variant="h3" sx={{ fontSize: "2rem", fontFamily: "var(--joy-fontFamily-display)", fontWeight: 500 }}>Breathing timer</Typography>
     <Typography color="text.secondary" sx={{ mt: .5 }}>Follow the shape. Pause anytime.</Typography>

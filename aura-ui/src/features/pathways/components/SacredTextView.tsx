@@ -12,13 +12,13 @@ interface SacredTextViewProps {
   publisher?: { name: string; url: string };
 }
 
-/** Shows a neutral daily reflection for everyone and sacred text only for the selected framework. */
+/** Shares the journal section glow while showing a neutral daily reflection for everyone and sacred text only for the selected framework. */
 export function SacredTextView({ framework, publisher }: SacredTextViewProps) {
   const word = useGetFaithWordOfDayQuery();
   const passage = useGetSacredPassageQuery(framework ?? "christian", { skip: !framework });
 
   return <Box sx={{ display: "grid", gap: 2, mt: 1 }}>
-    <Box component="section" aria-labelledby="word-of-day-title">
+    <Box className="aura-highlight" component="section" aria-labelledby="word-of-day-title" sx={{ p: 2.5, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
       <Typography id="word-of-day-title" component="h3" level="title-lg">Word of the Day</Typography>
       {word.isLoading ? <Typography role="status" level="body-sm" sx={{ mt: .5 }}>Loading today’s word…</Typography>
         : word.data ? <InsightFeedback pathway="faith" moduleKey="sacred-texts" insightType="word-of-day" hideContentWhenNotForMe>
@@ -31,7 +31,7 @@ export function SacredTextView({ framework, publisher }: SacredTextViewProps) {
           : <Typography role="status" level="body-sm" sx={{ mt: .5 }}>Today’s word is unavailable right now.</Typography>}
     </Box>
 
-    <Box component="section" aria-labelledby="sacred-text-title">
+    <Box className="aura-highlight" component="section" aria-labelledby="sacred-text-title" sx={{ p: 2.5, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
       <Typography id="sacred-text-title" component="h3" level="title-lg">Sacred text</Typography>
       {!framework || !publisher ? <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>
         Choose a supported framework in Profile settings to see its daily passage.

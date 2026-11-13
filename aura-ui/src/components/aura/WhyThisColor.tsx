@@ -71,5 +71,5 @@ function colorContext(reference: ReferenceDataConfiguration | undefined, entries
       matches.forEach((mood) => { if (mood) names.add(mood.displayName); });
     }
     return { aura, count, moods: [...names] };
-  }).filter(({ count }) => count > 0).sort((a, b) => b.count - a.count || a.aura.sortOrder - b.aura.sortOrder).slice(0, 3);
+  }).filter(({ count }) => count > 0).sort((a, b) => b.count - a.count || (a.aura.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.aura.sortOrder ?? Number.MAX_SAFE_INTEGER)).slice(0, 3);
 }

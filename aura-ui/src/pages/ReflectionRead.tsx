@@ -83,7 +83,8 @@ export default function ReflectionRead() {
         </Box>
       </Box>
 
-      <Box component="article" aria-labelledby="reflection-title" sx={{ maxWidth: 620, mx: "auto", mt: { xs: 3, sm: 4 }, pb: 4 }}>
+      {/* The reading surface shares the same under-glow as the rest of the journal. */}
+      <Box className="aura-highlight" component="article" aria-labelledby="reflection-title" sx={{ maxWidth: 620, mx: "auto", mt: { xs: 3, sm: 4 }, p: 2.5, pb: 4, bgcolor: "var(--al-theme-surface)", borderRadius: "sm" }}>
         <Box aria-hidden="true" sx={{ width: 56, height: 4, borderRadius: 99, bgcolor: auraColor(entry.moods[0] ?? "") }} />
         <Typography id="reflection-title" ref={headingRef} tabIndex={-1} component="h1" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.9rem", sm: "2.3rem" }, lineHeight: 1.15, mt: 1.5, outline: "none" }}>
           {dayjs(entry.date).format("dddd, MMMM D")}

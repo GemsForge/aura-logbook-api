@@ -177,7 +177,7 @@ The onboarding orb is decorative and does not preview or set the user's aura. Th
 - **Color update:** apply the latest mood-derived hue to the app's aura accents after a check-in.
 - **Combination moment:** brief shimmer in the combination hue after check-in.
 - Implementation: CSS custom properties driven from the derived aura response; canvas only if needed.
-- Shared journal surfaces (`.aura-panel` and `.aura-highlight`) use one subtle aura wash without changing their border, spacing, or radius. The mood-entry form and Today reuse `CurrentAuraMark` for the existing derived color. Draft mood choices do not recalculate it.
+- Shared journal surfaces (`.aura-panel`, `.aura-highlight`, and `.aura-dark-panel`) use Today’s under-glow through `--aura-section-shadow`; `.aura-panel` and `.aura-highlight` also share a subtle aura wash. Its halo follows the current aura hue, falling back to the theme glow when no aura is available or reveals are off. The shared shadow changes no border, spacing, or radius. The mood-entry form and Today reuse `CurrentAuraMark` for the existing derived color. Draft mood choices do not recalculate it.
 - New entry displays the orb with “Your current aura” and no explanation link. Today retains “Why this color?”; its concise dialog pairs actual check-in counts and recorded mood names from the last 30 days with the app's existing color descriptions, and keeps calculation contributors in expandable details. A blended hue is not assigned a guessed color personality or chakra diagnosis.
 - **`prefers-reduced-motion`:** static gradient, no breathing, instant transitions.
 - Decorative: `aria-hidden`; the reveal text carries the meaning.

@@ -89,6 +89,7 @@ for (const interfaceMode of ["light", "dark"]) {
     await expect(page.getByTestId("current-aura-mark")).toBeVisible();
     const orb = page.getByRole("img", { name: "Current aura color" });
     const todayColor = await orb.evaluate((element) => getComputedStyle(element).backgroundImage);
+    const todayGlow = await page.locator(".dashboard-check-in").evaluate((element) => getComputedStyle(element).boxShadow);
     await page.getByRole("button", { name: "Why this color?" }).click();
     await expect(page.getByRole("dialog")).toContainText("Clear expression.");
     await expect(page.getByRole("dialog")).toContainText("Recorded: Scattered");
@@ -100,6 +101,8 @@ for (const interfaceMode of ["light", "dark"]) {
     await expect.poll(() => page.getByRole("img", { name: "Current aura color" }).evaluate((element) => getComputedStyle(element).backgroundImage)).toBe(todayColor);
     const main = page.getByTestId("mood-entry-main");
     expect(await main.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain("linear-gradient");
+    expect(await main.evaluate((element) => getComputedStyle(element).boxShadow)).toBe(todayGlow);
+    expect(todayGlow).not.toBe("none");
     const storedAccent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--aura-accent"));
     await page.getByRole("button", { name: "Tense", exact: true }).click();
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--aura-accent"))).toBe(storedAccent);
@@ -117,6 +120,8 @@ test("disabled aura reveals hide the shared mark and skip the derived aura reque
   await expect(page.getByTestId("current-aura-mark")).toHaveCount(0);
   expect(auraRequests).toEqual([]);
 });
+
+
 
 for (const width of [320, 1440]) test(`compact header date/time saves the chosen occurrence at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
