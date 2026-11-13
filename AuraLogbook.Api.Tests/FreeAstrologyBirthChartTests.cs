@@ -149,6 +149,27 @@ public sealed class FreeAstrologyBirthChartTests
         charts.VerifyNoOtherCalls();
     }
 
+    /// <summary>Retained profile details do not authorize provider calls after the user changes pathway.</summary>
+    [Theory]
+    [InlineData(SpiritualPathwayKeys.Faith)]
+    [InlineData(SpiritualPathwayKeys.Mindfulness)]
+    public async Task Controller_does_not_use_retained_birth_details_outside_energy(string pathway)
+    {
+        var charts = new Mock<IBirthChartService>();
+        var users = new Mock<IFileUserRepository>();
+        users.Setup(u => u.GetByIdAsync(7)).ReturnsAsync(new User
+        {
+            Id = 7, SelectedPathway = pathway, Birthday = new(1998, 7, 3),
+            PathwayPreferences = new() { Focus = ["daily-astrology"], SaveBirthDetails = true, BirthTime = "10:30", BirthPlace = "New York, US" }
+        });
+        var controller = new BirthChartController(charts.Object, users.Object, Options.Create(new FreeAstrologyApiOptions { ApiKey = "test-key" }))
+        {
+            ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "test")) } }
+        };
+        Assert.IsType<NotFoundResult>(await controller.GetBirthChart(default));
+        charts.VerifyNoOtherCalls();
+    }
+
     [Fact]
     public async Task Controller_returns_selected_provider_chart_for_opted_in_user()
     {

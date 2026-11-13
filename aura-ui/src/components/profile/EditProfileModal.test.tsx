@@ -61,11 +61,37 @@ describe("EditProfileModal", () => {
     expect(mockUpdateUser).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("Birth time"), { target: { value: "08:30" } });
-    await user.type(screen.getByLabelText("Birthplace"), "Chicago, US");
+    fireEvent.change(screen.getByLabelText("Birthplace"), { target: { value: "Chicago, US" } });
     await user.click(screen.getByRole("button", { name: "Save Changes" }));
     await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({
       selectedPathway: "energy",
       pathwayPreferences: expect.objectContaining({ saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, US" }),
+    })));
+  });
+
+  it.each([
+    { label: /Faith & Religion/, key: "faith", modules: ["faith-practice-check-in", "sacred-texts"] },
+    { label: /Mindful Living/, key: "mindfulness", modules: ["mindfulness-guide", "practice-log"] },
+  ])("keeps previously consented birth details in the profile body when switching to $key", async ({ label, key, modules }) => {
+    mockGetCurrentUser.mockReturnValue({ data: { ...baseUser, selectedPathway: "energy", pathwayPreferences: { focus: ["daily-astrology"], breathingEnabled: true, saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, US" } }, isFetching: false });
+    renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("tab", { name: "My Pathway" }));
+    fireEvent.click(screen.getByRole("radio", { name: label }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({
+      selectedPathway: key,
+      pathwayPreferences: expect.objectContaining({ focus: modules, saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, US" }),
+    })));
+  });
+
+  it("clears previously saved birth details only after the save choice is unchecked", async () => {
+    mockGetCurrentUser.mockReturnValue({ data: { ...baseUser, selectedPathway: "energy", pathwayPreferences: { focus: ["daily-astrology"], breathingEnabled: true, saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, US" } }, isFetching: false });
+    renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("tab", { name: "My Pathway" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Save optional birth details" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({
+      pathwayPreferences: expect.objectContaining({ saveBirthDetails: false, birthTime: null, birthPlace: null }),
     })));
   });
 

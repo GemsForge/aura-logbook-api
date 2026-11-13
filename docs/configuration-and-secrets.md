@@ -103,7 +103,11 @@ from the old provider cannot authenticate to the selected provider.
 
 The authenticated `GET /api/astrology/birth-chart` route requires Astrology & Energy,
 the Daily Astrology module, a birthday, and birth time and birthplace retained only
-after the explicit “Save birth details” choice. No profile migration is required.
+after the explicit “Save birth details” choice. Switching pathways preserves those
+consented details in the user profile, including when the profile update resubmits
+them. Retention does not enable charts or provider calls outside Astrology & Energy.
+Unchecking the save choice and saving the profile clears the details. No profile
+migration is required.
 The server searches the saved city name with `POST /geo-details`, filters the
 results against the saved region/country, and requires an unambiguous
 city/region/country match, and resolves the returned IANA time zone against the
