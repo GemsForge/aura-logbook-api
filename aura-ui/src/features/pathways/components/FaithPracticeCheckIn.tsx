@@ -74,7 +74,13 @@ export function FaithPracticeCheckIn() {
     finally { setSaving(false); }
   };
 
-  const counts = Object.fromEntries(selectedKeys.map((key) => [key, new Set(items.filter((item) => "practices" in item.content && item.content.practices[key] === true).map((item) => item.occurredOn)).size]));
+  const counts = Object.fromEntries(selectedKeys.map((key) => {
+    const checkIns = items.filter((item) => "practices" in item.content && key in item.content.practices);
+    return [key, {
+      did: new Set(checkIns.filter((item) => "practices" in item.content && item.content.practices[key] === true).map((item) => item.occurredOn)).size,
+      didnt: new Set(checkIns.filter((item) => "practices" in item.content && item.content.practices[key] === false).map((item) => item.occurredOn)).size,
+    }];
+  }));
   const preferencesChanged = selectedKeys.length !== savedKeys.length || selectedKeys.some((key) => !savedKeys.includes(key));
   const setChoice = (key: string, value: boolean, checked: boolean) => setPractices((current) => {
     const next = { ...current };
@@ -111,9 +117,9 @@ export function FaithPracticeCheckIn() {
       <Typography variant="subtitle2">Your check-ins</Typography>
       {selectedKeys.map((key) => {
         const label = practiceOptions.find((option) => option.key === key)?.label ?? key;
-        return <Typography key={key} variant="caption" display="block" color="text.secondary">{label} · {counts[key]} {counts[key] === 1 ? "day" : "days"} recorded</Typography>;
+        return <Typography key={key} variant="caption" display="block" color="text.secondary">{label} · Did {counts[key].did} days · Didn’t {counts[key].didnt} days</Typography>;
       })}
-      <Typography variant="caption" color="text.secondary">Counts reflect only check-ins you saved.</Typography>
+      <Typography variant="caption" color="text.secondary">Counts reflect only check-ins you saved. No score or streak.</Typography>
     </Box>}
   </Box>;
 }
