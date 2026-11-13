@@ -25,8 +25,16 @@ export interface RegisterRequest {
 /** Choices from the pathway page after the reveal; keys mirror the API allow-lists. */
 export interface PathwayPreferences {
   focus: string[];
-  /** Mindful Living only: "none" | "three-breaths" | "one-minute". */
+  /** Shared optional check-in opener: "none" | "three-breaths" | "one-minute". */
   checkInOpener?: string | null;
+  /** Shared breathing timer visibility; defaults on for existing profiles. */
+  breathingEnabled?: boolean;
+  /** Broad optional faith lens; never inferred from other profile data. */
+  faithTradition?: "christian" | "muslim" | "jewish" | "other" | "custom" | "neutral" | null;
+  /** Birth time and place are retained only when the user explicitly opts in to saving them. */
+  saveBirthDetails?: boolean;
+  birthTime?: string | null;
+  birthPlace?: string | null;
 }
 
 /** Body of `PUT /Auth/me/onboarding` (#341). */
@@ -69,4 +77,5 @@ export interface UpdateUserRequest {
   weatherRegion?: string | null;
   weatherCountry?: string | null;
   temperatureUnit?: TemperatureUnit;
+  pathwayPreferences?: PathwayPreferences;
 }

@@ -35,6 +35,20 @@ export interface GraphicAsset {
   assetType: string;
 }
 
+/** Database-managed chakra reference and the contemporary lens shown alongside its traditional terms. */
+export interface ChakraDefinition extends ReferenceDefinition {
+  sanskritName: string;
+  bodyLocation: string;
+  colorAssociation: string;
+  elementAssociation: string;
+  interpretiveTheme: string;
+  challengeAssociation: string;
+  reflectionPrompt: string;
+  symbolAssetKey: string;
+  /** Mood keys that may invite this center's optional reflection lens. */
+  moodAssociationKeys: string[];
+}
+
 /** Database-managed zodiac symbol used by profile and insight surfaces. */
 export interface ZodiacSignDefinition {
   key: string;
@@ -47,7 +61,7 @@ export interface ZodiacSignDefinition {
 export interface ReferenceDataConfiguration {
   pathways: ReferenceDefinition[];
   auras: AuraColorDefinition[];
-  chakras: ReferenceDefinition[];
+  chakras: ChakraDefinition[];
   moods: MoodDefinition[];
   themeTokens: ThemeToken[];
   graphics: GraphicAsset[];

@@ -21,6 +21,19 @@ export type AuraSeasonResponse = {
   history: Array<{ key: string; name: string; startedOn: string; endedOn: string | null }>;
 };
 
+/** Neutral, Aura-authored daily reflection returned independently of a religious framework. */
+export type FaithWordOfDay = { date: string; word: string; reflection: string };
+
+/** One passage and its attribution for the single framework explicitly selected in Profile. */
+export type SacredPassage = {
+  framework: "christian" | "muslim" | "jewish";
+  reference: string;
+  text: string;
+  translation: string;
+  attribution: string;
+  readingUrl: string;
+};
+
 /** Pathway reflection returned for one exact selected mood combination. */
 export type MoodCombinationInterpretation = {
   combinationId: string;
@@ -41,7 +54,7 @@ export const auraApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura", "AuraSeasons"],
+  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura", "AuraSeasons", "FaithContent"],
   endpoints: (build) => ({
     /** Derived aura (#343); refetched on mount so new check-ins show up. */
     getCurrentAura: build.query<DerivedAura, void>({
@@ -52,6 +65,16 @@ export const auraApi = createApi({
     getAuraSeasons: build.query<AuraSeasonResponse, void>({
       query: () => "/aura/seasons",
       providesTags: ["AuraSeasons"],
+    }),
+    /** Neutral Word of the Day; does not depend on or reveal a selected framework. */
+    getFaithWordOfDay: build.query<FaithWordOfDay, void>({
+      query: () => "/faith/word-of-day",
+      providesTags: ["FaithContent"],
+    }),
+    /** Requests only the passage for the explicitly selected supported framework. */
+    getSacredPassage: build.query<SacredPassage | null, "christian" | "muslim" | "jewish">({
+      query: (framework) => ({ url: "/faith/passage", params: { framework } }),
+      providesTags: ["FaithContent"],
     }),
     getZodiacInsight: build.query<ZodiacInsightResponse, void>({
       /** Loads the zodiac insight through the shared API client. */
@@ -86,4 +109,4 @@ export const auraApi = createApi({
   }),
 });
 
-export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery, useGetCurrentAuraQuery, useGetAuraSeasonsQuery } = auraApi;
+export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery, useGetCurrentAuraQuery, useGetAuraSeasonsQuery, useGetFaithWordOfDayQuery, useGetSacredPassageQuery } = auraApi;

@@ -21,7 +21,7 @@ export const testReferenceData: ReferenceDataConfiguration = {
     { key: "faith", displayName: "Faith & Religion", description: "A journey of faith.", sortOrder: 3 },
   ],
   auras: testAuraDefinitions,
-  chakras: [{ key: "throat", displayName: "Throat", description: "Clear communication.", sortOrder: 1 }],
+  chakras: [{ key: "throat", displayName: "Throat", description: "Clear communication.", sortOrder: 1, sanskritName: "Viśuddha", bodyLocation: "Throat", colorAssociation: "Blue", elementAssociation: "Space", interpretiveTheme: "Truth and expression", challengeAssociation: "Lies", reflectionPrompt: "What would you like to express?", symbolAssetKey: "chakra-throat", moodAssociationKeys: [] }],
   moods: [
     ["Empowered", "green"], ["Centered", "green"], ["Harmonious", "blue"],
     ["Flowing", "green"], ["Weary", "blue"], ["Tense", "blue"],

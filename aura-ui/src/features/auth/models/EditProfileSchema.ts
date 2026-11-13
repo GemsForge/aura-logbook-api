@@ -1,12 +1,17 @@
 import { weatherLocationModes, type TemperatureUnit, type WeatherLocationMode } from "@/features/weather/weatherLocation";
 import * as yup from "yup";
 import type { SpiritualPathway } from "./SpiritualPathway";
+import type { PathwayPreferences } from "./Auth";
 import { DEFAULT_INTERFACE_MODE, interfaceThemes, interfaceModePreferences, type InterfaceTheme, type InterfaceModePreference } from "./InterfaceTheme";
 
 export interface EditProfileFormData {
   email: string;
   displayName: string;
   birthday: string;
+  /** Optional legacy color value accepted by the reusable aura selector. */
+  auraColor?: string;
+  /** Optional legacy intensity value accepted by the reusable aura selector. */
+  auraIntensity?: number;
   avatar?: string;
   // avatarType: "image" | "initials";
   initials?: string;
@@ -14,6 +19,8 @@ export interface EditProfileFormData {
   confirmPassword?: string;
   motto?: string;
   spiritualPathway: SpiritualPathway;
+  /** Module, framework, and explicit chart-detail choices for the selected pathway. */
+  pathwayPreferences: PathwayPreferences;
   interfaceTheme: InterfaceTheme;
   /** Brightness choice is validated independently from the theme family. */
   interfaceMode: InterfaceModePreference;
@@ -38,8 +45,18 @@ export const editProfileSchema = yup
 
     // Optional since #341: registration no longer asks for a birthday.
     birthday: yup.string().optional(),
+    auraColor: yup.string().optional(),
+    auraIntensity: yup.number().optional(),
 
     spiritualPathway: yup.string().required("Spiritual pathway is required"),
+    pathwayPreferences: yup.object({
+      focus: yup.array(yup.string().required()).required(),
+      breathingEnabled: yup.boolean().required(),
+      faithTradition: yup.string().oneOf(["christian", "muslim", "jewish", "other", "custom", "neutral", ""]).nullable().notRequired(),
+      saveBirthDetails: yup.boolean().required(),
+      birthTime: yup.string().max(16).nullable().notRequired(),
+      birthPlace: yup.string().max(160).nullable().notRequired(),
+    }).required(),
 
     interfaceMode: yup.mixed<InterfaceModePreference>().oneOf([...interfaceModePreferences]).required().default(DEFAULT_INTERFACE_MODE),
     interfaceTheme: yup
