@@ -143,7 +143,7 @@ export default function Pathways() {
       {hasZodiac && showModule("daily-astrology") && <Box component="section" id="daily-astrology" aria-labelledby="zodiac-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="zodiac-title" component="h2" level="title-lg" sx={{ mb: 2, display: moduleKey ? "none" : "block" }}>Daily astrology</Typography>
         <Box data-testid="astrology-reading-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.2fr) minmax(0, 1fr)" }, gap: 3 }}>
-        <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+        <Box className="aura-highlight" sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         {!user?.birthday ? <Typography level="body-sm" sx={{ mt: 1 }}>Share a birthday in Profile settings for a sun-sign reflection. It’s optional. <Button size="sm" variant="plain" onClick={() => dispatch(openProfileModal())}>Profile settings</Button></Typography>
           : zodiacLoading ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Loading your sign…</Typography>
             : zodiac ? <><Typography level="title-md" sx={{ mt: 1, textTransform: "capitalize" }}>{zodiac.sign} · {zodiac.element}</Typography>
@@ -159,14 +159,14 @@ export default function Pathways() {
                   : horoscopeUnavailable ? <Typography role="status" level="body-sm" sx={{ mt: .75 }}>Today’s reading is unavailable right now.</Typography> : null}</>
               : <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Your sign reflection is unavailable right now.</Typography>}
         </Box>
-        <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+        <Box className="aura-highlight" sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         {preferences?.saveBirthDetails && preferences.birthTime && preferences.birthPlace
           ? <BirthChartReading enabled={Boolean(user?.birthday)} />
           : <MiniFeature title="Birth chart" text="Save birth time and place in Profile for an optional chart." />}
         <Button size="sm" variant="plain" sx={{ mt: 1, px: 1, py: .25 }} onClick={() => dispatch(openProfileModal())}>Birth details settings</Button>
         </Box>
         </Box>
-        <Box sx={{ p: 2.5, mt: 2, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}><MoonPhaseMoodInsights /></Box>
+        <Box className="aura-highlight" sx={{ p: 2.5, mt: 2, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}><MoonPhaseMoodInsights /></Box>
         <Box sx={{ mt: 3 }}><MoodPathwayReflectionPanel reflection={dailyReflection.reflection} loading={dailyReflection.loading} /><Link href="/log-mood" sx={{ display: "inline-block", mt: 1 }}>Add this reflection to a mood check-in</Link></Box>
       </Box>}
       {(focus.includes("chakra-reference") || focus.includes("chakras")) && showModule("chakra-reference") ? <Box component="section" id="chakra-reference" aria-labelledby="chakra-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
@@ -175,7 +175,7 @@ export default function Pathways() {
         {chakraLoading ? <Typography role="status" level="body-sm" sx={{ mt: 1.5 }}>Loading chakra reference…</Typography>
           : chakraError ? <Typography role="status" level="body-sm" sx={{ mt: 1.5 }}>Chakra reference is unavailable right now.</Typography>
             : currentChakra ? <>
-              <Box data-testid="chakra-reference-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(220px, .7fr) minmax(0, 1.6fr)" }, alignItems: "center", gap: 2.5, p: 2.5, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+              <Box className="aura-highlight" data-testid="chakra-reference-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(220px, .7fr) minmax(0, 1.6fr)" }, alignItems: "center", gap: 2.5, p: 2.5, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
                 <Box role="group" aria-label="Seven chakra centers on a seated human figure" sx={{ position: "relative", width: 240, height: 300, justifySelf: "center" }}>
                   <Box component="img" src={chakraBodyMap?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"} alt={chakraBodyMap?.alternativeText ?? "Seated human silhouette with seven colored centers aligned along the spine"} sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
                   {chakras.map((chakra, index) => {
@@ -196,7 +196,7 @@ export default function Pathways() {
                 </Box>
               </Box>
               <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.25fr) minmax(0, 1fr)" }, gap: 3, mt: 2 }}>
-              <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+              <Box className="aura-highlight" sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   {chakraSymbol && <Box component="img" src={chakraSymbol.path} alt={chakraSymbol.alternativeText} sx={{ width: 36, height: 36, objectFit: "contain" }} />}
                   <Typography component="h3" level="title-md">{currentChakra.displayName} · {currentChakra.sanskritName}</Typography>
@@ -211,7 +211,7 @@ export default function Pathways() {
                 </>
               </InsightFeedback>
               </Box>
-              <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+              <Box className="aura-highlight" sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
                 <Typography component="h3" level="title-md">About this reference</Typography>
                 <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>Common Sanskrit names and body locations meet familiar color associations and a contemporary psychological lens.</Typography>
                 <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>Themes such as grounding and fear or expression and truth offer a way to reflect. You decide whether a connection is useful.</Typography>

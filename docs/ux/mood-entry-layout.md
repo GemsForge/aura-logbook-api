@@ -4,6 +4,7 @@ Reference: the approved two-column mood-log screenshot supplied November 13, 202
 This focused change covers Log mood, its shared edit form, and the matching invitation
 on Daily Astrology. See [Core user journeys](core-user-journeys.md#2-record-a-mood).
 
+- Use the shared `CurrentAuraMark` in Today and mood entry, backed by the saved derived aura and its existing reveal preference. Shared `.aura-highlight` / `.aura-panel` surfaces use one subtle wash throughout journal and pathway views; selecting draft moods does not recalculate that color.
 - Keep the existing application shell, navigation, theme tokens, mood catalog, illustrations and multi-selection behavior.
 - Use the shared `MoodEntryFormFields` for create/edit; preserve React Hook Form/Yup validation and existing API/photo retry flow.
 - Desktop uses two theme-backed, lightly rounded surfaces: the form on the left and optional reflection on the right. Small screens stack them without horizontal page overflow.
@@ -12,6 +13,7 @@ on Daily Astrology. See [Core user journeys](core-user-journeys.md#2-record-a-mo
 - Keep the Markdown note editor compact (140px initial height). Place the photo icon and compact save action on the same bottom row.
 - Match the Daily Astrology invitation using one shared source. Count actual matching mood days, never infer that a chakra caused a mood.
 - `Resonates / Maybe / Not for me` are optional controlled choices. Save the selected response and invitation atomically with the mood; restore them on edit.
+- New entries default to today and allow an earlier local journal date; future or invalid dates cannot be submitted. The API creation timestamp stays separate.
 - Keep loading, errors, date editing, save failures, and photo retries usable. Do not attach a stale choice to replacement invitation text.
 - Check 320, 768, 1024 and 1440px in Chromium, including scroll, overflow, identical invitation text and save payload. API persistence is separately verified against SQLite; browser provider responses are fixtures.
 

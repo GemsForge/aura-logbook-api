@@ -17,6 +17,9 @@ vi.mock("@/store/moodApi", async (original) => ({
   useGetAllMoodsQuery: () => ({ data: [], isFetching: false }),
 }));
 
+// Aura display has its own component/browser checks; these tests cover form wiring.
+vi.mock("@/components/aura/CurrentAuraMark", () => ({ CurrentAuraMark: () => null }));
+
 const moodQueryState = vi.hoisted(() => ({ fetchingReplacement: false }));
 
 // Keep the form test focused on field wiring; the editor package's CSS is covered by the browser build.

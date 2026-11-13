@@ -177,6 +177,8 @@ The onboarding orb is decorative and does not preview or set the user's aura. Th
 - **Color update:** apply the latest mood-derived hue to the app's aura accents after a check-in.
 - **Combination moment:** brief shimmer in the combination hue after check-in.
 - Implementation: CSS custom properties driven from the derived aura response; canvas only if needed.
+- Shared journal surfaces (`.aura-panel` and `.aura-highlight`) use one subtle aura wash without changing their border, spacing, or radius. The mood-entry form and Today reuse `CurrentAuraMark` for the existing derived color. Draft mood choices do not recalculate it.
+- New entry displays the orb with “Your current aura” and no explanation link. Today retains “Why this color?”; its dialog connects the app's existing color descriptions to colors actually associated with recent recorded moods, offers a reflective question, and keeps calculation contributors in expandable details. A blended hue is not assigned a guessed color personality or chakra diagnosis.
 - **`prefers-reduced-motion`:** static gradient, no breathing, instant transitions.
 - Decorative: `aria-hidden`; the reveal text carries the meaning.
 

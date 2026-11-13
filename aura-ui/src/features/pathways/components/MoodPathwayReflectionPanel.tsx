@@ -12,7 +12,7 @@ export function MoodPathwayReflectionPanel({ reflection, response, onChange, dis
   onChange?: (response: MoodReflectionResponse) => void; disabled?: boolean; loading?: boolean; editing?: boolean;
   error?: boolean; onRetry?: () => void;
 }) {
-  return <Sheet component="aside" aria-label="Optional pathway reflection" data-testid="pathway-reflection-panel" variant="soft" sx={{ p: { xs: 2, md: 3 }, borderRadius: "sm", minWidth: 0, height: "100%", bgcolor: "var(--al-theme-surface-raised)", border: 0 }}>
+  return <Sheet className="aura-highlight" component="aside" aria-label="Optional pathway reflection" data-testid="pathway-reflection-panel" variant="soft" sx={{ p: { xs: 2, md: 3 }, borderRadius: "sm", minWidth: 0, height: "100%", bgcolor: "var(--al-theme-surface-raised)", border: 0 }}>
     <Typography level="body-xs" sx={{ letterSpacing: ".08em", mb: 2 }}>Optional reflection</Typography>
     {error ? <Typography role="alert" level="body-sm">This reflection couldn’t load. <Button type="button" size="sm" variant="plain" onClick={onRetry}>Try again</Button></Typography>
       : loading ? <Typography role="status" level="body-sm">Finding a reflection for this mood mix…</Typography>

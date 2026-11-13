@@ -7,7 +7,7 @@ import Grid from "@mui/joy/Grid";
 import Sheet from "@mui/joy/Sheet";
 import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
-import { WhyThisColor } from "@/components/aura/WhyThisColor";
+import { CurrentAuraMark } from "@/components/aura/CurrentAuraMark";
 import AuraSeasonCard from "@/components/aura/AuraSeasonCard";
 import WeatherCard from "@/components/weather/WeatherCard";
 import { useWeatherLocation } from "@/hooks/useWeatherLocation";
@@ -168,11 +168,8 @@ export default function Dashboard() {
       {/* The check-in is the main place to notice today's derived aura; mood illustrations keep their own meanings. */}
       <Sheet className="aura-panel dashboard-check-in" sx={{ p: { xs: 2, sm: 2.5 }, height: "100%", borderTop: "3px solid var(--aura-accent, var(--al-theme-primary)) !important" }}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1.5}>
-          {/* The onboarding orb, small, beside "Why this color?": it takes the derived aura colors (--aura-accent/--aura-glow) set by AuraTokensStyle, so it shows today's aura. Decorative only. */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.75 }}>
-            <Box aria-hidden="true" className="aura-orb" sx={{ width: 40, flexShrink: 0, ml: .75, boxShadow: "inset -6px -8px 14px rgba(34,44,39,.12), inset 3px 3px 8px rgba(255,255,255,.75), 0 6px 20px var(--aura-glow, #b9cbd8)" }} />
-            <WhyThisColor />
-          </Box>
+          {/* The same saved-aura cue appears in the full mood-entry form. */}
+          <CurrentAuraMark showExplanation />
         </Stack>
         <Box sx={{ mt: 2 }}><Typography level="h2" sx={{ fontSize: "1.15rem", fontWeight: 500 }}>How are you feeling today?</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .25 }}>{getCheckInSubtext(user?.selectedPathway)}</Typography>
           {/* The check-in sizes to its content. The saved moment is taller than the chips, so the cards below move down only in direct response to the tap (not an unexpected layout shift), and return to place on "Done"; e2e/quick-check-in.spec.ts measures both. */}

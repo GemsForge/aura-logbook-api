@@ -14,6 +14,7 @@ import { useLocation } from "react-router-dom";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { type MoodEntry, type MoodType, moodEntrySchema } from "@/features/mood/models/schema";
+import { CurrentAuraMark } from "@/components/aura/CurrentAuraMark";
 import { MoodChoiceCarousel } from "@/components/mood/MoodChoiceCarousel";
 import { useDailyPathwayReflection } from "@/features/pathways/useDailyPathwayReflection";
 import { MoodPathwayReflectionPanel, type MoodReflectionResponse } from "@/features/pathways/components/MoodPathwayReflectionPanel";
@@ -163,10 +164,12 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
   // Use the same positive-first, color-grouped order as Today's compact check-in.
   const moodDefinitions = orderMoodChoices(referenceData?.moods ?? [], referenceData?.auras ?? []);
 
+  // Saved entries keep their original invitation; new energy entries share the Daily Astrology source.
   const panelReflection = entry?.pathwayReflection ?? (userPathway === "energy" ? dailyReflection.reflection
     : interpretationEligible ? interpretation ? { sourceId: `combination:${interpretation.combinationId}:${userPathway}`, pathway: userPathway, insightType: "mood-combination" as const, text: interpretation.interpretation } : undefined
       : dailyReflection.reflection);
   const panelLoading = !entry?.pathwayReflection && (userPathway === "energy" ? dailyReflection.loading : interpretationEligible && interpretationLoading);
+  // A refresh that changes the wording must not silently reuse a response to the previous invitation.
   const panelResponse = panelReflection?.sourceId === reflectionChoice?.sourceId && panelReflection?.text === reflectionChoice?.text ? reflectionChoice?.response : undefined;
 
   const onFormSubmit = (data: MoodEntryFormValues) => {
@@ -182,8 +185,9 @@ export default function MoodEntryFormFields({ entry, showSubmitButton = true, on
 
   return (
     <Box id="mood-form" component="form" onSubmit={handleSubmit(onFormSubmit)} sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.25fr) minmax(0, 1fr)" }, alignItems: "stretch", gap: { xs: 2, md: 3 }, minWidth: 0 }}>
-      <Sheet data-testid="mood-entry-main" variant="soft" sx={{ display: "flex", flexDirection: "column", gap: 1.25, minWidth: 0, p: { xs: 1.5, sm: 2.5 }, borderRadius: "sm", bgcolor: "var(--al-theme-surface-raised)", border: 0 }}>
+      <Sheet className="aura-highlight" data-testid="mood-entry-main" variant="soft" sx={{ display: "flex", flexDirection: "column", gap: 1.25, minWidth: 0, p: { xs: 1.5, sm: 2.5 }, borderRadius: "sm", bgcolor: "var(--al-theme-surface-raised)", border: 0 }}>
 
+      <CurrentAuraMark />
       <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} flexWrap="wrap">
         {entry ? (
           <Controller

@@ -8,11 +8,12 @@ const screenshots = resolve(process.cwd(), "artifacts/mood-layout");
 mkdirSync(screenshots, { recursive: true });
 
 /** Uses the complete mood catalog and synthetic history; private account data and live providers are never called. */
-async function setup(page: Page) {
+async function setup(page: Page, profile: Record<string, unknown> = {}) {
   const entries = makeEntries(3).map((entry) => ({ ...entry, moods: ["Scattered"] }));
   await stubApi(page, 3, "Amethyst", true, "energy", {
     birthday: "1990-01-01", zodiacSign: "Capricorn", onboardingCompleted: true, interfaceMode: "dark",
     pathwayPreferences: { focus: ["daily-astrology", "chakra-reference"], breathingEnabled: true, saveBirthDetails: false },
+    ...profile,
   });
   await page.route("http://127.0.0.1:5082/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.toLowerCase();
@@ -77,4 +78,42 @@ test("shared reflection matches Daily Astrology and its response is part of the 
   expect(payload.pathwayReflection).toMatchObject({ text, response: "resonates", pathway: "energy", insightType: "chakra-mood-pattern" });
   expect(payload.impactTopics).toEqual(["Work"]);
   await expect(page).toHaveURL(/\/history$/);
+});
+
+for (const interfaceMode of ["light", "dark"]) {
+  test(`saved aura is shared by Today and the entry highlights in ${interfaceMode} mode`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await setup(page, { interfaceMode, auraRevealsEnabled: true });
+    await page.route("http://127.0.0.1:5082/api/aura/current", (route) => route.fulfill({ json: { hue: 135, chroma: .14, lightness: .7, strength: .6, intensity: 60, contributors: ["Recent check-ins"] } }));
+    await page.goto("/dashboard");
+    await expect(page.getByTestId("current-aura-mark")).toBeVisible();
+    const orb = page.getByRole("img", { name: "Current aura color" });
+    const todayColor = await orb.evaluate((element) => getComputedStyle(element).backgroundImage);
+    await page.getByRole("button", { name: "Why this color?" }).click();
+    await expect(page.getByRole("dialog")).toContainText("Clear expression.");
+    await expect(page.getByRole("dialog")).toContainText("In your check-ins: Scattered");
+    await page.getByText("How this color took shape", { exact: true }).click();
+    await expect(page.getByRole("dialog")).toContainText("Recent check-ins");
+    await page.keyboard.press("Escape");
+    await page.goto("/log-mood");
+    await expect(page.getByTestId("current-aura-mark")).toBeVisible();
+    await expect.poll(() => page.getByRole("img", { name: "Current aura color" }).evaluate((element) => getComputedStyle(element).backgroundImage)).toBe(todayColor);
+    const main = page.getByTestId("mood-entry-main");
+    expect(await main.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain("linear-gradient");
+    const storedAccent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--aura-accent"));
+    await page.getByRole("button", { name: "Tense", exact: true }).click();
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--aura-accent"))).toBe(storedAccent);
+    await expect(page.getByRole("button", { name: "Why this color?" })).toHaveCount(0);
+    await page.screenshot({ path: resolve(screenshots, `mood-aura-${interfaceMode}.png`), fullPage: true });
+  });
+}
+
+test("disabled aura reveals hide the shared mark and skip the derived aura request", async ({ page }) => {
+  await setup(page, { auraRevealsEnabled: false });
+  const auraRequests: string[] = [];
+  page.on("request", (request) => { if (new URL(request.url()).pathname.endsWith("/aura/current")) auraRequests.push(request.url()); });
+  await page.goto("/log-mood");
+  await expect(page.getByTestId("mood-entry-main")).toBeVisible();
+  await expect(page.getByTestId("current-aura-mark")).toHaveCount(0);
+  expect(auraRequests).toEqual([]);
 });
