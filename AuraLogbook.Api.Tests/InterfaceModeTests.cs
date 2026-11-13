@@ -122,4 +122,35 @@ public sealed class InterfaceModeTests
         reference.Verify(r => r.IsActivePathwayAsync(It.IsAny<string>()), Times.Never);
         repository.Verify(r => r.UpdateAsync(user), Times.Once);
     }
+
+    /// <summary>#385: module preferences save against the user's existing pathway when the update omits it.</summary>
+    [Fact]
+    public async Task Module_preferences_validate_against_saved_pathway_when_pathway_omitted()
+    {
+        var user = new User { Id = 1, Email = "alex@example.test", InterfaceTheme = "Ocean", InterfaceMode = "light", SelectedPathway = SpiritualPathwayKeys.Energy };
+        var repository = new Mock<IFileUserRepository>();
+        repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+        repository.Setup(r => r.UpdateAsync(user)).ReturnsAsync(true);
+        var service = new UserService(repository.Object, new Mock<IReferenceDataValidator>().Object);
+
+        var ok = await service.UpdateUserAsync(new UpdateUserRequest { Id = 1, Email = user.Email,
+            PathwayPreferences = new PathwayPreferences { Focus = ["daily-astrology"], BreathingEnabled = false } });
+        var wrongPathway = await service.UpdateUserAsync(new UpdateUserRequest { Id = 1, Email = user.Email,
+            PathwayPreferences = new PathwayPreferences { Focus = ["sacred-texts"] } });
+
+        Assert.True(ok.Success, ok.Message);
+        Assert.Equal(["daily-astrology"], user.PathwayPreferences!.Focus);
+        Assert.False(user.PathwayPreferences.BreathingEnabled);
+        Assert.Equal(SpiritualPathwayKeys.Energy, user.SelectedPathway);
+        Assert.False(wrongPathway.Success);
+    }
+
+    /// <summary>#385: birth details are refused unless the user explicitly chose to save them.</summary>
+    [Fact]
+    public void Birth_details_require_explicit_save_choice()
+    {
+        Assert.NotNull(new PathwayPreferences { BirthPlace = "Lisbon" }.Validate(SpiritualPathway.Energy));
+        Assert.Null(new PathwayPreferences { SaveBirthDetails = true, BirthPlace = "Lisbon" }.Validate(SpiritualPathway.Energy));
+        Assert.NotNull(new PathwayPreferences { FaithTradition = "unknown" }.Validate(SpiritualPathway.Faith));
+    }
 }

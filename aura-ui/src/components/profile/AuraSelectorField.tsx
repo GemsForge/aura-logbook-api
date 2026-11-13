@@ -9,15 +9,15 @@ import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
 import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
-import { Controller, type Control, type Path, useWatch } from "react-hook-form";
+import { Controller, type Control, type FieldPathByValue, useWatch } from "react-hook-form";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { getAuraColorPreview } from "@/theme/auraTheme";
 import type { EditProfileFormData } from "@/features/auth/models/EditProfileSchema";
 
 interface AuraSelectorProps {
   control: Control<EditProfileFormData>;
-  colorField: Path<EditProfileFormData>;
-  intensityField: Path<EditProfileFormData>;
+  colorField: FieldPathByValue<EditProfileFormData, string | undefined>;
+  intensityField: FieldPathByValue<EditProfileFormData, number | undefined>;
 }
 
 export const AuraSelector: React.FC<AuraSelectorProps> = ({

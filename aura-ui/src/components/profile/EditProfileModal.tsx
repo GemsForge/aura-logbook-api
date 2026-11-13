@@ -47,11 +47,14 @@ export default function EditProfileModal({
       displayName: "",
       email: user?.email ?? "",
       birthday: "",
+      auraColor: undefined,
+      auraIntensity: undefined,
       avatar: "",
       password: "",
       confirmPassword: "",
       motto: "",
       spiritualPathway: "",
+      pathwayPreferences: { focus: ["mindfulness-guide", "practice-log"], breathingEnabled: true, saveBirthDetails: false },
       interfaceTheme: "Aurora",
       interfaceMode: DEFAULT_INTERFACE_MODE,
       weatherLocationMode: "Off",
@@ -84,6 +87,8 @@ export default function EditProfileModal({
         birthday: user.birthday
           ? dayjs(user.birthday).format("YYYY-MM-DD")
           : "",
+        auraColor: user.auraColor ?? undefined,
+        auraIntensity: user.auraIntensity ?? undefined,
         avatar: user.avatar || "",
         password: "",
         confirmPassword: "",
@@ -91,6 +96,16 @@ export default function EditProfileModal({
         spiritualPathway: pathwayOptions.some((pathway) => pathway.key === user.selectedPathway)
           ? user.selectedPathway!
           : pathwayOptions[0]?.key ?? "",
+        pathwayPreferences: {
+          focus: user.pathwayPreferences?.focus ?? (user.selectedPathway === "energy"
+            ? ["daily-astrology", "chakra-reference"]
+            : user.selectedPathway === "faith" ? ["faith-practice-check-in", "sacred-texts"] : ["mindfulness-guide", "practice-log"]),
+          breathingEnabled: user.pathwayPreferences?.breathingEnabled !== false,
+          faithTradition: user.pathwayPreferences?.faithTradition ?? null,
+          saveBirthDetails: user.pathwayPreferences?.saveBirthDetails === true,
+          birthTime: user.pathwayPreferences?.saveBirthDetails ? user.pathwayPreferences.birthTime ?? "" : "",
+          birthPlace: user.pathwayPreferences?.saveBirthDetails ? user.pathwayPreferences.birthPlace ?? "" : "",
+        },
         interfaceTheme: resolveInterfaceTheme(user.interfaceTheme),
         interfaceMode: resolveInterfaceMode(user.interfaceMode),
         weatherLocationMode: resolveWeatherLocationMode(user.weatherLocationMode),
@@ -119,6 +134,11 @@ export default function EditProfileModal({
       birthday: data.birthday ? dayjs(data.birthday).format("YYYY-MM-DD") : undefined,
       password: isChangingPassword ? data.password : undefined,
       selectedPathway: spiritualPathway,
+      pathwayPreferences: {
+        ...data.pathwayPreferences,
+        birthTime: data.pathwayPreferences.saveBirthDetails ? data.pathwayPreferences.birthTime || null : null,
+        birthPlace: data.pathwayPreferences.saveBirthDetails ? data.pathwayPreferences.birthPlace || null : null,
+      },
       // Only a typed place is sent; the API clears it for Off and Device (#331).
       weatherCity: data.weatherLocationMode === "City" ? data.weatherCity?.trim() : undefined,
       weatherRegion: data.weatherLocationMode === "City" ? data.weatherRegion?.trim() || undefined : undefined,

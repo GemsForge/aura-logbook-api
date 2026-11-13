@@ -5,7 +5,7 @@ public sealed class ReferenceDataConfigurationDto
 {
     public required IReadOnlyList<ReferenceDataDefinitionDto> Pathways { get; init; }
     public required IReadOnlyList<AuraColorConfigurationDto> Auras { get; init; }
-    public required IReadOnlyList<ReferenceDataDefinitionDto> Chakras { get; init; }
+    public required IReadOnlyList<ChakraDefinitionDto> Chakras { get; init; }
     public required IReadOnlyList<MoodDefinitionDto> Moods { get; init; }
     public required IReadOnlyList<ThemeTokenDto> ThemeTokens { get; init; }
     public required IReadOnlyList<GraphicAssetDto> Graphics { get; init; }
@@ -19,6 +19,21 @@ public class ReferenceDataDefinitionDto
     public required string DisplayName { get; init; }
     public required string Description { get; init; }
     public int SortOrder { get; init; }
+}
+
+/// <summary>Describes a commonly used chakra reference and its clearly contemporary reflection lens.</summary>
+public sealed class ChakraDefinitionDto : ReferenceDataDefinitionDto
+{
+    public required string SanskritName { get; init; }
+    public required string BodyLocation { get; init; }
+    public required string ColorAssociation { get; init; }
+    public required string ElementAssociation { get; init; }
+    public required string InterpretiveTheme { get; init; }
+    public required string ChallengeAssociation { get; init; }
+    public required string ReflectionPrompt { get; init; }
+    public required string SymbolAssetKey { get; init; }
+    /// <summary>Mood keys that may optionally invite this center's reflection theme.</summary>
+    public required IReadOnlyList<string> MoodAssociationKeys { get; set; }
 }
 
 /// <summary>Describes one aura color and its intensity palette.</summary>
