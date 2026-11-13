@@ -78,12 +78,15 @@ Source JSON files are never modified.
 - `aura-ui/data/aura_logbook_mood_combinations.json` is the editable authoring
   source for curated reflections.
 - Migration `018_mood_combination_interpretations.sql` creates the lookup table.
-  Migration `006` seeds the pathway rows it references. API startup applies
-  migrations but does **not** import reflections.
+  Migration `006` seeds the pathway rows it references.
+- API startup applies migrations, then imports the curated reflections from the
+  copy of the JSON shipped with the API build (`Database:ImportReflectionsOnStartup`,
+  on by default). An invalid or missing source is logged and existing rows are kept.
 - This seeder (`MoodCombinationImporter`) copies the authored JSON into SQLite.
 - At runtime, `GET /api/mood-combinations/interpretation` reads the SQLite rows
   through `SqliteMoodCombinationRepository`. If no row matches, it composes a
   fallback reflection, so a missing seed shows generic text rather than an error.
-  Run the reflection-only seed after editing the JSON.
+  Restarting the API picks up JSON edits; use `--mode reflections` to refresh a
+  database without restarting, or to see the reconciliation report.
 
 Production storage is never seeded automatically.

@@ -17,4 +17,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- #365: ship the curated reflection source with the API so startup import works after publish. -->
+    <None Include="..\aura-ui\data\aura_logbook_mood_combinations.json" Link="Data\aura_logbook_mood_combinations.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
