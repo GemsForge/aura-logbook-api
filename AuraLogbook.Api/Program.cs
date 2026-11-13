@@ -53,6 +53,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddCors();
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
+builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
+// Prefer the documented deployment secret name while retaining ASP.NET's section-based alias.
+builder.Services.PostConfigure<FreeAstroApiOptions>(options =>
+    options.ApiKey = builder.Configuration["FREE_ASTRO_API_KEY"] ?? options.ApiKey);
+builder.Services.Configure<AstrologyApiOptions>(builder.Configuration.GetSection(AstrologyApiOptions.SectionName));
 builder.Services.AddDataProtection();
 // Bound Spotify calls so a slow provider returns a recoverable error to the card.
 builder.Services.AddHttpClient("Spotify", client => client.Timeout = TimeSpan.FromSeconds(10));
@@ -86,6 +91,7 @@ builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddSingleton<JsonUserSeeder>();
 builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
+builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 
 // Repositories
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())

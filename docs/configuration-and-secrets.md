@@ -61,11 +61,30 @@ committed configuration:
 dotnet user-secrets --project AuraLogbook.Api set "FreeAstroApi:ApiKey" "your-api-key"
 ```
 
-Deployment configuration uses `FreeAstroApi__ApiKey`. The API caches daily
+Set the backend environment variable `FREE_ASTRO_API_KEY` for deployment. The
+ASP.NET configuration alias `FreeAstroApi__ApiKey` is also accepted, equivalent
+to `FreeAstroApi:ApiKey`; `FREE_ASTRO_API_KEY` takes precedence if both are set.
+The API caches daily
 readings and date-level phase results and paces provider requests to fit the
 documented free-tier request limit. Without a key, the astrology endpoints
 return `503 Service Unavailable` and the UI can explain that the insight cannot
 be loaded.
+
+## Optional natal chart provider
+
+Astrology-API.io calculates an optional chart through the authenticated
+`GET /api/astrology/birth-chart` route. Set `AstrologyApi:ApiKey` as a user
+secret locally or `AstrologyApi__ApiKey` in deployment secrets. The key is used
+only by the API; the browser never calls the provider.
+
+The route requires the Astrology & Energy pathway, the Daily Astrology module,
+a birthday, and birth time and birthplace retained only after the explicit
+“Save birth details” choice. The provider request sends those saved details.
+Chart responses are cached in process memory for up to 30 days and are not
+persisted to the application database or disk. The provider documents
+`POST /api/v3/charts/natal` in its [use cases](https://api.astrology-api.io/docs/use-cases);
+confirm response fields with an account-backed request before relying on
+placement extraction in production.
 
 The Spotify authorization request asks for these read permissions:
 
