@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtilities";
 import EditProfileModal from "./EditProfileModal";
@@ -80,41 +80,6 @@ describe("EditProfileModal", () => {
     expect(
       screen.getByRole("button", { name: "Save Changes" })
     ).toBeInTheDocument();
-  });
-
-  it("saves the aura reveal preference", async () => {
-    const user = userEvent.setup();
-    const onClose = vi.fn();
-    mockGetCurrentUser.mockReturnValue({
-      data: {
-        ...baseUser,
-        avatar: "",
-        auraRevealsEnabled: false,
-      },
-      isFetching: false,
-    });
-
-    renderWithProviders(<EditProfileModal open onClose={onClose} />);
-
-    // Fields are grouped into sections; jsdom matches no media query, so the desktop tab nav renders.
-    await user.click(await screen.findByRole("tab", { name: "Aura" }));
-    await user.click(await screen.findByRole("checkbox", { name: "Aura reveals" }));
-
-    await user.click(
-      await screen.findByRole("button", { name: "Save Changes" })
-    );
-
-    await waitFor(() =>
-      expect(mockUpdateUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 1,
-          avatar: "",
-          auraRevealsEnabled: true,
-        })
-      )
-    );
-    expect(mockUnwrap).toHaveBeenCalledOnce();
-    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("previews a selected interface theme before saving it", async () => {

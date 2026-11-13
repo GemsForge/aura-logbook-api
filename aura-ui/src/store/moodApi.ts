@@ -8,6 +8,7 @@ import type {
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { RootState } from "./store";
 import { logout } from "./slices/authSlice";
 import { auraApi } from "./auraApi";
 
@@ -15,10 +16,8 @@ import { auraApi } from "./auraApi";
 type MoodApiState = { auth: { token: string | null } };
 
 /** Refreshes derived color after journal mutations so the visible accent follows the latest entries. */
-async function refreshDerivedAura(
-  dispatch: (action: { type: string }) => unknown,
-  queryFulfilled: Promise<unknown>,
-) {
+// Typed to the one action it sends, not AppDispatch: AppDispatch depends on moodApi's own type and made it circular.
+async function refreshDerivedAura(dispatch: (action: ReturnType<typeof auraApi.util.invalidateTags>) => unknown, queryFulfilled: Promise<unknown>) {
   try {
     await queryFulfilled;
     dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
