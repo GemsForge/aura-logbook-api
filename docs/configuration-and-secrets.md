@@ -114,7 +114,12 @@ city/region/country match, and resolves the returned IANA time zone against the
 birth date using the host's time-zone rules. Missing or ambiguous locations and
 invalid or repeated local times at DST transitions return unavailable rather than
 guessing a location or UTC offset. Use a city and country (for example,
-`New York, US`); spell out any intervening state or region.
+`New York, US`), or include a state/region to narrow the result (`New York, NY, US`).
+US state abbreviations are matched only to US regions using the
+[USPS state abbreviation list](https://pe.usps.com/text/pub28/28apb.htm).
+A code such as `CA` can mean California or Canada: when both match the city,
+include the country rather than relying on an assumed first result. Full state
+names remain supported. Other regions should be spelled out.
 
 The server then sends the birth date, local time, coordinates, and historical UTC
 offset to `POST /western/planets`, explicitly requesting tropical, geocentric,

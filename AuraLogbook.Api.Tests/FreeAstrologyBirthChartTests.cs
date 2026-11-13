@@ -101,6 +101,53 @@ public sealed class FreeAstrologyBirthChartTests
         Assert.Single(handler.Calls);
     }
 
+    /// <summary>Postal region abbreviations in saved profiles must resolve against US regions, not country aliases.</summary>
+    [Theory]
+    [InlineData("New York, NY")]
+    [InlineData("New York, ny, US")]
+    [InlineData("New York, New York, US")]
+    public async Task Us_state_names_and_codes_resolve_the_saved_location(string birthplace)
+    {
+        var handler = new Handler(Geo, Planets);
+        Assert.NotNull(await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", birthplace, default));
+        Assert.Equal(2, handler.Calls.Count);
+        Assert.Equal(40.71, handler.Calls[1].Body.GetProperty("latitude").GetDouble());
+    }
+
+    /// <summary>CA can mean California or Canada; an explicit country disambiguates, otherwise do not guess.</summary>
+    [Theory]
+    [InlineData("New York, CA", null)]
+    [InlineData("New York, CA, US", 40.71)]
+    [InlineData("New York, California", 40.71)]
+    [InlineData("New York, Canada", 41.71)]
+    public async Task Country_state_code_collisions_require_one_distinct_location(string birthplace, double? latitude)
+    {
+        var california = Geo.Replace("\"administrative_zone_1\":\"New York\"", "\"administrative_zone_1\":\"California\"");
+        var canada = Geo.Replace("United States", "Canada").Replace("40.71", "41.71")
+            .Replace("\"administrative_zone_1\":\"New York\"", "\"administrative_zone_1\":\"Ontario\"");
+        var handler = new Handler(california[..^1] + "," + canada[1..], Planets);
+        var result = await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", birthplace, default);
+        if (latitude is null)
+        {
+            Assert.Null(result);
+            Assert.Single(handler.Calls);
+        }
+        else
+        {
+            Assert.NotNull(result);
+            Assert.Equal(latitude.Value, handler.Calls[1].Body.GetProperty("latitude").GetDouble());
+        }
+    }
+
+    /// <summary>US postal aliases cannot match a similarly named region in another country.</summary>
+    [Fact]
+    public async Task Us_postal_aliases_do_not_expand_for_non_us_results()
+    {
+        var handler = new Handler(Geo.Replace("United States", "Canada"), Planets);
+        Assert.Null(await Service(handler).GetNatalChartAsync(new(1998, 7, 3), "10:30", "New York, NY", default));
+        Assert.Single(handler.Calls);
+    }
+
     [Theory]
     [InlineData("[]")]
     [InlineData("{\"statusCode\":200,\"output\":[]}")]

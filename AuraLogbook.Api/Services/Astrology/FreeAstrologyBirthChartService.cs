@@ -18,6 +18,24 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
     private readonly FreeAstrologyApiRequestPacer _pacer;
     private readonly ILogger<FreeAstrologyBirthChartService> _logger;
 
+    /// <summary>USPS state names (Publication 28, Appendix B); aliases apply only to US provider regions.</summary>
+    private static readonly IReadOnlyDictionary<string, string> UsStates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["AL"] = "Alabama", ["AK"] = "Alaska", ["AZ"] = "Arizona", ["AR"] = "Arkansas",
+        ["CA"] = "California", ["CO"] = "Colorado", ["CT"] = "Connecticut", ["DE"] = "Delaware",
+        ["DC"] = "District of Columbia", ["FL"] = "Florida", ["GA"] = "Georgia", ["HI"] = "Hawaii",
+        ["ID"] = "Idaho", ["IL"] = "Illinois", ["IN"] = "Indiana", ["IA"] = "Iowa", ["KS"] = "Kansas",
+        ["KY"] = "Kentucky", ["LA"] = "Louisiana", ["ME"] = "Maine", ["MD"] = "Maryland",
+        ["MA"] = "Massachusetts", ["MI"] = "Michigan", ["MN"] = "Minnesota", ["MS"] = "Mississippi",
+        ["MO"] = "Missouri", ["MT"] = "Montana", ["NE"] = "Nebraska", ["NV"] = "Nevada",
+        ["NH"] = "New Hampshire", ["NJ"] = "New Jersey", ["NM"] = "New Mexico", ["NY"] = "New York",
+        ["NC"] = "North Carolina", ["ND"] = "North Dakota", ["OH"] = "Ohio", ["OK"] = "Oklahoma",
+        ["OR"] = "Oregon", ["PA"] = "Pennsylvania", ["RI"] = "Rhode Island", ["SC"] = "South Carolina",
+        ["SD"] = "South Dakota", ["TN"] = "Tennessee", ["TX"] = "Texas", ["UT"] = "Utah",
+        ["VT"] = "Vermont", ["VA"] = "Virginia", ["WA"] = "Washington", ["WV"] = "West Virginia",
+        ["WI"] = "Wisconsin", ["WY"] = "Wyoming"
+    };
+
     /// <summary>Uses a server-only key, bounded requests, shared rate pacing, and private in-memory chart caching.</summary>
     public FreeAstrologyBirthChartService(HttpClient http, IOptions<FreeAstrologyApiOptions> options,
         IMemoryCache cache, FreeAstrologyApiRequestPacer pacer, ILogger<FreeAstrologyBirthChartService> logger)
@@ -48,7 +66,11 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
             if (city.Length == 0) return null;
             var geo = await PostAsync("geo-details", new { location = city }, cancellationToken);
             var location = geo is { } places ? ReadLocation(places, birthPlace) : null;
-            if (location is null) return null;
+            if (location is null)
+            {
+                _logger.LogWarning("FreeAstrologyAPI could not resolve a unique birth location.");
+                return null;
+            }
 
             // Use the offset on the birth date, including historical DST, rather than today's offset.
             var zone = TimeZoneInfo.FindSystemTimeZoneById(location.TimeZone);
@@ -135,18 +157,6 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
         if (places.ValueKind != JsonValueKind.Array) return null;
         var parts = birthPlace.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return null;
-        var terms = new List<string[]>();
-        foreach (var part in parts.Skip(1))
-        {
-            var aliases = new List<string> { part };
-            if (part.Length == 2)
-            {
-                try { aliases.Add(new RegionInfo(part.ToUpperInvariant()).EnglishName); }
-                catch (ArgumentException) { /* An unknown region remains a literal match. */ }
-            }
-            terms.Add(aliases.ToArray());
-        }
-
         var matches = new List<BirthLocation>();
         foreach (var place in places.EnumerateArray())
         {
@@ -154,10 +164,7 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
             // City names must match the city field, not a same-named state in another result.
             var cityName = ReadString(place, "location_name");
             if (cityName is null || !NormalizeCity(cityName).Equals(NormalizeCity(parts[0]), StringComparison.OrdinalIgnoreCase)) continue;
-            var names = new[] { "location_name", "complete_name", "country", "administrative_zone_1", "administrative_zone_2" }
-                .Select(key => ReadString(place, key)).Where(value => value is not null)
-                .SelectMany(value => value!.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)).ToArray();
-            if (!terms.All(aliases => aliases.Any(alias => names.Contains(alias, StringComparer.OrdinalIgnoreCase)))) continue;
+            if (!parts.Skip(1).All(term => MatchesLocationTerm(place, term))) continue;
             if (!TryNumber(place, "latitude", out var lat) || Math.Abs(lat) > 90 ||
                 !TryNumber(place, "longitude", out var lon) || Math.Abs(lon) > 180 ||
                 ReadString(place, "timezone") is not { Length: > 0 } zone) continue;
@@ -165,6 +172,34 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
         }
         var distinct = matches.Distinct().ToArray();
         return distinct.Length == 1 ? distinct[0] : null;
+    }
+
+    /// <summary>
+    /// Matches country codes only to countries and US postal codes only to US states. A code such as
+    /// CA may match Canada or California; the caller still requires one distinct location across all results.
+    /// </summary>
+    private static bool MatchesLocationTerm(JsonElement place, string term)
+    {
+        var country = ReadString(place, "country");
+        var state = ReadString(place, "administrative_zone_1");
+        if (new[] { country, state, ReadString(place, "administrative_zone_2") }
+            .Any(value => string.Equals(value, term, StringComparison.OrdinalIgnoreCase))) return true;
+
+        if (term.Length == 2)
+        {
+            try
+            {
+                if (string.Equals(new RegionInfo(term.ToUpperInvariant()).EnglishName, country, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            catch (ArgumentException) { /* State abbreviations need not be ISO country codes. */ }
+        }
+
+        var isUnitedStates = country is not null && (country.Equals("United States", StringComparison.OrdinalIgnoreCase) ||
+            country.Equals("United States of America", StringComparison.OrdinalIgnoreCase) || country.Equals("US", StringComparison.OrdinalIgnoreCase));
+        if (isUnitedStates && term.Equals("US", StringComparison.OrdinalIgnoreCase)) return true;
+        return isUnitedStates && UsStates.TryGetValue(term, out var stateName) &&
+            string.Equals(stateName, state, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Accepts the provider's optional English “City” designation without matching other city names.</summary>
