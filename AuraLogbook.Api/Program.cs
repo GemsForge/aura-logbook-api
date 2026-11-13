@@ -15,6 +15,7 @@ using AuraLogbook.Api.Services.Email;
 using AuraLogbook.Api.Services.PasswordReset;
 using AuraLogbook.Api.Services.Faith;
 using AuraLogbook.Api.Services.Astrology;
+using AuraLogbook.Api.Services.PathwayActivities;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -110,6 +111,9 @@ builder.Services.AddSingleton<IMoodMediaFileStore, PrivateMoodMediaFileStore>();
 builder.Services.AddScoped<IReflectionRepository, SqliteReflectionRepository>();
 builder.Services.AddScoped<IMoodCombinationRepository, SqliteMoodCombinationRepository>();
 builder.Services.AddScoped<IAuraSeasonRepository, SqliteAuraSeasonRepository>();
+// #389: private, pathway-tagged practice and insight-feedback records.
+builder.Services.AddScoped<IPathwayActivityRepository, SqlitePathwayActivityRepository>();
+builder.Services.AddScoped<IPathwayActivityService, PathwayActivityService>();
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
     builder.Services.AddScoped<IFileZodiacInsightsRepository, SqliteZodiacInsightsRepository>();
 else
