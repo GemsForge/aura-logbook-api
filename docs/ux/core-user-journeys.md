@@ -128,6 +128,12 @@ context. This is a proposed extension; existing provider caches remain in memory
 until retention, chart-history consent, and provider storage permissions are
 settled. Explicit **Save to journal** behavior remains part of that plan.
 
+The recap plan distinguishes FreeAstroAPI **Daily Sign** (currently integrated)
+from the proposed **Daily Personal** reading based on birth details and transits.
+Both belong on the same Daily Astrology page, with separate source snapshots and
+feedback identities. Personal daily readings need an explicit choice to use birth
+details and their own response mapping; they are not the stable natal chart.
+
 ### Milestone-level acceptance checks
 
 1. Profile settings select one primary pathway and configure its modules; the navigation displays only enabled modules for that pathway under the nested pathway heading.

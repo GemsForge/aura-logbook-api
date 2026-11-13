@@ -31,13 +31,70 @@ an old reading again or treating an interpretation as a diagnosis.
 
 | Experience | Candidate durable data | Recap value |
 | --- | --- | --- |
-| Daily horoscope | Provider, sign, effective date, language, source identifier/version, and the exact text shown when storage rights permit. Link optional user feedback and explicitly saved reflections to that snapshot. | Revisit a reading the user responded to and distinguish different daily readings of the same insight type. Describe themes only when provider-supplied or generated through a separately reviewed, versioned mapping. |
+| Daily Sign horoscope | Analysis type `daily-sign`, provider, sign, effective date, language, source identifier/version, theme, keywords, supporting insights, and the exact text shown when storage rights permit. Link optional user feedback and explicitly saved reflections to that snapshot. | Revisit a sign reading the user responded to and distinguish different daily readings of the same insight type. |
+| Daily Personal horoscope | Private analysis type `daily-personal`, owner and birth-input version, effective date and time zone, provider/engine version, theme, keywords, selected transits, focus areas, displayed interpretation blocks, and the active-window/exact-hit references used in the card. | Revisit the specific personal reading and its timing alongside user-recorded moods/context and explicit feedback; do not treat a transit as a cause of a mood. |
 | Birth chart | Private normalized planet/sign/degree placements, chart framework/settings, provider and calculation version, retrieval time, and an input-version fingerprint. Store a new version only when relevant inputs/settings change, under an explicit chart-history retention choice. | Reuse the chart as an interpretive reference and connect saved reflections to the version they used. A natal chart is stable reference context, not a daily-changing mood measure. |
 | Moon and mood context | Date, phase identifier/name, observation timestamp, time-zone/date-bucketing rule, provider, and calculation version. Preserve the link between a mood entry's local date and that phase. | Recompute counts from actual mood entries and show coverage across phases without attributing moods to the moon. |
 | Chakra reference and invitations | Chakra key/name, reference-content version, theme key, invitation text/version, and the exact mood-entry evidence and date range used. Link explicit feedback and saved reflections to that invitation. | Revisit grounding, expression, or other themes the user explored and whether that particular invitation resonated. Do not infer a blocked chakra from a mood. |
 | Sacred texts and Word of the Day | Selected framework at the time, provider/source, passage reference, language, translation/version, and the wording of Aura's neutral prompt. Retain external text only under verified storage permissions; otherwise retain the reference and permitted attribution. Link explicit journal saves and practice check-ins. | Revisit passages and reflections the user chose to save, alongside their own recorded practices. Displaying a passage or opening a link does not establish that the user read it. |
 | Mindful Living and shared breathing | Concept/skill key and content version; explicitly logged practice, date, duration where supplied, and optional note. A breathing session may contribute actual active duration, selected cadence, and an explicit completion/record action if session logging is introduced. | Summarize the practices the user recorded and their own reactions. Do not infer a completed session from a timer opening or count paused time as practice. |
 | Shared mood log | Mood-entry IDs, recorded moods, impact topics, local dates/time-zone context, and current edit/delete state. | Keep work, family, health, and other user-selected context visible in every pathway recap. These are recorded context, not proven causes. |
+
+## Daily Sign and Daily Personal response mapping
+
+The two supplied provider response examples were reviewed on November 13, 2026.
+The first is Daily Personal V3 and the second is Daily Sign V2. These are separate
+analysis types within FreeAstroAPI. They do not change the selected FreeAstrologyAPI
+provider for the stable natal-chart calculation.
+
+Current runtime support is Daily Sign only. Daily Personal is a proposed extension
+on the same Daily Astrology page, available after a deliberate choice to use birth
+details for a personal daily reading. Saving birth details for a chart should not
+silently start daily personal requests or send those details to a second provider.
+
+| Response field | Proposed use |
+| --- | --- |
+| `data.sign`, `data.date`, language and time-zone settings | Identify the actual reading and its local day; preserve the resolved provider date instead of guessing it from the server clock. |
+| `meta.generated_at`, engine name/version, settings/version | Record retrieval/generation provenance, calculation version, and interpretation-block setting. Request IDs are optional diagnostic metadata, not the stable snapshot identity. |
+| `data.content.text` | Retain the Daily Sign wording actually shown, where permitted. The supplied Personal response has no `text` field, so it cannot use the existing text-only adapter unchanged. |
+| `data.content.theme`, `keywords`, `supporting_insights` | Preserve supplied themes and any supporting text actually displayed, rather than inventing retrospective themes. |
+| `data.astro.moon_sign`, `moon_phase`, `highlights` | Retain structured source context for the reading. Moon/mood aggregation still uses the chosen date-bucketing rule and phase observation timestamp. |
+| `data.personal.transits_top` | Preserve transit/natal point/aspect keys and labels, exact timestamps, and any displayed `explanation` fields. These provide the source for the personal insight card. |
+| `data.personal.focus_areas` | Optional provider-labeled reflection context. Do not store it as though the user selected the same impact topic in their mood entry. |
+| `data.personal.active_windows`, `exact_hits`, `next_shift` | Keep the IDs/lookup keys, timestamps, labels, and boundaries used by the displayed card. Reuse an interval across dates rather than counting every daily appearance as a new event. |
+| `data.personal.dominant_topics` | Context that may span the month. Keep its interval/category and deduplicate it across daily snapshots before a weekly/monthly recap. |
+| `data.personal.day_context` | Alternate grouping of timing data. It overlaps the top-level personal arrays in the supplied response; normalize one canonical set rather than counting both copies. |
+| `data.personal.insights_meta` | Track source/range and whether timeline, insights, and interpretation blocks were enabled. Provider fact/window counts are not user-activity counts. |
+| `scores`, `score_factors`, `confidence_score`, `supportive_vs_challenging`, `lucky` | Exclude from the proposed first recap experience. These are provider-generated rankings/interpretations, not the user's measured health, emotions, relationship quality, certainty, or completed practices. They must not overwrite user-recorded mood or impact context. |
+
+The supplied Personal response sets `include_interpretation_blocks` to false and
+contains no transit explanations. The provider documents
+`include_interpretation_blocks=true` for optional V3 explanations. If explanations
+are requested but missing, show supported factual labels or an explicit unavailable
+state; do not invent a written reading. Verify availability against the selected
+provider account before implementation acceptance.
+
+Use separate snapshot and feedback identities for `daily-sign` and `daily-personal`
+so reacting to one does not silently change the other mode's recommendations.
+An explicit user reaction must reference the exact reading/transit instance, not
+only the broad `horoscope` category currently stored by the application.
+
+Personal snapshot/cache identity includes owner, birth-input version, effective
+date, target time zone, language, calculation version, and relevant options.
+Daily Sign content may be shared by sign/date/language/version where permissions
+allow; Daily Personal results must remain private to their owner. Fetch personal
+readings on demand rather than backfilling past days with new API responses and
+presenting them as readings the user previously encountered.
+
+The screenshot's SVG design controls and hosted MCP configuration are separate
+developer capabilities. The two daily readings use server-side REST calls; this
+plan does not add SVG controls to the user experience or configure an MCP client.
+
+Provider references:
+
+- [Endpoint map](https://www.freeastroapi.com/llms.txt)
+- [Daily Sign](https://www.freeastroapi.com/docs/western/daily-sign): `GET /api/v2/horoscope/daily/sign`
+- [Daily Personal](https://www.freeastroapi.com/docs/western/daily-personal): `POST /api/v3/horoscope/daily/personal`
 
 ## Storage responsibilities
 
