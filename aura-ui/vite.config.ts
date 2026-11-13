@@ -24,5 +24,8 @@ export default defineConfig({
     globals: true,
     // Playwright owns e2e/ browser specs; keep them out of the jsdom unit run.
     exclude: [...configDefaults.exclude, "e2e/**"],
+    // RTK Query builds absolute URLs from this; without it Node fetch rejects "undefined/Auth/...".
+    // CI has no .env file, so unit tests get a fixed placeholder origin (requests are mocked).
+    env: { VITE_API_BASE_URL: "http://localhost/api" },
   },
 });

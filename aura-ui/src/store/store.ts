@@ -8,6 +8,7 @@ import { authApi } from "./authApi";
 import { moodApi } from "./moodApi";
 import { referenceDataApi } from "./referenceDataApi";
 import { spotifyApi } from "./spotifyApi";
+import { attachStore } from "@/api/api";
 
 export const store = configureStore({
   reducer: {
@@ -31,6 +32,9 @@ export const store = configureStore({
       spotifyApi.middleware
     ),
 });
+
+// The axios client reads the token and dispatches logout through this attachment (no import cycle).
+attachStore(store);
 
 // Types
 export type RootState = ReturnType<typeof store.getState>;

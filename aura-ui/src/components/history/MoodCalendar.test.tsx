@@ -3,8 +3,18 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtilities";
 import MoodCalendar from "./MoodCalendar";
 
+/**
+ * The season starts a week ago in local time. Using today's UTC date made every ribbon day "future"
+ * (and disabled) whenever local time was behind UTC, e.g. US evenings.
+ */
+function weekAgoLocal() {
+  const date = new Date();
+  date.setDate(date.getDate() - 7);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 vi.mock("@/store/auraApi", () => ({
-  useGetAuraSeasonsQuery: () => ({ data: { current: null, history: [{ key: "tide", name: "Steady Tide", startedOn: new Date().toISOString().slice(0, 10), endedOn: null }] } }),
+  useGetAuraSeasonsQuery: () => ({ data: { current: null, history: [{ key: "tide", name: "Steady Tide", startedOn: weekAgoLocal(), endedOn: null }] } }),
 }));
 
 describe("MoodCalendar season labels", () => {
