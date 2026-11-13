@@ -50,7 +50,8 @@ for (const width of [320, 768, 1024, 1440]) {
     await page.goto("/pathways/chakra-reference");
     const centers = page.getByTestId("chakra-reference-grid");
     // Legacy underscore aliases in the fixture must not produce nine rows for a seven-center wiki.
-    await expect(centers.getByRole("button").filter({ hasText: " · " })).toHaveCount(7);
+    // Named symbol controls replace overlapping body hit targets; their accessible names retain Sanskrit terms.
+    await expect(centers.getByRole("group", { name: "Choose a chakra" }).getByRole("button")).toHaveCount(7);
     await centers.getByRole("button", { name: /Throat · Viśuddha/ }).click();
     await expect(page.getByRole("heading", { name: "Throat · Viśuddha" })).toBeVisible();
     await expectReadableSelection(centers.getByRole("button", { name: /Throat · Viśuddha/ }));
