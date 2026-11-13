@@ -103,13 +103,20 @@ export default function Pathways() {
 
     {pathway === "mindfulness" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
       {focus.includes("mindfulness-guide") && showModule("mindfulness-guide") && <Box component="section" id="mindfulness-guide" aria-labelledby="mindfulness-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
-        <Typography id="mindfulness-title" component="h2" level="title-lg">A practical guide to mindfulness</Typography>
+        <Typography id="mindfulness-title" component="h2" level="title-lg">Mindfulness, in practice</Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" }, gap: 2, mt: 1.5 }}>
           <GuideItem title="Notice now" text="Bring attention to what is here: thoughts, sensations, feelings, or surroundings." />
           <GuideItem title="Without judgment" text="Name what you notice without immediately deciding it is good or bad." />
           <GuideItem title="Return gently" text="When attention wanders, noticing and returning is part of the practice." />
+          <GuideItem title="Start small" text="Try one mindful breath or a few minutes. Pair it with a moment already in your day if that helps." />
+          <GuideItem title="Make it your own" text="Choose a practice and rhythm that fit you. A routine can change as your days change." />
+          <GuideItem title="Begin again" text="Missed days happen. Return when you’re ready; no streak or catch-up is needed." />
         </Box>
-        <Typography level="body-sm" sx={{ mt: 2 }}><strong>DBT mindfulness lens:</strong> Observe, Describe, Participate; practice Nonjudgmentally, One-Mindfully, and Effectively. Wise Mind is a DBT teaching that makes room for emotion and reason.</Typography>
+        <Box component="section" aria-labelledby="dbt-mindfulness-title" sx={{ mt: 2 }}>
+          <Typography id="dbt-mindfulness-title" component="h3" level="title-md">A DBT mindfulness lens</Typography>
+          <Typography level="body-sm" sx={{ mt: .5 }}>Dialectical Behavior Therapy describes three “what” skills—Observe, Describe, Participate—and three “how” skills—Nonjudgmentally, One-Mindfully, Effectively. Wise Mind is a DBT concept that makes room for emotion and reason.</Typography>
+          <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>These are plain-language summaries of DBT terms, offered for learning rather than treatment.</Typography>
+        </Box>
         <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>An educational overview, not therapy.</Typography>
         <InsightFeedback pathway="mindfulness" moduleKey="mindfulness-guide" insightType="mindfulness-concept" />
       </Box>}
