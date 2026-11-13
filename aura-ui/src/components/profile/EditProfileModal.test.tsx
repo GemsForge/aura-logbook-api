@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtilities";
 import EditProfileModal from "./EditProfileModal";
@@ -44,6 +44,46 @@ describe("EditProfileModal", () => {
     mockGetReferenceData.mockReturnValue({ data: testReferenceData, isError: false });
     mockUpdateUser.mockReturnValue({ unwrap: mockUnwrap });
     mockUnwrap.mockResolvedValue({});
+  });
+
+  it("shows missing birth fields before sending and saves the completed details with consent", async () => {
+    const user = userEvent.setup();
+    mockGetCurrentUser.mockReturnValue({ data: { ...baseUser, selectedPathway: "energy" }, isFetching: false });
+    renderWithProviders(<EditProfileModal open onClose={vi.fn()} />);
+
+    await user.click(await screen.findByRole("tab", { name: "My Pathway" }));
+    await user.click(screen.getByRole("checkbox", { name: "Save optional birth details" }));
+    await user.click(screen.getByRole("button", { name: "Save Changes" }));
+
+    expect(await screen.findByText("Enter your birth time")).toBeVisible();
+    expect(screen.getByText("Enter your birthplace")).toBeVisible();
+    expect(screen.getByLabelText("Birth time")).toHaveAttribute("aria-invalid", "true");
+    expect(mockUpdateUser).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText("Birth time"), { target: { value: "08:30" } });
+    await user.type(screen.getByLabelText("Birthplace"), "Chicago, US");
+    await user.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({
+      selectedPathway: "energy",
+      pathwayPreferences: expect.objectContaining({ saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, US" }),
+    })));
+  });
+
+  it.each([
+    { status: 400, data: "Provide both birth time and birthplace when choosing to save chart details." },
+    { status: "PARSING_ERROR", originalStatus: 400, data: "Provide both birth time and birthplace when choosing to save chart details." },
+    { status: 400, data: { errors: { BirthTime: ["Provide both birth time and birthplace when choosing to save chart details."] } } },
+  ])("shows the API validation reason for a rejected profile save ($status)", async (error) => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    mockGetCurrentUser.mockReturnValue({ data: { ...baseUser, selectedPathway: "energy" }, isFetching: false });
+    mockUnwrap.mockRejectedValueOnce(error);
+    renderWithProviders(<EditProfileModal open onClose={onClose} />);
+
+    await user.click(await screen.findByRole("button", { name: "Save Changes" }));
+
+    expect(await screen.findByText("Provide both birth time and birthplace when choosing to save chart details.")).toBeVisible();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it.each([

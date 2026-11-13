@@ -26,6 +26,22 @@ interface EditProfileModalProps {
   onClose: () => void;
 }
 
+/** Shows API validation explanations, including text responses RTK Query cannot parse as JSON. */
+function profileSaveError(error: unknown): string {
+  const fallback = "Failed to update profile. Please try again.";
+  if (!error || typeof error !== "object") return fallback;
+  const response = error as { status?: unknown; originalStatus?: unknown; data?: unknown };
+  if (response.status !== 400 && response.originalStatus !== 400) return fallback;
+  if (typeof response.data === "string") return response.data.trim() || fallback;
+  if (!response.data || typeof response.data !== "object") return fallback;
+  const problem = response.data as { errors?: Record<string, unknown>; message?: unknown };
+  if (problem.errors && typeof problem.errors === "object") {
+    const messages = Object.values(problem.errors).flat().filter((message): message is string => typeof message === "string");
+    if (messages.length) return messages.join(" ");
+  }
+  return typeof problem.message === "string" ? problem.message : fallback;
+}
+
 export default function EditProfileModal({
   open,
   onClose,
@@ -151,8 +167,8 @@ export default function EditProfileModal({
       dispatch(setInterfaceModePreview(null));
       showToast("Profile updated!", "success");
       onClose(); // authApi invalidates “User” → refetches me
-    } catch {
-      showToast("Failed to update profile", "error");
+    } catch (error) {
+      showToast(profileSaveError(error), "error");
     }
   };
 

@@ -54,8 +54,17 @@ export const editProfileSchema = yup
       breathingEnabled: yup.boolean().required(),
       faithTradition: yup.string().oneOf(["christian", "muslim", "jewish", "other", "custom", "neutral", ""]).nullable().notRequired(),
       saveBirthDetails: yup.boolean().required(),
-      birthTime: yup.string().max(16).nullable().notRequired(),
-      birthPlace: yup.string().max(160).nullable().notRequired(),
+      // Mirror the API's paired-detail requirement only after explicit save consent.
+      birthTime: yup.string().max(16).nullable().when("saveBirthDetails", {
+        is: true,
+        then: (schema) => schema.trim().required("Enter your birth time"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+      birthPlace: yup.string().max(160, "Birthplace can’t exceed 160 characters").nullable().when("saveBirthDetails", {
+        is: true,
+        then: (schema) => schema.trim().required("Enter your birthplace"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     }).required(),
 
     interfaceMode: yup.mixed<InterfaceModePreference>().oneOf([...interfaceModePreferences]).required().default(DEFAULT_INTERFACE_MODE),
