@@ -760,6 +760,266 @@
       "height": 887,
       "reference": "backgrounds/banner-midnight.png",
       "intended_use": "Dark-mode interface banner; an unchanged copy of the original artwork, independent of recorded aura color."
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-root.svg",
+      "name": "Chakra Root Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Root (Muladhara) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-root.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-sacral.svg",
+      "name": "Chakra Sacral Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Sacral (Svadhisthana) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-sacral.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-solar-plexus.svg",
+      "name": "Chakra Solar Plexus Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Solar Plexus (Manipura) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-solar-plexus.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-heart.svg",
+      "name": "Chakra Heart Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Heart (Anahata) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-heart.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-throat.svg",
+      "name": "Chakra Throat Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Throat (Vishuddha) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-throat.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-third-eye.svg",
+      "name": "Chakra Third Eye Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Third Eye (Ajna) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-third-eye.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-crown.svg",
+      "name": "Chakra Crown Illustration",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Crown (Sahasrara) card artwork on the chakra reference; optional reflective art for Astrology & Energy only.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-crown.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg",
+      "name": "Chakra Body Map",
+      "collection": "chakra-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "reference-diagram",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Human silhouette for the chakra reference page, marking the seven centers.",
+      "png_export": "png/pathways/astrology-energy/chakra-illustrations/chakra-body-map.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-aries.svg",
+      "name": "Zodiac Aries",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Aries (Mar 21 – Apr 19, Fire) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-aries.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-taurus.svg",
+      "name": "Zodiac Taurus",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Taurus (Apr 20 – May 20, Earth) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-taurus.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-gemini.svg",
+      "name": "Zodiac Gemini",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Gemini (May 21 – Jun 20, Air) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-gemini.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-cancer.svg",
+      "name": "Zodiac Cancer",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Cancer (Jun 21 – Jul 22, Water) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-cancer.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-leo.svg",
+      "name": "Zodiac Leo",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Leo (Jul 23 – Aug 22, Fire) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-leo.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-virgo.svg",
+      "name": "Zodiac Virgo",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Virgo (Aug 23 – Sep 22, Earth) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-virgo.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-libra.svg",
+      "name": "Zodiac Libra",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Libra (Sep 23 – Oct 22, Air) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-libra.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-scorpio.svg",
+      "name": "Zodiac Scorpio",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Scorpio (Oct 23 – Nov 21, Water) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-scorpio.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-sagittarius.svg",
+      "name": "Zodiac Sagittarius",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Sagittarius (Nov 22 – Dec 21, Fire) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-sagittarius.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-capricorn.svg",
+      "name": "Zodiac Capricorn",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Capricorn (Dec 22 – Jan 19, Earth) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-capricorn.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-aquarius.svg",
+      "name": "Zodiac Aquarius",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Aquarius (Jan 20 – Feb 18, Air) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-aquarius.png"
+    },
+    {
+      "filename": "pathways/astrology-energy/zodiac-illustrations/zodiac-pisces.svg",
+      "name": "Zodiac Pisces",
+      "collection": "zodiac-illustrations",
+      "pathway_visibility": "astrology-energy",
+      "kind": "optional-illustration",
+      "format": [
+        "SVG",
+        "PNG"
+      ],
+      "intended_use": "Pisces (Feb 19 – Mar 20, Water) sign artwork for daily astrology and profile zodiac content in Astrology & Energy.",
+      "png_export": "png/pathways/astrology-energy/zodiac-illustrations/zodiac-pisces.png"
     }
   ]
 }
