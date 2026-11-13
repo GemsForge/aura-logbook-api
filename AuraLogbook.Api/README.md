@@ -44,6 +44,7 @@ Controllers use the `/api` prefix. Key routes include:
 | Mood | `GET/POST /api/Mood`, `GET/PUT/DELETE /api/Mood/{id}`, `GET /api/Mood/dashboard/summary`, `GET /api/Mood/dashboard/moods-by-date`, `GET /api/Mood/dashboard/mood-breakdown` | Bearer token required. |
 | Mood media | `GET/POST /api/Mood/{id}/attachments`, `GET/DELETE /api/Mood/{id}/attachments/{attachmentId}`, `GET /api/Mood/{id}/attachments/{attachmentId}/content` | Bearer token required; uploads are owner-checked JPEG, PNG, or WebP images. |
 | Insights | `GET /api/insights/zodiac` | Expects a token-derived user ID claim. |
+| Astrology | `GET /api/astrology/birth-chart` | Bearer token required; returns a chart only when Astrology & Energy is active and the user explicitly saved birthday, birth time, and birthplace. Provider credentials remain server-side. |
 | Reflections | `GET /api/reflections/prompts`, `GET/POST /api/reflections/responses`, `GET /api/reflections/responses/{id}` | Bearer token required. Responses are restricted to the authenticated user's mood entries and data. |
 | Reference data | `GET /api/reference-data/auras`, `GET /api/reference-data/chakras`, `GET /api/reference-data/pathways`, `GET /api/reference-data/mood-aura-mappings` | Public read-only reference data used to keep clients aligned. |
 | Weather | `GET /api/Weather/current` | Public; accept `lat` + `lon`, or `city` with optional `state` and `country`. |

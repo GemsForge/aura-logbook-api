@@ -9,6 +9,8 @@ export interface MoodEntry {
   date: string; // ISO string format (e.g., "2025-06-21") for DateOnly
   moods: MoodType[];
   comment?: string;
+  /** Topics the user recorded as impactful context for this entry. */
+  impactTopics?: string[];
   createdAt: string; // ISO timestamp (e.g., "2025-06-21T14:32:00Z")
   /** JSON weather snapshot captured at check-in ({ description, iconCode, temperature, unit }), when available. */
   weatherSnapshot?: string | null;

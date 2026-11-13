@@ -73,6 +73,28 @@ public class UserService : IUserService
         var existingUser = await _userRepo.GetByIdAsync(request.Id);
         if (existingUser is null)
             return (false, "User not found.");
+        // #385: modules are validated against the pathway they will be saved with: the requested one,
+        // or the saved one when this update leaves the pathway unchanged.
+        if (request.PathwayPreferences is not null)
+        {
+            var effectivePathway = string.IsNullOrWhiteSpace(request.SelectedPathway) ? existingUser.SelectedPathway : request.SelectedPathway;
+            var preferenceError = request.PathwayPreferences.Validate(PathwayKeyToEnum(effectivePathway));
+            if (preferenceError is not null) return (false, preferenceError);
+        }
+
+        // Validate optional chart details against the pathway that will remain saved after this update.
+        if (request.PathwayPreferences is not null)
+        {
+            var pathwayKey = string.IsNullOrWhiteSpace(request.SelectedPathway) ? existingUser.SelectedPathway : request.SelectedPathway;
+            var pathway = pathwayKey switch
+            {
+                SpiritualPathwayKeys.Energy => SpiritualPathway.Energy,
+                SpiritualPathwayKeys.Faith => SpiritualPathway.Faith,
+                _ => SpiritualPathway.Mindfulness,
+            };
+            var preferenceError = request.PathwayPreferences.Validate(pathway);
+            if (preferenceError is not null) return (false, preferenceError);
+        }
 
 
         // Apply changes. Birthday is optional (#341); omitting it keeps the saved one.
@@ -108,6 +130,8 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(request.SelectedPathway))
             existingUser.SelectedPathway = request.SelectedPathway;
+        if (request.PathwayPreferences is not null)
+            existingUser.PathwayPreferences = request.PathwayPreferences;
         // Normalize a legacy appearance once; subsequent family changes preserve the current mode.
         existingUser.InterfaceMode = InterfaceModeValues.Resolve(existingUser.InterfaceMode, existingUser.InterfaceTheme);
         existingUser.InterfaceTheme = InterfaceThemeValues.Resolve(existingUser.InterfaceTheme);
@@ -254,6 +278,14 @@ public class UserService : IUserService
         SpiritualPathway.Energy => SpiritualPathwayKeys.Energy,
         SpiritualPathway.Faith => SpiritualPathwayKeys.Faith,
         _ => SpiritualPathwayKeys.Mindfulness,
+    };
+
+    /// <summary>Maps a validated stable pathway key to its internal category for module validation.</summary>
+    private static SpiritualPathway PathwayKeyToEnum(string? pathway) => pathway switch
+    {
+        SpiritualPathwayKeys.Energy => SpiritualPathway.Energy,
+        SpiritualPathwayKeys.Faith => SpiritualPathway.Faith,
+        _ => SpiritualPathway.Mindfulness,
     };
 
     /// <summary>

@@ -14,6 +14,8 @@ using AuraLogbook.Api.Services.Spotify;
 using AuraLogbook.Api.Services.Email;
 using AuraLogbook.Api.Services.PasswordReset;
 using AuraLogbook.Api.Services.Faith;
+using AuraLogbook.Api.Services.Astrology;
+using AuraLogbook.Api.Services.PathwayActivities;
 
 var builder = WebApplication.CreateBuilder(args);
 SQLitePCL.Batteries_V2.Init();
@@ -52,6 +54,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddCors();
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
+builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
+// Prefer the documented deployment secret name while retaining ASP.NET's section-based alias.
+builder.Services.PostConfigure<FreeAstroApiOptions>(options =>
+    options.ApiKey = builder.Configuration["FREE_ASTRO_API_KEY"] ?? options.ApiKey);
+builder.Services.Configure<AstrologyApiOptions>(builder.Configuration.GetSection(AstrologyApiOptions.SectionName));
 builder.Services.AddDataProtection();
 // Bound Spotify calls so a slow provider returns a recoverable error to the card.
 builder.Services.AddHttpClient("Spotify", client => client.Timeout = TimeSpan.FromSeconds(10));
@@ -84,7 +91,9 @@ builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection("Da
 builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddSingleton<JsonUserSeeder>();
+builder.Services.AddSingleton<ReflectionStartupImporter>();
 builder.Services.AddScoped<IReferenceDataValidator, SqliteReferenceDataValidator>();
+builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 
 // Repositories: #353 one relational path for users, moods, and zodiac insights in every environment.
 if (builder.Environment.IsProduction() &&
@@ -97,6 +106,13 @@ builder.Services.AddSingleton<IMoodMediaFileStore, PrivateMoodMediaFileStore>();
 builder.Services.AddScoped<IReflectionRepository, SqliteReflectionRepository>();
 builder.Services.AddScoped<IMoodCombinationRepository, SqliteMoodCombinationRepository>();
 builder.Services.AddScoped<IAuraSeasonRepository, SqliteAuraSeasonRepository>();
+// #389: private, pathway-tagged practice and insight-feedback records.
+builder.Services.AddScoped<IPathwayActivityRepository, SqlitePathwayActivityRepository>();
+builder.Services.AddScoped<IPathwayActivityService, PathwayActivityService>();
+if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
+    builder.Services.AddScoped<IFileZodiacInsightsRepository, SqliteZodiacInsightsRepository>();
+else
+    builder.Services.AddSingleton<IFileZodiacInsightsRepository, FileZodiacInsightsRepository>();
 
 // Services
 builder.Services.AddScoped<JwtTokenService>();
@@ -105,6 +121,7 @@ builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodMediaService, MoodMediaService>();
 builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
 builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
+builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();
 builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 
@@ -125,6 +142,12 @@ builder.Services.AddSingleton<ISacredTextProvider, ApiBibleProvider>();
 builder.Services.AddSingleton<ISacredTextProvider, QuranProvider>();
 builder.Services.AddSingleton<ISacredTextProvider, SefariaProvider>();
 builder.Services.AddSingleton<SacredTextService>();
+// #373: FreeAstroAPI daily sign reading and moon-phase lookups; the key stays server-side and
+// one shared pacer keeps both services within the provider's free-tier request rate.
+builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
+builder.Services.AddSingleton<FreeAstroApiRequestPacer>();
+builder.Services.AddHttpClient<IMoonPhaseMoodInsightsService, FreeAstroMoonPhaseMoodInsightsService>();
+builder.Services.AddHttpClient<IDailyHoroscopeService, FreeAstroDailyHoroscopeService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IPasswordResetTokenRepository, SqlitePasswordResetTokenRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
@@ -140,6 +163,8 @@ app.Logger.LogInformation(
     app.Environment.EnvironmentName,
     app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"));
 app.Services.GetRequiredService<DatabaseMigrator>().ApplyMigrations();
+// #365: curated reflections follow their JSON source on every start, so no manual seed step is needed.
+await app.Services.GetRequiredService<ReflectionStartupImporter>().ImportAsync();
 if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"))
     await app.Services.GetRequiredService<JsonUserSeeder>().SeedUsersAsync();
 app.UseCors(policy =>

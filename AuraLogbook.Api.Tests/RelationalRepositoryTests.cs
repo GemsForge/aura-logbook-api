@@ -285,6 +285,23 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Contains(MoodType.Harmonious, entry.Moods);
     }
 
+    /// <summary>#384: impact topics round-trip through create, update, and read; untouched entries read as empty.</summary>
+    [Fact]
+    public async Task Mood_repository_round_trips_impact_topics()
+    {
+        var repository = new SqliteMoodRepository(_factory);
+        var plainId = await repository.CreateAsync(new MoodEntry { UserId = 7, Date = new DateOnly(2026, 10, 17), Moods = [MoodType.Centered] });
+        var id = await repository.CreateAsync(new MoodEntry { UserId = 7, Date = new DateOnly(2026, 10, 18), Moods = [MoodType.Centered], ImpactTopics = ["Work", "Family"] });
+
+        Assert.Empty((await repository.GetByIdAsync(plainId))!.ImpactTopics);
+        var entry = await repository.GetByIdAsync(id);
+        Assert.Equal(["Work", "Family"], entry!.ImpactTopics);
+
+        entry.ImpactTopics = ["Money"];
+        Assert.True(await repository.UpdateAsync(entry));
+        Assert.Equal(["Money"], (await repository.GetAllByUserAsync(7)).Single(e => e.Id == id).ImpactTopics);
+    }
+
     [Fact]
     public async Task Mood_service_returns_the_created_entry_id_for_private_media_uploads()
     {

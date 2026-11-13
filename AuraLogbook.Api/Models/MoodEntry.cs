@@ -7,6 +7,8 @@ public class MoodEntry
     /// <summary>Gets or sets database-defined mood keys recorded for this entry.</summary>
     public List<string> Moods { get; set; } = new();
     public string? Comment { get; set; }
+    /// <summary>Context topics the user chose as impactful for this entry, without causal interpretation.</summary>
+    public List<string> ImpactTopics { get; set; } = [];
     public string? AuraColor { get; set; }
     public int? AuraIntensity { get; set; }
     public string? ChakraKey { get; set; }

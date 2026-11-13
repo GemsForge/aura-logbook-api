@@ -16,8 +16,17 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
         using var connection = factory.CreateConnection();
         var pathways = (await connection.QueryAsync<ReferenceDataDefinitionDto>(
             "SELECT StableKey AS Key, DisplayName, Description, SortOrder FROM SpiritualPathways WHERE IsActive = 1 ORDER BY SortOrder, StableKey")).ToList();
-        var chakras = (await connection.QueryAsync<ReferenceDataDefinitionDto>(
-            "SELECT ChakraKey AS Key, DisplayName, Description, SortOrder FROM ChakraDefinitions WHERE IsActive = 1 ORDER BY SortOrder, ChakraKey")).ToList();
+        var chakraMoodAssociations = (await connection.QueryAsync<ChakraMoodAssociationRow>(
+            "SELECT association.ChakraKey, association.MoodKey FROM ChakraMoodAssociations association " +
+            "INNER JOIN ChakraDefinitions chakra ON chakra.ChakraKey = association.ChakraKey AND chakra.IsActive = 1 " +
+            "INNER JOIN MoodDefinitions mood ON mood.MoodKey = association.MoodKey AND mood.IsActive = 1 " +
+            "ORDER BY association.ChakraKey, association.MoodKey")).ToList();
+        var chakraMoodKeys = chakraMoodAssociations.GroupBy(row => row.ChakraKey)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<string>)group.Select(row => row.MoodKey).ToList());
+        var chakras = (await connection.QueryAsync<ChakraDefinitionDto>(
+            "SELECT ChakraKey AS Key, DisplayName, Description, SortOrder, SanskritName, BodyLocation, ColorAssociation, ElementAssociation, InterpretiveTheme, ChallengeAssociation, ReflectionPrompt, SymbolAssetKey FROM ChakraDefinitions WHERE IsActive = 1 ORDER BY SortOrder, ChakraKey")).ToList();
+        foreach (var chakra in chakras)
+            chakra.MoodAssociationKeys = chakraMoodKeys.GetValueOrDefault(chakra.Key) ?? Array.Empty<string>();
         var auraRows = (await connection.QueryAsync<AuraColorRow>(
             "SELECT AuraColorKey AS Key, DisplayName, BaseHex, ChakraKey, Description, IsNeutral, SortOrder FROM AuraColorDefinitions WHERE IsActive = 1 ORDER BY SortOrder, AuraColorKey")).ToList();
         var shadeRows = await connection.QueryAsync<ShadeRow>(
@@ -81,11 +90,21 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
             "SELECT AuraColorKey AS Key, DisplayName, BaseHex, ChakraKey, Description, IsNeutral, IsActive FROM AuraColorDefinitions WHERE IsActive = 1 ORDER BY AuraColorKey"));
     }
 
+    /// <summary>Returns active chakra definitions with editable optional mood-reflection associations.</summary>
     [HttpGet("chakras")]
     public async Task<IActionResult> GetChakras()
     {
         using var connection = factory.CreateConnection();
-        return Ok(await connection.QueryAsync("SELECT ChakraKey AS Key, DisplayName, Description FROM ChakraDefinitions ORDER BY ChakraKey"));
+        var chakras = (await connection.QueryAsync<ChakraDefinitionDto>("SELECT ChakraKey AS Key, DisplayName, Description, SortOrder, SanskritName, BodyLocation, ColorAssociation, ElementAssociation, InterpretiveTheme, ChallengeAssociation, ReflectionPrompt, SymbolAssetKey FROM ChakraDefinitions WHERE IsActive = 1 ORDER BY SortOrder, ChakraKey")).ToList();
+        var associations = await connection.QueryAsync<ChakraMoodAssociationRow>(
+            "SELECT association.ChakraKey, association.MoodKey FROM ChakraMoodAssociations association " +
+            "INNER JOIN MoodDefinitions mood ON mood.MoodKey = association.MoodKey AND mood.IsActive = 1 " +
+            "ORDER BY association.ChakraKey, association.MoodKey");
+        var keysByChakra = associations.GroupBy(row => row.ChakraKey)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<string>)group.Select(row => row.MoodKey).ToList());
+        foreach (var chakra in chakras)
+            chakra.MoodAssociationKeys = keysByChakra.GetValueOrDefault(chakra.Key) ?? Array.Empty<string>();
+        return Ok(chakras);
     }
 
     [HttpGet("pathways")]
@@ -134,5 +153,11 @@ public sealed class ReferenceDataController(IDbConnectionFactory factory) : Cont
     {
         public string MoodKey { get; set; } = string.Empty;
         public string AuraColorKey { get; set; } = string.Empty;
+    }
+
+    private sealed class ChakraMoodAssociationRow
+    {
+        public string ChakraKey { get; set; } = string.Empty;
+        public string MoodKey { get; set; } = string.Empty;
     }
 }

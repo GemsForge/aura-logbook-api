@@ -13,6 +13,13 @@ namespace AuraLogbook.Api.Services;
 /// </summary>
 public class MoodService : IMoodService
 {
+    /// <summary>Shared optional context choices for universal mood logging.</summary>
+    public static readonly IReadOnlySet<string> AllowedImpactTopics = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Health", "Fitness", "Self-care", "Hobbies", "Identity", "Spirituality", "Community", "Family", "Friends",
+        "Partner", "Dating", "Task", "Work", "Education", "Travel", "Weather", "Current Events", "Money"
+    };
+
     private readonly IFileMoodRepository _moodRepo;
     private readonly IReferenceDataValidator _referenceData;
     private readonly ISpotifyService? _spotify;
@@ -61,6 +68,8 @@ public class MoodService : IMoodService
     /// </summary>
     public async Task<(bool Success, string Message, int EntryId)> CreateMoodAsync(int userId, MoodEntryRequest dto)
     {
+        var impactError = ValidateImpactTopics(dto.ImpactTopics);
+        if (impactError is not null) return (false, impactError, 0);
         if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
             return (false, "Select one or more active moods.", 0);
         var moodEntry = new MoodEntry
@@ -69,6 +78,7 @@ public class MoodService : IMoodService
             Date = dto.Date,
             Moods = dto.Moods,
             Comment = dto.Comment,
+            ImpactTopics = dto.ImpactTopics ?? [],
             WeatherSnapshot = dto.Weather is null ? null : JsonSerializer.Serialize(new { description = dto.Weather.Description, iconCode = dto.Weather.IconCode, temperature = dto.Weather.Temperature, unit = dto.Weather.Unit }),
             MusicTrack = await CaptureMusicAsync(userId),
             CreatedAt = DateTime.UtcNow
@@ -95,6 +105,8 @@ public class MoodService : IMoodService
     /// </summary>
     public async Task<(bool Success, string Message)> UpdateMoodAsync(int userId, int moodId, MoodEntryRequest dto)
     {
+        var impactError = ValidateImpactTopics(dto.ImpactTopics);
+        if (impactError is not null) return (false, impactError);
         if (!await _referenceData.AreActiveMoodsAsync(dto.Moods))
             return (false, "Select one or more active moods.");
         var existing = await _moodRepo.GetByIdAsync(moodId);
@@ -104,9 +116,22 @@ public class MoodService : IMoodService
         existing.Date = dto.Date;
         existing.Moods = dto.Moods;
         existing.Comment = dto.Comment;
+        if (dto.ImpactTopics is not null)
+            existing.ImpactTopics = dto.ImpactTopics;
 
         var result = await _moodRepo.UpdateAsync(existing);
         return result ? (true, "Mood entry updated.") : (false, "Failed to update mood.");
+    }
+
+    /// <summary>Rejects unrecognized or repeated context labels while allowing an empty selection.</summary>
+    private static string? ValidateImpactTopics(List<string>? topics)
+    {
+        if (topics is null) return null;
+        if (topics.Count > AllowedImpactTopics.Count || topics.Any(topic => !AllowedImpactTopics.Contains(topic)))
+            return "Choose supported impact topics.";
+        return topics.Distinct(StringComparer.Ordinal).Count() == topics.Count
+            ? null
+            : "Each impact topic can be selected only once.";
     }
 
     /// <summary>

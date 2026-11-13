@@ -43,7 +43,7 @@ interface EditProfileFormProps {
 
 /** Maps each validated field to the section that renders it, for revealing errors on submit. */
 const fieldSection: Partial<Record<keyof EditProfileFormData, string>> = {
-  displayName: "profile", birthday: "profile", spiritualPathway: "profile", motto: "profile",
+  displayName: "profile", birthday: "profile", motto: "profile", spiritualPathway: "my-pathway", pathwayPreferences: "my-pathway",
   interfaceTheme: "appearance", interfaceMode: "appearance",
   auraRevealsEnabled: "aura",
   weatherLocationMode: "weather", weatherCity: "weather", weatherRegion: "weather", weatherCountry: "weather", temperatureUnit: "weather",
@@ -101,10 +101,14 @@ export function EditProfileForm({
               />
             )}
           />
-          <MyPathwaySelector control={control} errorMessage={errors.spiritualPathway?.message} />
           <MottoField control={control} name="motto" />
         </>
       ),
+    },
+    {
+      id: "my-pathway",
+      title: "My Pathway",
+      content: <MyPathwaySelector control={control} setValue={setValue} errorMessage={errors.spiritualPathway?.message} />,
     },
     {
       id: "appearance",
@@ -213,7 +217,7 @@ export function EditProfileForm({
       </Box>
 
       <Box sx={{ flex: 1, minWidth: 0, px: { xs: 0, md: 1 } }}>
-        <ProfileSections sections={sections} defaultExpanded={["profile", "appearance"]} reveal={reveal} />
+      <ProfileSections sections={sections} defaultExpanded={["profile"]} reveal={reveal} />
       </Box>
 
       {/* Sticky so Save stays reachable without scrolling to the end of a long form. */}

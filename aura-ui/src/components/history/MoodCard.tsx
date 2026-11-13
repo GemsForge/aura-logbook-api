@@ -42,6 +42,10 @@ export function MoodCard({
       <Box role="group" aria-label={`${entry.moods.length === 1 ? "Mood" : "Moods"} for this entry`} sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .5 }}>
         {[...entry.moods].sort((left, right) => left.localeCompare(right)).map((mood) => <MoodTag key={mood} mood={mood} />)}
       </Box>
+      {/* #384: the user's own impact topics, shown as plain context next to the moods. */}
+      {entry.impactTopics && entry.impactTopics.length > 0 && <Box role="group" aria-label="Impact topics" sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .75 }}>
+        {entry.impactTopics.map((topic) => <Typography key={topic} level="body-xs" sx={{ px: .75, py: .25, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>{topic}</Typography>)}
+      </Box>}
       {/* The writing opens the full reading view; long reflections are clamped here as a preview. The link's name is the text itself (WCAG 1.3.1/2.4.4), not a replacement label. */}
       <Box component={RouterLink} to={`/history/${entry.id}`}
         sx={{ display: "block", color: "inherit", textDecoration: "none", borderRadius: "sm", "&:hover": { textDecoration: "underline", textDecorationColor: "var(--aura-line)" }, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>

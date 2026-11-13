@@ -95,4 +95,58 @@ public class MoodServiceTests
         Assert.Equal("Updated", existing.Comment);
         repo.Verify(r => r.UpdateAsync(existing), Times.Once);
     }
+
+    private static (MoodService Service, Mock<IFileMoodRepository> Repo) ImpactService()
+    {
+        var repo = new Mock<IFileMoodRepository>();
+        repo.Setup(r => r.CreateAsync(It.IsAny<MoodEntry>())).ReturnsAsync(1);
+        var validator = new Mock<IReferenceDataValidator>();
+        validator.Setup(v => v.AreActiveMoodsAsync(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
+        return (new MoodService(repo.Object, validator.Object, Mock.Of<ISpotifyService>()), repo);
+    }
+
+    /// <summary>#384: any combination of the shared topics is saved; none is also valid.</summary>
+    [Theory]
+    [InlineData]
+    [InlineData("Work")]
+    [InlineData("Health", "Spirituality", "Current Events", "Money")]
+    public async Task CreateMoodAsync_saves_supported_impact_topics(params string[] topics)
+    {
+        var (service, repo) = ImpactService();
+
+        var result = await service.CreateMoodAsync(7, new MoodEntryRequest { Date = new DateOnly(2026, 1, 2), Moods = ["Centered"], ImpactTopics = [.. topics] });
+
+        Assert.True(result.Success);
+        repo.Verify(r => r.CreateAsync(It.Is<MoodEntry>(e => e.ImpactTopics.SequenceEqual(topics))), Times.Once);
+    }
+
+    /// <summary>#384: unknown or repeated topics are rejected before anything is written.</summary>
+    [Theory]
+    [InlineData("Astrology")]
+    [InlineData("work")]
+    [InlineData("Work", "Work")]
+    public async Task CreateMoodAsync_rejects_unknown_or_repeated_impact_topics(params string[] topics)
+    {
+        var (service, repo) = ImpactService();
+
+        var result = await service.CreateMoodAsync(7, new MoodEntryRequest { Date = new DateOnly(2026, 1, 2), Moods = ["Centered"], ImpactTopics = [.. topics] });
+
+        Assert.False(result.Success);
+        repo.Verify(r => r.CreateAsync(It.IsAny<MoodEntry>()), Times.Never);
+    }
+
+    /// <summary>#384: an update that omits topics keeps the saved ones instead of clearing them.</summary>
+    [Fact]
+    public async Task UpdateMoodAsync_keeps_existing_topics_when_request_omits_them()
+    {
+        var (service, repo) = ImpactService();
+        var existing = new MoodEntry { Id = 3, UserId = 7, Date = new DateOnly(2026, 1, 1), Moods = ["Centered"], ImpactTopics = ["Work"] };
+        repo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(existing);
+        repo.Setup(r => r.UpdateAsync(existing)).ReturnsAsync(true);
+
+        var result = await service.UpdateMoodAsync(7, 3, new MoodEntryRequest { Date = new DateOnly(2026, 1, 1), Moods = ["Centered"] });
+
+        Assert.True(result.Success);
+        Assert.Equal(["Work"], existing.ImpactTopics);
+    }
 }

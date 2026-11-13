@@ -36,7 +36,7 @@ api.interceptors.request.use(
 // Response interceptor: handle auth errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const status = error?.response?.status;
     if (shouldClearAuthenticationState(status, error?.config?.url)) {
       attachedStore?.dispatch(logout());
