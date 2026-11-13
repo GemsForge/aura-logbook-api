@@ -90,6 +90,32 @@ hosting platform's secret store. Development ignores SMTP settings and logs
 mail instead. See [Runtime environments](runtime-environments.md#password-recovery)
 for how recovery is enabled per environment.
 
+## Sacred-text providers (#392)
+
+The Faith & Religion pathway shows a neutral Word of the Day with no provider or key. A sacred-text
+passage is returned only for the one framework the client requests (`GET /api/faith/passage?framework=christian|muslim|jewish`);
+any other value returns `204 No Content`.
+
+| Framework | Default source | Translation and license | Key needed |
+|---|---|---|---|
+| `christian` | bible-api.com | World English Bible, public domain | No |
+| `muslim` | Quran.com API (Quran Foundation) | Saheeh International | No |
+| `jewish` | Sefaria | JPS 1917 (*The Holy Scriptures: A New Translation*), public domain | No |
+
+Christian and Jewish passages default to public-domain translations, so no non-commercial or
+display license applies. To use a different licensed Bible translation instead, set both:
+
+```bash
+SacredText__ApiBibleKey=your-api-bible-key
+SacredText__ApiBibleBibleId=id-of-a-translation-licensed-for-display
+```
+
+The Sefaria version is pinned with `SacredText__SefariaVersion`. Daily references are Tanakh
+verses because JPS 1917 covers the Tanakh. Keys stay server-side. Each day's passage is cached
+(`SacredText__CacheDuration`, default 6 hours) to respect provider rate limits. The attribution
+returned by the API must be shown with the text. Review the Saheeh International translation's
+terms before production use.
+
 ## What not to commit
 
 Do not commit:
