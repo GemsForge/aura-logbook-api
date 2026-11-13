@@ -3,6 +3,7 @@ import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
+import Link from "@mui/joy/Link";
 import Option from "@mui/joy/Option";
 import Select from "@mui/joy/Select";
 import Typography from "@mui/joy/Typography";
@@ -128,6 +129,10 @@ export default function Pathways() {
           <Typography id="dbt-mindfulness-title" component="h3" level="title-md">A DBT mindfulness lens</Typography>
           <Typography level="body-sm" sx={{ mt: .5 }}>Dialectical Behavior Therapy describes three “what” skills—Observe, Describe, Participate—and three “how” skills—Nonjudgmentally, One-Mindfully, Effectively. Wise Mind is a DBT concept that makes room for emotion and reason.</Typography>
           <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>These are plain-language summaries of DBT terms, offered for learning rather than treatment.</Typography>
+          <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>
+            Further reading: <Link href="https://www.nccih.nih.gov/health/meditation-and-mindfulness-effectiveness-and-safety" target="_blank" rel="noreferrer">NCCIH mindfulness overview</Link>
+            {" · "}<Link href="https://www.guilford.com/books/DBT-Skills-Training-Manual/Marsha-Linehan/9781462556359" target="_blank" rel="noreferrer">Linehan’s DBT Skills Training Manual</Link>
+          </Typography>
         </Box>
         <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>An educational overview, not therapy.</Typography>
         <InsightFeedback pathway="mindfulness" moduleKey="mindfulness-guide" insightType="mindfulness-concept" hideContentWhenNotForMe>

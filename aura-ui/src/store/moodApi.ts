@@ -8,7 +8,6 @@ import type {
   MoodFrequencyResponse,
 } from "@/features/mood/models/schema"; // adjust paths as needed
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "./store";
 import { logout } from "./slices/authSlice";
 import { auraApi } from "./auraApi";
 
