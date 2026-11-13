@@ -193,6 +193,11 @@ export function getAuraJoyTheme(
       solidActiveBg: darken(tokens.primary, 0.16),
       softBg: tokens.surfaceRaised,
       softColor: tokens.ink,
+      // Selected faith actions use primary soft controls; interaction colors must stay paired.
+      softHoverBg: tokens.border,
+      softActiveBg: tokens.border,
+      softHoverColor: tokens.ink,
+      softActiveColor: tokens.ink,
       outlinedColor: tokens.primary,
       outlinedBorder: tokens.primary,
       // Joy's default hover fill is a mid purple that drops primary text to ~2.4:1. Hover on the
@@ -230,6 +235,14 @@ export function getAuraJoyTheme(
       softHoverBg: tokens.border,
       softActiveBg: tokens.border,
       softColor: tokens.ink,
+      // Joy supplies separate interaction text defaults; keep selected module controls readable
+      // while hovered or pressed in every saved interface scheme.
+      softHoverColor: tokens.ink,
+      softActiveColor: tokens.ink,
+      plainHoverColor: tokens.ink,
+      plainActiveColor: tokens.ink,
+      plainHoverBg: tokens.surfaceRaised,
+      plainActiveBg: tokens.surfaceRaised,
       solidColor: tokens.ink,
       solidBg: tokens.surfaceRaised,
     },

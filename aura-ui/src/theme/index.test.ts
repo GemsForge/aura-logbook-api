@@ -27,6 +27,20 @@ describe("interface theme adapters", () => {
       .not.toBe(JSON.stringify(blue.components?.MuiCssBaseline?.styleOverrides));
   });
 
+  it.each(interfaceThemes)("keeps %s module selection text readable through interaction states", (name) => {
+    for (const mode of ["light", "dark"] as const) {
+      const tokens = getInterfaceThemeTokens(name, mode);
+      const themePalette = getAuraJoyTheme(name, undefined, undefined, mode).colorSchemes[tokens.mode].palette;
+      const palette = themePalette.neutral;
+      expect(palette).toMatchObject({
+        softHoverColor: tokens.ink, softActiveColor: tokens.ink,
+        plainHoverColor: tokens.ink, plainActiveColor: tokens.ink,
+        plainHoverBg: tokens.surfaceRaised, plainActiveBg: tokens.surfaceRaised,
+      });
+      expect(themePalette.primary).toMatchObject({ softHoverColor: tokens.ink, softActiveColor: tokens.ink });
+    }
+  });
+
   it("defaults missing and unsupported saved preferences to Aurora light", () => {
     expect(getAuraTheme().palette.background.default).toBe(getInterfaceThemeTokens("Aurora", "light").canvas);
     expect(getAuraTheme("blue", 50, "not-a-theme").palette.primary.main)
