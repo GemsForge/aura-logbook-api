@@ -22,3 +22,13 @@ The supplied astrology, chakra and breathing screenshots also guide these layout
 - Daily Astrology: a simple serif page heading; horoscope and chart panels side by side on desktop; a full-width moon-count card and the shared mood invitation underneath. Stack on phones; preserve provider attribution, existing feedback and save behavior.
 - Chakra reference: the existing human silhouette beside seven canonical center buttons; selected definition/themes and a short reference explanation beneath. Ignore duplicate legacy underscore aliases. Keep catalog terms/colors and existing explicit journal-save controls.
 - Breathing: one centered frame with a short heading, animated orb, cadence selector and icon controls. Preserve 4/6 and 3/3 timing, pause/resume/reset, reduced motion and accessible labels.
+
+## Review boundary
+
+An independent reviewer checked the source against this checklist. Their cache-refresh
+finding was corrected for both create and edit flows. A scratch-only calibration at
+`$TMPDIR/aura-layout-check-u7alwfx_/MoodEntryFormFields.tsx` deliberately changed the
+editor height from 140 to 320px; a separate reviewer identified that difference.
+This single-file proof tested editor sizing in source, not rendering or contrast.
+Browser checks separately exercise the real layouts with synthetic account/provider
+responses; private persistence is tested against SQLite.

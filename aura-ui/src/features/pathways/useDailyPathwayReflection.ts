@@ -14,7 +14,7 @@ export type DailyPathwayReflection = Omit<import("@/features/mood/models/schema/
 /** Derives a factual, non-causal invitation only from three distinct recorded days in the local two-week window. */
 export function energyPatternReflection(reference: ReferenceDataConfiguration | undefined, entries: MoodEntry[], date: string): DailyPathwayReflection | undefined {
   const start = dayjs(date).subtract(13, "day").format("YYYY-MM-DD");
-  const candidates = (reference?.chakras ?? []).filter((chakra) => Object.hasOwn(CHAKRA_BODY_MAP_TOP, chakra.key)).map((chakra) => {
+  const candidates = (reference?.chakras ?? []).filter((chakra) => Object.prototype.hasOwnProperty.call(CHAKRA_BODY_MAP_TOP, chakra.key)).map((chakra) => {
     const keys = new Set(chakra.moodAssociationKeys.map((key) => key.toLowerCase()));
     const matches = entries.filter((entry) => entry.date.slice(0, 10) >= start && entry.date.slice(0, 10) <= date && entry.moods.some((mood) => keys.has(mood.toLowerCase())));
     const days = new Set(matches.map((entry) => entry.date.slice(0, 10))).size;

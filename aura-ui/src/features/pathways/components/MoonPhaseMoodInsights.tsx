@@ -5,7 +5,7 @@ import { PathwayReflectionPrompt } from "./PathwayReflectionPrompt";
 import { getMoonPhaseMoodInsights, type MoonPhaseMoodInsights as MoonInsights } from "../astrologyApi";
 
 /**
- * Shows descriptive co-occurrence counts for a recent local-date window.
+ * Arranges descriptive lunar co-occurrence counts as compact cards for the recent local-date window.
  * This view presents no causal claim about lunar phases and moods.
  */
 export function MoonPhaseMoodInsights() {
@@ -27,15 +27,16 @@ export function MoonPhaseMoodInsights() {
     return () => { active = false; };
   }, [startDate, endDate]);
 
-  return <Box component="section" sx={{ mt: 1.5, pt: 1.5, borderTop: "1px solid var(--al-theme-border)" }}>
+  return <Box component="section" sx={{ minWidth: 0 }}>
     <Typography level="title-sm">Moods across moon phases</Typography>
     <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>Your entries by phase · last 30 days</Typography>
     {loading ? <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}><CircularProgress size="sm" /><Typography level="body-xs">Loading phase counts…</Typography></Box>
       : error ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Moon phase counts are unavailable right now.</Typography>
         : data?.moodEntryCount === 0 ? <Typography level="body-sm" sx={{ mt: 1 }}>Log a mood to begin noticing patterns.</Typography>
           : data && data.phases.length > 0 ? <>
-            <Box component="ul" aria-label="Mood entry counts by moon phase" sx={{ listStyle: "none", p: 0, m: "8px 0 0", display: "grid", gap: .5 }}>
-              {data.phases.map((item) => <Box component="li" key={item.phase} sx={{ display: "grid", gridTemplateColumns: "minmax(110px, 1fr) auto", gap: 1, alignItems: "baseline", py: .5, borderBottom: "1px solid var(--al-theme-border)" }}>
+            <Box component="ul" aria-label="Mood entry counts by moon phase" sx={{ listStyle: "none", p: 0, m: "8px 0 0", display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }, gap: 1 }}>
+              {data.phases.map((item) => <Box component="li" key={item.phase} sx={{ minWidth: 0, textAlign: "center", p: 1.5, bgcolor: "var(--al-theme-surface)", borderRadius: "sm" }}>
+                <Typography aria-hidden="true" sx={{ fontSize: "1.5rem", mb: .5 }}>{item.phase.toLowerCase().includes("full") ? "●" : item.phase.toLowerCase().includes("new") ? "○" : item.phase.toLowerCase().includes("wan") || item.phase.toLowerCase().includes("last") ? "◑" : "◐"}</Typography>
                 <Typography level="body-sm">{item.phase}</Typography>
                 <Typography level="body-xs" color="neutral">{item.entryCount} {item.entryCount === 1 ? "entry" : "entries"}</Typography>
                 <Typography level="body-xs" color="neutral" sx={{ gridColumn: "1 / -1" }}>{Object.entries(item.moodCounts).slice(0, 4).map(([key, count]) => `${formatMood(key)} ${count}`).join(" · ")}</Typography>

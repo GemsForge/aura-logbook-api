@@ -16,6 +16,10 @@ an old reading again or treating an interpretation as a diagnosis.
 
 ## Current implementation and gap
 
+- `MoodEntries.PathwayReflection` now stores the exact optional invitation and
+  deliberate three-choice response with the mood. It inherits mood ownership and
+  deletion, restores on edit, and is absent when unanswered. This client-supplied
+  snapshot is not an immutable provider reading or server-verified inference.
 - `PathwayActivities` already stores private practice records, faith practice
   preferences, written reflections, and optional insight feedback.
 - Written pathway reflections retain an insight type, prompt, and response.

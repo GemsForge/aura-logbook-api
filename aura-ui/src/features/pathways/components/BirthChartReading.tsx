@@ -7,7 +7,7 @@ import { PathwayReflectionPrompt } from "@/features/pathways/components/PathwayR
 
 const chartPoints = new Set(["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "ascendant", "north node", "true node"]);
 
-/** Shows recognized provider placements only when the user explicitly saved their chart details. */
+/** Shows recognized placements as readable rows in the chart panel after explicit birth-detail saving. */
 export function BirthChartReading({ enabled }: { enabled: boolean }) {
   const [chart, setChart] = useState<NatalChart | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,17 +33,17 @@ export function BirthChartReading({ enabled }: { enabled: boolean }) {
   if (!enabled) return null;
   const placements = chart ? readPlacements(chart.chart) : [];
 
-  return <Box component="section" aria-labelledby="birth-chart-title" sx={{ mt: 1.5, pt: 1.25, borderTop: "1px solid var(--al-theme-border)" }}>
+  return <Box component="section" aria-labelledby="birth-chart-title" sx={{ minWidth: 0 }}>
     <Typography id="birth-chart-title" level="title-sm">Birth chart</Typography>
     {loading ? <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>Calculating your chart…</Typography>
       : unavailable ? <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>Your chart is unavailable right now. Try again later.</Typography>
         : placements.length === 0 ? <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>No chart placements are available to display.</Typography>
           : <>
-            <Box component="dl" sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(3, minmax(0, 1fr))" }, gap: 1, m: 0, mt: .75 }}>
-              {placements.map((placement) => <Box component="div" key={placement.name} sx={{ py: .5 }}>
+            <Box component="dl" sx={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 0, m: 0, mt: .75 }}>
+              {placements.map((placement) => <Box component="div" key={placement.name} sx={{ py: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.5fr)", gap: 1, borderBottom: "1px solid var(--al-theme-border)" }}>
                 <Typography component="dt" level="body-xs" color="neutral">{placement.name}</Typography>
-                <Typography component="dd" level="title-sm" sx={{ m: 0 }}>{placement.sign}{placement.degree ? ` · ${placement.degree}°` : ""}</Typography>
-                {placement.house && <Typography level="body-xs" color="neutral">House {placement.house}</Typography>}
+                <Typography component="dd" level="title-sm" sx={{ m: 0, textAlign: "right" }}>{placement.sign}{placement.degree ? ` · ${placement.degree}°` : ""}</Typography>
+                {placement.house && <Typography level="body-xs" color="neutral" sx={{ gridColumn: "1 / -1", textAlign: "right" }}>House {placement.house}</Typography>}
               </Box>)}
             </Box>
             <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>{chart?.provider} · A symbolic reference for reflection, not a prediction or diagnosis.</Typography>

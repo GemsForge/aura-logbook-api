@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
-import FormControl from "@mui/joy/FormControl";
-import FormLabel from "@mui/joy/FormLabel";
 import Link from "@mui/joy/Link";
-import Option from "@mui/joy/Option";
-import Select from "@mui/joy/Select";
 import Typography from "@mui/joy/Typography";
 import { useParams } from "react-router-dom";
 import IconButton from "@mui/joy/IconButton";
@@ -25,22 +21,16 @@ import { MoonPhaseMoodInsights } from "@/features/pathways/components/MoonPhaseM
 import { getDailyHoroscope, type DailyHoroscope } from "@/features/pathways/astrologyApi";
 import { BirthChartReading } from "@/features/pathways/components/BirthChartReading";
 import { SacredTextView } from "@/features/pathways/components/SacredTextView";
+import { useDailyPathwayReflection } from "@/features/pathways/useDailyPathwayReflection";
+import { MoodPathwayReflectionPanel } from "@/features/pathways/components/MoodPathwayReflectionPanel";
 import { PathwayReflectionPrompt } from "@/features/pathways/components/PathwayReflectionPrompt";
 
-/** Vertical centers in the seated reference artwork, aligned with its seven embedded markers. */
-const CHAKRA_BODY_MAP_TOP: Record<string, number> = {
-  crown: 17.5,
-  "third-eye": 28,
-  throat: 38.5,
-  heart: 48.5,
-  "solar-plexus": 56.5,
-  sacral: 63.5,
-  root: 70.5,
-};
+import { CHAKRA_BODY_MAP_TOP } from "@/features/pathways/chakraReference";
 
-/** Shows content for the single pathway configured in Profile → My Pathway. */
+/** Arranges enabled modules in the approved editorial layouts, using the selected profile pathway. */
 export default function Pathways() {
   const { moduleKey } = useParams();
+  const dailyReflection = useDailyPathwayReflection();
   const user = useAppSelector(selectCurrentUser);
   const dispatch = useAppDispatch();
   const pathway = pathwayModuleKey(user?.selectedPathway);
@@ -54,7 +44,7 @@ export default function Pathways() {
   const { data: zodiac, isLoading: zodiacLoading } = useGetZodiacInsightQuery(undefined, { skip: !hasZodiac });
   const chakraEnabled = pathway === "energy" && (focus.includes("chakra-reference") || focus.includes("chakras"));
   const { data: referenceData, isLoading: chakraLoading, isError: chakraError } = useGetReferenceDataQuery(undefined, { skip: !chakraEnabled });
-  const chakras = useMemo(() => referenceData?.chakras ?? [], [referenceData?.chakras]);
+  const chakras = useMemo(() => referenceData?.chakras.filter((chakra) => Object.prototype.hasOwnProperty.call(CHAKRA_BODY_MAP_TOP, chakra.key)) ?? [], [referenceData?.chakras]);
   const chakraMoodPeriod = getRecentLocalDateRange(14);
   const { data: moodData } = useGetAllMoodsQuery(chakraMoodPeriod, { skip: !chakraEnabled });
   // moodApi's hook is loosely typed on master; pin the entry shape this view relies on.
@@ -70,7 +60,6 @@ export default function Pathways() {
   const currentChakra = chakras.find((chakra) => chakra.key === selectedChakra) ?? chakras[0];
   const chakraSymbol = currentChakra && referenceData?.graphics.find((graphic) => graphic.key === currentChakra.symbolAssetKey);
   const chakraBodyMap = referenceData?.graphics.find((graphic) => graphic.key === "chakra-body-map");
-  const selectedChakraColor = currentChakra && referenceData?.auras.find((aura) => aura.chakraKey === currentChakra.key);
   const faithTradition = preferences?.faithTradition ?? null;
   const faithResource = FAITH_RESOURCES.find((resource) => resource.key === faithTradition);
   const activeModule = pathway && moduleKey
@@ -105,8 +94,12 @@ export default function Pathways() {
     : pathway === "energy" ? "Astrology & Energy"
       : pathway === "faith" ? "Faith & Religion" : "Your pathway";
 
-  return <Box className="signed-in-content" sx={{ maxWidth: 960, mx: "auto" }}>
-    <ThemeBanner title={pageTitle} description="Explore the modules you chose. Keep what feels useful; leave the rest." illustration={pathway === "energy" ? "aura" : pathway === "faith" ? "journal" : "insights"} />
+  return <Box className="signed-in-content" sx={{ maxWidth: 1200, mx: "auto" }}>
+    {pathway === "energy" ? <Box component="header" sx={{ mb: 3, py: 1 }}>
+      <Typography level="body-xs" sx={{ letterSpacing: ".1em", textTransform: "uppercase", fontWeight: 600 }}>Astrology & Energy · {moduleKey === "chakra-reference" ? "Wiki reference" : "Daily reflection"}</Typography>
+      <Typography component="h1" level="h1" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontWeight: 500, fontSize: { xs: "2.25rem", md: "3.5rem" }, mt: 1 }}>{moduleKey === "chakra-reference" ? "Chakra & color reference" : "Your sky, your reflection"}</Typography>
+      <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>{moduleKey === "chakra-reference" ? "A seven-center reference for locations, common themes, colors, and reflection." : "Horoscope, birth chart, and moon insights. Decide what feels meaningful."}</Typography>
+    </Box> : <ThemeBanner title={pageTitle} description="Explore the modules you chose. Keep what feels useful; leave the rest." illustration={pathway === "faith" ? "journal" : "insights"} /> }
 
     {invalidModuleRoute && <Box role="status" sx={{ py: 2 }}>
       <Typography level="title-md">This module is turned off.</Typography>
@@ -148,14 +141,16 @@ export default function Pathways() {
 
     {pathway === "energy" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
       {hasZodiac && showModule("daily-astrology") && <Box component="section" id="daily-astrology" aria-labelledby="zodiac-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
-        <Typography id="zodiac-title" component="h2" level="title-lg">Daily astrology</Typography>
+        <Typography id="zodiac-title" component="h2" level="title-lg" sx={{ mb: 2, display: moduleKey ? "none" : "block" }}>Daily astrology</Typography>
+        <Box data-testid="astrology-reading-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.2fr) minmax(0, 1fr)" }, gap: 3 }}>
+        <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         {!user?.birthday ? <Typography level="body-sm" sx={{ mt: 1 }}>Share a birthday in Profile settings for a sun-sign reflection. It’s optional. <Button size="sm" variant="plain" onClick={() => dispatch(openProfileModal())}>Profile settings</Button></Typography>
           : zodiacLoading ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Loading your sign…</Typography>
             : zodiac ? <><Typography level="title-md" sx={{ mt: 1, textTransform: "capitalize" }}>{zodiac.sign} · {zodiac.element}</Typography>
               {horoscopeLoading ? <Typography role="status" level="body-sm" sx={{ mt: .75 }}>Loading today’s reading…</Typography>
                 : dailyHoroscope ? <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="horoscope" hideContentWhenNotForMe>
                   <>
-                    <Typography level="body-md" sx={{ mt: .75 }}>{dailyHoroscope.text}</Typography>
+                    <Typography component="blockquote" sx={{ m: 0, mt: 1, fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.6rem", lineHeight: 1.5 }}>{dailyHoroscope.text}</Typography>
                     <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>Daily horoscope · {dailyHoroscope.provider} · {dailyHoroscope.date}</Typography>
                     <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>A reflective lens, not a prediction or explanation of your mood.</Typography>
                     <PathwayReflectionPrompt pathway="energy" moduleKey="daily-astrology" insightType="horoscope" prompt="What, if anything, would you like to carry into today?" />
@@ -163,38 +158,51 @@ export default function Pathways() {
                 </InsightFeedback>
                   : horoscopeUnavailable ? <Typography role="status" level="body-sm" sx={{ mt: .75 }}>Today’s reading is unavailable right now.</Typography> : null}</>
               : <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Your sign reflection is unavailable right now.</Typography>}
+        </Box>
+        <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
         {preferences?.saveBirthDetails && preferences.birthTime && preferences.birthPlace
           ? <BirthChartReading enabled={Boolean(user?.birthday)} />
           : <MiniFeature title="Birth chart" text="Save birth time and place in Profile for an optional chart." />}
-        <MoonPhaseMoodInsights />
+        <Button size="sm" variant="plain" sx={{ mt: 1, px: 1, py: .25 }} onClick={() => dispatch(openProfileModal())}>Birth details settings</Button>
+        </Box>
+        </Box>
+        <Box sx={{ p: 2.5, mt: 2, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}><MoonPhaseMoodInsights /></Box>
+        <Box sx={{ mt: 3 }}><MoodPathwayReflectionPanel reflection={dailyReflection.reflection} loading={dailyReflection.loading} /><Link href="/log-mood" sx={{ display: "inline-block", mt: 1 }}>Add this reflection to a mood check-in</Link></Box>
       </Box>}
       {(focus.includes("chakra-reference") || focus.includes("chakras")) && showModule("chakra-reference") ? <Box component="section" id="chakra-reference" aria-labelledby="chakra-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
-        <Typography id="chakra-title" component="h2" level="title-lg">Chakra & color reference</Typography>
-        <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>A commonly used seven-center map. Names, locations, and color pairings vary across traditions and modern sources.</Typography>
+        <Typography id="chakra-title" component="h2" level="title-lg" sx={{ display: moduleKey ? "none" : "block" }}>Chakra & color reference</Typography>
+
         {chakraLoading ? <Typography role="status" level="body-sm" sx={{ mt: 1.5 }}>Loading chakra reference…</Typography>
           : chakraError ? <Typography role="status" level="body-sm" sx={{ mt: 1.5 }}>Chakra reference is unavailable right now.</Typography>
             : currentChakra ? <>
-              <FormControl sx={{ mt: 1.5, maxWidth: 320 }}><FormLabel>Explore a center</FormLabel><Select value={currentChakra.key} onChange={(_, value) => value !== null && setSelectedChakra(value)}>
-                {chakras.map((chakra) => <Option key={chakra.key} value={chakra.key}>{chakra.displayName} · {chakra.sanskritName}</Option>)}
-              </Select></FormControl>
-              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "120px 1fr", sm: "160px 1fr" }, alignItems: "start", gap: { xs: 1.5, sm: 2.5 }, mt: 2 }}>
-                <Box role="group" aria-label="Seven chakra centers on a seated human figure" sx={{ position: "relative", width: { xs: 120, sm: 160 }, height: { xs: 150, sm: 200 }, justifySelf: "center" }}>
+              <Box data-testid="chakra-reference-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(220px, .7fr) minmax(0, 1.6fr)" }, alignItems: "center", gap: 2.5, p: 2.5, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+                <Box role="group" aria-label="Seven chakra centers on a seated human figure" sx={{ position: "relative", width: 240, height: 300, justifySelf: "center" }}>
                   <Box component="img" src={chakraBodyMap?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"} alt={chakraBodyMap?.alternativeText ?? "Seated human silhouette with seven colored centers aligned along the spine"} sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
                   {chakras.map((chakra, index) => {
-                    const color = referenceData?.auras.find((aura) => aura.chakraKey === chakra.key)?.baseHex ?? "currentColor";
+                    const color = referenceData?.auras.find((aura) => aura.chakraKey?.replace(/_/g, "-") === chakra.key)?.baseHex ?? "currentColor";
                     const top = CHAKRA_BODY_MAP_TOP[chakra.key] ?? (chakras.length < 2 ? 50 : 8 + (chakras.length - index - 1) * (74 / (chakras.length - 1)));
                     return <IconButton key={chakra.key} size="sm" variant="plain" aria-label={`Select ${chakra.displayName} chakra`} aria-pressed={currentChakra.key === chakra.key} onClick={() => setSelectedChakra(chakra.key)} sx={{ position: "absolute", zIndex: 1, left: "50%", top: `${top}%`, transform: "translate(-50%, -50%)", width: 44, height: 44, p: 0, color, borderRadius: "50%", bgcolor: "transparent", "&::after": { content: '""', position: "absolute", width: 14, height: 14, borderRadius: "50%", bgcolor: color, border: "2px solid var(--al-theme-surface)", boxShadow: currentChakra.key === chakra.key ? "0 0 0 3px var(--al-theme-focus)" : "none" }, "&:hover": { bgcolor: "var(--aura-wash)" } }} />;
                   })}
                 </Box>
-                <Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: .75 }}>
-                    {chakraSymbol && <Box component="img" src={chakraSymbol.path} alt={chakraSymbol.alternativeText} sx={{ width: 36, height: 36, objectFit: "contain" }} />}
-                    <Typography level="title-md">{currentChakra.displayName} · {currentChakra.sanskritName}</Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography level="title-md">Seven commonly named centers</Typography>
+                  <Typography level="body-xs" color="neutral" sx={{ mt: .5, mb: 1.5 }}>Select a center to explore its themes.</Typography>
+                  <Box sx={{ display: "grid", gap: .75 }}>
+                    {chakras.map((chakra) => <Button key={chakra.key} variant={currentChakra.key === chakra.key ? "soft" : "plain"} color="neutral" aria-pressed={currentChakra.key === chakra.key} onClick={() => setSelectedChakra(chakra.key)} sx={{ justifyContent: "space-between", textAlign: "left", color: "var(--al-theme-ink)", minHeight: 44, px: 1, py: .5, borderRadius: "sm", borderBottom: "1px solid var(--al-theme-border)", gap: 1 }}>
+                      <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 1 }}><Box component="span" aria-hidden="true" sx={{ width: 8, height: 8, flexShrink: 0, borderRadius: "50%", bgcolor: referenceData?.auras.find((aura) => aura.chakraKey?.replace(/_/g, "-") === chakra.key)?.baseHex ?? "currentColor" }} />{chakra.displayName} · {chakra.sanskritName}</Box>
+                      <Typography component="span" level="body-xs" color="neutral" sx={{ display: { xs: "none", md: "block" } }}>{chakra.bodyLocation}</Typography>
+                    </Button>)}
                   </Box>
-                  <Typography level="body-sm" color="neutral" sx={{ display: "flex", alignItems: "center", gap: .6, mt: .35 }}><Box aria-hidden="true" sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: selectedChakraColor?.baseHex ?? "currentColor" }} />{currentChakra.bodyLocation} · {currentChakra.colorAssociation}{currentChakra.elementAssociation ? ` · ${currentChakra.elementAssociation}` : ""}</Typography>
-                  <Typography level="body-sm" sx={{ mt: .75 }}>{currentChakra.description}</Typography>
                 </Box>
               </Box>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.25fr) minmax(0, 1fr)" }, gap: 3, mt: 2 }}>
+              <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {chakraSymbol && <Box component="img" src={chakraSymbol.path} alt={chakraSymbol.alternativeText} sx={{ width: 36, height: 36, objectFit: "contain" }} />}
+                  <Typography component="h3" level="title-md">{currentChakra.displayName} · {currentChakra.sanskritName}</Typography>
+                </Box>
+                <Typography level="body-sm" sx={{ mt: 1 }}>{currentChakra.description}</Typography>
+                <Typography level="body-xs" color="neutral" sx={{ mt: 1 }}>{currentChakra.bodyLocation} · {currentChakra.colorAssociation}{currentChakra.elementAssociation ? ` · ${currentChakra.elementAssociation}` : ""}</Typography>
               <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" hideContentWhenNotForMe>
                 <>
                   <Typography level="body-sm" sx={{ mt: 1 }}>{currentChakra.interpretiveTheme}. Contemporary psychological pairing: {currentChakra.challengeAssociation}.</Typography>
@@ -202,6 +210,13 @@ export default function Pathways() {
                   <PathwayReflectionPrompt pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" prompt={currentChakra.reflectionPrompt} />
                 </>
               </InsightFeedback>
+              </Box>
+              <Box sx={{ p: 2.5, minWidth: 0, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
+                <Typography component="h3" level="title-md">About this reference</Typography>
+                <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>Common Sanskrit names and body locations meet familiar color associations and a contemporary psychological lens.</Typography>
+                <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>Themes such as grounding and fear or expression and truth offer a way to reflect. You decide whether a connection is useful.</Typography>
+              </Box>
+              </Box>
               {chakraMoodInsight && <Box component="aside" aria-label="Optional mood and chakra reflection" sx={{ mt: 2, pt: 1.25, borderTop: "1px solid var(--al-theme-border)" }}>
                 <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-mood-pattern" hideContentWhenNotForMe>
                 <>
@@ -237,7 +252,7 @@ function GuideItem({ title, text }: { title: string; text: string }) {
 
 /** Small supporting panel for the astrology page's chart and moon insights. */
 function MiniFeature({ title, text }: { title: string; text: string }) {
-  return <Box component="section" sx={{ mt: 1.5, pt: 1.25, borderTop: "1px solid var(--al-theme-border)" }}><Typography level="title-sm">{title}</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{text}</Typography></Box>;
+  return <Box component="section" sx={{ minWidth: 0 }}><Typography level="title-sm">{title}</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{text}</Typography></Box>;
 }
 
 /** Uses local calendar dates so the two-week pattern window matches the user's journal days. */
