@@ -13,6 +13,7 @@ export function MoonPhaseMoodInsights() {
   const [data, setData] = useState<MoonInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const endDate = localDate(new Date());
   const start = new Date();
@@ -28,29 +29,35 @@ export function MoonPhaseMoodInsights() {
       .catch(() => { if (active) setError(true); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, attempt]);
 
   const selected = data?.phases.find((phase) => phase.phase === selectedPhase) ?? data?.phases[0];
   const moods = Object.entries(selected?.moodCounts ?? {}).sort((a, b) => b[1] - a[1]);
   const largestMoodCount = Math.max(1, ...moods.map(([, count]) => count));
 
   return <Box component="section" aria-labelledby="moon-moods-title" sx={{ minWidth: 0 }}>
-    <Typography id="moon-moods-title" component="h2" level="title-lg">Moods across moon phases</Typography>
-    <Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>Your entries by phase · last 30 days</Typography>
+    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5 }}>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography id="moon-moods-title" component="h2" level="title-lg">Moods across moon phases</Typography>
+        <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>Last 30 days. Select a phase to explore.</Typography>
+      </Box>
+      <Box component="img" src="/theme-assets/pathways/astrology-energy/astrology-energy-moon-phases.png" alt="" sx={{ width: { xs: 88, sm: 120 }, maxWidth: "30%", height: 56, objectFit: "contain", flexShrink: 0 }} />
+    </Box>
     {loading ? <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}><CircularProgress size="sm" /><Typography level="body-xs">Loading phase counts…</Typography></Box>
-      : error ? <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Moon phase counts are unavailable right now.</Typography>
-        : data?.moodEntryCount === 0 ? <Typography level="body-sm" sx={{ mt: 1 }}>Log a mood to begin noticing patterns.</Typography>
+      : error ? <Box sx={{ mt: 1 }}><Typography role="status" level="body-sm">Moon phase counts are unavailable right now.</Typography><Button size="sm" variant="plain" onClick={() => setAttempt((value) => value + 1)} sx={{ minHeight: 44 }}>Try again</Button></Box>
+        : data?.moodEntryCount === 0 ? <Box sx={{ mt: 1 }}><Typography level="body-sm">Log a mood to begin noticing patterns.</Typography><Button component="a" href="/log-mood" size="sm" variant="plain" sx={{ minHeight: 44 }}>Log a mood</Button></Box>
           : data && data.phases.length > 0 ? <>
-            <Box component="ul" aria-label="Mood entry counts by moon phase" sx={{ listStyle: "none", p: 0, m: 0, mt: 2, display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" }, gap: 1 }}>
+            {/* Two compact rows keep a selection near its result on phones as well as desktop. */}
+            <Box component="ul" aria-label="Mood entry counts by moon phase" sx={{ listStyle: "none", p: 0, m: 0, mt: 2, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: .5 }}>
               {data.phases.map((item) => <Box component="li" key={item.phase} sx={{ minWidth: 0 }}>
-                <Button variant={selected?.phase === item.phase ? "soft" : "plain"} color="neutral" aria-pressed={selected?.phase === item.phase} onClick={() => setSelectedPhase(item.phase)} sx={{ width: "100%", minHeight: 140, p: 1, display: "flex", flexDirection: "column", gap: .75, borderRadius: "sm", color: "var(--al-theme-ink)", bgcolor: selected?.phase === item.phase ? "var(--al-theme-surface)" : undefined, boxShadow: selected?.phase === item.phase ? "inset 0 -2px 0 var(--al-theme-ink)" : undefined }}>
-                  <MoonPhaseDisc phase={item.phase} />
-                  <Typography component="span" level="title-sm" sx={{ color: "inherit", whiteSpace: "normal", overflowWrap: "anywhere" }}>{item.phase}</Typography>
+                <Button variant={selected?.phase === item.phase ? "soft" : "plain"} color="neutral" aria-pressed={selected?.phase === item.phase} onClick={() => setSelectedPhase(item.phase)} sx={{ width: "100%", minWidth: 0, minHeight: 100, p: .5, display: "flex", flexDirection: "column", gap: .5, borderRadius: "xs", color: "var(--al-theme-ink)", bgcolor: selected?.phase === item.phase ? "var(--al-theme-surface)" : undefined, boxShadow: selected?.phase === item.phase ? "inset 0 -2px 0 var(--al-theme-ink)" : undefined }}>
+                  <MoonPhaseDisc phase={item.phase} size={36} />
+                  <Typography component="span" level="body-xs" sx={{ color: "inherit", whiteSpace: "normal", overflowWrap: "anywhere", textAlign: "center" }}>{item.phase}</Typography>
                   <Typography component="span" level="body-xs" sx={{ color: "inherit" }}>{item.entryCount} {item.entryCount === 1 ? "entry" : "entries"}</Typography>
                 </Button>
               </Box>)}
             </Box>
-            {selected && <Box component="section" aria-labelledby="selected-phase-title" sx={{ mt: 2.5, minWidth: 0 }}>
+            {selected && <Box component="section" aria-labelledby="selected-phase-title" aria-live="polite" aria-atomic="true" sx={{ mt: 2, minWidth: 0 }}>
               <Typography id="selected-phase-title" component="h3" level="title-sm">Recorded with {selected.phase.toLowerCase()}</Typography>
               <Box component="ul" aria-label={`Mood counts during ${selected.phase}`} sx={{ listStyle: "none", p: 0, m: 0, mt: 1, display: "grid", gap: 1 }}>
                 {moods.map(([key, count]) => <Box component="li" key={key} sx={{ minWidth: 0, display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", columnGap: 1, rowGap: .5 }}>
@@ -63,7 +70,7 @@ export function MoonPhaseMoodInsights() {
             </Box>}
             <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="moon-phase" hideContentWhenNotForMe>
               <>
-                <Typography level="body-sm" sx={{ mt: 1.25 }}>Seeing these counts together, does any pattern feel meaningful to you?</Typography>
+                <Typography level="body-sm" sx={{ mt: 1.25 }}>Does this pattern connect with your experience?</Typography>
                 <PathwayReflectionPrompt pathway="energy" moduleKey="daily-astrology" insightType="moon-phase" prompt="What, if anything, do these counts bring up for you?" />
               </>
             </InsightFeedback>
