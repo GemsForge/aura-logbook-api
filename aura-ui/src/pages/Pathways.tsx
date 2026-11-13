@@ -23,6 +23,7 @@ import { FaithPracticeCheckIn } from "@/features/pathways/components/FaithPracti
 import { InsightFeedback } from "@/features/pathways/components/InsightFeedback";
 import { MoonPhaseMoodInsights } from "@/features/pathways/components/MoonPhaseMoodInsights";
 import { getDailyHoroscope, type DailyHoroscope } from "@/features/pathways/astrologyApi";
+import { BirthChartReading } from "@/features/pathways/components/BirthChartReading";
 
 /** Shows content for the single pathway configured in Profile → My Pathway. */
 export default function Pathways() {
@@ -129,7 +130,9 @@ export default function Pathways() {
                   : horoscopeUnavailable ? <Typography role="status" level="body-sm" sx={{ mt: .75 }}>Today’s reading is unavailable right now.</Typography> : null}</>
               : <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Your sign reflection is unavailable right now.</Typography>}
         {zodiac && <InsightFeedback pathway="energy" moduleKey="daily-astrology" insightType="horoscope" />}
-        <MiniFeature title="Birth chart" text={preferences?.saveBirthDetails && preferences.birthTime && preferences.birthPlace ? "Saved birth details are ready for a deeper chart reading." : "Birthday supports a sun-sign reading. Save birth time and birthplace in Profile for a deeper chart."} />
+        {preferences?.saveBirthDetails && preferences.birthTime && preferences.birthPlace
+          ? <BirthChartReading enabled={Boolean(user?.birthday)} />
+          : <MiniFeature title="Birth chart" text="Save birth time and place in Profile for an optional chart." />}
         <MoonPhaseMoodInsights />
       </Box>}
       {(focus.includes("chakra-reference") || focus.includes("chakras")) && showModule("chakra-reference") ? <Box component="section" id="chakra-reference" aria-labelledby="chakra-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>

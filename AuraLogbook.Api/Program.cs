@@ -122,6 +122,7 @@ builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodMediaService, MoodMediaService>();
 builder.Services.AddScoped<IMoodStatsService, MoodStatsService>();
 builder.Services.AddScoped<IInsightTriggerService, InsightTriggerService>();
+builder.Services.AddHttpClient<IBirthChartService, AstrologyApiBirthChartService>();
 builder.Services.AddScoped<ISpotifyConnectionRepository, SqliteSpotifyConnectionRepository>();
 builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 

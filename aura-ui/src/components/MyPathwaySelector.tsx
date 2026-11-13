@@ -82,9 +82,9 @@ function BirthDetailsFields<TForm extends FieldValues & PathwayField>({ control 
       <FormControlLabel control={<Checkbox size="small" checked={save} onChange={(event) => field.onChange({ ...preferences, saveBirthDetails: event.target.checked, birthTime: event.target.checked ? preferences.birthTime : "", birthPlace: event.target.checked ? preferences.birthPlace : "" })} />} label={<Typography variant="body2">Save optional birth details</Typography>} />
       {save && <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1, mt: .5 }}>
         <TextField size="small" label="Birth time" type="time" value={preferences.birthTime ?? ""} onChange={(event) => field.onChange({ ...preferences, birthTime: event.target.value })} InputLabelProps={{ shrink: true }} />
-        <TextField size="small" label="Birthplace" value={preferences.birthPlace ?? ""} onChange={(event) => field.onChange({ ...preferences, birthPlace: event.target.value })} />
+        <TextField size="small" label="Birthplace" placeholder="City, country code" value={preferences.birthPlace ?? ""} onChange={(event) => field.onChange({ ...preferences, birthPlace: event.target.value })} />
       </Box>}
-      <FormHelperText>Birthday alone can provide a sun-sign reading.</FormHelperText>
+      <FormHelperText>City, country code (Chicago, US). Used only for your chart.</FormHelperText>
     </Sheet>;
   }} />;
 }
