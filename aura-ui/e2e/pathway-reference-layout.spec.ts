@@ -55,6 +55,15 @@ for (const width of [320, 768, 1024, 1440]) {
     await centers.getByRole("button", { name: /Throat · Viśuddha/ }).click();
     await expect(page.getByRole("heading", { name: "Throat · Viśuddha" })).toBeVisible();
     await expectReadableSelection(centers.getByRole("button", { name: /Throat · Viśuddha/ }));
+    // Anatomical centers are too close for separate touch hitboxes; named controls must stay usable.
+    const targetHeights = await centers.getByRole("group", { name: "Choose a chakra" }).getByRole("button")
+      .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+    expect(targetHeights.every((height) => height >= 44)).toBe(true);
+    await expect(page.getByRole("textbox", { name: "Your reflection" })).toBeHidden();
+    await centers.getByText("Add a reflection", { exact: true }).click();
+    await expect(page.getByRole("textbox", { name: "Your reflection" })).toBeVisible();
+    expect(await page.getByRole("button", { name: "Save to journal" }).evaluate((button) => button.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+    await centers.getByText("Add a reflection", { exact: true }).click();
     await expect(page.getByRole("img", { name: "Seated human silhouette with seven colored centers aligned along the spine" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
     await page.evaluate(() => window.scrollTo(0, 0));
