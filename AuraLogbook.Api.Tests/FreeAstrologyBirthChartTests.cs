@@ -17,7 +17,7 @@ namespace AuraLogbook.Api.Tests;
 /// <summary>Verifies the selected chart provider, historical time mapping, normalized UI data, and consent gate.</summary>
 public sealed class FreeAstrologyBirthChartTests
 {
-    private const string Geo = """[{"location_name":"New York","complete_name":"New York, New York, United States","country":"United States","administrative_zone_1":"New York","latitude":40.71,"longitude":-74.01,"timezone":"America/New_York","timezone_offset":-5}]""";
+    private const string Geo = """[{"location_name":"New York City","complete_name":"New York City, New York, United States","country":"United States","administrative_zone_1":"New York","latitude":40.71,"longitude":-74.01,"timezone":"America/New_York","timezone_offset":-5},{"location_name":"New York Mills","complete_name":"New York Mills, New York, United States","country":"United States","administrative_zone_1":"New York","latitude":43.1,"longitude":-75.2,"timezone":"America/New_York"}]""";
     private const string Planets = """{"statusCode":200,"output":[{"planet":{"en":"Sun"},"zodiac_sign":{"name":{"en":"Cancer"}},"normDegree":12.5},{"planet":{"en":"Ascendant"},"zodiac_sign":{"name":{"en":"Libra"}},"normDegree":20}]}""";
 
     /// <summary>Uses only synthetic birth details and fake credentials; no external requests are made.</summary>
@@ -41,6 +41,7 @@ public sealed class FreeAstrologyBirthChartTests
         Assert.Same(result, repeat);
         Assert.Equal(2, handler.Calls.Count);
         Assert.Equal("https://json.freeastrologyapi.com/geo-details", handler.Calls[0].Url);
+        Assert.Equal("New York", handler.Calls[0].Body.GetProperty("location").GetString());
         Assert.Equal("https://json.freeastrologyapi.com/western/planets", handler.Calls[1].Url);
         Assert.All(handler.Calls, call => Assert.Equal("test-key", call.Key));
         var sent = handler.Calls[1].Body;

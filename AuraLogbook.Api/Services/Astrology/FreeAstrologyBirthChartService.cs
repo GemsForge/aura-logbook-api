@@ -43,7 +43,10 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
 
         try
         {
-            var geo = await PostAsync("geo-details", new { location = birthPlace.Trim() }, cancellationToken);
+            // The provider searches city names; saved region/country terms disambiguate its results locally.
+            var city = birthPlace.Split(',', 2, StringSplitOptions.TrimEntries)[0];
+            if (city.Length == 0) return null;
+            var geo = await PostAsync("geo-details", new { location = city }, cancellationToken);
             var location = geo is { } places ? ReadLocation(places, birthPlace) : null;
             if (location is null) return null;
 
@@ -132,7 +135,7 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
         if (places.ValueKind != JsonValueKind.Array) return null;
         var parts = birthPlace.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return null;
-        var terms = new List<string[]> { new[] { parts[0] } };
+        var terms = new List<string[]>();
         foreach (var part in parts.Skip(1))
         {
             var aliases = new List<string> { part };
@@ -148,6 +151,9 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
         foreach (var place in places.EnumerateArray())
         {
             if (place.ValueKind != JsonValueKind.Object) continue;
+            // City names must match the city field, not a same-named state in another result.
+            var cityName = ReadString(place, "location_name");
+            if (cityName is null || !NormalizeCity(cityName).Equals(NormalizeCity(parts[0]), StringComparison.OrdinalIgnoreCase)) continue;
             var names = new[] { "location_name", "complete_name", "country", "administrative_zone_1", "administrative_zone_2" }
                 .Select(key => ReadString(place, key)).Where(value => value is not null)
                 .SelectMany(value => value!.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)).ToArray();
@@ -160,6 +166,9 @@ public sealed class FreeAstrologyBirthChartService : IBirthChartService
         var distinct = matches.Distinct().ToArray();
         return distinct.Length == 1 ? distinct[0] : null;
     }
+
+    /// <summary>Accepts the provider's optional English “City” designation without matching other city names.</summary>
+    private static string NormalizeCity(string city) => city.EndsWith(" City", StringComparison.OrdinalIgnoreCase) ? city[..^5] : city;
 
     /// <summary>Reads an English label from the documented localized response objects.</summary>
     private static string? ReadLocalized(JsonElement parent, string key) =>

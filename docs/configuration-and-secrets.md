@@ -88,7 +88,8 @@ from the old provider cannot authenticate to the selected provider.
 The authenticated `GET /api/astrology/birth-chart` route requires Astrology & Energy,
 the Daily Astrology module, a birthday, and birth time and birthplace retained only
 after the explicit “Save birth details” choice. No profile migration is required.
-The server sends the saved place to `POST /geo-details`, requires an unambiguous
+The server searches the saved city name with `POST /geo-details`, filters the
+results against the saved region/country, and requires an unambiguous
 city/region/country match, and resolves the returned IANA time zone against the
 birth date using the host's time-zone rules. Missing or ambiguous locations and
 invalid or repeated local times at DST transitions return unavailable rather than
@@ -112,7 +113,10 @@ November 13, 2026; verify current terms before production use. See the official
 [authentication](https://freeastrologyapi.com/api-reference),
 [geocoding](https://freeastrologyapi.com/api-reference/geo-location/geo-location-api),
 and [planet response](https://freeastrologyapi.com/api-reference/western-astrology/planets).
-Provider-account output still needs live validation after the key is configured.
+A live request with synthetic birth details was verified on November 13, 2026:
+`/geo-details` and `/western/planets` both returned HTTP 200 and the adapter
+normalized 22 placements. This verifies the selected provider and response mapping;
+the signed-in browser flow for a particular saved profile still needs its own check.
 
 The pathway plan and consent flow are maintained in
 [Core user journeys](ux/core-user-journeys.md).
