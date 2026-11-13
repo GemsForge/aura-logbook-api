@@ -6,10 +6,27 @@ using AuraLogbook.Api.Data.Database;
 
 SQLitePCL.Batteries_V2.Init();
 var options = ParseArguments(args);
+// --mode full (default) imports users, moods, zodiac, reference data, and reflections.
+// --mode reflections applies migrations and imports only curated mood-combination reflections,
+// never inserting, updating, or deleting user or mood-entry rows.
+var mode = options.GetValueOrDefault("mode", "full").ToLowerInvariant();
+if (mode is not ("full" or "reflections"))
+{
+    Console.Error.WriteLine($"Unknown --mode '{mode}'. Use 'full' or 'reflections'.");
+    return 2;
+}
 var inputPath = Path.GetFullPath(options.GetValueOrDefault("input", "AuraLogbook.Api/Data/users.json"));
-var databasePath = Path.GetFullPath(options.GetValueOrDefault("database", "AuraLogbook.Api/Data/auralogbook-dev.db"));
+// Without --database, target the file selected by the API's Development connection string so the
+// seeded content is what the running API reads.
+var appSettingsPath = options.GetValueOrDefault("appsettings", "AuraLogbook.Api/appsettings.Development.json");
+var databasePath = options.TryGetValue("database", out var explicitDatabase)
+    ? Path.GetFullPath(explicitDatabase)
+    : SqliteDataSourceResolver.ResolveDatabasePath(appSettingsPath);
+var combinationsPath = Path.GetFullPath(options.GetValueOrDefault("combinations", "aura-ui/data/aura_logbook_mood_combinations.json"));
 
-if (!File.Exists(inputPath)) throw new FileNotFoundException("User JSON source was not found.", inputPath);
+if (mode == "full" && !File.Exists(inputPath)) throw new FileNotFoundException("User JSON source was not found.", inputPath);
+if (!File.Exists(combinationsPath)) throw new FileNotFoundException("Mood-combination JSON source was not found.", combinationsPath);
+Console.WriteLine($"Mode: {mode}. Target database: {databasePath}");
 Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
 await using var connection = new SqliteConnection($"Data Source={databasePath}");
 await connection.OpenAsync();
@@ -45,6 +62,28 @@ foreach (var migrationPath in Directory.EnumerateFiles(migrationDirectory, "*.sq
     record.Parameters.AddWithValue("$name", migrationName);
     record.Parameters.AddWithValue("$appliedAt", DateTime.UtcNow.ToString("O"));
     await record.ExecuteNonQueryAsync();
+}
+
+var reportPath = Path.GetFullPath(options.GetValueOrDefault("report",
+    mode == "reflections" ? "AuraLogbook.Api/Data/reflection-seed-report.json" : "AuraLogbook.Api/Data/seed-reconciliation.json"));
+var jsonReportOptions = new JsonSerializerOptions { WriteIndented = true };
+
+if (mode == "reflections")
+{
+    // Migrations seed SpiritualPathways (006), so the importer's pathway foreign keys are satisfied
+    // without touching Users, MoodEntries, or other legacy data.
+    var reflectionImport = await MoodCombinationImporter.ImportAsync(connection, combinationsPath);
+    await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new
+    {
+        generatedAt = DateTime.UtcNow,
+        mode,
+        database = databasePath,
+        source = combinationsPath,
+        moodCombinations = BuildReflectionReport(reflectionImport),
+    }, jsonReportOptions));
+    WriteReflectionSummary(reflectionImport);
+    Console.WriteLine($"Report: {reportPath}");
+    return reflectionImport.MatchesSource ? 0 : 1;
 }
 
 var json = await File.ReadAllTextAsync(inputPath);
@@ -117,9 +156,7 @@ var moodCount = await SeedMoodsAsync(connection, moodsPath, userIdMap);
 await SeedReferenceDataAsync(connection);
 var zodiacCount = await SeedZodiacAsync(connection, zodiacPath);
 // Import curated mood-combination reflections only after migrations and pathway reference rows exist.
-var combinationsPath = Path.GetFullPath(options.GetValueOrDefault("combinations", "aura-ui/data/aura_logbook_mood_combinations.json"));
 var combinationImport = await MoodCombinationImporter.ImportAsync(connection, combinationsPath);
-var reportPath = Path.GetFullPath(options.GetValueOrDefault("report", "AuraLogbook.Api/Data/seed-reconciliation.json"));
 var report = new
 {
     generatedAt = DateTime.UtcNow,
@@ -129,12 +166,33 @@ var report = new
     storedMoodEntries = await CountAsync(connection, "MoodEntries"),
     storedMoodPairs = await CountAsync(connection, "MoodEntryMoods"),
     storedZodiacSigns = await CountAsync(connection, "ZodiacSigns"),
-    storedInsightTemplates = await CountAsync(connection, "InsightTemplates")
+    storedInsightTemplates = await CountAsync(connection, "InsightTemplates"),
+    moodCombinationReconciliation = BuildReflectionReport(combinationImport)
 };
-await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, jsonReportOptions));
 Console.WriteLine($"Seeded {imported} users, {moodCount} mood entries, {zodiacCount} zodiac signs, and {combinationImport.Interpretations} mood-combination interpretations into {databasePath}.");
+WriteReflectionSummary(combinationImport);
 Console.WriteLine($"Reconciliation report: {reportPath}");
-return 0;
+// A full seed is only successful when the curated reflections match their source exactly.
+return combinationImport.MatchesSource ? 0 : 1;
+
+// Shapes the reflection reconciliation section shared by both modes' JSON reports.
+static object BuildReflectionReport(MoodCombinationImportResult result) => new
+{
+    sourceCombinations = result.Combinations,
+    expectedInterpretations = result.Interpretations,
+    storedInterpretations = result.StoredInterpretations,
+    mismatches = result.Mismatches,
+    status = result.MatchesSource ? "reconciled" : "mismatch",
+};
+
+// Prints a one-line reconciliation status; mismatches go to stderr so scripts can detect failure.
+static void WriteReflectionSummary(MoodCombinationImportResult result)
+{
+    var line = $"Reflections: {result.Combinations} combinations, {result.Interpretations} expected / {result.StoredInterpretations} stored pathway interpretations, {result.Mismatches} mismatches.";
+    if (result.MatchesSource) Console.WriteLine($"{line} Status: reconciled.");
+    else Console.Error.WriteLine($"{line} Status: MISMATCH - the database does not match the selected source.");
+}
 
 static async Task<int> CountAsync(SqliteConnection connection, string table)
 {
@@ -271,11 +329,21 @@ static async Task<int> SeedZodiacAsync(SqliteConnection connection, string path)
     return signs.Count;
 }
 
+// Parses "--name value" pairs. A flag without a value (last argument, or followed by another
+// flag) is rejected rather than ignored, so a dangling "--mode" can never fall back to a full seed.
 static Dictionary<string, string> ParseArguments(string[] args)
 {
     var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    for (var i = 0; i < args.Length - 1; i++)
-        if (args[i].StartsWith("--")) result[args[i][2..]] = args[++i];
+    for (var i = 0; i < args.Length; i++)
+    {
+        if (!args[i].StartsWith("--")) continue;
+        if (i + 1 >= args.Length || args[i + 1].StartsWith("--") || string.IsNullOrWhiteSpace(args[i + 1]))
+        {
+            Console.Error.WriteLine($"Argument {args[i]} requires a value.");
+            Environment.Exit(2);
+        }
+        result[args[i][2..]] = args[++i];
+    }
     return result;
 }
 

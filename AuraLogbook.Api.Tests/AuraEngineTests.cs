@@ -38,18 +38,18 @@ public sealed class AuraEngineTests
         Assert.Contains("1 check-in in the last 30 days, mostly Centered", aura.Contributors);
     }
 
+    /// <summary>#361: the onboarding color moment no longer tints the aura; only check-ins set the hue.</summary>
     [Fact]
-    public void Opposing_hues_cancel_to_low_strength()
+    public void Onboarding_color_does_not_change_a_mood_aura()
     {
+        var plain = AuraEngine.Compute(NewUser(), [Entry(Today, MoodType.Abundant)], Today);
         var user = NewUser();
-        user.OnboardingColorHue = 100;
-        var aura = AuraEngine.Compute(user, [Entry(Today, MoodType.Abundant)], Today); // 85° vs 100° agree
-        var opposed = NewUser();
-        opposed.OnboardingColorHue = 265; // roughly opposite of Gold 85°
-        var cancelled = AuraEngine.Compute(opposed, [Entry(Today, MoodType.Abundant)], Today);
+        user.OnboardingColorHue = 265; // roughly opposite of Gold 85°
+        var withColor = AuraEngine.Compute(user, [Entry(Today, MoodType.Abundant)], Today);
 
-        Assert.True(aura.Strength > 0.8);
-        Assert.True(cancelled.Strength < 0.25);
+        Assert.Equal(plain.Hue, withColor.Hue);
+        Assert.Equal(plain.Strength, withColor.Strength);
+        Assert.True(withColor.Strength > 0.8);
     }
 
     [Fact]
@@ -89,38 +89,32 @@ public sealed class AuraEngineTests
         Assert.Null(aura.Hue);
     }
 
+    /// <summary>#361: pathway choices (zodiac element, church season) no longer add a base layer.</summary>
     [Fact]
-    public void Energy_base_layer_needs_a_birthday()
+    public void Pathway_and_birthday_do_not_tint_an_empty_aura()
     {
-        var withoutBirthday = AuraEngine.Compute(NewUser(SpiritualPathway.Energy), [], Today);
-        var user = NewUser(SpiritualPathway.Energy);
-        user.Birthday = new DateOnly(1994, 9, 12); // Virgo, Earth
-        var withBirthday = AuraEngine.Compute(user, [], Today);
+        var energy = NewUser(SpiritualPathway.Energy);
+        energy.Birthday = new DateOnly(1994, 9, 12); // Virgo, Earth
+        var energyAura = AuraEngine.Compute(energy, [], Today);
+        var faithAura = AuraEngine.Compute(NewUser(SpiritualPathway.Faith), [], new DateOnly(2026, 3, 1)); // Lent 2026
 
-        Assert.Null(withoutBirthday.Hue);
-        Assert.Equal(130, withBirthday.Hue!.Value, 1);
-        Assert.Contains("Your Earth sign", withBirthday.Contributors);
+        Assert.Null(energyAura.Hue);
+        Assert.Empty(energyAura.Contributors);
+        Assert.Null(faithAura.Hue);
+        Assert.Empty(faithAura.Contributors);
     }
 
+    /// <summary>#361: onboarding answers and the color moment are not listed as contributors.</summary>
     [Fact]
-    public void Faith_base_layer_follows_the_church_season()
-    {
-        var aura = AuraEngine.Compute(NewUser(SpiritualPathway.Faith), [], new DateOnly(2026, 3, 1)); // Lent 2026
-
-        Assert.Equal(AuraHueTables.Violet, aura.Hue!.Value, 1);
-        Assert.Contains("The season of Lent", aura.Contributors);
-    }
-
-    [Fact]
-    public void Onboarding_answers_and_color_moment_are_listed_as_contributors()
+    public void Onboarding_answers_and_color_moment_are_not_contributors()
     {
         var user = NewUser();
         user.OnboardingAnswers = [new OnboardingAnswer { QuestionNumber = 1, Pathway = SpiritualPathway.Mindfulness }];
         user.OnboardingColorHue = 210;
         var aura = AuraEngine.Compute(user, [], Today);
 
-        Assert.Equal(["Your onboarding answers", "The color you were drawn to"], aura.Contributors);
-        Assert.InRange(aura.Hue!.Value, 200, 250);
+        Assert.Null(aura.Hue);
+        Assert.Empty(aura.Contributors);
     }
 
     [Theory]

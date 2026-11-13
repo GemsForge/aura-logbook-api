@@ -6,15 +6,13 @@ Aura Logbook can show an optional, pathway-aware reflection when a signed-in use
 
 Curated source records live in `aura-ui/data/aura_logbook_mood_combinations.json`. Each record has a stable ID, two or three distinct mood names, and one non-empty interpretation for each supported pathway. The importer rejects duplicate IDs, duplicate mood sets, unknown moods, and incomplete pathway records. Mood order is normalized when the key is stored. The API composes a non-diagnostic pathway reflection when a valid set has no curated record, so new mood combinations do not display an empty state.
 
-Migration `018_mood_combination_interpretations.sql` creates the lookup table and index. The normal DatabaseSeeder run applies pending migrations and imports the configured combinations source. For a local Development database, from the repository root:
+Migration `018_mood_combination_interpretations.sql` creates the lookup table. API startup applies migrations but does not import reflections. Run the reflection-only seed after a fresh clone or after editing the JSON. It writes to the database selected by the API's Development connection string and never touches users or mood entries. From the repository root:
 
 ```bash
-dotnet run --project Scripts/DatabaseSeeder/DatabaseSeeder.csproj -- \
-  --database AuraLogbook.Api/Data/auralogbook-dev.db \
-  --combinations aura-ui/data/aura_logbook_mood_combinations.json
+dotnet run --project Scripts/DatabaseSeeder/DatabaseSeeder.csproj -- --mode reflections
 ```
 
-The seeder also imports the user, mood, and zodiac JSON sources using its documented defaults. Use a disposable local database when checking import behavior.
+The seeder prints source combination, expected and stored interpretation counts, and a `reconciled`/`MISMATCH` status. It exits with `1` on a mismatch. See the [seeder README](../Scripts/DatabaseSeeder/README.md) for every argument and the full-import mode.
 
 ## API
 
