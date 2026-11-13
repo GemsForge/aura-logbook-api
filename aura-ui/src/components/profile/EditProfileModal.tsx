@@ -1,3 +1,4 @@
+import { resolvePathwayFocus } from "@/features/pathways/pathwayResources";
 import { resolveTemperatureUnit, resolveWeatherLocationMode } from "@/features/weather/weatherLocation";
 import {
   type UpdateUserRequest,
@@ -113,9 +114,7 @@ export default function EditProfileModal({
           ? user.selectedPathway!
           : pathwayOptions[0]?.key ?? "",
         pathwayPreferences: {
-          focus: user.pathwayPreferences?.focus ?? (user.selectedPathway === "energy"
-            ? ["daily-astrology", "chakra-reference"]
-            : user.selectedPathway === "faith" ? ["faith-practice-check-in", "sacred-texts"] : ["mindfulness-guide", "practice-log"]),
+          focus: resolvePathwayFocus(user.selectedPathway, user.pathwayPreferences?.focus),
           breathingEnabled: user.pathwayPreferences?.breathingEnabled !== false,
           faithTradition: user.pathwayPreferences?.faithTradition ?? null,
           saveBirthDetails: user.pathwayPreferences?.saveBirthDetails === true,

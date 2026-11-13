@@ -13,7 +13,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { openProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { PATHWAY_MODULES, pathwayModuleKey } from "@/features/pathways/pathwayResources";
+import { PATHWAY_MODULES, pathwayModuleKey, resolvePathwayFocus } from "@/features/pathways/pathwayResources";
 
 const destinations = [
   { label: "Today", path: "/dashboard", icon: HomeOutlined },
@@ -45,7 +45,7 @@ export default function MobileNavigation() {
   const user = useAppSelector(selectCurrentUser);
   const pathway = pathwayModuleKey(user?.selectedPathway);
   const preferences = user?.pathwayPreferences;
-  const pathwayModules = pathway ? PATHWAY_MODULES[pathway].filter((module) => preferences?.focus.includes(module.key)) : [];
+  const pathwayModules = pathway ? PATHWAY_MODULES[pathway].filter((module) => resolvePathwayFocus(user?.selectedPathway, preferences?.focus).includes(module.key)) : [];
   const showBreathing = preferences?.breathingEnabled !== false;
   const itemStyles = {
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
