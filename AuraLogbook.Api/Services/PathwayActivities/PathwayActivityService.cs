@@ -75,6 +75,7 @@ public sealed class PathwayActivityService : IPathwayActivityService
                 => ValidateFaithCheckIn(request.Content, properties),
             "faith-practice-preferences" when request.Pathway == SpiritualPathwayKeys.Faith && request.ModuleKey == "faith-practice-check-in"
                 => ValidateFaithPracticePreferences(request.Content, properties),
+            "pathway-reflection" => ValidatePathwayReflection(request.Pathway, request.ModuleKey, request.Content, properties),
             "insight-feedback" => ValidateInsightFeedback(request.Pathway, request.Content, properties),
             _ => "Choose a supported pathway activity type."
         };
@@ -126,6 +127,27 @@ public sealed class PathwayActivityService : IPathwayActivityService
                 return "Choose each supported faith practice no more than once.";
         }
 
+        return null;
+    }
+
+    /// <summary>Validates an explicitly saved written response against its pathway insight type.</summary>
+    private static string? ValidatePathwayReflection(string pathway, string moduleKey, JsonElement content, HashSet<string> properties)
+    {
+        var allowedTypes = (pathway, moduleKey) switch
+        {
+            (SpiritualPathwayKeys.Mindfulness, "mindfulness-guide") => new HashSet<string>(StringComparer.Ordinal) { "mindfulness-concept" },
+            (SpiritualPathwayKeys.Energy, "daily-astrology") => new HashSet<string>(StringComparer.Ordinal) { "horoscope", "moon-phase", "birth-chart-placement" },
+            (SpiritualPathwayKeys.Energy, "chakra-reference") => new HashSet<string>(StringComparer.Ordinal) { "chakra-theme", "chakra-mood-pattern" },
+            (SpiritualPathwayKeys.Faith, "sacred-texts") => new HashSet<string>(StringComparer.Ordinal) { "word-of-day" },
+            (SpiritualPathwayKeys.Faith, "faith-practice-check-in") => new HashSet<string>(StringComparer.Ordinal) { "faith-practice" },
+            _ => new HashSet<string>(StringComparer.Ordinal)
+        };
+        if (properties.Count != 3 || !properties.SetEquals(["insightType", "prompt", "responseText"])
+            || !TryString(content, "insightType", 48, required: true, out var insightType)
+            || !allowedTypes.Contains(insightType)
+            || !TryString(content, "prompt", 500, required: true)
+            || !TryString(content, "responseText", 2000, required: true))
+            return "Provide a response to a supported pathway prompt.";
         return null;
     }
 
