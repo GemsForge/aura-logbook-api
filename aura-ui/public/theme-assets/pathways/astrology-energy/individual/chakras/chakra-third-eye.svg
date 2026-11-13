@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320" role="img" aria-labelledby="ch-third-eye-t ch-third-eye-d"><title id="ch-third-eye-t">Third Eye chakra (Ajna), intuition</title><desc id="ch-third-eye-d">Two-ink print of an open eye inside a circle, flanked by two large petals, in #5B4CC4 and plum on lilac paper. Optional reflective symbol, not diagnostic.</desc><defs><clipPath id="ch-third-eye-clip"><circle cx="160" cy="160" r="156"/></clipPath>
-<filter id="ch-third-eye-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="84"/><feColorMatrix type="matrix" values="0 0 0 0 .17 0 0 0 0 .11 0 0 0 0 .29 0 0 0 -1.4 .78"/></filter></defs>
-<g clip-path="url(#ch-third-eye-clip)">
-<g fill="#EADFF2"><circle cx="160" cy="160" r="156"/></g>
-<g style="mix-blend-mode:multiply"><path d="M116 160 C86 80 20 116 24 160 C20 204 86 240 116 160Z" fill="#5B4CC4"/><path transform="matrix(-1 0 0 1 320 0)" d="M116 160 C86 80 20 116 24 160 C20 204 86 240 116 160Z" fill="#5B4CC4"/><circle cx="160" cy="160" r="50" fill="#EADFF2"/></g>
-<g style="mix-blend-mode:multiply" transform="translate(2.4 1.8)"><circle cx="160" cy="160" r="44" fill="none" stroke="#2B1B4A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><path d="M126 160 Q160 130 194 160 Q160 190 126 160Z" fill="none" stroke="#2B1B4A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="160" cy="160" r="11" fill="#2B1B4A"/></g>
-<rect width="320" height="320" filter="url(#ch-third-eye-grain)" opacity=".5"/>
-</g></svg>
