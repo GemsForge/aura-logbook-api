@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
-import dayjs from "dayjs";
 import { renderWithProviders } from "@/test/testUtilities";
 import MoodCalendar from "./MoodCalendar";
 
