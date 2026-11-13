@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import dayjs from "dayjs";
@@ -11,6 +11,11 @@ vi.mock("@/store/referenceDataApi", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/store/referenceDataApi")>();
   return { ...actual, useGetReferenceDataQuery: () => ({ data: testReferenceData, isError: false }) };
 });
+
+vi.mock("@/store/moodApi", async (original) => ({
+  ...(await original<typeof import("@/store/moodApi")>()),
+  useGetAllMoodsQuery: () => ({ data: [], isFetching: false }),
+}));
 
 const moodQueryState = vi.hoisted(() => ({ fetchingReplacement: false }));
 
@@ -40,6 +45,18 @@ vi.mock("@/store/auraApi", () => ({
 }));
 
 describe("MoodEntryFormFields", () => {
+  it("restores the exact saved invitation and includes an edited response with the mood", async () => {
+    const onSubmit = vi.fn();
+    const pathwayReflection = { sourceId: "chakra:root:2026-11-13:3", pathway: "energy" as const, insightType: "chakra-mood-pattern" as const, text: "Would grounding feel meaningful today?", response: "maybe" as const };
+    renderWithProviders(<MoodEntryFormFields entry={{ id: 7, userId: 1, createdAt: "2026-11-13T12:00:00Z", date: "2026-11-13", moods: ["Centered"], pathwayReflection }} onSubmit={onSubmit} />);
+    const panel = within(screen.getByTestId("pathway-reflection-panel"));
+    expect(panel.getByText(pathwayReflection.text)).toBeVisible();
+    expect(panel.getByRole("button", { name: "Maybe" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(panel.getByRole("button", { name: "Not for me" }));
+    fireEvent.click(screen.getByRole("button", { name: "Update Entry" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ pathwayReflection: { ...pathwayReflection, response: "not-for-me" } }), []));
+  });
+
   it("selects a mood and submits the normalized date and trimmed comment", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -49,19 +66,19 @@ describe("MoodEntryFormFields", () => {
     expect(document.getElementById("mood-form")).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Choose one or more moods" })).toBeInTheDocument();
     // Scoped to the mood group: the optional impact-topic checkboxes (#384) live in their own group.
-    expect(within(screen.getByRole("group", { name: "Choose one or more moods" })).getAllByRole("checkbox")).toHaveLength(testReferenceData.moods.length);
-    expect(Array.from(screen.getByRole("group", { name: "Choose one or more moods" }).querySelectorAll("label"))
+    expect(within(screen.getByRole("group", { name: "Choose one or more moods" })).getAllByRole("button")).toHaveLength(testReferenceData.moods.length);
+    expect(Array.from(screen.getByRole("group", { name: "Choose one or more moods" }).querySelectorAll("button"))
       .map((label) => label.textContent?.trim()))
-      .toEqual(testReferenceData.moods.map(({ displayName }) => displayName).sort((left, right) => left.localeCompare(right)));
-    const empoweredChoice = screen.getByRole("checkbox", { name: /empowered/i });
+      .toEqual(["Harmonious", "Abundant", "Centered", "Empowered", "Flowing", "Visionary", "Blocked", "Charged", "Disconnected", "Frustrated", "Heavy", "Neutral", "Restless", "Scattered", "Tense", "Weary"]);
+    const empoweredChoice = screen.getByRole("button", { name: /empowered/i });
     const empoweredImage = document.querySelector('img[src="/mood-icons/empowered.png"]');
     expect(screen.getByText("Empowered")).toBeVisible();
     expect(empoweredImage).toHaveAttribute("alt", "");
-    expect(empoweredImage).toHaveStyle({ width: "28px", height: "28px" });
-    expect(empoweredImage?.parentElement).toHaveAttribute("data-mood-color", "#4caf50");
+    expect(empoweredImage).toHaveStyle({ width: "20px", height: "20px" });
+    expect(empoweredChoice).toHaveAttribute("data-mood-color", "#4caf50");
     expect(screen.queryByLabelText("Date")).not.toBeInTheDocument();
     await user.click(empoweredChoice);
-    expect(empoweredChoice).toBeChecked();
+    expect(empoweredChoice).toHaveAttribute("aria-pressed", "true");
     await user.type(screen.getByRole("textbox", { name: "Reflection" }), "  A good day  ");
     await user.click(screen.getByRole("button", { name: "Submit Entry" }));
 
@@ -82,7 +99,7 @@ describe("MoodEntryFormFields", () => {
     const topics = screen.getByRole("group", { name: "Impact topics" });
     expect(screen.getByText(/biggest impact on you\? \(optional\)/)).toBeInTheDocument();
     expect(topics.querySelectorAll('input[type="checkbox"]')).toHaveLength(18);
-    await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
+    await user.click(screen.getByRole("button", { name: /empowered/i }));
     await user.click(screen.getByRole("checkbox", { name: "Work" }));
     await user.click(screen.getByRole("checkbox", { name: "Family" }));
     await user.click(screen.getByRole("checkbox", { name: "Work" }));
@@ -135,7 +152,7 @@ describe("MoodEntryFormFields", () => {
       onSubmit={vi.fn()}
     />);
 
-    expect(screen.getByRole("checkbox", { name: /centered/i })).toBeChecked();
+    expect(screen.getByRole("button", { name: /centered/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("1 selected")).toBeInTheDocument();
     expect(screen.getByText("Date", { selector: "label" })).toBeInTheDocument();
   });
@@ -159,9 +176,9 @@ describe("MoodEntryFormFields", () => {
       },
     });
 
-    await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
+    await user.click(screen.getByRole("button", { name: /empowered/i }));
     expect(screen.queryByText("Both feelings can share this moment.")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("checkbox", { name: /centered/i }));
+    await user.click(screen.getByRole("button", { name: /centered/i }));
 
     expect(await screen.findByText("Both feelings can share this moment.")).toBeInTheDocument();
   });
@@ -186,12 +203,12 @@ describe("MoodEntryFormFields", () => {
       },
     });
 
-    await user.click(screen.getByRole("checkbox", { name: /empowered/i }));
-    await user.click(screen.getByRole("checkbox", { name: /centered/i }));
+    await user.click(screen.getByRole("button", { name: /empowered/i }));
+    await user.click(screen.getByRole("button", { name: /centered/i }));
     expect(await screen.findByText("Both feelings can share this moment.")).toBeInTheDocument();
 
     moodQueryState.fetchingReplacement = true;
-    await user.click(screen.getByRole("checkbox", { name: /tense/i }));
+    await user.click(screen.getByRole("button", { name: /tense/i }));
 
     expect(screen.getByRole("status")).toHaveTextContent("Finding a reflection for this mood mix");
     expect(screen.queryByText("Both feelings can share this moment.")).not.toBeInTheDocument();

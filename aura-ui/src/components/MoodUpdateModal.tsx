@@ -8,6 +8,9 @@ import type { MoodEntry } from "../features/mood/models/schema";
 import { AuraModal } from "./ui/AuraModal";
 import { MoodApi } from "../api/MoodApi";
 import { MoodMediaApi } from "../api/MoodMediaApi";
+import { useAppDispatch } from "@/store/hooks";
+import { moodApi } from "@/store/moodApi";
+import { auraApi } from "@/store/auraApi";
 
 type PhotoStatus = "pending" | "uploaded" | "failed";
 
@@ -25,6 +28,7 @@ export default function MoodUpdateModal({
   title?: string;
   saveLabel?: string;
 }) {
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const [entrySaved, setEntrySaved] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; role: "alert" | "status" } | null>(null);
@@ -38,6 +42,7 @@ export default function MoodUpdateModal({
     moods: MoodType[];
     impactTopics: string[];
     comment?: string;
+    pathwayReflection?: import("@/features/mood/models/schema/MoodEntry").MoodPathwayReflection;
   }, photos: File[]) => {
     if (updateStarted.current) return;
     updateStarted.current = true;
@@ -51,7 +56,11 @@ export default function MoodUpdateModal({
           moods: data.moods,
           impactTopics: data.impactTopics,
           comment: data.comment ?? "",
+          ...(data.pathwayReflection ? { pathwayReflection: data.pathwayReflection } : {}),
         });
+        // Axios edits must refresh cached pattern days as well as the visible history and aura.
+        dispatch(moodApi.util.invalidateTags(["Moods", "Dashboard"]));
+        dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
         setEntrySaved(true);
       }
 

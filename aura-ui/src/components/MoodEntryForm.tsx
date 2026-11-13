@@ -1,5 +1,4 @@
 import Box from "@mui/joy/Box";
-import Sheet from "@mui/joy/Sheet";
 import { MoodApi } from "../api/MoodApi";
 import type { MoodType } from "../features/mood/models/schema/MoodType";
 import MoodEntryFormFields from "./MoodEntryFormFields";
@@ -7,12 +6,11 @@ import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import dayjs from "dayjs";
-import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { auraApi } from "@/store/auraApi";
-import { ThemeBanner } from "@/components/ui/ThemeBanner";
+import { moodApi } from "@/store/moodApi";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
 import { useCheckInWeather } from "@/hooks/useCheckInWeather";
 
@@ -36,6 +34,7 @@ export default function MoodEntryForm() {
     moods: MoodType[];
     impactTopics: string[];
     comment?: string;
+    pathwayReflection?: import("@/features/mood/models/schema/MoodEntry").MoodPathwayReflection;
   }, photos: File[]) => {
     if (submitInProgress.current) return;
     submitInProgress.current = true;
@@ -51,8 +50,9 @@ export default function MoodEntryForm() {
         setSaveFailed(false);
         setFeedback({ message: "Saving your check-in…", role: "status" });
         const createdEntry = await MoodApi.logMood({ ...data, weather: checkInWeather });
-        // The full-entry form uses the Axios client, so refresh the separate derived-aura cache directly.
+        // Axios saves bypass RTK mutations; refresh history, reflection patterns, and derived-aura caches.
         dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
+        dispatch(moodApi.util.invalidateTags(["Moods", "Dashboard"]));
         moodEntryId = createdEntry.id;
         setSavedMoodId(moodEntryId);
         nextPhotoStatuses = photos.map(() => "pending");
@@ -111,13 +111,11 @@ export default function MoodEntryForm() {
   };
 
   return (
-    <Box className="signed-in-content" sx={{ maxWidth: 850, mx: "auto", py: { xs: 0, md: 1 } }}>
-      {/* Keep the shared themed page introduction above the compact journal form. */}
-      <ThemeBanner title="New entry" description="Check in with how you feel today, then add a reflection or photo if you like." illustration="mood" />
-      <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 1.75, md: 2.5 } }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} sx={{ mb: 1.5 }}>
-          <Typography level="body-sm" color="neutral" sx={{ ml: "auto" }}>{dayjs().format("ddd, MMM D · h:mm A")}</Typography>
-        </Stack>
+    <Box className="signed-in-content" sx={{ maxWidth: 1200, mx: "auto", py: { xs: 0, md: 1 } }}>
+      <Box component="header" sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 1 }}>
+        <Typography component="h1" level="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "2rem !important", fontWeight: 500 }}>New entry</Typography>
+        <Typography level="body-xs" color="neutral">{dayjs().format("ddd, MMM D · h:mm A")}</Typography>
+      </Box>
         <MoodEntryFormFields
           onSubmit={handleSubmit}
           disabled={savedMoodId !== null}
@@ -127,7 +125,6 @@ export default function MoodEntryForm() {
           statusRole={feedback?.role}
           photoStatuses={photoStatuses}
         />
-      </Sheet>
     </Box>
   );
 }

@@ -214,7 +214,7 @@ describe("Dashboard", () => {
     renderWithProviders(<Dashboard />, { preloadedState: createAuthenticatedState() });
     const quickMoodGroup = within(screen.getByRole("group", { name: "How are you feeling today?" }));
     expect(quickMoodGroup.getAllByRole("button").map((button) => button.getAttribute("aria-label")))
-      .toEqual(testReferenceData.moods.map(({ displayName }) => displayName).sort((left, right) => left.localeCompare(right)).slice(0, 6));
+      .toEqual(["Harmonious", "Abundant", "Centered", "Empowered", "Flowing", "Visionary"]);
     await user.click(screen.getByRole("button", { name: "Empowered" }));
     expect(quickMoodMutation).toHaveBeenCalledWith(expect.objectContaining({ moods: ["Empowered"] }));
     expect(await screen.findByText(/logged\. thank you for checking in/i)).toBeInTheDocument();

@@ -12,14 +12,15 @@ import AuraSeasonCard from "@/components/aura/AuraSeasonCard";
 import WeatherCard from "@/components/weather/WeatherCard";
 import { useWeatherLocation } from "@/hooks/useWeatherLocation";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
+import { orderMoodChoices } from "@/features/mood/orderMoodChoices";
 import { getQuickMoodNextStep } from "@/features/mood/quickMoodNextStep";
 import { buildWeekMoodStrip, summarizeMoodPatterns } from "@/features/mood/moodPatternSummary";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetCurrentWeatherQuery } from "@/store/weatherApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { MoodIcon } from "@/components/mood/MoodIcon";
+import { MoodChoiceButton } from "@/components/mood/MoodChoiceButton";
 import { MoodTag } from "@/components/history/MoodTag";
-import { getMoodPillSx } from "@/components/mood/moodPillStyles";
 import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { useGetCurrentUserQuery } from "@/store/authApi";
 import { useGetAllMoodsQuery, useGetDashboardSummaryQuery, useGetMoodByIdQuery, useLogMoodMutation } from "@/store/moodApi";
@@ -74,6 +75,8 @@ export default function Dashboard() {
   const [isSavingQuickMood, setIsSavingQuickMood] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const quickMoodSubmitInProgress = useRef(false);
+  const quickControlsRef = useRef<HTMLDivElement>(null);
+  const [quickControlsHeight, setQuickControlsHeight] = useState(0);
   // Focus targets for the check-in: the saved confirmation, and the chip group it replaces.
   const savedStateRef = useRef<HTMLDivElement>(null);
   const moodGroupRef = useRef<HTMLDivElement>(null);
@@ -121,7 +124,8 @@ export default function Dashboard() {
   const totalEntries = summary?.totalEntries ?? 0;
   const mostFrequent = summary?.mostFrequentMood ?? "";
   const lastMood = recentEntries[0]?.moods[0];
-  const moodDefinitions = [...(referenceData?.moods ?? [])].sort((left, right) => left.displayName.localeCompare(right.displayName));
+  // Keep the full form and quick check-in aligned in both control shape and display order.
+  const moodDefinitions = orderMoodChoices(referenceData?.moods ?? [], referenceData?.auras ?? []);
   // The aura color linked to the saved quick check-in's mood; its description defines the color in plain, non-diagnostic words.
   const quickCheckInAura = quickCheckIn ? referenceData?.auras.find((aura) => aura.key === moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.auraColorKeys[0]) : undefined;
   const quickMoods = (showMoreMoods ? moodDefinitions : moodDefinitions.slice(0, 6)).map(({ key }) => key);
@@ -130,6 +134,8 @@ export default function Dashboard() {
   const submitQuickMood = async (mood: MoodType) => {
     if (quickMoodSubmitInProgress.current) return;
     quickMoodSubmitInProgress.current = true;
+    // Preserve the expanded selector height through confirmation so nearby content does not jump upward.
+    setQuickControlsHeight(quickControlsRef.current?.getBoundingClientRect().height ?? 0);
     setIsSavingQuickMood(true);
     setQuickCheckIn({ mood, saved: false });
     try {
@@ -172,13 +178,15 @@ export default function Dashboard() {
           {/* The check-in sizes to its content. The saved moment is taller than the chips, so the cards below move down only in direct response to the tap (not an unexpected layout shift), and return to place on "Done"; e2e/quick-check-in.spec.ts measures both. */}
           {/* Always mounted so screen readers announce the save; a live region inserted together with its text is often skipped. */}
           <Box role="status" aria-live="polite" sx={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{quickCheckIn?.saved ? `Logged ${quickCheckIn.mood}. Thank you for checking in.` : ""}</Box>
+          <Box ref={quickControlsRef} sx={{ minHeight: quickCheckIn?.saved ? quickControlsHeight : undefined }}>
           {quickCheckIn?.saved ? <Box ref={savedStateRef} tabIndex={-1} role="group" aria-label="Check-in saved" sx={{ mt: 1, "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 4, borderRadius: "8px" } }}><Typography level="body-sm">Logged. Thank you for checking in.</Typography><Stack direction="row" alignItems="center" gap={.75} sx={{ mt: .5 }}><Typography level="body-sm" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}><MoodIcon icon={moodDefinitions.find((definition) => definition.key === quickCheckIn.mood)?.icon} size={20} />{quickCheckIn.mood} · {quickMoodEntry.data?.createdAt ? dayjs(quickMoodEntry.data.createdAt).format("h:mm A") : dayjs().format("h:mm A")}</Typography><Box aria-hidden="true" sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: (quickCheckInAura?.shades?.[500] ?? "transparent") }} /><Typography level="body-xs" color="neutral">{quickCheckInAura?.displayName ?? "Aura"} reflection color</Typography></Stack>{quickCheckInAura?.description && <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>{quickCheckInAura.description}</Typography>}<Stack direction="row" gap={1} sx={{ mt: .5 }}><Button variant="plain" disabled={!quickMoodEntry.data} onClick={() => setShowDetailModal(true)}>Add a note or photo</Button><Button variant="plain" color="neutral" onClick={() => { returnFocusToChips.current = true; setQuickCheckIn(null); }}>Done</Button></Stack>{nextStep && <Box sx={{ mt: .75, p: 1, borderRadius: "md", bgcolor: "var(--aura-wash)" }}><Typography level="body-xs" color="neutral">A gentle next step</Typography><Typography level="body-sm">{nextStep.prompt}</Typography></Box>}</Box>
             : <Box sx={{ mt: 1 }}><Box ref={moodGroupRef} role="group" aria-label="How are you feeling today?" sx={{ display: "flex", flexWrap: "wrap", gap: .75 }}>{/* Tint each quick check-in from its assigned mood aura, keeping text on the theme ink. */}{quickMoods.map(mood => {
               const definition = moodDefinitions.find((item) => item.key === mood);
               const moodAura = referenceData?.auras.find((aura) => aura.key === definition?.auraColorKeys[0]);
               const moodColor = moodAura?.shades?.[500] ?? moodAura?.baseHex ?? "var(--al-theme-primary)";
-              return <Button key={mood} size="sm" variant="soft" color="neutral" disabled={isSavingQuickMood} aria-label={mood} onClick={() => void submitQuickMood(mood)} sx={{ ...getMoodPillSx(moodColor, { interactive: true }), display: "inline-flex", alignItems: "center", gap: 0.5 }}><MoodIcon icon={definition?.icon} size={20} />{mood}</Button>;
+              return <MoodChoiceButton key={mood} label={definition?.displayName ?? mood} icon={definition?.icon} color={moodColor} disabled={isSavingQuickMood} onClick={() => void submitQuickMood(mood)} />;
             })}</Box><Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" sx={{ mt: 1.25 }}><Button size="sm" variant="outlined" color="neutral" sx={quickActionSx} onClick={() => setShowMoreMoods(value => !value)} aria-expanded={showMoreMoods}>{showMoreMoods ? "Fewer moods" : "More moods"}</Button><Button size="sm" variant="outlined" sx={quickActionSx} onClick={() => navigate("/log-mood")}>Add more detail</Button></Stack>{quickCheckIn && !quickCheckIn.saved && <Typography role="alert" level="body-sm" color="danger" sx={{ mt: .5 }}>That check-in didn’t save. <Button variant="plain" disabled={isSavingQuickMood} onClick={() => void submitQuickMood(quickCheckIn.mood)}>Retry {quickCheckIn.mood}</Button></Typography>}</Box>}
+          </Box>
           {entriesError && <Typography role="alert" level="body-sm" color="danger">Your entries couldn’t be loaded. <Button variant="plain" onClick={() => refetchEntries()}>Retry</Button></Typography>}
           {totalEntries === 0
             ? <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>No check-ins yet. Your first one can be small.</Typography>

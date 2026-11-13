@@ -1,4 +1,5 @@
 import type { WeatherDto } from "@/api/WeatherApi";
+import type { MoodPathwayReflection } from "./MoodEntry";
 import type { MoodType } from "./MoodType";
 
 /**
@@ -16,6 +17,9 @@ export interface MoodEntryRequest {
 
   /** User-selected context topics that mattered to this check-in, not inferred causes. */
   impactTopics?: string[];
+
+  /** Optional invitation and explicit response, saved atomically with this mood. */
+  pathwayReflection?: MoodPathwayReflection;
 
   weather?: WeatherDto;
 }

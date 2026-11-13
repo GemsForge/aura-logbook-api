@@ -50,7 +50,11 @@ flowchart TD
     I --> C
 ```
 
-The form defaults the date to today, groups mood choices by their associated aura color, shows color meanings in tooltips, requires at least one mood, and makes the comment optional. It currently does **not** ask the user to select an aura color/intensity directly, provide a reflection prompt, or save a separate prompt response. Selecting a mood within a color group is not the same as recording a user-selected aura.
+New entries use today's local date; editing retains the entry's selected date. On desktop, the form has two columns: mood choices, impact topics, a compact note editor and photo/save actions on the left; an optional pathway reflection on the right. Phones stack these sections. Existing mood labels, illustrations and multi-selection remain unchanged, in a horizontally scrollable row with previous/next controls, leading with positive moods, then grouped by configured aura-color order and alphabetical within each group.
+
+The impact question has its own section. The note editor remains optional and supports Markdown; the photo icon opens the existing private upload flow. A failed upload retries against the saved mood instead of creating a duplicate.
+
+For Astrology & Energy, the optional invitation is shared with the Daily Astrology page. A chakra-pattern invitation requires matching entries on at least three distinct dates in the last two weeks; otherwise the selected pathway's daily prompt is used. Alex may select **Resonates**, **Maybe**, or **Not for me**. That explicit choice and the exact invitation save with the mood entry; leaving it unanswered saves no inferred response. Editing a mood restores its saved invitation and response. These are user-recorded connections, never diagnoses or claims of causation.
 
 ### 3. Review and manage mood history
 

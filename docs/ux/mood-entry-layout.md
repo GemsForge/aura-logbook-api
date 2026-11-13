@@ -1,0 +1,24 @@
+# Mood entry layout acceptance checklist
+
+Reference: the approved two-column mood-log screenshot supplied November 13, 2026.
+This focused change covers Log mood, its shared edit form, and the matching invitation
+on Daily Astrology. See [Core user journeys](core-user-journeys.md#2-record-a-mood).
+
+- Keep the existing application shell, navigation, theme tokens, mood catalog, illustrations and multi-selection behavior.
+- Use the shared `MoodEntryFormFields` for create/edit; preserve React Hook Form/Yup validation and existing API/photo retry flow.
+- Desktop uses two theme-backed, lightly rounded surfaces: the form on the left and optional reflection on the right. Small screens stack them without horizontal page overflow.
+- Emotion choices form one horizontally scrollable row, leading with the existing positive/reflective moods, then configured aura-color order and alphabetical within each color group. Reuse the compact `MoodChoiceButton` from Today, including its 20px illustration and `aria-pressed` form selection; labeled previous/next icon controls have 44px targets. Checkbox-chip and action padding stays compact.
+- Put all 18 existing impact topics in their own optional section; preserve the agreed labels and multi-selection.
+- Keep the Markdown note editor compact (140px initial height). Place the photo icon and compact save action on the same bottom row.
+- Match the Daily Astrology invitation using one shared source. Count actual matching mood days, never infer that a chakra caused a mood.
+- `Resonates / Maybe / Not for me` are optional controlled choices. Save the selected response and invitation atomically with the mood; restore them on edit.
+- Keep loading, errors, date editing, save failures, and photo retries usable. Do not attach a stale choice to replacement invitation text.
+- Check 320, 768, 1024 and 1440px in Chromium, including scroll, overflow, identical invitation text and save payload. API persistence is separately verified against SQLite; browser provider responses are fixtures.
+
+## Companion pathway views
+
+The supplied astrology, chakra and breathing screenshots also guide these layout corrections:
+
+- Daily Astrology: a simple serif page heading; horoscope and chart panels side by side on desktop; a full-width moon-count card and the shared mood invitation underneath. Stack on phones; preserve provider attribution, existing feedback and save behavior.
+- Chakra reference: the existing human silhouette beside seven canonical center buttons; selected definition/themes and a short reference explanation beneath. Ignore duplicate legacy underscore aliases. Keep catalog terms/colors and existing explicit journal-save controls.
+- Breathing: one centered frame with a short heading, animated orb, cadence selector and icon controls. Preserve 4/6 and 3/3 timing, pause/resume/reset, reduced motion and accessible labels.
