@@ -78,6 +78,57 @@ The user’s natural next action is to log a mood, but the current Dashboard doe
 
 **Not currently implemented:** a weekly aura summary, aura history/intensity visualization, prompt library, response history, or a personalized interpretation derived from the user’s past entries. These should not be shown as live or data-driven features until implemented and verified.
 
+## Proposed pathway-module experience
+
+This is the target experience reviewed for the next pathway design. It extends the current profile preference and should not be read as implemented behavior.
+
+This **Core User Journey** is the source-of-truth plan for the pathway milestone and its acceptance checks. Keep the milestone description and implementation aligned with this Markdown document.
+
+### Profile selection and navigation
+
+- Move pathway selection into **Edit Profile → My Pathway**. For the first release, select one primary pathway at a time and configure that pathway’s modules in the same profile step.
+- Keep pathway settings out of the main logbook navigation. The signed-in user opens them from Profile settings.
+- Keep the existing journal destinations in the main navigation. Beneath them, show one nested module group for the active pathway, styled like the existing nested pathway navigation concept. Include only enabled modules in that group.
+- Use a shared module catalog and reusable navigation/module UI. Associate catalog modules with the pathway(s) that can offer them. Reuse a common pathway-activity/insight record where the fields and lifecycle align, with explicit pathway, module, activity type, and structured content; keep sensitive or structurally distinct profile data (such as saved birth details) in its appropriate profile record.
+
+### Shared mood logging
+
+All pathways retain the same mood-entry experience. Add the optional multi-select question **“What’s having the biggest impact on you?”** with these context topics: Health, Fitness, Self-care, Hobbies, Identity, Spirituality, Community, Family, Friends, Partner, Dating, Task, Work, Education, Travel, Weather, Current Events, and Money. Treat these as user-recorded context, not causes of a mood.
+
+Breathing is available in each pathway as a shared module. Its dedicated view uses an expanding/contracting visual at a comfortable 4-second inhale and 6-second exhale cadence, with a 3/3 option, pause, and reduced-motion behavior.
+
+### Pathway modules
+
+| Pathway | Navigation modules and page content |
+| --- | --- |
+| **Mindful Living** | **Mindfulness Guide**: wiki-style concepts covering present-moment awareness, non-judgmental attitudes, and starting and maintaining a routine; an optional educational overview of DBT mindfulness skills. **Practice Log**: user-recorded mindfulness practice without scores or streak pressure. Shared Breathing. |
+| **Astrology & Energy** | **Daily Astrology**: one page containing the daily horoscope, optional birth-chart reading, and moon-phase mood counts with an optional reflection. Use FreeAstroAPI for daily horoscope and moon-phase data, and Astrology-API.io for chart data. Birthday can support a sun-sign reading; ask for birth time and place only for a deeper chart, and persist those details only after an explicit “Save birth details” choice. Keep provider keys server-side (`FreeAstroApi__ApiKey` and `AstrologyApi__ApiKey`). The authenticated `GET /api/astrology/birth-chart` provider adapter is gated by saved birth details and the selected Astrology & Energy pathway. Its page shows recognized planet/sign placements when present in the provider payload; actual provider-account output still needs live validation before treating field extraction as complete. The current API implementation caches FreeAstroAPI daily readings and date-level moon phases and shares a request pacer across provider calls. **Chakra & Color Reference**: a separate wiki-like page with an actual human silhouette, seven centers, common Sanskrit and English names, body locations, color associations, and interpretive themes. Chakra descriptions, color associations, modern psychological pairings, reflection prompts, mood-association keys, and symbol asset metadata are stored as database-backed reference data rather than duplicated in the UI. An optional pattern invitation can appear after an associated mood is logged on at least three distinct days in a rolling 14-day window; it reports co-occurrence and asks the user whether the connection feels meaningful. |
+| **Faith & Religion** | **Word of the Day**: a neutral, Aura-authored reflection card that does not depend on a scripture provider or selected religious framework. **Sacred Texts**: show a daily reading only after the user selects a supported framework; show the matching external reading link only for that selected framework. The authenticated `GET /api/faith/word-of-day` and `GET /api/faith/passage?framework=...` routes provide neutral and framework-specific content separately. Christian content defaults to public-domain World English Bible text; Quran passages come from Quran.com/Quran Foundation; Jewish readings use Sefaria's daily schedule and its configured text version. The pathway UI requests the profile-selected framework only and renders its matching passage. Review licenses and required attribution before changing source or translation. API.Bible web display requires FUMS; do not configure its key until the client tracks each displayed reading. **Faith Practice Check-In**: let the user choose and revise which practices they want to track, then record “Did / Didn’t today” for those practices with an optional overall note. Persist the chosen practice set privately in the shared pathway activity record. **Faith Practice Insights**: show simple frequency/counts only for practices the user chose to track (for example, sacred-text reading, prayer or supplication, contemplation, worship or gathering, gratitude, and service or acts of care). Avoid scores, streak pressure, or claims that a practice caused a mood. Let users choose neutral or tradition-specific terms where suitable. Shared Breathing. |
+
+### Pathway artwork
+
+- Create a coordinated, individually usable set of **seven chakra illustrations** and **twelve zodiac-sign illustrations** for the Astrology & Energy pathway. The chakra set should complement the chakra wiki’s human body map and its center-specific names and color associations; the zodiac set should make each sign recognizable without depending on color alone.
+- Match the existing Aura visual direction with polished, distinctive artwork rather than generic icons. Keep chakra and zodiac art pathway-specific and register every asset, intended use, and accessibility description in the asset manifest and preview contact sheet.
+- The repository already contains seven chakra-symbol SVGs and shared Astrology & Energy moon/orbit/crystal artwork, but no zodiac-sign image set. Review the current chakra symbols beside the new illustrations before replacing active references; preserve the existing source assets until the replacement set is accepted and integrated.
+
+### Interpretation and content boundaries
+
+- In Astrology & Energy, describe moon-phase results as counts or observed co-occurrences from the user’s own entries. Do not imply that a phase caused a mood.
+- In Faith & Religion, if no supported framework is selected, keep the Sacred Text area empty and hide framework-specific reading links; the neutral Word of the Day remains visible. Selecting a framework reveals only its supported passage and matching reading link. Identify the text version/source and follow its display, attribution, caching, and licensing terms.
+- In the chakra reference, include familiar contemporary psychological pairings as one explicitly labeled interpretive lens: survival/fear (Root), pleasure/guilt (Sacral), willpower/shame (Solar Plexus), love/grief (Heart), truth/lies (Throat), insight/illusion (Third Eye), and cosmic or spiritual connection/attachment (Crown). Pair these with the common names and body map, but do not describe them as universal or fixed traditional teachings, or diagnose a user’s state. Mood-linked chakra suggestions remain optional invitations; the user decides whether they are meaningful.
+- Across every pathway, offer optional **Resonates / Maybe / Not for me** feedback. Use feedback only to tune future suggestions of the same insight type. Offer **Save to journal** for written reflections; do not save them without an explicit action.
+- Faith practice insights summarize only the user’s own opt-in daily check-ins. Do not infer belief, commitment, or spiritual wellbeing from a missed practice; offer optional feedback on a faith insight and tune only later faith-practice insights.
+
+### Milestone-level acceptance checks
+
+1. Profile settings select one primary pathway and configure its modules; the navigation displays only enabled modules for that pathway under the nested pathway heading.
+2. The mood logger accepts optional context topics across all pathways, and the shared breathing page visibly expands on inhale and contracts on exhale.
+3. Astrology & Energy presents horoscope, birth chart, and moon-phase mood insights together; chart birth time/place remain optional and are saved only by explicit choice.
+4. Mindful Living includes the wiki guide and separate practice log; Faith & Religion includes the neutral Word of the Day, configurable faith-practice check-in and frequency insights, and Sacred Text content/reading links gated by the selected supported framework.
+5. The chakra reference uses a human silhouette and presents the seven-center terminology plus contemporary theme/challenge pairings as an optional interpretive lens.
+6. Interpretive feedback is optional, non-diagnostic, and only tunes later suggestions of the same insight type.
+7. The Astrology & Energy artwork set contains seven distinct chakra illustrations and twelve zodiac-sign illustrations, is registered in the asset manifest/contact sheet, and has been visually reviewed before any existing chakra symbols are retired.
+
 ## Cross-journey states to design for
 
 | State | Current behavior | UX direction for the redesign |
