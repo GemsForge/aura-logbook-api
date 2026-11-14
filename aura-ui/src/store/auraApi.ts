@@ -52,6 +52,7 @@ export type SacredTextSection = {
   segments: SacredTextSegment[];
   previousReference?: string | null;
   nextReference?: string | null;
+  sourceLicenseUrl?: string | null;
 };
 
 /** Persisted private note, highlight, or bookmark with segment-relative offsets and an optional drift hash. */

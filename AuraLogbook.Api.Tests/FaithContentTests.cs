@@ -151,6 +151,39 @@ public sealed class FaithContentTests
         Assert.Equal("Genesis 2", section.NextReference);
     }
 
+    /// <summary>Displays CC-BY-SA Hebrew with RTL metadata and explicit version, license, and deed attribution.</summary>
+    [Theory]
+    [InlineData("CC-BY-SA")]
+    [InlineData("CC-BY")]
+    public async Task Sefaria_reuses_approved_hebrew_licenses_with_attribution(string license)
+    {
+        var section = await SefariaSectionWithLicense(license);
+
+        Assert.Equal("English wording", section.Segments[0].Text);
+        Assert.Equal("he", section.SourceLanguage);
+        Assert.Equal("rtl", section.SourceDirection);
+        Assert.Contains("Hebrew Masorah Edition", section.Attribution);
+        Assert.Contains(license, section.Attribution);
+        if (license == "CC-BY-SA")
+            Assert.Equal("https://creativecommons.org/licenses/by-sa/4.0/", section.SourceLicenseUrl);
+    }
+
+    /// <summary>Excludes exact NC, empty, and missing license metadata while preserving the English passage.</summary>
+    [Theory]
+    [InlineData("CC-BY-NC")]
+    [InlineData("CC-BY-NC-SA")]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Sefaria_excludes_unapproved_hebrew_licenses(string? license)
+    {
+        var section = await SefariaSectionWithLicense(license);
+
+        Assert.Equal("English wording", section.Segments[0].Text);
+        Assert.All(section.Segments, segment => Assert.Null(segment.SourceText));
+        Assert.Null(section.SourceLanguage);
+        Assert.Null(section.SourceDirection);
+    }
+
     /// <summary>Framework and section identity remain independent cache dimensions.</summary>
     [Fact]
     public async Task Sacred_text_sections_do_not_share_cache_entries_between_frameworks_or_references()
@@ -224,6 +257,14 @@ public sealed class FaithContentTests
         return new SacredTextService(
             [new ApiBibleProvider(factory, options), new QuranProvider(factory, options), new SefariaProvider(factory, options)],
             new MemoryCache(new MemoryCacheOptions()), options);
+    }
+
+    private static async Task<SacredTextSectionDto> SefariaSectionWithLicense(string? license)
+    {
+        var licenseProperty = license is null ? "" : $",\"license\":{System.Text.Json.JsonSerializer.Serialize(license)}";
+        var body = $"""{{"ref":"Genesis 1","versions":[{{"text":["English wording"],"versionTitle":"The Holy Scriptures: A New Translation (JPS 1917)","license":"Public Domain","language":"en"}},{{"text":["עברית"],"versionTitle":"Hebrew Masorah Edition","language":"he"{licenseProperty}}}]}}""";
+        return await new SefariaProvider(new StubFactory(new StubHandler(HttpStatusCode.OK, body)), Options.Create(new SacredTextOptions()))
+            .GetSectionAsync("Genesis 1", CancellationToken.None);
     }
 
     private sealed class StubFactory(HttpMessageHandler handler) : IHttpClientFactory

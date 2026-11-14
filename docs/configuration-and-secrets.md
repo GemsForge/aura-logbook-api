@@ -171,7 +171,13 @@ The Sefaria version is pinned with `SacredText__SefariaVersion`. Daily reference
 verses because JPS 1917 covers the Tanakh. The in-app reader's authenticated
 `GET /api/faith/section` endpoint returns one requested chapter/section from only
 that framework's provider. Reusable Hebrew source text is shown only when Sefaria
-returns an approved public-domain, CC-BY, or CC-BY-SA license. See [Sefaria's reuse guidance](https://help.sefaria.org/hc/en-us/articles/18490043237148-How-to-Find-and-Understand-Licensing-or-Copyright-Information).
+returns an exact, trimmed, case-insensitive `Public Domain`, `CC0`, `CC-BY`, or
+`CC-BY-SA` license. The Sefaria Genesis 1 Hebrew edition metadata reports
+`CC-BY-SA`; the response attribution includes its edition title and license and
+links the CC-BY-SA 4.0 deed unless Sefaria supplies a license URL. `NC`, `ND`,
+unknown, and missing licenses remain excluded. This allowance was approved by the
+product owner on 2026-11-14. Hebrew text is displayed after provider markup
+cleaning and is not stored or exported. See [Sefaria's reuse guidance](https://help.sefaria.org/hc/en-us/articles/18490043237148-How-to-Find-and-Understand-Licensing-or-Copyright-Information).
 `GET/POST/PUT/DELETE /api/faith/annotations` stores
 owner-private notes, highlights, and bookmarks; anchors include the provider
 version, segment-relative offsets, and an anchor digest, while quoted source text is not stored. The reader requires

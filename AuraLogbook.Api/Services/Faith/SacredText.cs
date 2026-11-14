@@ -36,7 +36,8 @@ public sealed record SacredTextSectionDto(
     string? SourceDirection,
     IReadOnlyList<SacredTextSegmentDto> Segments,
     string? PreviousReference = null,
-    string? NextReference = null);
+    string? NextReference = null,
+    string? SourceLicenseUrl = null);
 
 /// <summary>Supported framework keys. Matches the UI's faith tradition choices.</summary>
 public static class FaithFrameworks
@@ -499,12 +500,15 @@ public sealed class SefariaProvider(IHttpClientFactory factory, IOptions<SacredT
             ? sourceTitle.GetString() ?? "Hebrew source" : "Hebrew source";
         var sourceLanguage = sourceSegments.Count > 0 ? "he" : null;
         var sourceDirection = sourceSegments.Count > 0 ? "rtl" : null;
+        var sourceLicense = source.ValueKind == JsonValueKind.Object && source.TryGetProperty("license", out var sourceLicenseValue)
+            ? sourceLicenseValue.GetString() : null;
         var sourceAttribution = sourceSegments.Count > 0
-            ? $" Hebrew source: {sourceVersionTitle} ({source.GetProperty("license").GetString()})."
+            ? $" Hebrew source: {sourceVersionTitle} ({sourceLicense})."
             : "";
+        var sourceLicenseUrl = sourceSegments.Count > 0 ? GetLicenseUrl(source, sourceLicense) : null;
         return new SacredTextSectionDto(Framework, display, versionTitle, $"{version}|{versionTitle}|{sourceVersionTitle}", $"{attribution}{sourceAttribution}",
             $"https://www.sefaria.org/{Uri.EscapeDataString(sectionReference.Replace(' ', '.'))}", "en", "ltr", sourceLanguage, sourceDirection, segments,
-            ProviderReference(root, "prev"), ProviderReference(root, "next"));
+            ProviderReference(root, "prev"), ProviderReference(root, "next"), sourceLicenseUrl);
     }
 
     /// <summary>Returns an optional adjacent reference only when Sefaria includes it in the response metadata.</summary>
@@ -513,9 +517,20 @@ public sealed class SefariaProvider(IHttpClientFactory factory, IOptions<SacredT
             ? reference.GetString()
             : null;
 
-    /// <summary>Only displays Sefaria Hebrew versions whose metadata confirms reusable terms.</summary>
+    /// <summary>Only displays exact normalized public-domain, CC0, CC-BY, or CC-BY-SA Sefaria license values; excludes NC, ND, and unknown terms.</summary>
     private static bool IsReusableSefariaLicense(string? license) => license?.Trim().ToUpperInvariant() is
-        "PUBLIC DOMAIN" or "CC0" or "CC-BY";
+        "PUBLIC DOMAIN" or "CC0" or "CC-BY" or "CC-BY-SA";
+
+    /// <summary>Uses Sefaria's license deed metadata when present and the standard CC-BY-SA deed for that exact license otherwise.</summary>
+    private static string? GetLicenseUrl(JsonElement version, string? license)
+    {
+        foreach (var name in new[] { "licenseUrl", "licenseURL", "license_url" })
+            if (version.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && Uri.TryCreate(value.GetString(), UriKind.Absolute, out _))
+                return value.GetString();
+        return string.Equals(license?.Trim(), "CC-BY-SA", StringComparison.OrdinalIgnoreCase)
+            ? "https://creativecommons.org/licenses/by-sa/4.0/"
+            : null;
+    }
 }
 
 /// <summary>Parses the bounded user-facing section references used by the reader controls.</summary>
