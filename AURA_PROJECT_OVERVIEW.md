@@ -50,7 +50,7 @@ Color, emoji, hover, and motion must never be the only way to understand a state
 - **Weather:** Open-Meteo forecast and geocoding endpoints
 - **Testing:** xUnit, Vitest, React Testing Library, ESLint, TypeScript builds, and launcher tests
 
-Development and FIT/Staging use SQLite for users, moods, zodiac insights, and reflections. Production currently retains a mixed fallback—file repositories for users, moods, and zodiac insights while migration startup and reflections still use SQLite—so production storage and hosting require an explicit deployment decision.
+All environments register SQLite repositories for users, moods, zodiac insights, and reflections. Production database durability and hosting still require an explicit deployment decision.
 
 ## Repository map
 
