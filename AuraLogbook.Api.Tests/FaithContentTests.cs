@@ -137,6 +137,30 @@ public sealed class FaithContentTests
         Assert.Equal(1, handler.Calls);
     }
 
+    /// <summary>Resolves the daily reading's singular Psalm label against API.Bible's canonical Psalms book name.</summary>
+    [Fact]
+    public async Task Api_bible_section_resolves_daily_psalm_reference()
+    {
+        var handler = new StubHandler((request, _) =>
+        {
+            var body = request.RequestUri!.AbsolutePath.EndsWith("/books", StringComparison.Ordinal)
+                ? """{"data":[{"id":"PSA","name":"Psalms","chapters":[{"bookId":"PSA","number":"23","reference":"Psalms 23"}]}]}"""
+                : """{"data":{"content":[{"name":"verse","attrs":{"number":1},"items":[{"text":"The Lord is my shepherd."}]}],"reference":"Psalms 23"}}""";
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body) };
+        });
+        var provider = new ApiBibleProvider(new StubFactory(handler), Options.Create(new SacredTextOptions
+        {
+            ApiBibleKey = "key",
+            ApiBibleBibleId = "bible-id",
+        }));
+
+        var section = await provider.GetSectionAsync("Psalm 23:1", CancellationToken.None);
+
+        Assert.Equal("Psalms 23", section.Reference);
+        Assert.Equal("PSA.23", handler.LastRequest!.RequestUri!.Segments[^1].TrimEnd('/'));
+        Assert.Equal("Psalms 23:1", section.Segments[0].Reference);
+    }
+
     /// <summary>Sefaria's adjacent section references are returned without synthesizing provider navigation.</summary>
     [Fact]
     public async Task Sefaria_section_exposes_provider_previous_and_next_references()

@@ -212,9 +212,10 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         var booksRoot = await ProviderText.GetJsonAsync(client, booksRequest, cancellationToken);
         if (!booksRoot.TryGetProperty("data", out var books) || books.ValueKind != JsonValueKind.Array)
             throw ProviderText.Unusable("API.Bible");
+        var apiBookName = ApiBibleBookName(book);
         var bookId = books.EnumerateArray()
             .FirstOrDefault(item => item.TryGetProperty("name", out var name)
-                && string.Equals(name.GetString(), book, StringComparison.OrdinalIgnoreCase));
+                && string.Equals(name.GetString(), apiBookName, StringComparison.OrdinalIgnoreCase));
         if (bookId.ValueKind != JsonValueKind.Object || !bookId.TryGetProperty("id", out var id))
             throw new HttpRequestException("The selected Bible does not contain that book.", null, HttpStatusCode.NotFound);
 
@@ -254,6 +255,11 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         chapter.TryGetProperty("reference", out var reference) && !string.IsNullOrWhiteSpace(reference.GetString())
             ? reference.GetString()
             : null;
+
+    /// <summary>Maps common reader aliases to API.Bible's canonical book names.</summary>
+    private static string ApiBibleBookName(string book) => book.Trim().Equals("Psalm", StringComparison.OrdinalIgnoreCase)
+        ? "Psalms"
+        : book;
 
     /// <summary>Fetches the World English Bible (public domain) from bible-api.com; no key required.</summary>
     private async Task<SacredPassageDto> GetPublicDomainAsync(SacredTextOptions o, string display, CancellationToken cancellationToken)
