@@ -150,9 +150,9 @@ SacredText__QuranClientSecret=your-quran-foundation-client-secret
 `SacredText__QuranScope` defaults to `content`; set it to a narrower approved scope if the
 Quran Foundation client is provisioned that way. Without credentials, the adapter retains its
 legacy public Quran.com endpoint fallback. Quran Foundation's current developer terms limit
-regular API-response content caching to one week; API.Bible requires refresh within 30 days
-and recommends 14 days or less. Sefaria's developer materials document bounded client caching
-but publish no maximum retention duration. Aura uses the existing six-hour cache duration for
+regular API-response content caching to one week ([Quran Foundation terms](https://api-docs.quran.foundation/legal/developer-terms/)); API.Bible requires refresh within 30 days
+and recommends 14 days or less ([API.Bible caching requirements](https://care.api.bible/article/401-caching-content)). Sefaria's [developer client documentation](https://sefaria.github.io/sefaria-frontend-toolkit/reference/client.html)
+documents bounded client caching but publishes no maximum retention duration. Aura uses the existing six-hour cache duration for
 successful sections and daily passages, below the stated API.Bible and Quran Foundation limits
 and conservatively short for Sefaria. Section entries are isolated by framework, normalized
 reference, and configured source version; provider failures are never cached. The reader
