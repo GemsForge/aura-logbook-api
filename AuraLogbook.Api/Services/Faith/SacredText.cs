@@ -270,7 +270,7 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
 }
 
 /// <summary>Quran text and translation from the Quran.com API (Quran Foundation). No key required for the public content API.</summary>
-public sealed class QuranProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options, IMemoryCache cache) : ISacredTextProvider
+public sealed partial class QuranProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options, IMemoryCache cache) : ISacredTextProvider
 {
     /// <summary>Compatibility constructor for direct tests that exercise the keyless legacy provider path.</summary>
     public QuranProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options)
@@ -297,7 +297,7 @@ public sealed class QuranProvider(IHttpClientFactory factory, IOptions<SacredTex
     /// <inheritdoc />
     public async Task<SacredTextSectionDto> GetSectionAsync(string reference, CancellationToken cancellationToken)
     {
-        var match = System.Text.RegularExpressions.Regex.Match(reference, @"(?:Qur[’']?an\s*)?(\d{1,3})(?::\d+)?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        var match = QuranReferencePattern().Match(reference);
         if (!match.Success || !int.TryParse(match.Groups[1].Value, out var chapter) || chapter is < 1 or > 114)
             throw new ArgumentException("Provide a Quran surah number from 1 through 114.", nameof(reference));
 
@@ -334,6 +334,10 @@ public sealed class QuranProvider(IHttpClientFactory factory, IOptions<SacredTex
             "Quran data provided by Quran.Foundation. Saheeh International translation via Quran.com.", $"https://quran.com/{chapter}",
             "en", "ltr", "ar", "rtl", verses);
     }
+
+    /// <summary>Matches a complete optional-labeled surah reference with an optional verse suffix.</summary>
+    [GeneratedRegex(@"^\s*(?:Qur[’']?an\s*)?(\d{1,3})(?::(\d{1,3}))?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex QuranReferencePattern();
 
     /// <summary>Uses OAuth-backed Quran Foundation requests when configured, with the legacy public API as a compatibility fallback.</summary>
     private async Task<JsonElement> GetJsonAsync(string path, CancellationToken cancellationToken)

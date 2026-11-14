@@ -122,6 +122,38 @@ public sealed class FaithContentTests
         Assert.Equal(1, handler.Calls);
     }
 
+    /// <summary>#410: Quran section parsing accepts only complete, bounded surah references.</summary>
+    [Theory]
+    [InlineData("2", "Qur’an 2")]
+    [InlineData("Qur’an 2:255", "Qur’an 2")]
+    [InlineData("114", "Qur’an 114")]
+    public async Task Quran_section_accepts_valid_anchored_references(string reference, string expectedSection)
+    {
+        var handler = new StubHandler(HttpStatusCode.OK,
+            """{"verses":[{"verse_key":"2:1","translations":[{"text":"Text"}],"text_uthmani":"ع"}],"pagination":{"total_pages":1}}""");
+        var provider = new QuranProvider(new StubFactory(handler), Options.Create(new SacredTextOptions()));
+
+        var section = await provider.GetSectionAsync(reference, CancellationToken.None);
+
+        Assert.Equal(expectedSection, section.Reference);
+    }
+
+    /// <summary>Malformed or out-of-range Quran identifiers are rejected before any provider request.</summary>
+    [Theory]
+    [InlineData("0")]
+    [InlineData("115")]
+    [InlineData("1000")]
+    [InlineData("Genesis 1")]
+    [InlineData("")]
+    public async Task Quran_section_rejects_invalid_anchored_references(string reference)
+    {
+        var handler = new StubHandler(HttpStatusCode.OK, "{}");
+        var provider = new QuranProvider(new StubFactory(handler), Options.Create(new SacredTextOptions()));
+
+        await Assert.ThrowsAsync<ArgumentException>(() => provider.GetSectionAsync(reference, CancellationToken.None));
+        Assert.Equal(0, handler.Calls);
+    }
+
     private static SacredTextService Service(StubHandler handler, SacredTextOptions settings)
     {
         var options = Options.Create(settings);
