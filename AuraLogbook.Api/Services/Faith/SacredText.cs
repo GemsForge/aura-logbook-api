@@ -489,6 +489,15 @@ internal static class SacredTextReferenceParser
         chapter = match.Success && int.TryParse(match.Groups["chapter"].Value, out var value) ? value : 0;
         return match.Success && chapter is > 0 and <= 999;
     }
+
+    /// <summary>Checks that a provider segment is nested beneath the exact section book and chapter.</summary>
+    public static bool SegmentBelongsToSection(string sectionReference, string segmentReference)
+    {
+        var normalizedSection = Regex.Replace(sectionReference.Trim(), @"\s+", " ");
+        var normalizedSegment = Regex.Replace(segmentReference.Trim(), @"\s+", " ");
+        return normalizedSegment.StartsWith($"{normalizedSection}:", StringComparison.OrdinalIgnoreCase)
+            || normalizedSegment.StartsWith($"{normalizedSection}.", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 /// <summary>Converts provider section structures into stable verse/segment anchors.</summary>

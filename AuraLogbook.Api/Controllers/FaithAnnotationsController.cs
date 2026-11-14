@@ -65,6 +65,13 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
             return "Provide the source section, version, and language.";
         if (request.Kind is not ("highlight" or "note" or "bookmark"))
             return "Choose a highlight, note, or bookmark.";
+        if (request.Kind is "highlight" or "note")
+        {
+            if (string.IsNullOrWhiteSpace(request.SegmentReference))
+                return "Choose a verse or segment reference for this annotation.";
+            if (!SacredTextReferenceParser.SegmentBelongsToSection(request.SectionReference, request.SegmentReference))
+                return "The selected segment must belong to the chosen section.";
+        }
         if (request.EndOffset < request.StartOffset || ((request.Kind is "highlight" or "note") && request.EndOffset == request.StartOffset))
             return "Provide a valid text range.";
         if (request.Kind == "note" && string.IsNullOrWhiteSpace(request.Note))
