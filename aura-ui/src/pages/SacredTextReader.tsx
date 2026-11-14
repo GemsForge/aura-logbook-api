@@ -25,7 +25,6 @@ import BookmarkBorderRounded from "@mui/icons-material/BookmarkBorderRounded";
 import ChevronLeftRounded from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import FormatSizeRounded from "@mui/icons-material/FormatSizeRounded";
-import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
@@ -93,7 +92,8 @@ export default function SacredTextReader() {
   }, [queryReference]);
 
   useEffect(() => {
-    if (!reference && dailyPassage.currentData?.framework === framework) setReference(dailyPassage.currentData.reference);
+    const passage = dailyPassage.currentData;
+    if (!reference && passage?.framework === framework) setReference(passage.reference);
   }, [dailyPassage.currentData, framework, reference]);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function SacredTextReader() {
     setBook(parsed.book);
     setChapter(parsed.chapter);
     setSelectedSegment(section.segments.find((segment) => querySegment && segment.reference === querySegment)?.reference
-      ?? section.segments.find((segment) => queryReference && segment.reference.endsWith(queryReference.split(":").at(-1) ?? ""))?.reference
+      ?? section.segments.find((segment) => queryReference && segment.reference.endsWith(queryReference.split(":").pop() ?? ""))?.reference
       ?? section.segments[0]?.reference ?? "");
     readerHeading.current?.focus();
   }, [framework, queryReference, querySegment, section]);
