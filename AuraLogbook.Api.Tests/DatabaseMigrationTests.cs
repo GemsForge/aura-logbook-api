@@ -81,9 +81,7 @@ public sealed class DatabaseMigrationTests
             VALUES (1, 'christian', 'Genesis 1', 'v1', 'en', 'bookmark', 0, 0, 'now', 'now');
             """);
 
-        using var command = connection.CreateCommand();
-        command.CommandText = "SELECT AnchorHash FROM SacredTextAnnotations WHERE Kind = 'bookmark';";
-        Assert.Null(command.ExecuteScalar());
+        Assert.Null(MigrationTestDatabase.Scalar(connection, "SELECT AnchorHash FROM SacredTextAnnotations WHERE Kind = 'bookmark';"));
     }
 
     [Fact]
