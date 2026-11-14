@@ -50,6 +50,8 @@ export type SacredTextSection = {
   sourceLanguage?: string | null;
   sourceDirection?: "ltr" | "rtl" | null;
   segments: SacredTextSegment[];
+  previousReference?: string | null;
+  nextReference?: string | null;
 };
 
 /** Persisted private note, highlight, or bookmark with segment-relative offsets and an optional drift hash. */

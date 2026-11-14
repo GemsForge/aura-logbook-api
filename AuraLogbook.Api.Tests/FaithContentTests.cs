@@ -127,13 +127,27 @@ public sealed class FaithContentTests
     public async Task Sacred_text_section_is_cached_by_normalized_reference()
     {
         var handler = new StubHandler(HttpStatusCode.OK,
-            """{"ref":"Genesis 1","versions":[{"text":["Text"],"versionTitle":"JPS 1917","license":"Public Domain","language":"en"}]}""");
+            """{"ref":"Genesis 1","prev":"Genesis","next":"Genesis 2","versions":[{"text":["Text"],"versionTitle":"JPS 1917","license":"Public Domain","language":"en"}]}""");
         var service = Service(handler, new SacredTextOptions());
 
         await service.GetSectionAsync("jewish", "Genesis 1", CancellationToken.None);
         await service.GetSectionAsync("JEWISH", " Genesis   1 ", CancellationToken.None);
 
         Assert.Equal(1, handler.Calls);
+    }
+
+    /// <summary>Sefaria's adjacent section references are returned without synthesizing provider navigation.</summary>
+    [Fact]
+    public async Task Sefaria_section_exposes_provider_previous_and_next_references()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK,
+            """{"ref":"Genesis 1","prev":"Genesis","next":"Genesis 2","versions":[{"text":["Text"],"versionTitle":"JPS 1917","license":"Public Domain","language":"en"}]}""");
+
+        var section = await new SefariaProvider(new StubFactory(handler), Options.Create(new SacredTextOptions()))
+            .GetSectionAsync("Genesis 1", CancellationToken.None);
+
+        Assert.Equal("Genesis", section.PreviousReference);
+        Assert.Equal("Genesis 2", section.NextReference);
     }
 
     /// <summary>Framework and section identity remain independent cache dimensions.</summary>
@@ -169,10 +183,11 @@ public sealed class FaithContentTests
 
     /// <summary>#410: Quran section parsing accepts only complete, bounded surah references.</summary>
     [Theory]
-    [InlineData("2", "Qur’an 2")]
-    [InlineData("Qur’an 2:255", "Qur’an 2")]
-    [InlineData("114", "Qur’an 114")]
-    public async Task Quran_section_accepts_valid_anchored_references(string reference, string expectedSection)
+    [InlineData("2", "Qur’an 2", "Qur’an 1", "Qur’an 3")]
+    [InlineData("Qur’an 2:255", "Qur’an 2", "Qur’an 1", "Qur’an 3")]
+    [InlineData("114", "Qur’an 114", "Qur’an 113", null)]
+    [InlineData("1", "Qur’an 1", null, "Qur’an 2")]
+    public async Task Quran_section_accepts_valid_anchored_references(string reference, string expectedSection, string? previousReference, string? nextReference)
     {
         var handler = new StubHandler(HttpStatusCode.OK,
             """{"verses":[{"verse_key":"2:1","translations":[{"text":"Text"}],"text_uthmani":"ع"}],"pagination":{"total_pages":1}}""");
@@ -181,6 +196,8 @@ public sealed class FaithContentTests
         var section = await provider.GetSectionAsync(reference, CancellationToken.None);
 
         Assert.Equal(expectedSection, section.Reference);
+        Assert.Equal(previousReference, section.PreviousReference);
+        Assert.Equal(nextReference, section.NextReference);
     }
 
     /// <summary>Malformed or out-of-range Quran identifiers are rejected before any provider request.</summary>
