@@ -15,7 +15,7 @@ export type SacredTextBlock = {
   end: number;
 };
 
-/** Section-relative offsets accepted by the owner-scoped annotation API. */
+/** Temporary visible-section offsets from Recogito; normalized to segment-relative offsets before saving. */
 export type SacredTextRange = { start: number; end: number; segmentReference?: string };
 
 /** Builds the annotated reading surface and bridges Recogito selections to Aura's private-note actions. */
@@ -23,20 +23,20 @@ export function SacredTextAnnotationCanvas({
   section,
   annotations,
   blocks,
-  text,
   onHighlight,
   onAddNote,
   onRemove,
   onEditNote,
+  onAnchorsSkipped,
 }: {
   section: SacredTextSection;
   annotations: SacredTextAnnotation[];
   blocks: SacredTextBlock[];
-  text: string;
   onHighlight(annotation: TextAnnotation): void;
   onAddNote(range: SacredTextRange): void;
   onRemove(id: number): void;
   onEditNote(id: number, range: SacredTextRange, value: string): void;
+  onAnchorsSkipped(count: number): void;
 }) {
   return <Annotorious>
     <TextAnnotator className="sacred-reader-annotation-root">
@@ -55,7 +55,7 @@ export function SacredTextAnnotationCanvas({
         onEditNote={(id, range, value) => onEditNote(id, range, value)}
       />} />
     </TextAnnotator>
-    <SavedAnnotationsLayer section={section} annotations={annotations} text={text} />
+    <SavedAnnotationsLayer section={section} annotations={annotations} blocks={blocks} onAnchorsSkipped={onAnchorsSkipped} />
   </Annotorious>;
 }
 
@@ -89,23 +89,61 @@ function SelectionActions({
   </Box>;
 }
 
-/** Hydrates only exact section/version anchors; offsets are resolved against the provider's current text. */
-function SavedAnnotationsLayer({ section, annotations, text }: { section: SacredTextSection; annotations: SacredTextAnnotation[]; text: string }) {
+/** Hydrates only anchors whose segment-relative range and digest still match the current cleaned text. */
+function SavedAnnotationsLayer({ section, annotations, blocks, onAnchorsSkipped }: {
+  section: SacredTextSection;
+  annotations: SacredTextAnnotation[];
+  blocks: SacredTextBlock[];
+  onAnchorsSkipped(count: number): void;
+}) {
   const annotator = useAnnotator<RecogitoTextAnnotator>();
   useEffect(() => {
-    const saved: TextAnnotation[] = annotations.filter((item) => item.kind !== "bookmark" && item.endOffset <= text.length && item.startOffset < item.endOffset)
-      .map((item) => {
+    let active = true;
+    annotator.setAnnotations([]);
+    onAnchorsSkipped(0);
+    const hydrate = async () => {
+      const saved: TextAnnotation[] = [];
+      let skipped = 0;
+      for (const item of annotations.filter((annotation) => annotation.kind !== "bookmark")) {
+        const block = blocks.find((candidate) => candidate.reference === item.segmentReference && candidate.language === item.language);
+        if (!block || item.startOffset < 0 || item.endOffset <= item.startOffset || item.endOffset > block.text.length || !item.anchorHash) {
+          skipped++;
+          continue;
+        }
+        const quote = block.text.slice(item.startOffset, item.endOffset);
+        try {
+          if (await hashSacredTextAnchor(quote) !== item.anchorHash) {
+            skipped++;
+            continue;
+          }
+        } catch {
+          skipped++;
+          continue;
+        }
         const id = String(item.id);
-        return {
+        saved.push({
           id,
-          target: { annotation: id, selector: [{ start: item.startOffset, end: item.endOffset, quote: text.slice(item.startOffset, item.endOffset) }] },
+          target: { annotation: id, selector: [{ start: block.start + item.startOffset, end: block.start + item.endOffset, quote }] },
           bodies: [{ id: `${id}-body`, annotation: id, purpose: item.kind === "highlight" ? "highlighting" : "commenting", value: item.note ?? "" }],
           properties: { serverId: item.id, kind: item.kind, segmentReference: item.segmentReference, language: item.language },
-        };
-      });
-    annotator.setAnnotations(saved);
-  }, [annotator, annotations, section.reference, section.sourceVersion, text]);
+        });
+      }
+      if (active) {
+        annotator.setAnnotations(saved);
+        onAnchorsSkipped(skipped);
+      }
+    };
+    void hydrate();
+    return () => { active = false; };
+  }, [annotator, annotations, blocks, onAnchorsSkipped, section.reference, section.sourceVersion]);
   return null;
+}
+
+/** Hashes the exact provider-cleaned segment text shown by the reader as lowercase SHA-256 hex. */
+export async function hashSacredTextAnchor(text: string): Promise<string> {
+  if (!globalThis.crypto?.subtle) throw new Error("Secure SHA-256 is unavailable in this browser context.");
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /** Computes one selected range and its segment association for notes and persistence. */
