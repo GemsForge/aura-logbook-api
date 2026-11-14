@@ -39,4 +39,31 @@ public sealed class FaithController(SacredTextService sacredText, TimeProvider t
             return StatusCode(StatusCodes.Status502BadGateway);
         }
     }
+
+    /// <summary>Returns one navigable section from only the explicitly selected framework.</summary>
+    [HttpGet("section")]
+    public async Task<ActionResult<SacredTextSectionDto>> GetSection(
+        [FromQuery] string? framework,
+        [FromQuery] string? reference,
+        CancellationToken cancellationToken)
+    {
+        var provider = sacredText.GetProvider(framework);
+        if (provider is null) return BadRequest("Choose a supported sacred-text framework.");
+        if (string.IsNullOrWhiteSpace(reference) || reference.Length > 120)
+            return BadRequest("Provide a supported book, chapter, or section reference.");
+        try
+        {
+            return Ok(await provider.GetSectionAsync(reference, cancellationToken));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogWarning("Sacred-text provider for {Framework} failed with status {StatusCode}.",
+                FaithFrameworks.Normalize(framework), ex.StatusCode);
+            return StatusCode(StatusCodes.Status502BadGateway);
+        }
+    }
 }

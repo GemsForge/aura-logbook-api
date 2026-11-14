@@ -19,6 +19,7 @@ import Pathways from "./pages/Pathways";
 import GuidedPrayer from "./pages/GuidedPrayer";
 import BreathingTimer from "./pages/pathways/BreathingTimer";
 import { passwordResetEnabled } from "./features/auth/models/PasswordResetSchema";
+import SacredTextReader from "./pages/SacredTextReader";
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +57,8 @@ export const router = createBrowserRouter([
               { path: "insights", element: <Insights /> },
               // #385: selected pathway modules, plus the shared #386 breathing guide.
               { path: "pathways", element: <Pathways /> },
+              // #410: keep selected-framework readings inside Aura and behind the signed-in layout.
+              { path: "pathways/sacred-texts/reader", element: <SacredTextReader /> },
               { path: "pathways/:moduleKey", element: <Pathways /> },
               { path: "pathways/breathing", element: <BreathingTimer /> },
               { path: "guided-prayer", element: <GuidedPrayer /> },

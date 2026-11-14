@@ -135,11 +135,27 @@ any other value returns `204 No Content`.
 | Framework | Default source | Translation and license | Key needed |
 |---|---|---|---|
 | `christian` | bible-api.com | World English Bible, public domain | No |
-| `muslim` | Quran.com API (Quran Foundation) | Saheeh International | No |
+| `muslim` | Quran Foundation Content API, with legacy Quran.com fallback | Saheeh International | Optional |
 | `jewish` | Sefaria | JPS 1917 (*The Holy Scriptures: A New Translation*), public domain | No |
 
 Christian and Jewish passages default to public-domain translations, so no non-commercial or
-display license applies. To use a different licensed Bible translation instead, set both:
+display license applies. Quran Foundation credentials use the OAuth client-credentials flow
+and stay on the server. Configure both values to use the authenticated content API:
+
+```bash
+SacredText__QuranClientId=your-quran-foundation-client-id
+SacredText__QuranClientSecret=your-quran-foundation-client-secret
+```
+
+`SacredText__QuranScope` defaults to `content`; set it to a narrower approved scope if the
+Quran Foundation client is provisioned that way. Without credentials, the adapter retains its
+legacy public Quran.com endpoint fallback. Do not cache Quran Foundation content longer than
+its terms permit; the daily passage cache defaults to six hours, while navigable sections are
+fetched on demand. The reader displays Quran Foundation attribution and does not export the
+provider's source text. Follow the current [Quran Foundation developer terms](https://api-docs.quran.foundation/legal/developer-terms/)
+and [content API authentication guidance](https://api-docs.quran.foundation/docs/quickstart/).
+
+To use a different licensed Bible translation instead, set both:
 
 ```bash
 SacredText__ApiBibleKey=your-api-bible-key
@@ -147,7 +163,14 @@ SacredText__ApiBibleBibleId=id-of-a-translation-licensed-for-display
 ```
 
 The Sefaria version is pinned with `SacredText__SefariaVersion`. Daily references are Tanakh
-verses because JPS 1917 covers the Tanakh. Keys stay server-side. Each day's passage is cached
+verses because JPS 1917 covers the Tanakh. The in-app reader's authenticated
+`GET /api/faith/section` endpoint returns one requested chapter/section from only
+that framework's provider. Reusable Hebrew source text is shown only when Sefaria
+returns an approved public-domain or CC-BY license. See [Sefaria's reuse guidance](https://developers.sefaria.org/docs/general-faq).
+`GET/POST/PUT/DELETE /api/faith/annotations` stores
+owner-private notes, highlights, and bookmarks; anchors include the provider
+version and offsets, while quoted source text is not stored. The reader requires
+Migration 035. Keys stay server-side. Each day's passage is cached
 (`SacredText__CacheDuration`, default 6 hours) to respect provider rate limits. The attribution
 returned by the API must be shown with the text. Review the Saheeh International translation's
 terms before production use.
