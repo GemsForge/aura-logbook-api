@@ -93,7 +93,7 @@ export default function SacredTextReader() {
 
   useEffect(() => {
     const passage = dailyPassage.currentData;
-    if (!reference && passage?.framework === framework) setReference(passage.reference);
+    if (!reference && passage && passage.framework === framework) setReference(passage.reference);
   }, [dailyPassage.currentData, framework, reference]);
 
   useEffect(() => {
