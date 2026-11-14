@@ -151,6 +151,29 @@ public sealed class FaithContentTests
         Assert.Equal("Genesis 2", section.NextReference);
     }
 
+    /// <summary>API.Bible adjacent chapters are taken from its chapter-list references.</summary>
+    [Fact]
+    public async Task Api_bible_section_exposes_adjacent_chapter_metadata()
+    {
+        var handler = new StubHandler((request, _) =>
+        {
+            var path = request.RequestUri!.AbsolutePath;
+            var body = path.EndsWith("/books", StringComparison.Ordinal)
+                ? """{"data":[{"id":"GEN","name":"Genesis"}]}"""
+                : path.EndsWith("/chapters", StringComparison.Ordinal)
+                    ? """{"data":[{"number":"1","reference":"Genesis 1"},{"number":"2","reference":"Genesis 2"},{"number":"3","reference":"Genesis 3"}]}"""
+                    : """{"data":{"content":[{"name":"verse","attrs":{"number":1},"items":[{"text":"Text"}]}],"reference":"Genesis 2","copyright":"Public"}}""";
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body) };
+        });
+        var options = Options.Create(new SacredTextOptions { ApiBibleKey = "key", ApiBibleBibleId = "bible-id" });
+
+        var section = await new ApiBibleProvider(new StubFactory(handler), options)
+            .GetSectionAsync("Genesis 2", CancellationToken.None);
+
+        Assert.Equal("Genesis 1", section.PreviousReference);
+        Assert.Equal("Genesis 3", section.NextReference);
+    }
+
     /// <summary>Displays CC-BY-SA Hebrew with RTL metadata and explicit version, license, and deed attribution.</summary>
     [Theory]
     [InlineData("CC-BY-SA")]
@@ -261,8 +284,25 @@ public sealed class FaithContentTests
 
     private static async Task<SacredTextSectionDto> SefariaSectionWithLicense(string? license)
     {
-        var licenseProperty = license is null ? "" : $",\"license\":{System.Text.Json.JsonSerializer.Serialize(license)}";
-        var body = $"""{{"ref":"Genesis 1","versions":[{{"text":["English wording"],"versionTitle":"The Holy Scriptures: A New Translation (JPS 1917)","license":"Public Domain","language":"en"}},{{"text":["עברית"],"versionTitle":"Hebrew Masorah Edition","language":"he"{licenseProperty}}}]}}""";
+        var englishVersion = new Dictionary<string, object>
+        {
+            ["text"] = new[] { "English wording" },
+            ["versionTitle"] = "The Holy Scriptures: A New Translation (JPS 1917)",
+            ["license"] = "Public Domain",
+            ["language"] = "en",
+        };
+        var hebrewVersion = new Dictionary<string, object>
+        {
+            ["text"] = new[] { "עברית" },
+            ["versionTitle"] = "Hebrew Masorah Edition",
+            ["language"] = "he",
+        };
+        if (license is not null) hebrewVersion["license"] = license;
+        var body = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+        {
+            ["ref"] = "Genesis 1",
+            ["versions"] = new[] { englishVersion, hebrewVersion },
+        });
         return await new SefariaProvider(new StubFactory(new StubHandler(HttpStatusCode.OK, body)), Options.Create(new SacredTextOptions()))
             .GetSectionAsync("Genesis 1", CancellationToken.None);
     }
