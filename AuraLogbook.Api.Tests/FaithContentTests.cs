@@ -57,12 +57,13 @@ public sealed class FaithContentTests
     {
         var handler = new StubHandler(HttpStatusCode.OK,
             """{"data":{"content":"  <span>The LORD is my shepherd;</span> I shall not want.  ","copyright":"Public domain"}}""");
-        var options = new SacredTextOptions { ApiBibleKey = "server-key", ApiBibleBibleId = "de4e12af7f28f599-02" };
+        var options = new SacredTextOptions { ApiBibleKey = "server-key", ApiBibleBibleId = "de4e12af7f28f599-02", ApiBibleTranslationName = "Licensed Edition" };
 
         var passage = await Service(handler, options).GetDailyAsync("Christian", Day, CancellationToken.None);
 
         Assert.NotNull(passage);
         Assert.Equal("christian", passage.Framework);
+        Assert.Equal("Licensed Edition", passage.Translation);
         Assert.Equal("The LORD is my shepherd; I shall not want.", passage.Text);
         Assert.Contains("API.Bible", passage.Attribution);
         Assert.Equal("server-key", handler.LastRequest!.Headers.GetValues("api-key").Single());

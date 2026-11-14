@@ -80,8 +80,10 @@ public sealed class SacredTextOptions
     /// World English Bible via bible-api.com, which needs no key or license agreement.
     /// </summary>
     public string? ApiBibleKey { get; set; }
-    /// <summary>API.Bible Bible ID for a translation whose license permits display in this app.</summary>
+    /// <summary>API.Bible Bible ID for a translation whose license permits display in this app; keep unset until FUMS tracks each displayed reading.</summary>
     public string? ApiBibleBibleId { get; set; }
+    /// <summary>Human-readable API.Bible edition title shown to readers; falls back to the configured Bible ID when unset.</summary>
+    public string? ApiBibleTranslationName { get; set; }
     public string ApiBibleBaseUrl { get; set; } = "https://api.scripture.api.bible/v1";
     /// <summary>Legacy public Quran.com endpoint retained for setups without Quran Foundation credentials.</summary>
     public string QuranBaseUrl { get; set; } = "https://api.quran.com/api/v4";
@@ -186,7 +188,8 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         var copyright = data.TryGetProperty("copyright", out var c) ? ProviderText.Clean(c.GetString() ?? "") : "";
         var text = ProviderText.Clean(content.GetString() ?? "");
         if (text.Length == 0) throw ProviderText.Unusable("API.Bible");
-        return new SacredPassageDto(Framework, display, text, o.ApiBibleBibleId,
+        var translationName = string.IsNullOrWhiteSpace(o.ApiBibleTranslationName) ? o.ApiBibleBibleId : o.ApiBibleTranslationName.Trim();
+        return new SacredPassageDto(Framework, display, text, translationName,
             string.IsNullOrWhiteSpace(copyright) ? "Scripture via API.Bible" : $"{copyright} Provided by API.Bible.",
             $"https://www.bible.com/search/bible?q={Uri.EscapeDataString(display)}");
     }
@@ -240,8 +243,9 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         var copyright = data.TryGetProperty("copyright", out var copyrightValue) ? ProviderText.Clean(copyrightValue.GetString() ?? "") : "";
         var attribution = string.IsNullOrWhiteSpace(copyright) ? "Scripture via API.Bible." : $"{copyright} Provided by API.Bible.";
         var bibleId = o.ApiBibleBibleId;
+        var translationName = string.IsNullOrWhiteSpace(o.ApiBibleTranslationName) ? bibleId : o.ApiBibleTranslationName.Trim();
         var sourceUrl = $"https://www.bible.com/search/bible?q={Uri.EscapeDataString(display)}";
-        return new SacredTextSectionDto(Framework, display, bibleId, bibleId, attribution, sourceUrl,
+        return new SacredTextSectionDto(Framework, display, translationName, bibleId, attribution, sourceUrl,
             "en", "ltr", null, null, segments, previousReference, nextReference);
     }
 
