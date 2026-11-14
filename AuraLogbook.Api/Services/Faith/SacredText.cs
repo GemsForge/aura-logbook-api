@@ -297,8 +297,7 @@ public sealed partial class QuranProvider(IHttpClientFactory factory, IOptions<S
     /// <inheritdoc />
     public async Task<SacredTextSectionDto> GetSectionAsync(string reference, CancellationToken cancellationToken)
     {
-        var match = QuranReferencePattern().Match(reference);
-        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var chapter) || chapter is < 1 or > 114)
+        if (!TryParseSectionReference(reference, out var chapter))
             throw new ArgumentException("Provide a Quran surah number from 1 through 114.", nameof(reference));
 
         var o = options.Value;
@@ -333,6 +332,14 @@ public sealed partial class QuranProvider(IHttpClientFactory factory, IOptions<S
             $"quran.com:translation-{o.QuranTranslationId}:uthmani",
             "Quran data provided by Quran.Foundation. Saheeh International translation via Quran.com.", $"https://quran.com/{chapter}",
             "en", "ltr", "ar", "rtl", verses);
+    }
+
+    /// <summary>Parses and bounds one fully anchored Quran section reference.</summary>
+    internal static bool TryParseSectionReference(string reference, out int chapter)
+    {
+        var match = QuranReferencePattern().Match(reference);
+        chapter = match.Success && int.TryParse(match.Groups[1].Value, out var parsed) ? parsed : 0;
+        return match.Success && chapter is >= 1 and <= 114;
     }
 
     /// <summary>Matches a complete optional-labeled surah reference with an optional verse suffix.</summary>
@@ -502,6 +509,9 @@ internal static class SacredTextReferenceParser
         return normalizedSegment.StartsWith($"{normalizedSection}:", StringComparison.OrdinalIgnoreCase)
             || normalizedSegment.StartsWith($"{normalizedSection}.", StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>Canonicalizes Quran references into a surah number for section cache keys.</summary>
+    public static bool TryParseQuranSection(string reference, out int chapter) => QuranProvider.TryParseSectionReference(reference, out chapter);
 }
 
 /// <summary>Converts provider section structures into stable verse/segment anchors.</summary>
@@ -580,6 +590,37 @@ public sealed class SacredTextService(IEnumerable<ISacredTextProvider> providers
     {
         var key = FaithFrameworks.Normalize(framework);
         return key is not null && _providers.TryGetValue(key, out var provider) ? provider : null;
+    }
+
+    /// <summary>Gets and caches one successful section for exactly the selected framework and configured source version.</summary>
+    public async Task<SacredTextSectionDto?> GetSectionAsync(string? framework, string reference, CancellationToken cancellationToken)
+    {
+        var key = FaithFrameworks.Normalize(framework);
+        if (key is null || !_providers.TryGetValue(key, out var provider)) return null;
+        var sectionReference = NormalizeSectionReference(key, reference);
+        var configuredVersion = key switch
+        {
+            FaithFrameworks.Christian => !string.IsNullOrWhiteSpace(options.Value.ApiBibleKey) && !string.IsNullOrWhiteSpace(options.Value.ApiBibleBibleId)
+                ? $"api-bible:{options.Value.ApiBibleBibleId}" : $"bible-api:{options.Value.PublicDomainBibleTranslation}",
+            FaithFrameworks.Muslim => $"quran:{options.Value.QuranTranslationId}:uthmani",
+            FaithFrameworks.Jewish => $"sefaria:{options.Value.SefariaVersion}:hebrew",
+            _ => "",
+        };
+        var cacheKey = $"sacred-section:{key}:{configuredVersion}:{sectionReference}";
+        if (cache.TryGetValue(cacheKey, out SacredTextSectionDto? cached)) return cached;
+        var section = await provider.GetSectionAsync(reference, cancellationToken);
+        cache.Set(cacheKey, section, options.Value.CacheDuration);
+        return section;
+    }
+
+    /// <summary>Canonicalizes section-only references so equivalent links reuse one cache entry.</summary>
+    private static string NormalizeSectionReference(string framework, string reference)
+    {
+        if (framework == FaithFrameworks.Muslim && SacredTextReferenceParser.TryParseQuranSection(reference, out var chapter))
+            return chapter.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (SacredTextReferenceParser.TryParseBookChapter(reference, out var book, out var bookChapter))
+            return $"{book.ToUpperInvariant()} {bookChapter}";
+        return Regex.Replace(reference.Trim(), @"\s+", " ").ToUpperInvariant();
     }
 
     /// <summary>

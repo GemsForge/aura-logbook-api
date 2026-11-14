@@ -122,6 +122,51 @@ public sealed class FaithContentTests
         Assert.Equal(1, handler.Calls);
     }
 
+    /// <summary>#410: normalized equivalent section references reuse the successful cached section.</summary>
+    [Fact]
+    public async Task Sacred_text_section_is_cached_by_normalized_reference()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK,
+            """{"ref":"Genesis 1","versions":[{"text":["Text"],"versionTitle":"JPS 1917","license":"Public Domain","language":"en"}]}""");
+        var service = Service(handler, new SacredTextOptions());
+
+        await service.GetSectionAsync("jewish", "Genesis 1", CancellationToken.None);
+        await service.GetSectionAsync("JEWISH", " Genesis   1 ", CancellationToken.None);
+
+        Assert.Equal(1, handler.Calls);
+    }
+
+    /// <summary>Framework and section identity remain independent cache dimensions.</summary>
+    [Fact]
+    public async Task Sacred_text_sections_do_not_share_cache_entries_between_frameworks_or_references()
+    {
+        const string response = """{"reference":"Genesis 1","translation_name":"WEB","verses":[{"verse":1,"text":"Text"}],"ref":"Genesis 1","versions":[{"text":["Text"],"versionTitle":"JPS 1917","license":"Public Domain","language":"en"}]}""";
+        var handler = new StubHandler(HttpStatusCode.OK, response);
+        var service = Service(handler, new SacredTextOptions());
+
+        await service.GetSectionAsync("christian", "Genesis 1", CancellationToken.None);
+        await service.GetSectionAsync("christian", "Genesis 2", CancellationToken.None);
+        await service.GetSectionAsync("jewish", "Genesis 1", CancellationToken.None);
+
+        Assert.Equal(3, handler.Calls);
+    }
+
+    /// <summary>A provider failure is never retained in the in-memory section cache.</summary>
+    [Fact]
+    public async Task Failed_sacred_text_sections_are_not_cached()
+    {
+        const string response = """{"ref":"Genesis 1","versions":[{"text":["Text"],"versionTitle":"JPS 1917","license":"Public Domain","language":"en"}]}""";
+        var handler = new StubHandler((_, calls) => new HttpResponseMessage(calls == 1
+            ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK) { Content = new StringContent(response) });
+        var service = Service(handler, new SacredTextOptions());
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => service.GetSectionAsync("jewish", "Genesis 1", CancellationToken.None));
+        Assert.NotNull(await service.GetSectionAsync("jewish", "Genesis 1", CancellationToken.None));
+
+        Assert.Equal(2, handler.Calls);
+
+    }
+
     /// <summary>#410: Quran section parsing accepts only complete, bounded surah references.</summary>
     [Theory]
     [InlineData("2", "Qur’an 2")]
@@ -170,6 +215,10 @@ public sealed class FaithContentTests
 
     private sealed class StubHandler(HttpStatusCode status, string body) : HttpMessageHandler
     {
+        private readonly Func<HttpRequestMessage, int, HttpResponseMessage>? _responseFactory;
+
+        public StubHandler(Func<HttpRequestMessage, int, HttpResponseMessage> responseFactory) : this(HttpStatusCode.OK, "") => _responseFactory = responseFactory;
+
         public int Calls { get; private set; }
         public HttpRequestMessage? LastRequest { get; private set; }
 
@@ -177,7 +226,7 @@ public sealed class FaithContentTests
         {
             Calls++;
             LastRequest = request;
-            return Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(body) });
+            return Task.FromResult(_responseFactory?.Invoke(request, Calls) ?? new HttpResponseMessage(status) { Content = new StringContent(body) });
         }
     }
 }
