@@ -135,14 +135,12 @@ and progressive disclosure for optional writing.
 ### Embedded sacred-text reader (requested extension)
 
 The [embedded reader experience](sacred-text-reader.md) supersedes the earlier
-link-out-only target for full readings. The daily card currently displays a
-passage with source links; the full reader is still planned. Its primary action
-should open the matching text inside Aura with chapter/section navigation,
-highlights, private notes, bookmarks, text-size controls, and personal-note
-exports. A custom Aura reader shell with a reusable annotation package is the
-recommended direction; package selection and persistence contracts require a
-focused prototype. Framework source matching and the general quote fallback
-remain unchanged.
+link-out-only target for full readings. The daily card opens the matching text
+inside Aura with chapter/section navigation, highlights, private notes,
+bookmarks, text-size controls, explicit journal saving, and personal-note
+exports. Recogito provides text selection within the Aura-owned reader; the
+authenticated API owns private, source-version-bound annotations. Framework
+source matching and the general quote fallback remain unchanged.
 
 ### Proposed recap history
 

@@ -1,5 +1,6 @@
 import { Box, Button, Skeleton, Typography } from "@mui/joy";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
+import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
 import { useGetSacredPassageQuery } from "@/store/auraApi";
 import { FAITH_RESOURCES } from "../pathwayResources";
 import { dailyFaithQuote } from "../dailyQuote";
@@ -73,8 +74,11 @@ export function SacredTextView({ framework, publisher }: SacredTextViewProps) {
         </Box>
       </Box>
       {reading && <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, py: 1.5, borderBottom: "1px solid var(--al-theme-border)" }}>
-        {/* The full embedded reader is separate work; these remain honest, explicitly external actions. */}
-        <Button component="a" href={reading.readingUrl} target="_blank" rel="noreferrer" size="sm" variant="soft" endDecorator={<OpenInNewRounded />} sx={{ whiteSpace: "normal" }}>
+        {/* Keep the primary action in Aura; publisher links remain available for attribution and further study. */}
+        <Button component="a" href={`/pathways/sacred-texts/reader?reference=${encodeURIComponent(reading.reference)}`} size="sm" variant="solid" startDecorator={<MenuBookRounded />} sx={{ whiteSpace: "normal" }}>
+          Read in Aura
+        </Button>
+        <Button component="a" href={reading.readingUrl} target="_blank" rel="noreferrer" size="sm" variant="plain" endDecorator={<OpenInNewRounded />} sx={{ whiteSpace: "normal" }}>
           Read passage at source
         </Button>
         {selectedPublisher && <Button component="a" href={selectedPublisher.url} target="_blank" rel="noreferrer" size="sm" variant="plain" sx={{ whiteSpace: "normal" }}>

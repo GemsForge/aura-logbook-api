@@ -110,6 +110,8 @@ builder.Services.AddScoped<IAuraSeasonRepository, SqliteAuraSeasonRepository>();
 // #389: private, pathway-tagged practice and insight-feedback records.
 builder.Services.AddScoped<IPathwayActivityRepository, SqlitePathwayActivityRepository>();
 builder.Services.AddScoped<IPathwayActivityService, PathwayActivityService>();
+// #410: owner-scoped reader annotations and bookmarks stay in relational storage.
+builder.Services.AddScoped<ISacredTextAnnotationRepository, SqliteSacredTextAnnotationRepository>();
 if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
     builder.Services.AddScoped<IFileZodiacInsightsRepository, SqliteZodiacInsightsRepository>();
 else

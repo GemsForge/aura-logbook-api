@@ -65,10 +65,9 @@ optional and unanswered practices remain unanswered.
 
 ## Separate capabilities
 
-The [embedded sacred-text reader](sacred-text-reader.md), including full-text
-navigation, highlights, notes, and exports, remains story #410. This visual
-update preserves explicitly external source links rather than displaying
-nonfunctional reader controls. The richer reading-specific check-in and durable
+The [embedded sacred-text reader](sacred-text-reader.md) is a separate Aura
+destination tracked by story #410. This module view opens that in-app reader and
+keeps publisher links secondary. The richer reading-specific check-in and durable
 recap snapshots remain described in the [daily astrology experience](daily-astrology-experience.md)
-and [recap data plan](pathway-recap-data-plan.md); this update does not simulate
-their persistence.
+and [recap data plan](pathway-recap-data-plan.md); opening a section does not
+simulate practice completion or recap persistence.
