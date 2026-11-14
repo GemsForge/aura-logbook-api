@@ -159,10 +159,8 @@ public sealed class FaithContentTests
         {
             var path = request.RequestUri!.AbsolutePath;
             var body = path.EndsWith("/books", StringComparison.Ordinal)
-                ? """{"data":[{"id":"GEN","name":"Genesis"}]}"""
-                : path.EndsWith("/chapters", StringComparison.Ordinal)
-                    ? """{"data":[{"number":"1","reference":"Genesis 1"},{"number":"2","reference":"Genesis 2"},{"number":"3","reference":"Genesis 3"}]}"""
-                    : """{"data":{"content":[{"name":"verse","attrs":{"number":1},"items":[{"text":"Text"}]}],"reference":"Genesis 2","copyright":"Public"}}""";
+                ? """{"data":[{"id":"GEN","name":"Genesis","chapters":[{"bookId":"GEN","number":"1","reference":"Genesis 1"},{"bookId":"GEN","number":"2","reference":"Genesis 2"},{"bookId":"GEN","number":"3","reference":"Genesis 3"}]}]}"""
+                : """{"data":{"content":[{"name":"verse","attrs":{"number":1},"items":[{"text":"Text"}]}],"reference":"Genesis 2","copyright":"Public"}}""";
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body) };
         });
         var options = Options.Create(new SacredTextOptions { ApiBibleKey = "key", ApiBibleBibleId = "bible-id" });

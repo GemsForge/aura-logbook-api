@@ -207,7 +207,7 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
 
         var client = factory.CreateClient(nameof(ApiBibleProvider));
         using var booksRequest = new HttpRequestMessage(HttpMethod.Get,
-            $"{o.ApiBibleBaseUrl.TrimEnd('/')}/bibles/{Uri.EscapeDataString(o.ApiBibleBibleId)}/books");
+            $"{o.ApiBibleBaseUrl.TrimEnd('/')}/bibles/{Uri.EscapeDataString(o.ApiBibleBibleId)}/books?include-chapters=true");
         booksRequest.Headers.Add("api-key", o.ApiBibleKey);
         var booksRoot = await ProviderText.GetJsonAsync(client, booksRequest, cancellationToken);
         if (!booksRoot.TryGetProperty("data", out var books) || books.ValueKind != JsonValueKind.Array)
@@ -219,14 +219,13 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
             throw new HttpRequestException("The selected Bible does not contain that book.", null, HttpStatusCode.NotFound);
 
         var bookIdentifier = id.GetString() ?? "";
-        using var chaptersRequest = new HttpRequestMessage(HttpMethod.Get,
-            $"{o.ApiBibleBaseUrl.TrimEnd('/')}/bibles/{Uri.EscapeDataString(o.ApiBibleBibleId)}/books/{Uri.EscapeDataString(bookIdentifier)}/chapters");
-        chaptersRequest.Headers.Add("api-key", o.ApiBibleKey);
-        var chaptersRoot = await ProviderText.GetJsonAsync(client, chaptersRequest, cancellationToken);
-        var chapterItems = chaptersRoot.TryGetProperty("data", out var chapterData) && chapterData.ValueKind == JsonValueKind.Array
-            ? chapterData.EnumerateArray().ToList() : [];
+        var chapterItems = books.EnumerateArray()
+            .Where(bookItem => bookItem.TryGetProperty("chapters", out var nested) && nested.ValueKind == JsonValueKind.Array)
+            .SelectMany(bookItem => bookItem.GetProperty("chapters").EnumerateArray())
+            .ToList();
         var chapterIndex = chapterItems.FindIndex(item =>
-            item.TryGetProperty("number", out var number) && int.TryParse(number.ToString(), out var chapterNumber) && chapterNumber == chapter);
+            item.TryGetProperty("bookId", out var chapterBook) && string.Equals(chapterBook.GetString(), bookIdentifier, StringComparison.OrdinalIgnoreCase)
+            && item.TryGetProperty("number", out var number) && int.TryParse(number.ToString(), out var chapterNumber) && chapterNumber == chapter);
         var previousReference = chapterIndex > 0 ? ApiBibleChapterReference(chapterItems[chapterIndex - 1]) : null;
         var nextReference = chapterIndex >= 0 && chapterIndex + 1 < chapterItems.Count ? ApiBibleChapterReference(chapterItems[chapterIndex + 1]) : null;
 
