@@ -104,7 +104,8 @@ public sealed class FaithAnnotationsControllerTests
         });
         repository.Setup(value => value.UpdateAsync(42, 90, "revised", It.IsAny<DateTime>())).ReturnsAsync(true);
         var request = JsonSerializer.Deserialize<SacredTextAnnotationUpdateRequest>(
-            """{"note":"revised","framework":"jewish","sectionReference":"Exodus 2","sourceVersion":"other"}""")!;
+            """{"note":"revised","framework":"jewish","sectionReference":"Exodus 2","sourceVersion":"other"}""",
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
 
         var response = await Controller(repository, 42).Update(90, request);
 
