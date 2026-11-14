@@ -77,8 +77,8 @@ public sealed class SacredTextOptions
     public const string SectionName = "SacredText";
 
     /// <summary>
-    /// Optional API.Bible key. When empty, the Christian passage comes from the public-domain
-    /// World English Bible via bible-api.com, which needs no key or license agreement.
+    /// Optional API.Bible key. Keep unset until the client tracks each displayed reading with FUMS;
+    /// when empty, Christian text comes from the public-domain World English Bible via bible-api.com.
     /// </summary>
     public string? ApiBibleKey { get; set; }
     /// <summary>API.Bible Bible ID for a translation whose license permits display in this app; keep unset until FUMS tracks each displayed reading.</summary>
@@ -582,6 +582,7 @@ internal static class SacredTextChapterParser
         return result;
     }
 
+    /// <summary>Recursively collects API.Bible verse text while preserving provider verse identifiers.</summary>
     private static void ReadApiBibleItems(JsonElement element, int currentVerse, SortedDictionary<int, string> fragments)
     {
         if (element.ValueKind == JsonValueKind.Array)
@@ -615,6 +616,7 @@ internal static class SacredTextChapterParser
         if (element.TryGetProperty("items", out var children)) ReadApiBibleItems(children, currentVerse, fragments);
     }
 
+    /// <summary>Recursively flattens Sefaria's nested text arrays without transforming source strings.</summary>
     private static void Flatten(JsonElement value, List<string> result)
     {
         if (value.ValueKind == JsonValueKind.Array)

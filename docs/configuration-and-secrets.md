@@ -165,7 +165,13 @@ To use a different licensed Bible translation instead, set both:
 ```bash
 SacredText__ApiBibleKey=your-api-bible-key
 SacredText__ApiBibleBibleId=id-of-a-translation-licensed-for-display
+SacredText__ApiBibleTranslationName=Human-readable licensed edition title
 ```
+
+API.Bible remains disabled by default. Do not configure its key until client-side
+FUMS tracking records each displayed reading, as required by the
+[core user journey](ux/core-user-journeys.md). The translation name is optional
+and falls back to the Bible ID when omitted.
 
 The Sefaria version is pinned with `SacredText__SefariaVersion`. Daily references are Tanakh
 verses because JPS 1917 covers the Tanakh. The in-app reader's authenticated
