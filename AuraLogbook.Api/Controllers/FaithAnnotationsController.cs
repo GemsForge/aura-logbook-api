@@ -71,7 +71,11 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
                 return "Choose a verse or segment reference for this annotation.";
             if (!SacredTextReferenceParser.SegmentBelongsToSection(request.SectionReference, request.SegmentReference))
                 return "The selected segment must belong to the chosen section.";
+            if (request.AnchorHash is null || !System.Text.RegularExpressions.Regex.IsMatch(request.AnchorHash, "^[a-f0-9]{64}$"))
+                return "Provide a lowercase SHA-256 anchor hash for the selected text.";
         }
+        else if (request.AnchorHash is not null)
+            return "Only highlights and notes can have a text anchor hash.";
         if (request.EndOffset < request.StartOffset || ((request.Kind is "highlight" or "note") && request.EndOffset == request.StartOffset))
             return "Provide a valid text range.";
         if (request.Kind == "note" && string.IsNullOrWhiteSpace(request.Note))
@@ -93,6 +97,7 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
         StartOffset = request.StartOffset,
         EndOffset = request.EndOffset,
         SegmentReference = string.IsNullOrWhiteSpace(request.SegmentReference) ? null : request.SegmentReference.Trim(),
+        AnchorHash = request.AnchorHash,
         Note = request.Kind == "note" ? request.Note!.Trim() : null,
         CreatedAt = createdAt,
         UpdatedAt = updatedAt

@@ -35,10 +35,26 @@ public sealed class FaithAnnotationValidationTests
         repository.VerifyNoOtherCalls();
     }
 
+    /// <summary>Rejects anchor hashes that are not lowercase hexadecimal SHA-256 values.</summary>
+    [Theory]
+    [InlineData("")]
+    [InlineData("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")]
+    [InlineData("xyz")]
+    public async Task Create_rejects_invalid_anchor_hash(string hash)
+    {
+        var repository = new Mock<ISacredTextAnnotationRepository>();
+        var request = Request("highlight", "Genesis 1:1");
+        request.AnchorHash = hash;
+
+        Assert.IsType<BadRequestObjectResult>(await Controller(repository).Create(request));
+        repository.VerifyNoOtherCalls();
+    }
+
     private static SacredTextAnnotationRequest Request(string kind, string? segmentReference) => new()
     {
         Framework = "christian", SectionReference = "Genesis 1", SourceVersion = "WEB:v1", Language = "en",
         Kind = kind, StartOffset = 0, EndOffset = 2, SegmentReference = segmentReference,
+        AnchorHash = new string('a', 64),
         Note = kind == "note" ? "A note" : null,
     };
 

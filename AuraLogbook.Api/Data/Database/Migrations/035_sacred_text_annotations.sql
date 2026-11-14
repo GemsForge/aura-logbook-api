@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS SacredTextAnnotations (
     StartOffset INTEGER NOT NULL CHECK (StartOffset >= 0),
     EndOffset INTEGER NOT NULL CHECK (EndOffset >= StartOffset),
     SegmentReference TEXT NULL CHECK (SegmentReference IS NULL OR length(SegmentReference) <= 120),
+    AnchorHash TEXT NULL CHECK (AnchorHash IS NULL OR length(AnchorHash) = 64),
     Note TEXT NULL CHECK (Note IS NULL OR length(Note) <= 2000),
     CreatedAt TEXT NOT NULL,
     UpdatedAt TEXT NOT NULL,

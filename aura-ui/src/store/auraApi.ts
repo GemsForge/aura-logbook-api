@@ -52,7 +52,7 @@ export type SacredTextSection = {
   segments: SacredTextSegment[];
 };
 
-/** Persisted private note, highlight, or bookmark with a version-specific text-position anchor. */
+/** Persisted private note, highlight, or bookmark with segment-relative offsets and an optional drift hash. */
 export type SacredTextAnnotation = {
   id: number;
   framework: "christian" | "muslim" | "jewish";
@@ -63,6 +63,7 @@ export type SacredTextAnnotation = {
   startOffset: number;
   endOffset: number;
   segmentReference?: string | null;
+  anchorHash?: string | null;
   note?: string | null;
   createdAt: string;
   updatedAt: string;
