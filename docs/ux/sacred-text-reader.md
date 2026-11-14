@@ -73,6 +73,9 @@ fits; add new typed contracts before saving new activity shapes.
 
 ## Acceptance and verification
 
+For repeatable visual and accessibility reviews, use the
+[Sacred text reader review checklist](sacred-text-reader-review-checklist.md).
+
 1. A daily passage opens inside Aura at the correct source location; navigation
    never mixes frameworks, languages, or translations.
 2. Highlight and note creation/edit/deletion work by text selection or the
