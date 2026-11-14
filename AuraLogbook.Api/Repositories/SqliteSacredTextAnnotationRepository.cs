@@ -56,16 +56,14 @@ public sealed class SqliteSacredTextAnnotationRepository : ISacredTextAnnotation
     }
 
     /// <inheritdoc />
-    public async Task<bool> UpdateAsync(SacredTextAnnotation annotation)
+    public async Task<bool> UpdateAsync(int userId, int id, string? note, DateTime updatedAt)
     {
         using var connection = _factory.CreateConnection();
         return await connection.ExecuteAsync("""
             UPDATE SacredTextAnnotations
-            SET Framework = @Framework, SectionReference = @SectionReference, SourceVersion = @SourceVersion,
-                Language = @Language, Kind = @Kind, StartOffset = @StartOffset, EndOffset = @EndOffset,
-                SegmentReference = @SegmentReference, Note = @Note, UpdatedAt = @UpdatedAt
-            WHERE UserId = @UserId AND Id = @Id;
-            """, annotation) == 1;
+            SET Note = @note, UpdatedAt = @updatedAt
+            WHERE UserId = @userId AND Id = @id;
+            """, new { userId, id, note, updatedAt }) == 1;
     }
 
     /// <inheritdoc />

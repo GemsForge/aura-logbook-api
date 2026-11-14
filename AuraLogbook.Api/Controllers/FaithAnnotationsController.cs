@@ -38,16 +38,15 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
 
     /// <summary>Updates a private annotation only when its ID belongs to the signed-in user.</summary>
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] SacredTextAnnotationRequest request)
+    public async Task<IActionResult> Update(int id, [FromBody] SacredTextAnnotationUpdateRequest request)
     {
-        var validation = Validate(request);
-        if (validation is not null) return BadRequest(validation);
         var ownerId = GetUserId();
         var existing = await repository.GetByIdAsync(ownerId, id);
         if (existing is null) return NotFound("Reader annotation not found.");
-        var updated = Map(ownerId, request, existing.CreatedAt, DateTime.UtcNow);
-        updated.Id = id;
-        return await repository.UpdateAsync(updated) ? NoContent() : NotFound("Reader annotation not found.");
+        var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
+        if (existing.Kind == "note" && note is null) return BadRequest("A private note cannot be empty.");
+        if (existing.Kind != "note" && note is not null) return BadRequest("Only a note annotation can contain note text.");
+        return await repository.UpdateAsync(ownerId, id, note, DateTime.UtcNow) ? NoContent() : NotFound("Reader annotation not found.");
     }
 
     /// <summary>Deletes an annotation only when its ID belongs to the signed-in user.</summary>

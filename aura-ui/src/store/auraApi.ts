@@ -73,6 +73,9 @@ export type SacredTextAnnotationInput = Omit<SacredTextAnnotation, "id" | "creat
   framework: SacredTextAnnotation["framework"];
 };
 
+/** The only mutable field after a reader annotation has been anchored. */
+export type SacredTextAnnotationUpdate = Pick<SacredTextAnnotation, "note">;
+
 /** Pathway reflection returned for one exact selected mood combination. */
 export type MoodCombinationInterpretation = {
   combinationId: string;
@@ -131,7 +134,7 @@ export const auraApi = createApi({
       invalidatesTags: ["SacredTextAnnotations"],
     }),
     /** Updates one private note or anchor through the owner-scoped API. */
-    updateSacredTextAnnotation: build.mutation<void, { id: number; body: SacredTextAnnotationInput }>({
+    updateSacredTextAnnotation: build.mutation<void, { id: number; body: SacredTextAnnotationUpdate }>({
       query: ({ id, body }) => ({ url: `/faith/annotations/${id}`, method: "PUT", body }),
       invalidatesTags: ["SacredTextAnnotations"],
     }),
