@@ -137,7 +137,7 @@ export const auraApi = createApi({
       query: (body) => ({ url: "/faith/annotations", method: "POST", body }),
       invalidatesTags: ["SacredTextAnnotations"],
     }),
-    /** Updates one private note or anchor through the owner-scoped API. */
+    /** Updates only the owner-authored note; the persisted source identity and segment anchor never change. */
     updateSacredTextAnnotation: build.mutation<void, { id: number; body: SacredTextAnnotationUpdate }>({
       query: ({ id, body }) => ({ url: `/faith/annotations/${id}`, method: "PUT", body }),
       invalidatesTags: ["SacredTextAnnotations"],

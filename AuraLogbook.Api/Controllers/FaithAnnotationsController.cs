@@ -18,20 +18,22 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
     [HttpGet]
     public async Task<IActionResult> GetMine([FromQuery] string? framework, [FromQuery] string? sectionReference)
     {
+        if (GetUserId() is not int userId) return Unauthorized();
         var normalized = FaithFrameworks.Normalize(framework);
         if (normalized is null) return BadRequest("Choose a supported sacred-text framework.");
         if (sectionReference?.Length > 120) return BadRequest("The section reference is too long.");
-        return Ok(await repository.GetByUserAsync(GetUserId(), normalized, sectionReference));
+        return Ok(await repository.GetByUserAsync(userId, normalized, sectionReference));
     }
 
     /// <summary>Creates a private highlight, note, or bookmark without storing quoted source text.</summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] SacredTextAnnotationRequest request)
     {
+        if (GetUserId() is not int userId) return Unauthorized();
         var validation = Validate(request);
         if (validation is not null) return BadRequest(validation);
         var now = DateTime.UtcNow;
-        var annotation = Map(GetUserId(), request, now, now);
+        var annotation = Map(userId, request, now, now);
         annotation.Id = await repository.CreateAsync(annotation);
         return CreatedAtAction(nameof(GetMine), new { framework = annotation.Framework, sectionReference = annotation.SectionReference }, annotation);
     }
@@ -40,7 +42,7 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] SacredTextAnnotationUpdateRequest request)
     {
-        var ownerId = GetUserId();
+        if (GetUserId() is not int ownerId) return Unauthorized();
         var existing = await repository.GetByIdAsync(ownerId, id);
         if (existing is null) return NotFound("Reader annotation not found.");
         var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
@@ -51,9 +53,11 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
 
     /// <summary>Deletes an annotation only when its ID belongs to the signed-in user.</summary>
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id) => await repository.DeleteAsync(GetUserId(), id)
-        ? NoContent()
-        : NotFound("Reader annotation not found.");
+    public async Task<IActionResult> Delete(int id)
+    {
+        if (GetUserId() is not int userId) return Unauthorized();
+        return await repository.DeleteAsync(userId, id) ? NoContent() : NotFound("Reader annotation not found.");
+    }
 
     /// <summary>Checks supported keys, offset bounds, and note content before persistence.</summary>
     private static string? Validate(SacredTextAnnotationRequest request)
@@ -104,11 +108,12 @@ public sealed class FaithAnnotationsController(ISacredTextAnnotationRepository r
     };
 
     /// <summary>Reads the account ID from the validated bearer token.</summary>
-    private int GetUserId()
+    /// <summary>Returns the authenticated account ID or null when the bearer identity is missing or malformed.</summary>
+    private int? GetUserId()
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier);
         return claim is not null && int.TryParse(claim.Value, out var id)
             ? id
-            : throw new UnauthorizedAccessException("Invalid or missing user ID in token.");
+            : null;
     }
 }
