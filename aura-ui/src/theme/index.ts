@@ -224,6 +224,12 @@ export function getAuraJoyTheme(
       plainColor: tokens.ink,
       outlinedColor: tokens.ink,
       outlinedBorder: tokens.controlBorder,
+      // Outlined neutral controls (Select, Input, Autocomplete) otherwise hover on Joy's light default,
+      // which leaves light ink unreadable on a near-white fill in the dark themes.
+      outlinedHoverBg: tokens.surfaceRaised,
+      outlinedActiveBg: tokens.surfaceRaised,
+      outlinedHoverColor: tokens.ink,
+      outlinedHoverBorder: tokens.controlBorder,
       // Soft neutral controls (e.g. quick mood buttons) must sit on a themed fill, or Joy's
       // light default leaves light ink on a light button in the dark themes.
       softBg: tokens.surfaceRaised,

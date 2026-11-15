@@ -12,6 +12,7 @@ export function SacredTextNotesPanel({
   onExport,
   onPrint,
   onEdit,
+  onGoTo,
   onDelete,
   onToggle,
 }: {
@@ -22,6 +23,8 @@ export function SacredTextNotesPanel({
   onExport(format: "markdown" | "json", annotationIds?: number[]): void;
   onPrint(): void;
   onEdit(annotation: SacredTextAnnotation): void;
+  /** Opens the passage the item was saved on (its section and verse). */
+  onGoTo(annotation: SacredTextAnnotation): void;
   onDelete(annotation: SacredTextAnnotation): void;
   onToggle(): void;
 }) {
@@ -57,6 +60,7 @@ export function SacredTextNotesPanel({
           <Typography level="body-xs" sx={{ color: "var(--al-theme-primary)" }}>{annotation.segmentReference ?? annotation.sectionReference} · {annotation.kind}</Typography>
           {annotation.note && <Typography level="body-sm" sx={{ mt: .5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{annotation.note}</Typography>}
           <Box className="sacred-reader-note-actions">
+            <Button size="sm" variant="plain" onClick={() => onGoTo(annotation)}>Go to passage</Button>
             {annotation.kind === "note" && <Button size="sm" variant="plain" onClick={() => onEdit(annotation)}>Edit</Button>}
             <Button size="sm" variant="plain" color="danger" disabled={isDeleting} onClick={() => onDelete(annotation)}>Delete</Button>
           </Box>

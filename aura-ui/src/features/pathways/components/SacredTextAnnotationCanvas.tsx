@@ -1,4 +1,4 @@
-import { Component, Fragment, useEffect } from "react";
+import { Component, Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import { Annotorious, useAnnotator } from "@annotorious/react";
 import { TextAnnotator, TextAnnotationPopup } from "@recogito/react-text-annotator";
@@ -39,9 +39,16 @@ export function SacredTextAnnotationCanvas({
   onEditNote(id: number, range: SacredTextRange, value: string): void;
   onAnchorsSkipped(count: number): void;
 }) {
+  const themeRoot = useRef<HTMLDivElement>(null);
+  const { color: highlightColor, dark } = useThemeHighlightColor(themeRoot);
   return <SacredTextAnnotationBoundary blocks={blocks}>
+  <div ref={themeRoot} style={{ display: "contents" }}>
   <Annotorious>
-    <TextAnnotator className="sacred-reader-annotation-root">
+    <TextAnnotator className={`sacred-reader-annotation-root${dark ? " is-dark-canvas" : ""}`} style={{
+      // Recogito paints highlights itself (page CSS does not reach them), so pass a concrete theme color.
+      // A strong fill plus a solid underline keeps saved marks visible on dark/night-mode screens.
+      fill: highlightColor, fillOpacity: 0.45, underlineColor: highlightColor, underlineThickness: 2, underlineOffset: 2,
+    }}>
       <div className="sacred-reader-text" aria-label="Select text to highlight or annotate">
         {blocks.map((block, index) => <Fragment key={`${block.reference}-${block.language}`}>
           {index > 0 ? "\n\n" : null}
@@ -59,7 +66,38 @@ export function SacredTextAnnotationCanvas({
     </TextAnnotator>
     <SavedAnnotationsLayer section={section} annotations={annotations} blocks={blocks} onAnchorsSkipped={onAnchorsSkipped} />
   </Annotorious>
+  </div>
   </SacredTextAnnotationBoundary>;
+}
+
+/** Fallback when no theme focus color is available (matches the light theme's sage primary). */
+const DEFAULT_HIGHLIGHT_COLOR = "#668879";
+
+/** True when a hex/rgb canvas color is dark (relative luminance below 0.4). */
+function isDarkColor(value: string): boolean {
+  const hex = value.trim().match(/^#([0-9a-f]{6})$/i)?.[1];
+  const rgb = hex ? [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16))
+    : value.match(/\d+(\.\d+)?/g)?.slice(0, 3).map(Number);
+  if (!rgb || rgb.length < 3) return false;
+  const [r, g, b] = rgb.map((channel) => { const c = channel / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.4;
+}
+
+/**
+ * Resolves the active theme's focus color (`--al-theme-focus`) as a concrete value for Recogito's
+ * highlight renderer, which cannot read CSS variables, and whether the canvas is dark. Recogito blends
+ * highlights with `multiply`, which can only darken and so hides them on dark canvases; callers switch
+ * the blend to `screen` when `dark` is true. Re-reads after each render so theme switches apply.
+ */
+function useThemeHighlightColor(root: React.RefObject<HTMLElement | null>): { color: string; dark: boolean } {
+  const [theme, setTheme] = useState({ color: DEFAULT_HIGHLIGHT_COLOR, dark: false });
+  useLayoutEffect(() => {
+    const styles = getComputedStyle(root.current?.parentElement ?? document.documentElement);
+    const color = styles.getPropertyValue("--al-theme-focus").trim() || DEFAULT_HIGHLIGHT_COLOR;
+    const dark = isDarkColor(styles.getPropertyValue("--al-theme-canvas") || styles.backgroundColor);
+    if (color !== theme.color || dark !== theme.dark) setTheme({ color, dark });
+  });
+  return theme;
 }
 
 /**
