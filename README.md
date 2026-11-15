@@ -1,6 +1,21 @@
-# Aura Logbook
+<p align="center">
+  <img src="aura-ui/public/logo/aura-logbook-approved.png" alt="Aura Logbook logo: an open book beneath a glowing moon and a stylized A" width="160">
+</p>
 
-Aura Logbook is a mood-tracking and reflective-journaling application with a .NET 9 / ASP.NET Core API and a separate React, TypeScript, and Vite UI. Development and FIT/Staging use SQLite through Dapper with versioned startup migrations. The committed JSON files are retained as import and local-development seed sources rather than the active Development data store.
+<h1 align="center">Aura Logbook</h1>
+
+<p align="center">A gentle mood log and reflective journal, with optional mindfulness, faith, and astrology pathways.</p>
+
+## What it does
+
+- **Mood check-ins:** log how you feel in a few taps, with optional notes, photos, and what's having the biggest impact.
+- **Reflections:** write privately and come back to past entries in a timeline and calendar.
+- **Pathways:** choose Mindful Living, Faith & Religion, or Astrology & Energy for short, skippable practices and readings. Nothing is saved unless you choose to save it.
+- **Your aura:** a color drawn from the moods you log. It's a reflection of your entries, never a diagnosis or a label.
+
+## Tech stack
+
+Aura Logbook has a .NET 9 / ASP.NET Core API and a separate React, TypeScript, and Vite UI. Development and FIT/Staging use SQLite through Dapper with versioned startup migrations. The committed JSON files are retained as import and local-development seed sources rather than the active Development data store.
 
 ## Prerequisites
 
