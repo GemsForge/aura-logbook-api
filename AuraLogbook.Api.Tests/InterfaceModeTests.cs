@@ -12,10 +12,11 @@ namespace AuraLogbook.Api.Tests;
 /// <summary>Guards mode defaults, Ivory conversion and preservation of unrelated account fields.</summary>
 public sealed class InterfaceModeTests
 {
-    /// <summary>Missing and unsupported values use light while explicit dark remains intact.</summary>
+    /// <summary>Missing and unsupported values follow system (legacy Ivory stays light); explicit choices remain intact.</summary>
     [Theory]
     [InlineData(null, "Ivory", "light")]
-    [InlineData(null, "Ocean", "light")]
+    [InlineData(null, "Ocean", "system")]
+    [InlineData("unknown", "Ocean", "system")]
     [InlineData("unknown", "Ivory", "light")]
     [InlineData("dark", "Ocean", "dark")]
     [InlineData("system", "Ocean", "system")]
@@ -23,9 +24,9 @@ public sealed class InterfaceModeTests
     public void Resolves_legacy_mode(string? value, string theme, string expected) =>
         Assert.Equal(expected, InterfaceModeValues.Resolve(value, theme));
 
-    /// <summary>Registration persists the light default without depending on a database column default.</summary>
+    /// <summary>Registration persists the system default without depending on a database column default.</summary>
     [Fact]
-    public async Task New_account_starts_in_light_mode()
+    public async Task New_account_follows_system_appearance()
     {
         var repository = new Mock<IFileUserRepository>();
         var reference = new Mock<IReferenceDataValidator>();
@@ -33,7 +34,7 @@ public sealed class InterfaceModeTests
         var service = new UserService(repository.Object, reference.Object);
         var result = await service.RegisterAsync(new RegisterUserRequest { Email = "light-default@example.test", Password = "AuraLightDefault359!", DisplayName = "Alex" });
         Assert.True(result.Success);
-        repository.Verify(r => r.CreateAsync(It.Is<User>(u => u.InterfaceMode == "light")), Times.Once);
+        repository.Verify(r => r.CreateAsync(It.Is<User>(u => u.InterfaceMode == "system")), Times.Once);
     }
 
     /// <summary>The forward migration changes only legacy Ivory's family and brightness.</summary>

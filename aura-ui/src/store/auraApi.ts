@@ -50,9 +50,12 @@ export type SacredTextSection = {
   sourceLanguage?: string | null;
   sourceDirection?: "ltr" | "rtl" | null;
   segments: SacredTextSegment[];
+  previousReference?: string | null;
+  nextReference?: string | null;
+  sourceLicenseUrl?: string | null;
 };
 
-/** Persisted private note, highlight, or bookmark with a version-specific text-position anchor. */
+/** Persisted private note, highlight, or bookmark with segment-relative offsets and an optional drift hash. */
 export type SacredTextAnnotation = {
   id: number;
   framework: "christian" | "muslim" | "jewish";
@@ -63,6 +66,7 @@ export type SacredTextAnnotation = {
   startOffset: number;
   endOffset: number;
   segmentReference?: string | null;
+  anchorHash?: string | null;
   note?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -72,6 +76,9 @@ export type SacredTextAnnotation = {
 export type SacredTextAnnotationInput = Omit<SacredTextAnnotation, "id" | "createdAt" | "updatedAt" | "framework"> & {
   framework: SacredTextAnnotation["framework"];
 };
+
+/** The only mutable field after a reader annotation has been anchored. */
+export type SacredTextAnnotationUpdate = Pick<SacredTextAnnotation, "note">;
 
 /** Pathway reflection returned for one exact selected mood combination. */
 export type MoodCombinationInterpretation = {
@@ -130,8 +137,8 @@ export const auraApi = createApi({
       query: (body) => ({ url: "/faith/annotations", method: "POST", body }),
       invalidatesTags: ["SacredTextAnnotations"],
     }),
-    /** Updates one private note or anchor through the owner-scoped API. */
-    updateSacredTextAnnotation: build.mutation<void, { id: number; body: SacredTextAnnotationInput }>({
+    /** Updates only the owner-authored note; the persisted source identity and segment anchor never change. */
+    updateSacredTextAnnotation: build.mutation<void, { id: number; body: SacredTextAnnotationUpdate }>({
       query: ({ id, body }) => ({ url: `/faith/annotations/${id}`, method: "PUT", body }),
       invalidatesTags: ["SacredTextAnnotations"],
     }),

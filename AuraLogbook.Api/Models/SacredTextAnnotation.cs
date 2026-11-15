@@ -24,14 +24,17 @@ public sealed class SacredTextAnnotation
     /// <summary>One of highlight, note, or bookmark.</summary>
     public string Kind { get; set; } = "";
 
-    /// <summary>Start character offset in the rendered section.</summary>
+    /// <summary>Start character offset within the referenced segment's displayed text.</summary>
     public int StartOffset { get; set; }
 
-    /// <summary>Exclusive end character offset in the rendered section.</summary>
+    /// <summary>Exclusive end character offset within the referenced segment's displayed text.</summary>
     public int EndOffset { get; set; }
 
     /// <summary>Optional verse, ayah, or segment reference for keyboard-created actions.</summary>
     public string? SegmentReference { get; set; }
+
+    /// <summary>Lowercase SHA-256 of the cleaned anchored text, used to detect upstream wording drift.</summary>
+    public string? AnchorHash { get; set; }
 
     /// <summary>Optional private note. Source quotation text is not stored.</summary>
     public string? Note { get; set; }

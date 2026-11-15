@@ -18,7 +18,7 @@ public sealed class SqliteSacredTextAnnotationRepository : ISacredTextAnnotation
         using var connection = _factory.CreateConnection();
         var rows = await connection.QueryAsync<AnnotationRow>("""
             SELECT Id, UserId, Framework, SectionReference, SourceVersion, Language, Kind,
-                   StartOffset, EndOffset, SegmentReference, Note, CreatedAt, UpdatedAt
+                   StartOffset, EndOffset, SegmentReference, AnchorHash, Note, CreatedAt, UpdatedAt
             FROM SacredTextAnnotations
             WHERE UserId = @userId AND Framework = @framework
               AND (@sectionReference IS NULL OR SectionReference = @sectionReference)
@@ -33,7 +33,7 @@ public sealed class SqliteSacredTextAnnotationRepository : ISacredTextAnnotation
         using var connection = _factory.CreateConnection();
         var row = await connection.QuerySingleOrDefaultAsync<AnnotationRow>("""
             SELECT Id, UserId, Framework, SectionReference, SourceVersion, Language, Kind,
-                   StartOffset, EndOffset, SegmentReference, Note, CreatedAt, UpdatedAt
+                   StartOffset, EndOffset, SegmentReference, AnchorHash, Note, CreatedAt, UpdatedAt
             FROM SacredTextAnnotations
             WHERE UserId = @userId AND Id = @id;
             """, new { userId, id });
@@ -47,25 +47,23 @@ public sealed class SqliteSacredTextAnnotationRepository : ISacredTextAnnotation
         return await connection.ExecuteScalarAsync<int>("""
             INSERT INTO SacredTextAnnotations
                 (UserId, Framework, SectionReference, SourceVersion, Language, Kind, StartOffset, EndOffset,
-                 SegmentReference, Note, CreatedAt, UpdatedAt)
+                 SegmentReference, AnchorHash, Note, CreatedAt, UpdatedAt)
             VALUES
                 (@UserId, @Framework, @SectionReference, @SourceVersion, @Language, @Kind, @StartOffset, @EndOffset,
-                 @SegmentReference, @Note, @CreatedAt, @UpdatedAt)
+                 @SegmentReference, @AnchorHash, @Note, @CreatedAt, @UpdatedAt)
             RETURNING Id;
             """, annotation);
     }
 
     /// <inheritdoc />
-    public async Task<bool> UpdateAsync(SacredTextAnnotation annotation)
+    public async Task<bool> UpdateAsync(int userId, int id, string? note, DateTime updatedAt)
     {
         using var connection = _factory.CreateConnection();
         return await connection.ExecuteAsync("""
             UPDATE SacredTextAnnotations
-            SET Framework = @Framework, SectionReference = @SectionReference, SourceVersion = @SourceVersion,
-                Language = @Language, Kind = @Kind, StartOffset = @StartOffset, EndOffset = @EndOffset,
-                SegmentReference = @SegmentReference, Note = @Note, UpdatedAt = @UpdatedAt
-            WHERE UserId = @UserId AND Id = @Id;
-            """, annotation) == 1;
+            SET Note = @note, UpdatedAt = @updatedAt
+            WHERE UserId = @userId AND Id = @id;
+            """, new { userId, id, note, updatedAt }) == 1;
     }
 
     /// <inheritdoc />
@@ -89,6 +87,7 @@ public sealed class SqliteSacredTextAnnotationRepository : ISacredTextAnnotation
         StartOffset = row.StartOffset,
         EndOffset = row.EndOffset,
         SegmentReference = row.SegmentReference,
+        AnchorHash = row.AnchorHash,
         Note = row.Note,
         CreatedAt = ParseUtc(row.CreatedAt),
         UpdatedAt = ParseUtc(row.UpdatedAt)
@@ -110,6 +109,7 @@ public sealed class SqliteSacredTextAnnotationRepository : ISacredTextAnnotation
         public int StartOffset { get; set; }
         public int EndOffset { get; set; }
         public string? SegmentReference { get; set; }
+        public string? AnchorHash { get; set; }
         public string? Note { get; set; }
         public string CreatedAt { get; set; } = "";
         public string UpdatedAt { get; set; } = "";

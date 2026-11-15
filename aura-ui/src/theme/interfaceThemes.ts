@@ -140,7 +140,7 @@ export function getInterfaceThemeBanner(theme: InterfaceTheme, mode: InterfaceMo
 }
 
 /** Creates CSS custom properties for the shared shell and its theme banner. */
-export function getInterfaceThemeCssVariables(theme: InterfaceTheme, mode: InterfaceMode = DEFAULT_INTERFACE_MODE): Record<string, string> {
+export function getInterfaceThemeCssVariables(theme: InterfaceTheme, mode: InterfaceMode = resolveEffectiveInterfaceMode(DEFAULT_INTERFACE_MODE)): Record<string, string> {
   const tokens = getInterfaceThemeTokens(theme, mode);
   const banner = getInterfaceThemeBanner(theme, mode);
   return {

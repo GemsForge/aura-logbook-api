@@ -27,7 +27,6 @@ import BookmarkBorderRounded from "@mui/icons-material/BookmarkBorderRounded";
 import ChevronLeftRounded from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import FormatSizeRounded from "@mui/icons-material/FormatSizeRounded";
-import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
@@ -42,7 +41,7 @@ import {
   type SacredTextAnnotationInput,
 } from "@/store/auraApi";
 import { PathwayActivityApi, localActivityDate } from "@/features/pathways/pathwayActivityApi";
-import { buildSacredTextBlocks, SacredTextAnnotationCanvas, selectedSacredTextRange } from "@/features/pathways/components/SacredTextAnnotationCanvas";
+import { buildSacredTextBlocks, hashSacredTextAnchor, SacredTextAnnotationCanvas, selectedSacredTextRange } from "@/features/pathways/components/SacredTextAnnotationCanvas";
 import type { SacredTextRange } from "@/features/pathways/components/SacredTextAnnotationCanvas";
 import { SacredTextNotesPanel } from "@/features/pathways/components/SacredTextNotesPanel";
 import "@recogito/react-text-annotator/react-text-annotator.css";
@@ -77,6 +76,7 @@ export default function SacredTextReader() {
   const [savingReflection, setSavingReflection] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
   const [mutationError, setMutationError] = useState("");
+  const [unrestoredAnnotationCount, setUnrestoredAnnotationCount] = useState(0);
   const readerHeading = useRef<HTMLHeadingElement>(null);
   const activeFramework = framework ?? "christian";
   const sectionQuery = useGetSacredTextSectionQuery(
@@ -95,7 +95,8 @@ export default function SacredTextReader() {
   }, [queryReference]);
 
   useEffect(() => {
-    if (!reference && dailyPassage.currentData?.framework === framework) setReference(dailyPassage.currentData.reference);
+    const passage = dailyPassage.currentData;
+    if (!reference && passage && passage.framework === framework) setReference(passage.reference);
   }, [dailyPassage.currentData, framework, reference]);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function SacredTextReader() {
     setBook(parsed.book);
     setChapter(parsed.chapter);
     setSelectedSegment(section.segments.find((segment) => querySegment && segment.reference === querySegment)?.reference
-      ?? section.segments.find((segment) => queryReference && segment.reference.endsWith(queryReference.split(":").at(-1) ?? ""))?.reference
+      ?? section.segments.find((segment) => queryReference && segment.reference.endsWith(queryReference.split(":").pop() ?? ""))?.reference
       ?? section.segments[0]?.reference ?? "");
     const targetSegment = querySegment && section.segments.some((segment) => segment.reference === querySegment) ? querySegment : "";
     readerHeading.current?.focus({ preventScroll: Boolean(targetSegment) });
@@ -121,10 +122,11 @@ export default function SacredTextReader() {
   }, [framework, queryReference, querySegment, section]);
 
   const textBlocks = useMemo(() => section ? buildSacredTextBlocks(section) : [], [section]);
-  const readerText = useMemo(() => textBlocks.map((block) => block.text).join("\n\n"), [textBlocks]);
   const currentAnnotations = useMemo(() => section ? storedAnnotations.filter((item) =>
     item.sectionReference === section.reference && item.sourceVersion === section.sourceVersion) : [], [section, storedAnnotations]);
   const latestBookmark = storedAnnotations.find((item) => item.kind === "bookmark");
+  /** Resets the section warning before its saved anchors are checked against the current source text. */
+  useEffect(() => setUnrestoredAnnotationCount(0), [section?.reference, section?.sourceVersion]);
   const isLoading = Boolean(framework && (reference
     ? sectionQuery.isLoading || (sectionQuery.isFetching && !section)
     : dailyPassage.isLoading));
@@ -148,22 +150,44 @@ export default function SacredTextReader() {
     navigate(`/pathways/sacred-texts/reader?${new URLSearchParams({ reference: nextReference }).toString()}`, { replace: true });
   };
 
-  const baseAnnotationInput = (kind: ReaderKind, range: SacredTextRange, language: string, note?: string): SacredTextAnnotationInput | null => {
+  const findBlock = (start: number, end: number, segmentReference?: string, language?: string) => textBlocks.find((block) =>
+    start >= block.start && end <= block.end
+      && (!segmentReference || block.reference === segmentReference)
+      && (!language || block.language === language));
+
+  /** Converts Recogito's temporary section offsets to a segment anchor and hashes its cleaned display text. */
+  const buildAnnotationInput = async (kind: ReaderKind, range: SacredTextRange, language: string, note?: string): Promise<SacredTextAnnotationInput | null> => {
     if (!framework || !section) return null;
+    const block = findBlock(range.start, range.end, range.segmentReference, language);
+    if (!block) return null;
+    const startOffset = range.start - block.start;
+    const endOffset = range.end - block.start;
+    if (startOffset < 0 || endOffset < startOffset || (kind !== "bookmark" && endOffset === startOffset)) {
+      setMutationError("Select a valid range within one text segment.");
+      return null;
+    }
+    let anchorHash: string | null = null;
+    if (kind !== "bookmark") {
+      try {
+        anchorHash = await hashSacredTextAnchor(block.text.slice(startOffset, endOffset));
+      } catch {
+        setMutationError("This browser can’t verify the selected text securely, so the annotation wasn’t saved.");
+        return null;
+      }
+    }
     return {
       framework,
       sectionReference: section.reference,
       sourceVersion: section.sourceVersion,
       language,
       kind,
-      startOffset: range.start,
-      endOffset: range.end,
-      segmentReference: range.segmentReference,
+      startOffset,
+      endOffset,
+      segmentReference: block.reference,
+      anchorHash,
       note: kind === "note" ? note : null,
     };
   };
-
-  const findBlock = (start: number, end: number) => textBlocks.find((block) => start >= block.start && end <= block.end);
 
   const saveSelectionAnnotation = async (annotation: TextAnnotation, kind: ReaderKind, note?: string) => {
     const selector = annotation.target.selector[0];
@@ -176,7 +200,7 @@ export default function SacredTextReader() {
       setMutationError("Keep a highlight or note within one text segment.");
       return;
     }
-    const input = baseAnnotationInput(kind, { start: selector.start, end: selector.end, segmentReference: block.reference }, block.language, note);
+    const input = await buildAnnotationInput(kind, { start: selector.start, end: selector.end, segmentReference: block.reference }, block.language, note);
     if (!input) return;
     setMutationError("");
     try {
@@ -191,7 +215,7 @@ export default function SacredTextReader() {
     const target = textBlocks.find((block) => block.reference === selectedSegment && block.language === section?.textLanguage);
     if (!target) return;
     const range = { start: target.start, end: target.end, segmentReference: target.reference };
-    const input = baseAnnotationInput("highlight", range, target.language);
+    const input = await buildAnnotationInput("highlight", range, target.language);
     if (!input) return;
     setMutationError("");
     try {
@@ -204,18 +228,28 @@ export default function SacredTextReader() {
 
   const saveNote = async () => {
     if (!noteEditor || !noteEditor.value.trim()) return;
+    if (noteEditor.id) {
+      setMutationError("");
+      try {
+        await updateAnnotation({ id: noteEditor.id, body: { note: noteEditor.value.trim() } }).unwrap();
+        setActionMessage("Note updated.");
+        setNoteEditor(null);
+      } catch {
+        setMutationError("Couldn’t save this note. Your draft is still here; try again.");
+      }
+      return;
+    }
     const block = findBlock(noteEditor.range.start, noteEditor.range.end);
     if (!block) {
       setMutationError("The note range no longer matches this text version.");
       return;
     }
-    const input = baseAnnotationInput("note", noteEditor.range, block.language, noteEditor.value.trim());
+    const input = await buildAnnotationInput("note", { ...noteEditor.range, segmentReference: block.reference }, block.language, noteEditor.value.trim());
     if (!input) return;
     setMutationError("");
     try {
-      if (noteEditor.id) await updateAnnotation({ id: noteEditor.id, body: input }).unwrap();
-      else await createAnnotation(input).unwrap();
-      setActionMessage(noteEditor.id ? "Note updated." : "Private note saved.");
+      await createAnnotation(input).unwrap();
+      setActionMessage("Private note saved.");
       setNoteEditor(null);
     } catch {
       setMutationError("Couldn’t save this note. Your draft is still here; try again.");
@@ -225,7 +259,7 @@ export default function SacredTextReader() {
   const saveBookmark = async () => {
     const target = textBlocks.find((block) => block.reference === selectedSegment) ?? textBlocks[0];
     if (!target) return;
-    const input = baseAnnotationInput("bookmark", { start: target.start, end: target.start, segmentReference: target.reference }, target.language);
+    const input = await buildAnnotationInput("bookmark", { start: target.start, end: target.start, segmentReference: target.reference }, target.language);
     if (!input) return;
     setMutationError("");
     try {
@@ -238,7 +272,7 @@ export default function SacredTextReader() {
 
   const editSavedNote = (annotation: SacredTextAnnotation) => setNoteEditor({
     id: annotation.id,
-    range: { start: annotation.startOffset, end: annotation.endOffset, segmentReference: annotation.segmentReference ?? undefined },
+    range: { start: 0, end: 0, segmentReference: annotation.segmentReference ?? undefined },
     value: annotation.note ?? "",
   });
 
@@ -400,8 +434,13 @@ export default function SacredTextReader() {
       <Box className="sacred-reader-source" component="section" aria-label="Text source and attribution">
         <Typography level="body-xs">{section.attribution}</Typography>
         <Button component="a" href={section.readingUrl} target="_blank" rel="noreferrer" size="sm" variant="plain" endDecorator={<OpenInNewRounded />}>Publisher source</Button>
+        {/* Use only the license deed URL returned with this exact Sefaria version. */}
+        {section.sourceLicenseUrl && <Button component="a" href={section.sourceLicenseUrl} target="_blank" rel="noreferrer" size="sm" variant="plain" endDecorator={<OpenInNewRounded />}>Hebrew source license</Button>}
       </Box>
       {mutationError && <Alert role="alert" color="danger" variant="soft" sx={{ mt: 1.5 }}>{mutationError}</Alert>}
+      {unrestoredAnnotationCount > 0 && <Alert role="status" color="warning" variant="soft" sx={{ mt: 1.5 }}>
+        {unrestoredAnnotationCount} saved {unrestoredAnnotationCount === 1 ? "highlight or note was" : "highlights or notes were"} kept in your private notes but not placed on the text because the anchor could not be verified against this wording.
+      </Alert>}
       {actionMessage && <Typography role="status" aria-live="polite" level="body-xs" sx={{ mt: 1, color: "var(--al-theme-ink-muted)" }}>{actionMessage}</Typography>}
       {annotationsQuery.isError && <Alert color="warning" variant="soft" sx={{ mt: 1.5 }}>Your private annotations couldn’t be loaded. The reading remains available.</Alert>}
 
@@ -420,7 +459,7 @@ export default function SacredTextReader() {
             section={section}
             annotations={currentAnnotations}
             blocks={textBlocks}
-            text={readerText}
+            onAnchorsSkipped={setUnrestoredAnnotationCount}
             onHighlight={(annotation) => void saveSelectionAnnotation(annotation, "highlight")}
             onAddNote={(range) => setNoteEditor({ range, value: "" })}
             onRemove={(id) => void removeAnnotation(id)}
