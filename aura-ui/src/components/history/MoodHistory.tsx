@@ -142,7 +142,9 @@ export default function MoodHistoryPage() {
             <MoodCalendar entries={logs} selectedDate={activeDate} onSelectDate={setSelectedDate} onMonthChange={onMonthChange} />
           </Box>
 
-          <Sheet component="section" aria-labelledby="reflection-day-title" className="aura-panel" sx={{ p: { xs: 1.75, sm: 2.25 }, minWidth: 0, display: "grid", gap: 2 }}>
+          {/* One minmax(0, 1fr) track: an implicit auto track grows to the moment strip's full width, pushing
+              cards, actions, and photos past the panel edge instead of letting the strip scroll inside it. */}
+          <Sheet component="section" aria-labelledby="reflection-day-title" className="aura-panel" sx={{ p: { xs: 1.75, sm: 2.25 }, minWidth: 0, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 2 }}>
             {/* Day heading, count, and a compact add action share one quiet row so the entries lead. */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Box sx={{ minWidth: 0, flex: 1 }}>
