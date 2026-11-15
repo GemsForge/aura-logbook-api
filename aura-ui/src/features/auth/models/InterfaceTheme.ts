@@ -13,8 +13,8 @@ export function resolveInterfaceTheme(value: unknown): InterfaceTheme {
   return interfaceThemes.includes(value as InterfaceTheme) ? value as InterfaceTheme : "Aurora";
 }
 /** Shared default for new accounts, visitors and missing mode values. */
-export const DEFAULT_INTERFACE_MODE: InterfaceMode = "light";
-/** Explicit choices are honored; missing or unsupported values use light in every family. */
+export const DEFAULT_INTERFACE_MODE: InterfaceModePreference = "system";
+/** Explicit choices are honored; missing or unsupported values follow device appearance. */
 export function resolveInterfaceMode(value: unknown): InterfaceModePreference {
   if (value === "light" || value === "dark" || value === "system") return value;
   return DEFAULT_INTERFACE_MODE;
