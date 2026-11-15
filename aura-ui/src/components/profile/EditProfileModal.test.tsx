@@ -80,7 +80,8 @@ describe("EditProfileModal", () => {
       selectedPathway: "energy",
       pathwayPreferences: expect.objectContaining({ saveBirthDetails: true, birthTime: "08:30", birthPlace: "Chicago, Illinois, US" }),
     })));
-  });
+  // Types several birth-detail fields; slower CI runners exceed the 5s default.
+  }, 15_000);
 
   it.each([
     { label: /Faith & Religion/, key: "faith", modules: ["faith-practice-check-in", "sacred-texts"] },
