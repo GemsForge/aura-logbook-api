@@ -51,6 +51,14 @@ describe("insightMetrics", () => {
     expect(factors.map((factor) => factor.key)).not.toContain("music");
   });
 
+  it("never draws the weekly ribbon backwards when a check-in's timestamp falls on another day", () => {
+    // Backdated to Nov 10 but saved at 1 AM on Nov 11: it sorts last by instant, yet plots early on Nov 10.
+    const backdated = entry("2026-11-10", 1, "Weary", { createdAt: new Date("2026-11-11T01:00:00").toISOString() });
+    const evening = entry("2026-11-10", 18, "Empowered");
+    const xs = ribbonPoints("week", [evening, backdated], periodRange("week", today), moods).map((point) => point.x);
+    expect(xs).toEqual([...xs].sort((a, b) => a - b));
+  });
+
   it("names the liveliest part of the day only with three or more check-ins there", () => {
     const evening = [entry("2026-11-09", 19, "Empowered"), entry("2026-11-10", 19, "Empowered"), entry("2026-11-11", 19, "Centered")];
     expect(liveliestTime([...evening, entry("2026-11-11", 8, "Weary")], moods)).toEqual({ name: "Evening", range: "5 – 10 PM", count: 3 });
