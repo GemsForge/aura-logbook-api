@@ -35,6 +35,12 @@ The reader is a full in-app destination rather than an external publisher handof
   Mobile: reading first, with notes opened in a sheet or separate view on demand.
   Arabic/Hebrew source blocks need their own language and right-to-left direction;
   translations retain their correct direction.
+- Sefaria Hebrew is eligible only for an exact, trimmed, case-insensitive
+  `Public Domain`, `CC0`, `CC-BY`, or `CC-BY-SA` license value. Exclude `NC`,
+  `ND`, unknown, and missing licenses. The Sefaria Genesis 1 Hebrew edition
+  metadata reports `CC-BY-SA`; show its version title, license, and license-deed
+  link with the source. Display text after provider markup cleaning only; do not
+  include Hebrew source text in annotation storage or exports.
 - Notes/highlights persist across sessions, can be edited/deleted, and stay private.
   A saved note does not automatically become a journal entry. **Save to journal**
   stays explicit, and opening a chapter does not mean the user marked it as read.
@@ -62,9 +68,10 @@ attribution metadata.
 
 Each annotation needs its owner, framework, provider, work/book identifier,
 chapter/section and verse/segment identifiers, language, translation/version,
-selected text/offset anchors where permitted, highlight style, optional note, and
-created/updated timestamps. Bind highlights to the exact source version. Changing
-translation must not silently move a highlight onto different wording.
+segment-relative offsets, and the lowercase SHA-256 digest of the cleaned anchor
+text. Never send or store quoted source text. Bind highlights to the exact source
+version and verify the digest before restoring them. Changing translation must
+not silently move a highlight onto different wording.
 
 Reading position, bookmarks, notes and deliberate reading check-ins have distinct
 meanings. Do not derive practice or recap completion from a render or navigation

@@ -16,7 +16,7 @@ describe("uiSlice", () => {
       isProfileModalOpen: false,
       systemInterfaceMode: "light",
       interfaceThemePreview: null,
-      interfaceModePreview: null, pendingInterfaceMode: null, guestInterfaceMode: "light",
+      interfaceModePreview: null, pendingInterfaceMode: null, guestInterfaceMode: "system", // #425 default
     });
   });
 

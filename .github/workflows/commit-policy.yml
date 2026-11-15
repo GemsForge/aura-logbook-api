@@ -1,34 +1,16 @@
+# Managed by GemsForge/.github — do not edit here. Change the shared workflows
+# instead: https://github.com/GemsForge/.github
 name: Commit policy
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
   push:
-    branches: [dev, master]
+    branches: ["**"]
+  pull_request:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
 
 permissions:
   contents: read
 
 jobs:
-  commit-policy:
-    name: Commit policy
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Validate commit subjects
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          node --input-type=module <<'EOF'
-          import { execFileSync } from "node:child_process";
-          import { validateCommits } from "./Scripts/commit-policy.mjs";
-          const base = process.env.BASE_SHA;
-          const head = process.env.HEAD_SHA;
-          const commits = execFileSync("git", ["rev-list", head, `^${base}`], { encoding: "utf8" }).trim();
-          if (commits && !validateCommits(commits.split("\n"))) process.exit(1);
-          console.log("Commit policy passed.");
-          EOF
+  commits:
+    uses: GemsForge/.github/.github/workflows/commit-policy.yml@v1

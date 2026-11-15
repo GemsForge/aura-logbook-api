@@ -64,7 +64,9 @@ current implementation; it does not certify WCAG conformance.
 
 - [ ] Confirm source attribution and the publisher link identify their purpose
   and destination. The current link label is “Publisher source”; check whether
-  naming the provider gives users clearer context.
+  naming the provider gives users clearer context. When a Hebrew license deed
+  URL is supplied with the selected source version, confirm the reader exposes
+  that exact URL and does not synthesize one.
 - [ ] Confirm section, translation/version, and individual segment references
   are available to sighted and screen-reader users, including during
   selection and export.
@@ -90,8 +92,11 @@ current implementation; it does not certify WCAG conformance.
 - [ ] Confirm save, delete, retry, loading, and error feedback is announced
   without losing the user's note or moving focus unexpectedly. Include failed
   annotation loads and failed mutations.
-- [ ] Confirm saved annotations remain private, use the correct source version,
-  and continue to identify their reference when the text is reopened.
+- [ ] Confirm saved annotations remain private, use the correct source version
+  and segment reference, and store segment-relative offsets with a lowercase
+  SHA-256 digest of the cleaned selected text. Reopen changed provider text and
+  confirm mismatched or unverifiable anchors are omitted from the reading
+  surface while remaining available in the private notes list with feedback.
 - [ ] Confirm journal reflection remains optional and separate from notes and
   bookmarks; a reader visit must not imply a completed reading.
 
@@ -133,3 +138,16 @@ When using this checklist, add a dated review note with the page/commit checked,
 states and viewports compared, findings, what could not be evaluated, and the
 reviewer's cost (files opened and searches run). If WCAG 2.2 AA is measured,
 state which criteria were checked and that the rest were not assessed.
+
+### 2026-11-14 — #410 reader contract follow-up
+
+- Checked the saved-annotation canvas, reader page, API types, and checklist
+  against the current #413 worktree. Saved anchors now use segment-relative
+  offsets and are restored only after their lowercase SHA-256 matches the
+  current cleaned segment text. Skipped anchors produce an announced warning.
+- The create-note path supplies the selected block's segment reference. The
+  reader exposes a source license URL only when the API returns one.
+- `npm run build` passed. Review was source-only; viewport, keyboard, screen
+  reader, contrast, RTL selection, dialogs, and print behavior were not checked.
+- Cost: inspected the reader page and annotation canvas diffs, the reader
+  checklist, and ran `git diff --check` plus the production UI build.

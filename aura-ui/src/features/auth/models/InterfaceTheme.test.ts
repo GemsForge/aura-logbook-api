@@ -9,7 +9,9 @@ describe("system appearance", () => {
   expect(resolveEffectiveInterfaceMode("system","light")).toBe("light");
   expect(resolveEffectiveInterfaceMode("light","dark")).toBe("light");
   expect(resolveEffectiveInterfaceMode("dark","light")).toBe("dark");
-  expect(resolveEffectiveInterfaceMode("unknown","dark")).toBe("light");
+  // #425: missing or unsupported values default to system, so they follow the device.
+  expect(resolveInterfaceMode("unknown")).toBe("system");
+  expect(resolveEffectiveInterfaceMode("unknown","dark")).toBe("dark");
  });
  it("subscribes to changes and removes exactly the same listener", () => {
   const addEventListener=vi.fn(), removeEventListener=vi.fn(), onChange=vi.fn();

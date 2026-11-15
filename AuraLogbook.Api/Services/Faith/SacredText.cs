@@ -34,7 +34,10 @@ public sealed record SacredTextSectionDto(
     string TextDirection,
     string? SourceLanguage,
     string? SourceDirection,
-    IReadOnlyList<SacredTextSegmentDto> Segments);
+    IReadOnlyList<SacredTextSegmentDto> Segments,
+    string? PreviousReference = null,
+    string? NextReference = null,
+    string? SourceLicenseUrl = null);
 
 /// <summary>Supported framework keys. Matches the UI's faith tradition choices.</summary>
 public static class FaithFrameworks
@@ -74,12 +77,14 @@ public sealed class SacredTextOptions
     public const string SectionName = "SacredText";
 
     /// <summary>
-    /// Optional API.Bible key. When empty, the Christian passage comes from the public-domain
-    /// World English Bible via bible-api.com, which needs no key or license agreement.
+    /// Optional API.Bible key. Keep unset until the client tracks each displayed reading with FUMS;
+    /// when empty, Christian text comes from the public-domain World English Bible via bible-api.com.
     /// </summary>
     public string? ApiBibleKey { get; set; }
-    /// <summary>API.Bible Bible ID for a translation whose license permits display in this app.</summary>
+    /// <summary>API.Bible Bible ID for a translation whose license permits display in this app; keep unset until FUMS tracks each displayed reading.</summary>
     public string? ApiBibleBibleId { get; set; }
+    /// <summary>Human-readable API.Bible edition title shown to readers; falls back to the configured Bible ID when unset.</summary>
+    public string? ApiBibleTranslationName { get; set; }
     public string ApiBibleBaseUrl { get; set; } = "https://api.scripture.api.bible/v1";
     /// <summary>Legacy public Quran.com endpoint retained for setups without Quran Foundation credentials.</summary>
     public string QuranBaseUrl { get; set; } = "https://api.quran.com/api/v4";
@@ -184,7 +189,8 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         var copyright = data.TryGetProperty("copyright", out var c) ? ProviderText.Clean(c.GetString() ?? "") : "";
         var text = ProviderText.Clean(content.GetString() ?? "");
         if (text.Length == 0) throw ProviderText.Unusable("API.Bible");
-        return new SacredPassageDto(Framework, display, text, o.ApiBibleBibleId,
+        var translationName = string.IsNullOrWhiteSpace(o.ApiBibleTranslationName) ? o.ApiBibleBibleId : o.ApiBibleTranslationName.Trim();
+        return new SacredPassageDto(Framework, display, text, translationName,
             string.IsNullOrWhiteSpace(copyright) ? "Scripture via API.Bible" : $"{copyright} Provided by API.Bible.",
             $"https://www.bible.com/search/bible?q={Uri.EscapeDataString(display)}");
     }
@@ -201,7 +207,7 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
 
         var client = factory.CreateClient(nameof(ApiBibleProvider));
         using var booksRequest = new HttpRequestMessage(HttpMethod.Get,
-            $"{o.ApiBibleBaseUrl.TrimEnd('/')}/bibles/{Uri.EscapeDataString(o.ApiBibleBibleId)}/books");
+            $"{o.ApiBibleBaseUrl.TrimEnd('/')}/bibles/{Uri.EscapeDataString(o.ApiBibleBibleId)}/books?include-chapters=true");
         booksRequest.Headers.Add("api-key", o.ApiBibleKey);
         var booksRoot = await ProviderText.GetJsonAsync(client, booksRequest, cancellationToken);
         if (!booksRoot.TryGetProperty("data", out var books) || books.ValueKind != JsonValueKind.Array)
@@ -214,6 +220,17 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
             || BibleBookIds.NameMatches(item, book));
         if (bookId.ValueKind != JsonValueKind.Object || !bookId.TryGetProperty("id", out var id))
             throw new HttpRequestException("The selected Bible does not contain that book.", null, HttpStatusCode.NotFound);
+
+        var bookIdentifier = id.GetString() ?? "";
+        var chapterItems = books.EnumerateArray()
+            .Where(bookItem => bookItem.TryGetProperty("chapters", out var nested) && nested.ValueKind == JsonValueKind.Array)
+            .SelectMany(bookItem => bookItem.GetProperty("chapters").EnumerateArray())
+            .ToList();
+        var chapterIndex = chapterItems.FindIndex(item =>
+            item.TryGetProperty("bookId", out var chapterBook) && string.Equals(chapterBook.GetString(), bookIdentifier, StringComparison.OrdinalIgnoreCase)
+            && item.TryGetProperty("number", out var number) && int.TryParse(number.ToString(), out var chapterNumber) && chapterNumber == chapter);
+        var previousReference = chapterIndex > 0 ? ApiBibleChapterReference(chapterItems[chapterIndex - 1]) : null;
+        var nextReference = chapterIndex >= 0 && chapterIndex + 1 < chapterItems.Count ? ApiBibleChapterReference(chapterItems[chapterIndex + 1]) : null;
 
         var chapterId = $"{id.GetString()}.{chapter}";
         using var request = new HttpRequestMessage(HttpMethod.Get,
@@ -229,10 +246,17 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         var copyright = data.TryGetProperty("copyright", out var copyrightValue) ? ProviderText.Clean(copyrightValue.GetString() ?? "") : "";
         var attribution = string.IsNullOrWhiteSpace(copyright) ? "Scripture via API.Bible." : $"{copyright} Provided by API.Bible.";
         var bibleId = o.ApiBibleBibleId;
+        var translationName = string.IsNullOrWhiteSpace(o.ApiBibleTranslationName) ? bibleId : o.ApiBibleTranslationName.Trim();
         var sourceUrl = $"https://www.bible.com/search/bible?q={Uri.EscapeDataString(display)}";
-        return new SacredTextSectionDto(Framework, display, bibleId, bibleId, attribution, sourceUrl,
-            "en", "ltr", null, null, segments);
+        return new SacredTextSectionDto(Framework, display, translationName, bibleId, attribution, sourceUrl,
+            "en", "ltr", null, null, segments, previousReference, nextReference);
     }
+
+    /// <summary>Reads the provider's canonical chapter reference from API.Bible chapter metadata.</summary>
+    private static string? ApiBibleChapterReference(JsonElement chapter) =>
+        chapter.TryGetProperty("reference", out var reference) && !string.IsNullOrWhiteSpace(reference.GetString())
+            ? reference.GetString()
+            : null;
 
     /// <summary>Fetches the World English Bible (public domain) from bible-api.com; no key required.</summary>
     private async Task<SacredPassageDto> GetPublicDomainAsync(SacredTextOptions o, string display, CancellationToken cancellationToken)
@@ -273,7 +297,7 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
 }
 
 /// <summary>Quran text and translation from the Quran.com API (Quran Foundation). No key required for the public content API.</summary>
-public sealed class QuranProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options, IMemoryCache cache) : ISacredTextProvider
+public sealed partial class QuranProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options, IMemoryCache cache) : ISacredTextProvider
 {
     /// <summary>Compatibility constructor for direct tests that exercise the keyless legacy provider path.</summary>
     public QuranProvider(IHttpClientFactory factory, IOptions<SacredTextOptions> options)
@@ -300,8 +324,7 @@ public sealed class QuranProvider(IHttpClientFactory factory, IOptions<SacredTex
     /// <inheritdoc />
     public async Task<SacredTextSectionDto> GetSectionAsync(string reference, CancellationToken cancellationToken)
     {
-        var match = System.Text.RegularExpressions.Regex.Match(reference, @"(?:Qur[’']?an\s*)?(\d{1,3})(?::\d+)?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var chapter) || chapter is < 1 or > 114)
+        if (!TryParseSectionReference(reference, out var chapter))
             throw new ArgumentException("Provide a Quran surah number from 1 through 114.", nameof(reference));
 
         var o = options.Value;
@@ -335,8 +358,22 @@ public sealed class QuranProvider(IHttpClientFactory factory, IOptions<SacredTex
         return new SacredTextSectionDto(Framework, $"Qur’an {chapter}", "Saheeh International",
             $"quran.com:translation-{o.QuranTranslationId}:uthmani",
             "Quran data provided by Quran.Foundation. Saheeh International translation via Quran.com.", $"https://quran.com/{chapter}",
-            "en", "ltr", "ar", "rtl", verses);
+            "en", "ltr", "ar", "rtl", verses,
+            chapter > 1 ? $"Qur’an {chapter - 1}" : null,
+            chapter < 114 ? $"Qur’an {chapter + 1}" : null);
     }
+
+    /// <summary>Parses and bounds one fully anchored Quran section reference.</summary>
+    internal static bool TryParseSectionReference(string reference, out int chapter)
+    {
+        var match = QuranReferencePattern().Match(reference);
+        chapter = match.Success && int.TryParse(match.Groups[1].Value, out var parsed) ? parsed : 0;
+        return match.Success && chapter is >= 1 and <= 114;
+    }
+
+    /// <summary>Matches a complete optional-labeled surah reference with an optional verse suffix.</summary>
+    [GeneratedRegex(@"^\s*(?:Qur[’']?an\s*)?(\d{1,3})(?::(\d{1,3}))?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex QuranReferencePattern();
 
     /// <summary>Uses OAuth-backed Quran Foundation requests when configured, with the legacy public API as a compatibility fallback.</summary>
     private async Task<JsonElement> GetJsonAsync(string path, CancellationToken cancellationToken)
@@ -465,16 +502,37 @@ public sealed class SefariaProvider(IHttpClientFactory factory, IOptions<SacredT
             ? sourceTitle.GetString() ?? "Hebrew source" : "Hebrew source";
         var sourceLanguage = sourceSegments.Count > 0 ? "he" : null;
         var sourceDirection = sourceSegments.Count > 0 ? "rtl" : null;
+        var sourceLicense = source.ValueKind == JsonValueKind.Object && source.TryGetProperty("license", out var sourceLicenseValue)
+            ? sourceLicenseValue.GetString() : null;
         var sourceAttribution = sourceSegments.Count > 0
-            ? $" Hebrew source: {sourceVersionTitle} ({source.GetProperty("license").GetString()})."
+            ? $" Hebrew source: {sourceVersionTitle} ({sourceLicense})."
             : "";
+        var sourceLicenseUrl = sourceSegments.Count > 0 ? GetLicenseUrl(source, sourceLicense) : null;
         return new SacredTextSectionDto(Framework, display, versionTitle, $"{version}|{versionTitle}|{sourceVersionTitle}", $"{attribution}{sourceAttribution}",
-            $"https://www.sefaria.org/{Uri.EscapeDataString(sectionReference.Replace(' ', '.'))}", "en", "ltr", sourceLanguage, sourceDirection, segments);
+            $"https://www.sefaria.org/{Uri.EscapeDataString(sectionReference.Replace(' ', '.'))}", "en", "ltr", sourceLanguage, sourceDirection, segments,
+            ProviderReference(root, "prev"), ProviderReference(root, "next"), sourceLicenseUrl);
     }
 
-    /// <summary>Only displays Sefaria Hebrew versions whose metadata confirms reusable terms.</summary>
+    /// <summary>Returns an optional adjacent reference only when Sefaria includes it in the response metadata.</summary>
+    private static string? ProviderReference(JsonElement root, string property) =>
+        root.TryGetProperty(property, out var reference) && reference.ValueKind == JsonValueKind.String
+            ? reference.GetString()
+            : null;
+
+    /// <summary>Only displays exact normalized public-domain, CC0, CC-BY, or CC-BY-SA Sefaria license values; excludes NC, ND, and unknown terms.</summary>
     private static bool IsReusableSefariaLicense(string? license) => license?.Trim().ToUpperInvariant() is
-        "PUBLIC DOMAIN" or "CC0" or "CC-BY";
+        "PUBLIC DOMAIN" or "CC0" or "CC-BY" or "CC-BY-SA";
+
+    /// <summary>Uses Sefaria's license deed metadata when present and the standard CC-BY-SA deed for that exact license otherwise.</summary>
+    private static string? GetLicenseUrl(JsonElement version, string? license)
+    {
+        foreach (var name in new[] { "licenseUrl", "licenseURL", "license_url" })
+            if (version.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && Uri.TryCreate(value.GetString(), UriKind.Absolute, out _))
+                return value.GetString();
+        return string.Equals(license?.Trim(), "CC-BY-SA", StringComparison.OrdinalIgnoreCase)
+            ? "https://creativecommons.org/licenses/by-sa/4.0/"
+            : null;
+    }
 }
 
 /// <summary>Parses the bounded user-facing section references used by the reader controls.</summary>
@@ -492,6 +550,18 @@ internal static class SacredTextReferenceParser
         chapter = match.Success && int.TryParse(match.Groups["chapter"].Value, out var value) ? value : 0;
         return match.Success && chapter is > 0 and <= 999;
     }
+
+    /// <summary>Checks that a provider segment is nested beneath the exact section book and chapter.</summary>
+    public static bool SegmentBelongsToSection(string sectionReference, string segmentReference)
+    {
+        var normalizedSection = Regex.Replace(sectionReference.Trim(), @"\s+", " ");
+        var normalizedSegment = Regex.Replace(segmentReference.Trim(), @"\s+", " ");
+        return normalizedSegment.StartsWith($"{normalizedSection}:", StringComparison.OrdinalIgnoreCase)
+            || normalizedSegment.StartsWith($"{normalizedSection}.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Canonicalizes Quran references into a surah number for section cache keys.</summary>
+    public static bool TryParseQuranSection(string reference, out int chapter) => QuranProvider.TryParseSectionReference(reference, out chapter);
 }
 
 /// <summary>Converts provider section structures into stable verse/segment anchors.</summary>
@@ -514,6 +584,7 @@ internal static class SacredTextChapterParser
         return result;
     }
 
+    /// <summary>Recursively collects API.Bible verse text while preserving provider verse identifiers.</summary>
     private static void ReadApiBibleItems(JsonElement element, int currentVerse, SortedDictionary<int, string> fragments)
     {
         if (element.ValueKind == JsonValueKind.Array)
@@ -547,6 +618,7 @@ internal static class SacredTextChapterParser
         if (element.TryGetProperty("items", out var children)) ReadApiBibleItems(children, currentVerse, fragments);
     }
 
+    /// <summary>Recursively flattens Sefaria's nested text arrays without transforming source strings.</summary>
     private static void Flatten(JsonElement value, List<string> result)
     {
         if (value.ValueKind == JsonValueKind.Array)
@@ -570,6 +642,37 @@ public sealed class SacredTextService(IEnumerable<ISacredTextProvider> providers
     {
         var key = FaithFrameworks.Normalize(framework);
         return key is not null && _providers.TryGetValue(key, out var provider) ? provider : null;
+    }
+
+    /// <summary>Gets and caches one successful section for exactly the selected framework and configured source version.</summary>
+    public async Task<SacredTextSectionDto?> GetSectionAsync(string? framework, string reference, CancellationToken cancellationToken)
+    {
+        var key = FaithFrameworks.Normalize(framework);
+        if (key is null || !_providers.TryGetValue(key, out var provider)) return null;
+        var sectionReference = NormalizeSectionReference(key, reference);
+        var configuredVersion = key switch
+        {
+            FaithFrameworks.Christian => !string.IsNullOrWhiteSpace(options.Value.ApiBibleKey) && !string.IsNullOrWhiteSpace(options.Value.ApiBibleBibleId)
+                ? $"api-bible:{options.Value.ApiBibleBibleId}" : $"bible-api:{options.Value.PublicDomainBibleTranslation}",
+            FaithFrameworks.Muslim => $"quran:{options.Value.QuranTranslationId}:uthmani",
+            FaithFrameworks.Jewish => $"sefaria:{options.Value.SefariaVersion}:hebrew",
+            _ => "",
+        };
+        var cacheKey = $"sacred-section:{key}:{configuredVersion}:{sectionReference}";
+        if (cache.TryGetValue(cacheKey, out SacredTextSectionDto? cached)) return cached;
+        var section = await provider.GetSectionAsync(reference, cancellationToken);
+        cache.Set(cacheKey, section, options.Value.CacheDuration);
+        return section;
+    }
+
+    /// <summary>Canonicalizes section-only references so equivalent links reuse one cache entry.</summary>
+    private static string NormalizeSectionReference(string framework, string reference)
+    {
+        if (framework == FaithFrameworks.Muslim && SacredTextReferenceParser.TryParseQuranSection(reference, out var chapter))
+            return chapter.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (SacredTextReferenceParser.TryParseBookChapter(reference, out var book, out var bookChapter))
+            return $"{book.ToUpperInvariant()} {bookChapter}";
+        return Regex.Replace(reference.Trim(), @"\s+", " ").ToUpperInvariant();
     }
 
     /// <summary>

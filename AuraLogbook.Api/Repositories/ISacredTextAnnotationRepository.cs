@@ -14,8 +14,8 @@ public interface ISacredTextAnnotationRepository
     /// <summary>Creates a private annotation and returns its database identifier.</summary>
     Task<int> CreateAsync(SacredTextAnnotation annotation);
 
-    /// <summary>Replaces an annotation only when the authenticated owner matches.</summary>
-    Task<bool> UpdateAsync(SacredTextAnnotation annotation);
+    /// <summary>Updates only the owner-authored note while retaining its original source identity and anchor.</summary>
+    Task<bool> UpdateAsync(int userId, int id, string? note, DateTime updatedAt);
 
     /// <summary>Deletes an annotation only when the authenticated owner matches.</summary>
     Task<bool> DeleteAsync(int userId, int id);

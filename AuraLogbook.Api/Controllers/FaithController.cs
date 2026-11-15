@@ -47,13 +47,12 @@ public sealed class FaithController(SacredTextService sacredText, TimeProvider t
         [FromQuery] string? reference,
         CancellationToken cancellationToken)
     {
-        var provider = sacredText.GetProvider(framework);
-        if (provider is null) return BadRequest("Choose a supported sacred-text framework.");
+        if (sacredText.GetProvider(framework) is null) return BadRequest("Choose a supported sacred-text framework.");
         if (string.IsNullOrWhiteSpace(reference) || reference.Length > 120)
             return BadRequest("Provide a supported book, chapter, or section reference.");
         try
         {
-            return Ok(await provider.GetSectionAsync(reference, cancellationToken));
+            return Ok(await sacredText.GetSectionAsync(framework, reference, cancellationToken));
         }
         catch (ArgumentException ex)
         {

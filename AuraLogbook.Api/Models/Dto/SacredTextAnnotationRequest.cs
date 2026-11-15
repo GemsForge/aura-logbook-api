@@ -25,17 +25,21 @@ public sealed class SacredTextAnnotationRequest
     [Required, StringLength(16)]
     public string Kind { get; set; } = "";
 
-    /// <summary>Start character offset in the selected section.</summary>
+    /// <summary>Start character offset within the referenced segment's displayed text.</summary>
     [Range(0, int.MaxValue)]
     public int StartOffset { get; set; }
 
-    /// <summary>Exclusive end character offset in the selected section.</summary>
+    /// <summary>Exclusive end character offset within the referenced segment's displayed text.</summary>
     [Range(0, int.MaxValue)]
     public int EndOffset { get; set; }
 
     /// <summary>Optional verse, ayah, or segment reference for non-drag actions.</summary>
     [StringLength(120)]
     public string? SegmentReference { get; set; }
+
+    /// <summary>Lowercase SHA-256 of the selected text after provider markup cleaning; never send the selected text itself.</summary>
+    [RegularExpression("^[a-f0-9]{64}$")]
+    public string? AnchorHash { get; set; }
 
     /// <summary>Optional user-authored private note; selected source text is not accepted.</summary>
     [StringLength(2000)]
