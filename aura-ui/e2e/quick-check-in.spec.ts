@@ -1,5 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { stubApi } from "./apiStubs";
+import { testReferenceData } from "../src/test/referenceDataFixtures";
+
+/** Satisfies the current onboarding/reference-data gate while keeping every control real. */
+async function setupQuickCheckIn(page: Page, pathway = "Mindfulness") {
+  await stubApi(page, 3, "Aurora", true, pathway, { onboardingCompleted: true });
+  await page.route("http://127.0.0.1:5082/api/reference-data", (route) => route.fulfill({ json: testReferenceData }));
+}
 
 /**
  * Pass 3 of the Today brief: the saved moment keeps keyboard focus and attaches details to the
@@ -17,10 +24,12 @@ const cases = [
 for (const { mood, pathway } of cases) for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 }]) {
   test(`saving a ${mood} check-in on ${pathway} keeps the layout steady at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await stubApi(page, 3, "Aurora", true, pathway);
+    await setupQuickCheckIn(page, pathway);
     await page.goto("/dashboard");
     const week = page.getByRole("heading", { name: "This week" });
     await expect(week).toBeVisible();
+    // Positive moods lead the compact preview; the complete catalog remains behind More moods.
+    if (mood === "Tense") await page.getByRole("button", { name: "More moods" }).click();
     const before = await week.boundingBox();
 
     await page.getByRole("button", { name: mood, exact: true }).click();
@@ -42,7 +51,7 @@ for (const { mood, pathway } of cases) for (const viewport of [{ width: 1280, he
 
 test("adding a note updates the saved entry instead of creating another", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
-  await stubApi(page, 3);
+  await setupQuickCheckIn(page);
   const writes: string[] = [];
   page.on("request", (request) => {
     if (request.method() !== "GET" && request.method() !== "OPTIONS" && new URL(request.url()).pathname.toLowerCase().includes("/mood")) {
@@ -50,6 +59,7 @@ test("adding a note updates the saved entry instead of creating another", async 
     }
   });
   await page.goto("/dashboard");
+  await page.getByRole("button", { name: "More moods" }).click();
   await page.getByRole("button", { name: "Tense", exact: true }).click();
   await page.getByRole("button", { name: "Add a note or photo" }).click();
   await page.getByRole("button", { name: "Save details" }).click();

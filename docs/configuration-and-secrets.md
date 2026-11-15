@@ -53,9 +53,16 @@ The redirect URI configured in Spotify's Developer Dashboard must exactly match 
 ## Astrology providers
 
 FreeAstroAPI keys are used only by the API for the daily sign reading and
-date-specific moon phase lookups. Configure the key as an ASP.NET user secret
-for local development or as a deployment secret; never put it in `aura-ui` or
-committed configuration:
+date-specific moon phase lookups. For the combined local `npm run dev` launcher,
+store `FREE_ASTRO_API_KEY=your-api-key` in the Git-ignored
+`AuraLogbook.Api/.env.local`. The launcher reads only that credential from the
+backend file and passes it only to the API child, excluding it from Vite's
+environment. A nonempty exported `FREE_ASTRO_API_KEY` takes precedence over the
+local file. Restart the local stack after changing it.
+
+When starting the API directly, export `FREE_ASTRO_API_KEY` in its environment
+or use an ASP.NET user secret. Never put the key in `aura-ui`, `VITE_` variables,
+or committed configuration:
 
 ```bash
 dotnet user-secrets --project AuraLogbook.Api set "FreeAstroApi:ApiKey" "your-api-key"
@@ -70,21 +77,74 @@ documented free-tier request limit. Without a key, the astrology endpoints
 return `503 Service Unavailable` and the UI can explain that the insight cannot
 be loaded.
 
+Integration references are the provider's current
+[endpoint map](https://www.freeastroapi.com/llms.txt),
+[daily-sign documentation](https://www.freeastroapi.com/docs/western/daily-sign),
+and [moon-phase documentation](https://www.freeastroapi.com/docs/utilities/moon-phase).
+The server uses `GET /api/v2/horoscope/daily/sign` and
+`GET /api/v1/moon/phase` with the `x-api-key` header. Live requests for a sample
+sign and date were verified on November 13, 2026; browser acceptance for the
+signed-in profile is a separate check.
+
 ## Optional natal chart provider
 
-Astrology-API.io calculates an optional chart through the authenticated
-`GET /api/astrology/birth-chart` route. Set `AstrologyApi:ApiKey` as a user
-secret locally or `AstrologyApi__ApiKey` in deployment secrets. The key is used
-only by the API; the browser never calls the provider.
+FreeAstrologyAPI (`freeastrologyapi.com`) is the selected birth-chart provider,
+replacing Astrology-API.io. This is a separate provider and account from
+FreeAstroAPI (`freeastroapi.com`), which supplies the daily horoscope and moon data.
+Set the birth-chart key locally:
 
-The route requires the Astrology & Energy pathway, the Daily Astrology module,
-a birthday, and birth time and birthplace retained only after the explicit
-“Save birth details” choice. The provider request sends those saved details.
-Chart responses are cached in process memory for up to 30 days and are not
-persisted to the application database or disk. The provider documents
-`POST /api/v3/charts/natal` in its [use cases](https://api.astrology-api.io/docs/use-cases);
-confirm response fields with an account-backed request before relying on
-placement extraction in production.
+```bash
+dotnet user-secrets --project AuraLogbook.Api set "FreeAstrologyApi:ApiKey" "your-api-key"
+```
+
+Use `FreeAstrologyApi__ApiKey` in deployment secrets. Restart the API after changing
+configuration. The previous `AstrologyApi:ApiKey` setting is no longer used; keys
+from the old provider cannot authenticate to the selected provider.
+
+The authenticated `GET /api/astrology/birth-chart` route requires Astrology & Energy,
+the Daily Astrology module, a birthday, and birth time and birthplace retained only
+after the explicit “Save birth details” choice. Switching pathways preserves those
+consented details in the user profile, including when the profile update resubmits
+them. Retention does not enable charts or provider calls outside Astrology & Energy.
+Unchecking the save choice and saving the profile clears the details. No profile
+migration is required.
+The server searches the saved city name with `POST /geo-details`, filters the
+results against the saved region/country, and requires an unambiguous
+city/region/country match, and resolves the returned IANA time zone against the
+birth date using the host's time-zone rules. Missing or ambiguous locations and
+invalid or repeated local times at DST transitions return unavailable rather than
+guessing a location or UTC offset. Use a city and country (for example,
+`New York, US`), or include a state/region to narrow the result (`New York, NY, US`).
+US state abbreviations are matched only to US regions using the
+[USPS state abbreviation list](https://pe.usps.com/text/pub28/28apb.htm).
+A code such as `CA` can mean California or Canada: when both match the city,
+include the country rather than relying on an assumed first result. Full state
+names remain supported. Other regions should be spelled out.
+
+The server then sends the birth date, local time, coordinates, and historical UTC
+offset to `POST /western/planets`, explicitly requesting tropical, geocentric,
+English placements. It normalizes planet/sign/degree fields into Aura's existing
+chart response. This supplies calculations; written natal reports and house
+assignments are not included. No live provider calls happen without the selected
+provider's key. Provider credentials never go to the browser.
+
+Both calls share a server-wide one-request-per-second pacer. Successful normalized
+charts are cached in process memory for up to 30 days using hashed input keys;
+they are not persisted to the database or disk. An uncached calculation uses two
+requests, and repeating a cached chart uses none. The free plan currently lists
+500 requests per day, including Western planets and geocoding, as checked on
+November 13, 2026; verify current terms before production use. See the official
+[pricing](https://freeastrologyapi.com/pricing),
+[authentication](https://freeastrologyapi.com/api-reference),
+[geocoding](https://freeastrologyapi.com/api-reference/geo-location/geo-location-api),
+and [planet response](https://freeastrologyapi.com/api-reference/western-astrology/planets).
+A live request with synthetic birth details was verified on November 13, 2026:
+`/geo-details` and `/western/planets` both returned HTTP 200 and the adapter
+normalized 22 placements. This verifies the selected provider and response mapping;
+the signed-in browser flow for a particular saved profile still needs its own check.
+
+The pathway plan and consent flow are maintained in
+[Core user journeys](ux/core-user-journeys.md).
 
 The Spotify authorization request asks for these read permissions:
 
@@ -203,3 +263,13 @@ Do not commit:
 - Access or refresh tokens
 
 If a secret is accidentally committed, revoke or rotate it immediately and remove it from the repository history through the project's approved remediation process.
+
+### Preset birthplace selections
+
+Profile → My Pathway → Astrology & Energy uses country, state/region, and city
+choices instead of a free-text birthplace. The UI stores `City, Full state/region
+name, Country code` in the existing profile field after the explicit save action.
+Changing country clears the downstream region/city; changing region clears city.
+Older saved birthplace strings remain supported and are preserved until the user
+chooses a replacement. The preset catalog does not replace the chart provider's
+unique-location validation. See [dependency provenance](../DEPENDENCIES.md#preset-birth-locations).

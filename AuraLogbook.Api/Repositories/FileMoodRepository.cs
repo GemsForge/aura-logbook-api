@@ -14,7 +14,7 @@ public class FileMoodRepository : FileRepositoryBase<MoodEntry>, IFileMoodReposi
 
 
     /// <summary>
-    /// Retrieves all mood entries for a specific user.Descending date order.
+    /// Retrieves moods by journal day and occurrence time, falling back to creation time for legacy records.
     /// </summary>
     public async Task<List<MoodEntry>> GetAllByUserAsync(int userId)
     {
@@ -22,6 +22,7 @@ public class FileMoodRepository : FileRepositoryBase<MoodEntry>, IFileMoodReposi
         return allEntries
             .Where(e => e.UserId == userId)
             .OrderByDescending(e => e.Date)
+            .ThenByDescending(e => e.OccurredAt?.UtcDateTime ?? e.CreatedAt)
             .ToList();
     }
 

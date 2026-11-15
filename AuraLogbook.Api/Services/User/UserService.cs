@@ -82,21 +82,6 @@ public class UserService : IUserService
             if (preferenceError is not null) return (false, preferenceError);
         }
 
-        // Validate optional chart details against the pathway that will remain saved after this update.
-        if (request.PathwayPreferences is not null)
-        {
-            var pathwayKey = string.IsNullOrWhiteSpace(request.SelectedPathway) ? existingUser.SelectedPathway : request.SelectedPathway;
-            var pathway = pathwayKey switch
-            {
-                SpiritualPathwayKeys.Energy => SpiritualPathway.Energy,
-                SpiritualPathwayKeys.Faith => SpiritualPathway.Faith,
-                _ => SpiritualPathway.Mindfulness,
-            };
-            var preferenceError = request.PathwayPreferences.Validate(pathway);
-            if (preferenceError is not null) return (false, preferenceError);
-        }
-
-
         // Apply changes. Birthday is optional (#341); omitting it keeps the saved one.
         if (request.Birthday is { } birthday)
         {

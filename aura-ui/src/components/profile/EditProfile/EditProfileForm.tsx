@@ -108,7 +108,7 @@ export function EditProfileForm({
     {
       id: "my-pathway",
       title: "My Pathway",
-      content: <MyPathwaySelector control={control} setValue={setValue} errorMessage={errors.spiritualPathway?.message} />,
+      content: <MyPathwaySelector control={control} setValue={setValue} errorMessage={errors.spiritualPathway?.message} preferenceErrors={errors.pathwayPreferences} />,
     },
     {
       id: "appearance",

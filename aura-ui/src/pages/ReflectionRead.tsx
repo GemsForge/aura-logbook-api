@@ -1,3 +1,4 @@
+import { compareMoodOccurrence, moodOccurrenceTime } from "@/features/mood/moodOccurrenceTime";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Box from "@mui/joy/Box";
@@ -24,8 +25,8 @@ import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppDispatch } from "@/store/hooks";
 import { auraApi } from "@/store/auraApi";
 
-/** Orders entries oldest to newest by day, then by logged time, for Earlier/Later stepping. */
-const byTime = (a: MoodEntry, b: MoodEntry) => a.date.localeCompare(b.date) || (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
+/** Orders journal days and recorded moments for Earlier/Later stepping, with legacy audit-time fallback. */
+const byTime = compareMoodOccurrence;
 
 /**
  * Reading view for one reflection at `/history/:id`: a narrow serif column with the full writing, its moods,
@@ -66,7 +67,7 @@ export default function ReflectionRead() {
     const aura = referenceData?.auras.find((definition) => definition.key === moodDefinition(mood)?.auraColorKeys[0]);
     return aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)";
   };
-  const time = entry.createdAt ? dayjs(entry.createdAt).format("h:mm A") : null;
+  const time = moodOccurrenceTime(entry).format("h:mm A");
   const song = parseSnapshot<{ name?: string; artists?: string }>(entry.musicTrack);
   const weather = parseSnapshot<{ description?: string; iconCode?: string; temperature?: number; unit?: string }>(entry.weatherSnapshot);
   const clear = !!weather && (/clear/i.test(weather.description ?? "") || (weather.iconCode ?? "").startsWith("01"));
@@ -82,7 +83,8 @@ export default function ReflectionRead() {
         </Box>
       </Box>
 
-      <Box component="article" aria-labelledby="reflection-title" sx={{ maxWidth: 620, mx: "auto", mt: { xs: 3, sm: 4 }, pb: 4 }}>
+      {/* The reading surface shares the same under-glow as the rest of the journal. */}
+      <Box className="aura-highlight" component="article" aria-labelledby="reflection-title" sx={{ maxWidth: 620, mx: "auto", mt: { xs: 3, sm: 4 }, p: 2.5, pb: 4, bgcolor: "var(--al-theme-surface)", borderRadius: "sm" }}>
         <Box aria-hidden="true" sx={{ width: 56, height: 4, borderRadius: 99, bgcolor: auraColor(entry.moods[0] ?? "") }} />
         <Typography id="reflection-title" ref={headingRef} tabIndex={-1} component="h1" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.9rem", sm: "2.3rem" }, lineHeight: 1.15, mt: 1.5, outline: "none" }}>
           {dayjs(entry.date).format("dddd, MMMM D")}

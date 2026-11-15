@@ -1,3 +1,4 @@
+import { compareMoodOccurrence } from "@/features/mood/moodOccurrenceTime";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
@@ -100,7 +101,7 @@ export default function MoodHistoryPage() {
   const activeDate = selectedDate ?? latestDay;
   const dayEntries = logs
     .filter((entry) => entry.date === activeDate)
-    .sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? ""));
+    .sort(compareMoodOccurrence);
 
   const liveliest = liveliestTime(logs, referenceData?.moods ?? []);
   const topMood = topMoodByDay(monthLogs);

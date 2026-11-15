@@ -14,7 +14,7 @@ export default defineConfig({
     url: "http://127.0.0.1:59783",
     reuseExistingServer: false,
     timeout: 30_000,
-    env: { VITE_API_BASE_URL: "http://127.0.0.1:5082/api" },
+    env: { VITE_API_BASE_URL: "http://127.0.0.1:5082/api", VITE_CACHE_DIR: "node_modules/.vite-playwright" },
   },
   outputDir: "./test-results/playwright",
 });

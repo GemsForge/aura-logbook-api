@@ -1,5 +1,4 @@
 import Box from "@mui/joy/Box";
-import Sheet from "@mui/joy/Sheet";
 import { MoodApi } from "../api/MoodApi";
 import type { MoodType } from "../features/mood/models/schema/MoodType";
 import MoodEntryFormFields from "./MoodEntryFormFields";
@@ -7,22 +6,26 @@ import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import dayjs from "dayjs";
-import Stack from "@mui/joy/Stack";
+import { MoodDateTimeField } from "@/components/mood/MoodDateTimeField";
+import { MOOD_OCCURRENCE_FORMAT, parseMoodOccurrence } from "@/features/mood/moodOccurrenceTime";
 import Typography from "@mui/joy/Typography";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { auraApi } from "@/store/auraApi";
-import { ThemeBanner } from "@/components/ui/ThemeBanner";
+import { moodApi } from "@/store/moodApi";
 import { MoodMediaApi } from "@/api/MoodMediaApi";
 import { useCheckInWeather } from "@/hooks/useCheckInWeather";
 
-/** Hosts a same-day mood entry with its creation time and compact journaling form. */
+/** Owns the header journal-date selection while the API keeps the actual creation timestamp separate. */
 export default function MoodEntryForm() {
   const currentUser = useAppSelector(selectCurrentUser);
   const dispatch = useAppDispatch();
   const checkInWeather = useCheckInWeather(currentUser);
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [journalOccurredAt, setJournalOccurredAt] = useState(dayjs().startOf("minute").format(MOOD_OCCURRENCE_FORMAT));
+  const selectedMoment = parseMoodOccurrence(journalOccurredAt);
+  const journalDate = selectedMoment?.format("YYYY-MM-DD") ?? "";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedMoodId, setSavedMoodId] = useState<number | null>(null);
   const [photoStatuses, setPhotoStatuses] = useState<Array<"pending" | "uploaded" | "failed">>([]);
@@ -33,9 +36,11 @@ export default function MoodEntryForm() {
   /** Saves one entry first, then uploads its private photos with retry state tied to that entry ID. */
   const handleSubmit = async (data: {
     date: string;
+    occurredAt?: string;
     moods: MoodType[];
     impactTopics: string[];
     comment?: string;
+    pathwayReflection?: import("@/features/mood/models/schema/MoodEntry").MoodPathwayReflection;
   }, photos: File[]) => {
     if (submitInProgress.current) return;
     submitInProgress.current = true;
@@ -51,8 +56,9 @@ export default function MoodEntryForm() {
         setSaveFailed(false);
         setFeedback({ message: "Saving your check-in…", role: "status" });
         const createdEntry = await MoodApi.logMood({ ...data, weather: checkInWeather });
-        // The full-entry form uses the Axios client, so refresh the separate derived-aura cache directly.
+        // Axios saves bypass RTK mutations; refresh history, reflection patterns, and derived-aura caches.
         dispatch(auraApi.util.invalidateTags(["Aura", "AuraSeasons"]));
+        dispatch(moodApi.util.invalidateTags(["Moods", "Dashboard"]));
         moodEntryId = createdEntry.id;
         setSavedMoodId(moodEntryId);
         nextPhotoStatuses = photos.map(() => "pending");
@@ -111,14 +117,19 @@ export default function MoodEntryForm() {
   };
 
   return (
-    <Box className="signed-in-content" sx={{ maxWidth: 850, mx: "auto", py: { xs: 0, md: 1 } }}>
-      {/* Keep the shared themed page introduction above the compact journal form. */}
-      <ThemeBanner title="New entry" description="Check in with how you feel today, then add a reflection or photo if you like." illustration="mood" />
-      <Sheet variant="outlined" className="aura-panel" sx={{ p: { xs: 1.75, md: 2.5 } }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1.5} sx={{ mb: 1.5 }}>
-          <Typography level="body-sm" color="neutral" sx={{ ml: "auto" }}>{dayjs().format("ddd, MMM D · h:mm A")}</Typography>
-        </Stack>
+    <Box className="signed-in-content" sx={{ maxWidth: 1200, mx: "auto", py: { xs: 0, md: 1 } }}>
+      <Box component="header" sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+        <Typography component="h1" level="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.5rem !important", sm: "2rem !important" }, fontWeight: 500 }}>New entry</Typography>
+        {/* The occurrence date and time are editable here; a saved entry stays locked during photo retries. */}
+        <MoodDateTimeField
+          value={selectedMoment}
+          onChange={(date) => setJournalOccurredAt(date?.isValid() ? date.format(MOOD_OCCURRENCE_FORMAT) : "")}
+          disabled={isSubmitting || savedMoodId !== null}
+        />
+      </Box>
         <MoodEntryFormFields
+          journalDate={journalDate}
+          journalOccurredAt={journalOccurredAt}
           onSubmit={handleSubmit}
           disabled={savedMoodId !== null}
           isSubmitting={isSubmitting}
@@ -127,7 +138,6 @@ export default function MoodEntryForm() {
           statusRole={feedback?.role}
           photoStatuses={photoStatuses}
         />
-      </Sheet>
     </Box>
   );
 }

@@ -54,6 +54,51 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Equal("blue", reloaded.AuraColor); Assert.Equal(72, reloaded.AuraIntensity);
     }
 
+    /// <summary>Saved birth details survive pathway changes in the real Users record until explicitly cleared.</summary>
+    [Theory]
+    [InlineData(SpiritualPathwayKeys.Faith, "sacred-texts")]
+    [InlineData(SpiritualPathwayKeys.Mindfulness, "mindfulness-guide")]
+    public async Task Consented_birth_details_survive_switching_pathways_and_can_be_cleared(string pathway, string module)
+    {
+        var repository = new SqliteUserRepository(_factory);
+        var user = new User
+        {
+            Email = "birth-retention@example.test", PasswordHash = "hash", SelectedPathway = SpiritualPathwayKeys.Energy,
+            PathwayPreferences = new() { Focus = ["daily-astrology"], SaveBirthDetails = true, BirthTime = "08:30", BirthPlace = "Chicago, US" }
+        };
+        user.Id = await repository.CreateAsync(user);
+        var service = new UserService(repository, new TestReferenceDataValidator());
+        var update = new UpdateUserRequest
+        {
+            Id = user.Id, Email = user.Email, SelectedPathway = pathway,
+            PathwayPreferences = new() { Focus = [module], SaveBirthDetails = true, BirthTime = "08:30", BirthPlace = "Chicago, US" }
+        };
+
+        var result = await service.UpdateUserAsync(update);
+        Assert.True(result.Success, result.Message);
+        var saved = (await new SqliteUserRepository(_factory).GetByIdAsync(user.Id))!;
+        Assert.Equal(pathway, saved.SelectedPathway);
+        Assert.True(saved.PathwayPreferences!.SaveBirthDetails);
+        Assert.Equal("08:30", saved.PathwayPreferences.BirthTime);
+        Assert.Equal("Chicago, US", saved.PathwayPreferences.BirthPlace);
+
+        // A focused profile update omits preferences rather than revoking their saved consent.
+        Assert.True((await service.UpdateUserAsync(new() { Id = user.Id, Email = user.Email, DisplayName = "Alex" })).Success);
+        Assert.Equal("Chicago, US", (await repository.GetByIdAsync(user.Id))!.PathwayPreferences!.BirthPlace);
+
+        update.SelectedPathway = SpiritualPathwayKeys.Energy;
+        update.PathwayPreferences.Focus = ["daily-astrology"];
+        Assert.True((await service.UpdateUserAsync(update)).Success);
+        Assert.Equal("08:30", (await repository.GetByIdAsync(user.Id))!.PathwayPreferences!.BirthTime);
+
+        update.PathwayPreferences = new() { Focus = ["daily-astrology"], SaveBirthDetails = false };
+        Assert.True((await service.UpdateUserAsync(update)).Success);
+        saved = (await repository.GetByIdAsync(user.Id))!;
+        Assert.False(saved.PathwayPreferences!.SaveBirthDetails);
+        Assert.Null(saved.PathwayPreferences.BirthTime);
+        Assert.Null(saved.PathwayPreferences.BirthPlace);
+    }
+
     /// <summary>
     /// #327: seeded users must still authenticate after <c>[JsonIgnore]</c> was added to
     /// <see cref="User.PasswordHash"/>, because the seeder reads its own record type.

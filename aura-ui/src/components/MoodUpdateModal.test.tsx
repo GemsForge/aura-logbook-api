@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode, FormEvent } from "react";
 import { renderWithProviders } from "../test/testUtilities";
 import MoodUpdateModal from "./MoodUpdateModal";
+import { moodApi } from "@/store/moodApi";
 
 const apiMocks = vi.hoisted(() => ({ updateMood: vi.fn(), upload: vi.fn(), showToast: vi.fn() }));
 
@@ -39,6 +40,7 @@ describe("MoodUpdateModal", () => {
 
   it("retries only the private photo for the same saved mood entry", async () => {
     const user = userEvent.setup();
+    const invalidation = vi.spyOn(moodApi.util, "invalidateTags");
     const onClose = vi.fn();
     const onSuccess = vi.fn();
     renderWithProviders(
@@ -52,7 +54,11 @@ describe("MoodUpdateModal", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Save details" }));
+    // Pattern/history caches refresh as soon as the mood changes, even when photo upload needs a retry.
+    expect(invalidation).toHaveBeenCalledWith(["Moods", "Dashboard"]);
     await user.click(screen.getByRole("button", { name: "Retry failed photos" }));
+    expect(invalidation).toHaveBeenCalledTimes(1);
+    invalidation.mockRestore();
 
     expect(apiMocks.updateMood).toHaveBeenCalledTimes(1);
     expect(apiMocks.updateMood).toHaveBeenCalledWith(123, expect.objectContaining({ moods: ["Centered"], comment: "A note" }));

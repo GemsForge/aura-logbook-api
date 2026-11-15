@@ -18,7 +18,7 @@ public sealed class PathwayPreferences
     /// <summary>Optional broad tradition lens selected by the user, such as Christian, Muslim, Jewish, or custom.</summary>
     public string? FaithTradition { get; set; }
 
-    /// <summary>True only when the user explicitly chooses to retain optional chart birth details.</summary>
+    /// <summary>Explicit consent to retain optional chart birth details on the profile, independently of the active pathway.</summary>
     public bool SaveBirthDetails { get; set; }
 
     /// <summary>Optional local birth time for a deeper chart; retained only with explicit consent.</summary>
@@ -63,8 +63,7 @@ public sealed class PathwayPreferences
             return "Choose a supported faith tradition or custom wording.";
         if (BirthTime is { Length: > 16 } || BirthPlace is { Length: > 160 })
             return "Birth details exceed the supported length.";
-        if (SaveBirthDetails && pathway != SpiritualPathway.Energy)
-            return "Saved birth details are available only for Astrology & Energy.";
+        // Retention consent survives pathway changes; the chart endpoint separately enforces pathway eligibility.
         if (SaveBirthDetails && (string.IsNullOrWhiteSpace(BirthTime) || string.IsNullOrWhiteSpace(BirthPlace)))
             return "Provide both birth time and birthplace when choosing to save chart details.";
         if (!SaveBirthDetails && (BirthTime is not null || BirthPlace is not null))

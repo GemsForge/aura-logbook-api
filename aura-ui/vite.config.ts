@@ -8,6 +8,8 @@ const apiProxyTarget = process.env.AURA_API_PROXY_TARGET ?? "http://127.0.0.1:50
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Concurrent local preview and browser checks must not replace each other's optimized imports.
+  cacheDir: process.env.VITE_CACHE_DIR ?? "node_modules/.vite",
   plugins: [plugin(), tsconfigPaths()],
   server: {
     port: 58407,

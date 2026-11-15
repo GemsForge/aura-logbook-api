@@ -6,7 +6,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import EditProfileModal from "../profile/EditProfileModal";
-import MobileNavigation from "./MobileNavigation";
+import MobileNavigation, { MobilePathwayNavigation } from "./MobileNavigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 
@@ -38,6 +38,8 @@ const AppLayout = () => {
           Skip to main content
         </Link>
         <NavBar />
+        {/* Only the journal dock floats; pathway controls stay in flow above the page. */}
+        {isAuthenticated && <MobilePathwayNavigation />}
 
         {/* Programmatic focus lets the skip link move keyboard users into the page content. */}
         <Container component="main" id="main-content" tabIndex={-1} maxWidth="xl" className={isAuthenticated ? "signed-in-container" : undefined} sx={{ mt: { xs: 2, md: 3 }, mb: 2, flexGrow: 1, px: { xs: 2, md: 3 } }}>

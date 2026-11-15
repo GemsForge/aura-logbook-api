@@ -1,4 +1,5 @@
 import type { WeatherDto } from "@/api/WeatherApi";
+import type { MoodPathwayReflection } from "./MoodEntry";
 import type { MoodType } from "./MoodType";
 
 /**
@@ -11,11 +12,17 @@ export interface MoodEntryRequest {
   /** Date of the entry in 'YYYY-MM-DD' format */
   date: string;
 
+  /** Optional ISO occurrence instant with original offset; local date must match date. */
+  occurredAt?: string;
+
   /** Optional comment about the mood entry */
   comment?: string;
 
   /** User-selected context topics that mattered to this check-in, not inferred causes. */
   impactTopics?: string[];
+
+  /** Optional invitation and explicit response, saved atomically with this mood. */
+  pathwayReflection?: MoodPathwayReflection;
 
   weather?: WeatherDto;
 }

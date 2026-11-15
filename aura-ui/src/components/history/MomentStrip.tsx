@@ -11,6 +11,7 @@ import { AuraModal } from "@/components/ui/AuraModal";
 import PhotoNavigationControls from "@/components/history/PhotoNavigationControls";
 import { usePhotoViewerNavigation } from "@/components/history/photoViewerNavigation";
 import { MoodMediaApi, type MoodMediaAttachment } from "@/api/MoodMediaApi";
+import { moodOccurrenceTime } from "@/features/mood/moodOccurrenceTime";
 import type { MoodEntry } from "@/features/mood/models/schema";
 
 /** Parses a JSON snapshot column, returning null for missing or malformed data. */
@@ -40,7 +41,7 @@ export default function MomentStrip({ entry }: { entry: MoodEntry }) {
   const [viewing, setViewing] = useState<MoodMediaAttachment | null>(null);
   const [overflow, setOverflow] = useState({ left: false, right: false });
   const stripRef = useRef<HTMLDivElement>(null);
-  const time = entry.createdAt ? new Date(entry.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+  const time = moodOccurrenceTime(entry).format("h:mm A");
 
   // Photos are private and fetched per entry, only when the entry reports having any.
   useEffect(() => {

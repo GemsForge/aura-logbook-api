@@ -17,6 +17,9 @@ export function InsightFeedback({ pathway, moduleKey, insightType, children, hid
 
   useEffect(() => {
     let mounted = true;
+    // A newly selected lens must not inherit the previous lens's visible response or status.
+    setSelected(null);
+    setMessage("");
     void PathwayActivityApi.getMine({ pathway, moduleKey, activityType: "insight-feedback" })
       .then((items) => {
         const latest = items.find((item) => item.content && "insightType" in item.content && item.content.insightType === insightType);
@@ -43,9 +46,8 @@ export function InsightFeedback({ pathway, moduleKey, insightType, children, hid
 
   return <Box sx={{ mt: 1.5 }}>
     {!(hideContentWhenNotForMe && selected === "not-for-me") && children}
-    <Typography level="body-xs" color="neutral">Does this feel meaningful?</Typography>
-    <Box role="group" aria-label="Insight feedback" sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .5 }}>
-      {options.map((option) => <Button key={option.value} size="sm" variant={selected === option.value ? "solid" : "plain"} disabled={saving} onClick={() => void save(option.value)}>{option.label}</Button>)}
+    <Box role="group" aria-label="Insight feedback" sx={{ display: "flex", flexWrap: "wrap", gap: .5 }}>
+      {options.map((option) => <Button key={option.value} size="sm" color="neutral" aria-pressed={selected === option.value} variant={selected === option.value ? "soft" : "plain"} disabled={saving} onClick={() => void save(option.value)} sx={{ minHeight: 44, px: 1 }}>{option.label}</Button>)}
     </Box>
     {message && <Typography role="status" level="body-xs" sx={{ mt: .5 }}>{message}</Typography>}
   </Box>;

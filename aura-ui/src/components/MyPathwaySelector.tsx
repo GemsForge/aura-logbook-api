@@ -1,6 +1,7 @@
 import { Box, Checkbox, FormControl, FormControlLabel, FormHelperText, Radio, RadioGroup, Switch, TextField, Typography } from "@mui/material";
 import Sheet from "@mui/joy/Sheet";
-import type { Control, FieldValues, Path } from "react-hook-form";
+import { BirthplaceSelect } from "./profile/BirthplaceSelect";
+import type { Control, FieldErrors, FieldValues, Path } from "react-hook-form";
 import { Controller, useWatch, type UseFormSetValue } from "react-hook-form";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import type { PathwayPreferences } from "@/features/auth/models/Auth";
@@ -13,11 +14,14 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
   setValue,
   name,
   errorMessage,
+  preferenceErrors,
 }: {
   control: Control<TForm>;
   name?: Path<TForm>;
   setValue: UseFormSetValue<TForm>;
   errorMessage?: string;
+  /** Field-level errors for the selected pathway's optional profile details. */
+  preferenceErrors?: FieldErrors<PathwayPreferences>;
 }) {
   const { data, isError } = useGetReferenceDataQuery();
   const selected = useWatch({ control, name: (name ?? ("spiritualPathway" as Path<TForm>)) as Path<TForm> }) as string;
@@ -57,7 +61,7 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
                           <Box><Typography variant="body2">Breathing timer</Typography><Typography variant="caption" color="text.secondary">Shared practice</Typography></Box>
                           <Switch size="small" checked={value.breathingEnabled !== false} onChange={(event) => preferenceField.onChange({ ...value, breathingEnabled: event.target.checked })} inputProps={{ "aria-label": "Show breathing timer" }} />
                         </Box>
-                        {selected === "energy" && <BirthDetailsFields control={control} />}
+                        {selected === "energy" && <BirthDetailsFields control={control} errors={preferenceErrors} />}
                         {selected === "faith" && <FaithFrameworkField control={control} />}
                       </>;
                     }} />
@@ -74,17 +78,17 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
 }
 
 /** Stores chart details only when the explicit save choice is on. */
-function BirthDetailsFields<TForm extends FieldValues & PathwayField>({ control }: { control: Control<TForm> }) {
+function BirthDetailsFields<TForm extends FieldValues & PathwayField>({ control, errors }: { control: Control<TForm>; errors?: FieldErrors<PathwayPreferences> }) {
   return <Controller name={"pathwayPreferences" as Path<TForm>} control={control} render={({ field }) => {
     const preferences = field.value as PathwayPreferences;
     const save = preferences.saveBirthDetails === true;
     return <Sheet variant="soft" sx={{ mt: 1, p: 1.25, borderRadius: 4 }}>
       <FormControlLabel control={<Checkbox size="small" checked={save} onChange={(event) => field.onChange({ ...preferences, saveBirthDetails: event.target.checked, birthTime: event.target.checked ? preferences.birthTime : "", birthPlace: event.target.checked ? preferences.birthPlace : "" })} />} label={<Typography variant="body2">Save optional birth details</Typography>} />
       {save && <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1, mt: .5 }}>
-        <TextField size="small" label="Birth time" type="time" value={preferences.birthTime ?? ""} onChange={(event) => field.onChange({ ...preferences, birthTime: event.target.value })} InputLabelProps={{ shrink: true }} />
-        <TextField size="small" label="Birthplace" placeholder="City, country code" value={preferences.birthPlace ?? ""} onChange={(event) => field.onChange({ ...preferences, birthPlace: event.target.value })} />
+        <TextField size="small" label="Birth time" type="time" value={preferences.birthTime ?? ""} onChange={(event) => field.onChange({ ...preferences, birthTime: event.target.value })} InputLabelProps={{ shrink: true }} error={!!errors?.birthTime} helperText={errors?.birthTime?.message} />
+        <BirthplaceSelect value={preferences.birthPlace ?? ""} onChange={(birthPlace) => field.onChange({ ...preferences, birthPlace })} error={errors?.birthPlace?.message} />
       </Box>}
-      <FormHelperText>City, country code (Chicago, US). Used only for your chart.</FormHelperText>
+      <FormHelperText>Choose your country, state or region, then city. Used only for your chart.</FormHelperText>
     </Sheet>;
   }} />;
 }

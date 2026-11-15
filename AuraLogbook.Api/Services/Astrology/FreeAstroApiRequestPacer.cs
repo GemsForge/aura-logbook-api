@@ -7,7 +7,7 @@ public sealed class FreeAstroApiRequestPacer
     private readonly SemaphoreSlim _gate = new(1, 1);
     private DateTimeOffset _nextRequestAt;
 
-    /// <summary>Waits for the shared request slot and releases it after the caller completes its provider call.</summary>
+    /// <summary>Waits a full interval after the previous response so variable network latency cannot bunch provider arrivals.</summary>
     public async Task<IAsyncDisposable> EnterAsync(CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
@@ -17,8 +17,7 @@ public sealed class FreeAstroApiRequestPacer
             if (wait > TimeSpan.Zero)
                 await Task.Delay(wait, cancellationToken);
 
-            _nextRequestAt = DateTimeOffset.UtcNow + MinimumInterval;
-            return new Lease(_gate);
+            return new Lease(this);
         }
         catch
         {
@@ -27,13 +26,18 @@ public sealed class FreeAstroApiRequestPacer
         }
     }
 
-    private sealed class Lease(SemaphoreSlim gate) : IAsyncDisposable
+    private sealed class Lease(FreeAstroApiRequestPacer owner) : IAsyncDisposable
     {
-        private SemaphoreSlim? _gate = gate;
+        private FreeAstroApiRequestPacer? _owner = owner;
 
         public ValueTask DisposeAsync()
         {
-            Interlocked.Exchange(ref _gate, null)?.Release();
+            var owner = Interlocked.Exchange(ref _owner, null);
+            if (owner is not null)
+            {
+                owner._nextRequestAt = DateTimeOffset.UtcNow + MinimumInterval;
+                owner._gate.Release();
+            }
             return ValueTask.CompletedTask;
         }
     }

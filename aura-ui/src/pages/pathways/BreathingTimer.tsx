@@ -6,7 +6,7 @@ import RestartAltRounded from "@mui/icons-material/RestartAltRounded";
 
 type Cadence = "4-6" | "3-3";
 
-/** Offers a paced visual breathing guide with gentle 4/6 and 3/3 cycles and no breath holds. */
+/** Centers the approved compact breathing orb and controls; the visual follows gentle cycles without breath holds. */
 export default function BreathingTimer() {
   const [cadence, setCadence] = useState<Cadence>("4-6");
   const [running, setRunning] = useState(false);
@@ -30,14 +30,15 @@ export default function BreathingTimer() {
   const reset = () => { setRunning(false); setElapsed(0); setSessionStarted(false); };
   const cadenceAnimation = cadence === "4-6" ? "breathe-46" : "breathe-33";
 
-  return <Box className="signed-in-content" sx={{ maxWidth: 720, mx: "auto", py: { xs: 2, md: 4 } }}>
-    <Typography component="h1" variant="h3">Breathing timer</Typography>
+  return <Box className="signed-in-content aura-highlight" sx={{ maxWidth: 900, mx: "auto", my: { xs: 1, md: 4 }, p: { xs: 2, sm: 4 }, textAlign: "center", bgcolor: "var(--al-theme-surface-raised)", border: "1px solid var(--al-theme-border)" }}>
+    <Typography variant="overline" sx={{ fontSize: ".65rem", letterSpacing: ".12em" }}>A shared practice</Typography>
+    <Typography component="h1" variant="h3" sx={{ fontSize: "2rem", fontFamily: "var(--joy-fontFamily-display)", fontWeight: 500 }}>Breathing timer</Typography>
     <Typography color="text.secondary" sx={{ mt: .5 }}>Follow the shape. Pause anytime.</Typography>
 
     <Box component="section" aria-label="Breathing guide" sx={{
-      mt: 2, minHeight: { xs: 340, sm: 380 }, display: "grid", placeItems: "center", position: "relative", overflow: "hidden",
+      mt: 1, minHeight: { xs: 300, sm: 340 }, display: "grid", placeItems: "center", position: "relative", overflow: "hidden",
     }}>
-      <Box sx={{ display: "grid", justifyItems: "center", gap: 1.5, zIndex: 1 }}>
+      <Box sx={{ display: "grid", justifyItems: "center", gap: 3, zIndex: 1 }}>
         <Box role="img" aria-label={running ? `${isInhale ? "Inhale" : "Exhale"}, ${remaining} seconds` : idleLabel} sx={{
           width: { xs: 120, sm: 136 }, aspectRatio: "1", display: "grid", placeItems: "center", borderRadius: "50%",
           color: "#2b1935", background: "radial-gradient(circle at 34% 28%, #f0dcf7 0%, #c18bd5 52%, #79558f 100%)",
@@ -55,12 +56,12 @@ export default function BreathingTimer() {
         </Box>
         <Typography variant="h6" component="p" sx={{ minHeight: 28 }}>{running ? `${isInhale ? "Breathe in" : "Breathe out"} · ${remaining}` : sessionStarted ? "Paused · resume when you’re ready" : "Begin when you’re ready"}</Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Select size="small" value={cadence} onChange={(event) => { setCadence(event.target.value as Cadence); setElapsed(0); setSessionStarted(false); setRunning(false); }} inputProps={{ "aria-label": "Breathing cadence" }} sx={{ minWidth: 118, minHeight: 38, borderRadius: 1 }}>
+          <Select size="small" value={cadence} onChange={(event) => { setCadence(event.target.value as Cadence); setElapsed(0); setSessionStarted(false); setRunning(false); }} inputProps={{ "aria-label": "Breathing cadence" }} sx={{ minWidth: 118, minHeight: 38, borderRadius: 1, "& .MuiSelect-select": { py: .75, pl: 1 } }}>
             <MenuItem value="4-6">4 in · 6 out</MenuItem>
             <MenuItem value="3-3">3 in · 3 out</MenuItem>
           </Select>
           <Tooltip title={running ? "Pause breathing" : sessionStarted ? "Resume breathing" : "Start breathing"}>
-            <IconButton color="primary" aria-label={running ? "Pause breathing" : sessionStarted ? "Resume breathing" : "Start breathing"} onClick={() => { setSessionStarted(true); setRunning((value) => !value); }} size="small" sx={{ minWidth: 44, minHeight: 44 }}>
+            <IconButton color="primary" aria-label={running ? "Pause breathing" : sessionStarted ? "Resume breathing" : "Start breathing"} onClick={() => { setSessionStarted(true); setRunning((value) => !value); }} size="small" sx={{ minWidth: 44, minHeight: 44, p: .5, bgcolor: "var(--al-theme-primary)", color: "var(--al-theme-primary-contrast)" }}>
               {running ? <PauseRounded /> : <PlayArrowRounded />}
             </IconButton>
           </Tooltip>
@@ -70,5 +71,6 @@ export default function BreathingTimer() {
         </Box>
       </Box>
     </Box>
+    <Typography variant="caption" color="text.secondary">No breath holds. Follow your own pace.</Typography>
   </Box>;
 }

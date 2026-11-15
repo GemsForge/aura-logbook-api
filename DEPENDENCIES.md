@@ -84,6 +84,13 @@ node --test Scripts/dev.test.mjs
 
 ## External runtime services
 
+### Astrology providers
+
+- **Daily horoscope and moon phases:** [FreeAstroAPI](https://www.freeastroapi.com/), configured with `FreeAstroApi:ApiKey` or `FREE_ASTRO_API_KEY`.
+- **Birth-chart calculations:** [FreeAstrologyAPI](https://freeastrologyapi.com/), configured separately with `FreeAstrologyApi:ApiKey`. It replaces Astrology-API.io for this feature. The API calls geocoding and Western planetary calculations using saved birth details only after explicit consent; it resolves the birth-date UTC offset using the host's time-zone database.
+- Credentials remain on the API server. Successful charts are cached in process memory for up to 30 days; uncached requests use two provider calls with one-request-per-second pacing.
+- See [configuration and secrets](docs/configuration-and-secrets.md#optional-natal-chart-provider), [provider pricing](https://freeastrologyapi.com/pricing), and [Core user journeys](docs/ux/core-user-journeys.md) for the selected experience and integration boundaries.
+
 ### Open-Meteo weather API
 
 - **Purpose:** Current weather conditions used by the dashboard.
@@ -110,3 +117,9 @@ The project currently uses this service for personal development. Before public 
 - Keep package version changes in the relevant project manifest and lockfile; update this document when a major dependency or service changes.
 - Confirm whether Jest-related frontend packages are still needed before removing them; this inventory is not authorization to remove dependencies.
 - This file summarizes direct and operational dependencies. It is not a software bill of materials and does not enumerate transitive packages or license texts.
+
+## Preset birth locations
+
+The profile birthplace selector uses [countrycitystatejson](https://github.com/khkwan0/countryCityStateJson), pinned to `26.11.1001` (MIT). It supplies country, state/province, and city choices locally through its browser-specific `countrycitystatejson/client` entry point. Cities load by country; do not import the full server dataset into the application bundle. No birthplace search is sent to an external service while selecting options. The existing server-side chart request still resolves the saved location with the selected astrology provider.
+
+Catalog coverage is finite and does not establish that a place is uniquely resolvable by the astrology provider. Preserve older saved locations and keep ambiguous provider matches unavailable rather than choosing a different birthplace.

@@ -27,6 +27,8 @@ export function AuraTokensStyle({ interfaceTheme, interfaceMode, enabled }: Prop
         ":root": {
           "--aura-accent": t.surface,
           "--aura-glow": `${t.surface}66`,
+          // Section halos share the current aura hue at the same restrained opacity as the theme glow.
+          "--aura-section-glow": `${t.surface}2e`,
           "--aura-wash": `${t.surface}24`,
           "--aura-line": `${t.surface}4d`,
           "--aura-tint": t.tint,

@@ -34,7 +34,7 @@ export const PATHWAY_MODULES = {
   ],
   faith: [
     { key: "faith-practice-check-in", label: "Faith & Religion", hint: "Practice check-in and insights", path: "/pathways/faith-practice-check-in" },
-    { key: "sacred-texts", label: "Sacred texts", hint: "For your selected framework", path: "/pathways/sacred-texts" },
+    { key: "sacred-texts", label: "Sacred texts", hint: "Daily passage or a general quote", path: "/pathways/sacred-texts" },
   ],
 } as const;
 
@@ -46,4 +46,20 @@ export function pathwayModuleKey(pathway?: string | null): keyof typeof PATHWAY_
     case "faith": case "faith & religion": case "christian faith": return "faith";
     default: return undefined;
   }
+}
+
+/**
+ * Enables the current modules for profiles created before module preferences existed.
+ * An explicit empty list stays off. Old intention-only lists become module choices on the next save,
+ * so turning both new modules off cannot accidentally reactivate their legacy defaults.
+ */
+export function resolvePathwayFocus(pathway: string | null | undefined, focus?: readonly string[] | null): string[] {
+  const key = pathwayModuleKey(pathway);
+  if (!key) return [];
+  const defaults = PATHWAY_MODULES[key].map((module) => module.key);
+  if (focus == null) return defaults;
+  const legacyIntentions = new Set(["calm", "rest", "clarity", "gratitude", "self-kindness", "focus"]);
+  if (key === "mindfulness" && focus.length > 0 && focus.every((item) => legacyIntentions.has(item)))
+    return defaults;
+  return [...focus];
 }

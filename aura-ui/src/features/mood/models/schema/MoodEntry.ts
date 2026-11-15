@@ -11,11 +11,24 @@ export interface MoodEntry {
   comment?: string;
   /** Topics the user recorded as impactful context for this entry. */
   impactTopics?: string[];
-  createdAt: string; // ISO timestamp (e.g., "2025-06-21T14:32:00Z")
+  /** Invitation snapshot and explicit response saved with this private mood entry. */
+  pathwayReflection?: MoodPathwayReflection | null;
+  /** User-selected occurrence with its original UTC offset; missing on legacy entries. */
+  occurredAt?: string | null;
+  createdAt: string; // Immutable server audit timestamp (e.g., "2025-06-21T14:32:00Z")
   /** JSON weather snapshot captured at check-in ({ description, iconCode, temperature, unit }), when available. */
   weatherSnapshot?: string | null;
   /** JSON snapshot of the Spotify track playing at check-in ({ name, artists }), when available. */
   musicTrack?: string | null;
   /** Number of private photos attached to the entry. */
   photoCount?: number;
+}
+
+/** The exact optional interpretive invitation and deliberate response attached to a mood. */
+export interface MoodPathwayReflection {
+  sourceId: string;
+  pathway: string;
+  insightType: "pathway-prompt" | "chakra-mood-pattern" | "mood-combination";
+  text: string;
+  response: "resonates" | "maybe" | "not-for-me";
 }

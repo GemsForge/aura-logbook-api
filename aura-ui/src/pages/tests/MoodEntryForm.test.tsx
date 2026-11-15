@@ -1,8 +1,10 @@
+import userEvent from "@testing-library/user-event";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useLocation } from "react-router-dom";
 import { renderWithProviders } from "../../test/testUtilities";
 import MoodEntryForm from "@/components/MoodEntryForm";
+import dayjs from "dayjs";
 
 const flow = vi.hoisted(() => ({
   logMood: vi.fn(),
@@ -40,15 +42,17 @@ vi.mock("@/api/MoodApi", () => ({ MoodApi: { logMood: flow.logMood } }));
 vi.mock("@/api/MoodMediaApi", () => ({ MoodMediaApi: { upload: flow.upload } }));
 
 vi.mock("@/components/MoodEntryFormFields", () => ({
-  default: ({ onSubmit, isSubmitting, submitLabel, statusMessage, statusRole }: {
-    onSubmit: (data: { date: string; moods: string[]; comment: string }, photos: File[]) => Promise<void>;
+  default: ({ onSubmit, journalDate, journalOccurredAt, isSubmitting, submitLabel, statusMessage, statusRole }: {
+    onSubmit: (data: { date: string; occurredAt?: string; moods: string[]; comment: string }, photos: File[]) => Promise<void>;
+    journalDate?: string;
+    journalOccurredAt?: string;
     isSubmitting?: boolean;
     submitLabel?: string;
     statusMessage?: string;
     statusRole?: "alert" | "status";
   }) => (
     <div data-testid="mood-entry-form-fields">
-      <button type="button" disabled={isSubmitting} onClick={() => void onSubmit({ date: "2026-11-10", moods: ["Centered"], comment: "Remember this." }, flow.photos)}>{submitLabel ?? "Save mood"}</button>
+      <button type="button" disabled={isSubmitting} onClick={() => void onSubmit({ date: journalDate ?? "2026-11-10", ...(journalOccurredAt ? { occurredAt: journalOccurredAt } : {}), moods: ["Centered"], comment: "Remember this." }, flow.photos)}>{submitLabel ?? "Save mood"}</button>
       {statusMessage && <p role={statusRole}>{statusMessage}</p>}
     </div>
   ),
@@ -78,6 +82,30 @@ describe("MoodEntryForm", () => {
     expect(screen.getByRole("button", { name: "Save mood" })).toBeInTheDocument();
   });
 
+  it("places the editable date in the header and sends the selected past day", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MoodEntryForm />);
+    const dateControl = screen.getByRole("group", { name: "Entry date and time" });
+    expect(dateControl.closest("header")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /choose date/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Previous month" }));
+    const pastDate = dayjs().subtract(1, "month").date(15).startOf("day");
+    const day = screen.getAllByRole("gridcell", { name: "15" }).find((cell) => cell.dataset.timestamp === String(pastDate.valueOf()));
+    expect(day).toBeDefined();
+    fireEvent.click(day!);
+    const accept = screen.queryByRole("button", { name: "OK" });
+    if (accept) fireEvent.click(accept);
+    await user.keyboard("{Escape}");
+    await screen.findByRole("button", { name: "Save mood" });
+    const hours = screen.getByRole("spinbutton", { name: "Hours" });
+    const previousHour = hours.getAttribute("aria-valuenow");
+    await user.click(hours);
+    await user.keyboard("{ArrowUp}");
+    expect(hours.getAttribute("aria-valuenow")).not.toBe(previousHour);
+    fireEvent.click(screen.getByRole("button", { name: "Save mood" }));
+    await waitFor(() => expect(flow.logMood).toHaveBeenCalledWith(expect.objectContaining({ date: pastDate.format("YYYY-MM-DD"), occurredAt: expect.stringMatching(/T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/) })));
+  });
+
   it("creates the mood once, then uploads each selected photo to its new private entry", async () => {
     renderWithProviders(<><MoodEntryForm /><CurrentPath /></>);
 
@@ -85,7 +113,7 @@ describe("MoodEntryForm", () => {
 
     await waitFor(() => expect(screen.getByLabelText("Current path")).toHaveTextContent("/history"));
     expect(flow.logMood).toHaveBeenCalledTimes(1);
-    expect(flow.logMood).toHaveBeenCalledWith({ date: "2026-11-10", moods: ["Centered"], comment: "Remember this." });
+    expect(flow.logMood).toHaveBeenCalledWith({ date: dayjs().format("YYYY-MM-DD"), occurredAt: expect.any(String), moods: ["Centered"], comment: "Remember this." });
     expect(flow.upload).toHaveBeenNthCalledWith(1, 42, flow.photos[0]);
     expect(flow.upload).toHaveBeenNthCalledWith(2, 42, flow.photos[1]);
   });

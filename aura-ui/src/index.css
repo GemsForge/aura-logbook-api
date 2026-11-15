@@ -7,6 +7,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /* Shared under-glow from Today; surfaces keep their own shape and padding. */
+  --aura-section-shadow: 0 12px 38px var(--aura-section-glow, var(--al-theme-glow, rgba(34,44,39,.045)));
+
   --garden-canvas: var(--al-theme-canvas, #f7f2ea);
   --garden-surface: var(--al-theme-surface, #fffcf7);
   --garden-surface-soft: var(--al-theme-surface-raised, #ede5d9);
@@ -42,8 +45,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .signed-in-shell { --joy-spacing: 6px; }
   .signed-in-container { max-width: 87.5rem !important; margin-top: 1rem !important; margin-bottom: .75rem !important; }
   .signed-in-shell .signed-in-grid { grid-template-columns: 9.25rem minmax(0, 1fr); gap: 1.25rem; }
-  .signed-in-shell header > div { min-height: 4.5rem; }
-  .signed-in-shell header [data-testid="prism-mark"] { width: 3.75rem !important; height: 3.75rem !important; }
+  /* Scope brand sizing to the app header; entry-header controls keep their own compact height. */
+  .signed-in-shell .app-header > div { min-height: 4.5rem; }
+  .signed-in-shell .app-header [data-testid="prism-mark"] { width: 3.75rem !important; height: 3.75rem !important; }
   .signed-in-content { width: 100%; max-width: 75rem !important; margin-left: auto; margin-right: auto; }
   .signed-in-content h1 { font-size: 1.5rem !important; }
   .signed-in-content h2 { font-size: 1rem !important; }
@@ -63,10 +67,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Luminous Journal: shared surface, type and orbital artwork roles across all routes. */
 .aura-eyebrow { font-size: .67rem !important; letter-spacing: .19em !important; text-transform: uppercase; font-weight: 700 !important; }
-.aura-panel { background: var(--al-theme-surface, var(--aura-panel, rgba(255,254,250,.8))) !important; color: var(--al-theme-ink, #352d2c) !important; border: 1px solid var(--al-theme-border, var(--aura-line, #d8ddd4)) !important; border-radius: 22px !important; box-shadow: 0 12px 38px var(--al-theme-glow, rgba(34,44,39,.045)); backdrop-filter: blur(18px); }
-/* These two focal surfaces receive a soft, check-in-derived wash while preserving the theme surface beneath it. */
-.aura-panel.spotify-connection-card { background-image: linear-gradient(135deg, var(--aura-wash, transparent), transparent 62%) !important; }
-.aura-panel.dashboard-check-in { background-image: linear-gradient(180deg, var(--aura-wash, transparent), transparent 42%) !important; }
+.aura-panel { background: var(--al-theme-surface, var(--aura-panel, rgba(255,254,250,.8))) !important; color: var(--al-theme-ink, #352d2c) !important; border: 1px solid var(--al-theme-border, var(--aura-line, #d8ddd4)) !important; border-radius: 22px !important; box-shadow: var(--aura-section-shadow); backdrop-filter: blur(18px); }
+/* One shared aura highlight for journal surfaces across routes. AuraTokensStyle supplies the saved
+   derived hue; this adds no borders/radius and never substitutes an unsaved mood's color. */
+.aura-panel, .aura-highlight { background-image: linear-gradient(145deg, var(--aura-wash, transparent), transparent 65%) !important; }
+/* Section under-glow is shared by rounded journal cards and compact pathway/form surfaces. */
+.aura-panel, .aura-highlight, .aura-dark-panel { box-shadow: var(--aura-section-shadow); }
 /* Onboarding panel (#342 follow-up): card chrome only from the md breakpoint up; phones show the step flat on the page. */
 @media (min-width: 900px) { .onboarding-panel { background: var(--al-theme-surface, rgba(255,254,250,.8)) !important; color: var(--al-theme-ink, #352d2c); border: 1px solid var(--al-theme-border, #d8ddd4) !important; border-radius: 22px !important; box-shadow: 0 12px 38px var(--al-theme-glow, rgba(34,44,39,.045)) !important; backdrop-filter: blur(18px); } }
 .aura-dark-panel { background: linear-gradient(135deg, var(--al-theme-glow, transparent), transparent 85%), var(--al-theme-surface-raised, var(--aura-dark, #222c27)) !important; color: var(--al-theme-ink, #fffef8) !important; border-radius: 22px !important; border: 1px solid var(--al-theme-border, rgba(255,255,255,.16)); position: relative; overflow: hidden; }

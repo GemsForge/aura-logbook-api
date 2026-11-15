@@ -16,6 +16,6 @@ public sealed class AuraDto
     public double Strength { get; init; }
     /// <summary><see cref="Strength"/> × 100, the derived replacement for the old user-entered intensity.</summary>
     public int Intensity { get; init; }
-    /// <summary>What fed the color, in plain words, e.g. "Your Earth sign".</summary>
+    /// <summary>Recorded mood counts and recent selected combinations that fed the color.</summary>
     public IReadOnlyList<string> Contributors { get; init; } = [];
 }

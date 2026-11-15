@@ -1,0 +1,35 @@
+/* Pathway typography keeps its hierarchy despite the compact signed-in dashboard overrides.
+   Colors and under-glow remain owned by the selected interface theme and recorded aura. */
+.signed-in-content.pathway-studio h1 {
+  font-family: var(--joy-fontFamily-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem) !important;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+.signed-in-content.pathway-studio h2 {
+  font-family: var(--joy-fontFamily-display);
+  font-size: clamp(1.35rem, 2vw, 1.8rem) !important;
+  line-height: 1.25;
+  font-weight: 400;
+}
+.signed-in-content.pathway-studio .pathway-display-title {
+  font-size: clamp(2.35rem, 5vw, 4rem) !important;
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+.pathway-studio .pathway-reflection-quote {
+  font-family: var(--joy-fontFamily-display);
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+  line-height: 1.55;
+}
+.pathway-studio .pathway-disclosure > summary {
+  cursor: pointer;
+  color: var(--al-theme-primary);
+  font-size: var(--joy-fontSize-sm);
+  min-height: 44px;
+  padding-block: .5rem;
+}
+.pathway-studio .pathway-disclosure > summary:focus-visible {
+  outline: 2px solid var(--al-theme-focus);
+  outline-offset: 3px;
+}

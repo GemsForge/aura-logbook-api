@@ -13,7 +13,7 @@ import { selectCurrentUser } from "@/store/slices/authSlice";
 import SelfImprovementOutlined from "@mui/icons-material/SelfImprovementOutlined";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
-import { PATHWAY_MODULES, pathwayModuleKey } from "@/features/pathways/pathwayResources";
+import { PATHWAY_MODULES, pathwayModuleKey, resolvePathwayFocus } from "@/features/pathways/pathwayResources";
 
 const navItems = [
   { label: "Today", path: "/dashboard", icon: HomeOutlined },
@@ -29,7 +29,7 @@ const Sidebar = () => {
   const user = useAppSelector(selectCurrentUser);
   const pathway = pathwayModuleKey(user?.selectedPathway);
   const preferences = user?.pathwayPreferences;
-  const modules = pathway ? PATHWAY_MODULES[pathway].filter((module) => preferences?.focus.includes(module.key)) : [];
+  const modules = pathway ? PATHWAY_MODULES[pathway].filter((module) => resolvePathwayFocus(user?.selectedPathway, preferences?.focus).includes(module.key)) : [];
   const showBreathing = preferences?.breathingEnabled !== false;
   // Each destination is its own route, so the current page is a plain path match.
   const isCurrentDestination = (path: string) => location.pathname === path;

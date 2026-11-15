@@ -13,7 +13,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { openProfileModal, selectIsProfileModalOpen } from "@/store/slices/uiSlice";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { PATHWAY_MODULES, pathwayModuleKey } from "@/features/pathways/pathwayResources";
+import { PATHWAY_MODULES, pathwayModuleKey, resolvePathwayFocus } from "@/features/pathways/pathwayResources";
 
 const destinations = [
   { label: "Today", path: "/dashboard", icon: HomeOutlined },
@@ -34,19 +34,14 @@ const visuallyHidden = {
 
 /**
  * Keeps journal destinations and profile access within thumb reach above the device safe area.
- * Keeps core destinations icon-only and places enabled pathway modules in a separate, scrollable
- * row above them. Accessible names remain available to assistive technology; active destinations
+ * Keeps core destinations icon-only; pathway destinations live in the in-flow header row.
+ * Accessible names remain available to assistive technology; active destinations
  * use both a theme wash and `aria-current`.
  */
 export default function MobileNavigation() {
   const { pathname } = useLocation();
   const dispatch = useAppDispatch();
   const profileOpen = useAppSelector(selectIsProfileModalOpen);
-  const user = useAppSelector(selectCurrentUser);
-  const pathway = pathwayModuleKey(user?.selectedPathway);
-  const preferences = user?.pathwayPreferences;
-  const pathwayModules = pathway ? PATHWAY_MODULES[pathway].filter((module) => preferences?.focus.includes(module.key)) : [];
-  const showBreathing = preferences?.breathingEnabled !== false;
   const itemStyles = {
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     position: "relative", minHeight: 52, minWidth: 0, px: 0.5, borderRadius: "lg", color: "neutral.700",
@@ -79,19 +74,32 @@ export default function MobileNavigation() {
         <Typography component="span" sx={visuallyHidden}>Profile</Typography>
       </Box>
     </Sheet>
+
+    </>
+  );
+}
+
+/** Keeps pathway destinations near the page title, without a second floating dock covering content. */
+export function MobilePathwayNavigation() {
+  const { pathname } = useLocation();
+  const user = useAppSelector(selectCurrentUser);
+  const pathway = pathwayModuleKey(user?.selectedPathway);
+  const preferences = user?.pathwayPreferences;
+  const pathwayModules = pathway ? PATHWAY_MODULES[pathway].filter((module) => resolvePathwayFocus(user?.selectedPathway, preferences?.focus).includes(module.key)) : [];
+  const showBreathing = preferences?.breathingEnabled !== false;
+  return <>
     {pathway && (showBreathing || pathwayModules.length > 0) && <Sheet component="nav" aria-label={`${pathway} pathway modules`} sx={{
       display: { xs: "flex", md: "none" }, gap: .5, overflowX: "auto", whiteSpace: "nowrap",
-      position: "fixed", left: 12, right: 12, bottom: "calc(74px + env(safe-area-inset-bottom, 0px))", zIndex: 1049,
-      px: .75, py: .5, borderRadius: "md", border: "1px solid var(--al-theme-border)",
+      position: "relative", minWidth: 0, mx: 2, mt: 1,
+      px: .75, py: .5, borderRadius: "sm", borderBottom: "1px solid var(--al-theme-border)",
       backgroundColor: "color-mix(in srgb, var(--al-theme-surface) 95%, transparent)",
     }}>
-      {showBreathing && <Box component={Link} to="/pathways/breathing" sx={{ px: 1.25, py: .75, borderRadius: "sm", color: "inherit", textDecoration: "none", bgcolor: pathname === "/pathways/breathing" ? themeWash : "transparent" }}>
+      {showBreathing && <Box component={Link} to="/pathways/breathing" aria-current={pathname === "/pathways/breathing" ? "page" : undefined} sx={{ display: "inline-flex", alignItems: "center", minHeight: 44, flexShrink: 0, px: 1.25, py: .75, borderRadius: "sm", color: "inherit", textDecoration: "none", bgcolor: pathname === "/pathways/breathing" ? themeWash : "transparent" }}>
         <SelfImprovementOutlined sx={{ fontSize: 16, verticalAlign: "middle", mr: .5 }} /><Typography component="span" level="body-xs">Breathing</Typography>
       </Box>}
-      {pathwayModules.map((module) => <Box key={module.key} component={Link} to={module.path} aria-current={pathname === module.path ? "page" : undefined} sx={{ px: 1.25, py: .75, borderRadius: "sm", color: "inherit", textDecoration: "none", bgcolor: pathname === module.path ? themeWash : "transparent" }}>
+      {pathwayModules.map((module) => <Box key={module.key} component={Link} to={module.path} aria-current={pathname === module.path ? "page" : undefined} sx={{ display: "inline-flex", alignItems: "center", minHeight: 44, flexShrink: 0, px: 1.25, py: .75, borderRadius: "sm", color: "inherit", textDecoration: "none", bgcolor: pathname === module.path ? themeWash : "transparent" }}>
         <AutoAwesomeOutlined sx={{ fontSize: 16, verticalAlign: "middle", mr: .5 }} /><Typography component="span" level="body-xs">{module.label}</Typography>
       </Box>)}
     </Sheet>}
-    </>
-  );
+  </>;
 }

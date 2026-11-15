@@ -43,6 +43,10 @@ This starts the API and UI together, prefixes their output with `[API]` and `[UI
 
 The launcher keeps the local API listener and the UI's API target aligned. By default, both the listener and that target use API port `5082`; the UI itself uses port `58407`. When `aura-ui/.env.local` or an exported `VITE_API_BASE_URL` points to a local HTTP API, the launcher uses that URL's port for the API listener too. An explicit `AURA_API_PORT` must match a local `VITE_API_BASE_URL`; conflicting values stop startup with instructions to align them. The `.env.local` file is ignored by Git and is used normally when running Vite by itself.
 
+For local horoscope and moon data, the launcher loads `FREE_ASTRO_API_KEY` from
+the Git-ignored `AuraLogbook.Api/.env.local` into the API environment only.
+See [configuration and secrets](docs/configuration-and-secrets.md#astrology-providers).
+
 ### Preview the web UI on a phone
 
 The responsive React web UI can be previewed in a phone browser over the same Wi-Fi network. This is a web preview; it does not require React Native or Expo. Start the API with the combined launcher above and leave it running. In a second terminal, start a network-accessible Vite server from `aura-ui/`:

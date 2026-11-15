@@ -22,6 +22,14 @@ function localApiBaseUrl(path) {
   return match[1].replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
 }
 
+/** Reads only the supported backend credential from its Git-ignored file, without changing process.env. */
+function localFreeAstroApiKey(root) {
+  const path = resolve(root, "AuraLogbook.Api", ".env.local");
+  if (!existsSync(path)) return undefined;
+  const match = readFileSync(path, "utf8").match(/^\s*FREE_ASTRO_API_KEY\s*=\s*(.*?)\s*$/m);
+  return match?.[1].replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
+}
+
 function localApiPort(apiUrl, source) {
   if (!apiUrl) return undefined;
   let parsed;
@@ -69,12 +77,19 @@ export function resolveApiEnvironment(value = "DEV") {
   return aliases[normalized] ?? value;
 }
 
+/** Builds API/UI startup settings while keeping local provider credentials in the API environment only. */
 export function createServicePlan({ root = repositoryRoot, platform = process.platform, env = process.env, apiPort } = {}) {
   const apiRoot = resolve(root, "AuraLogbook.Api");
   const uiRoot = resolve(root, "aura-ui");
   const apiConfiguration = apiPortConfiguration(root, env, 5082);
   const uiPort = configuredPort(env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
   const uiEnv = { ...env };
+  // The local key belongs only to the API child; never pass it to Vite's environment.
+  const apiEnv = { ...env };
+  const freeAstroKey = env.FREE_ASTRO_API_KEY || localFreeAstroApiKey(root);
+  if (freeAstroKey) apiEnv.FREE_ASTRO_API_KEY = freeAstroKey;
+  delete uiEnv.FREE_ASTRO_API_KEY;
+  delete uiEnv.FreeAstroApi__ApiKey;
   const apiEnvironment = resolveApiEnvironment(env.AURA_ENV || env.ASPNETCORE_ENVIRONMENT || "DEV");
   const selectedApiPort = apiPort ?? apiConfiguration.apiPort;
   const defaultApiUrl = `http://localhost:${selectedApiPort}/api`;
@@ -93,7 +108,7 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       command: "dotnet",
       args: apiArgs,
       cwd: apiRoot,
-      env: { ...env, ASPNETCORE_ENVIRONMENT: apiEnvironment },
+      env: { ...apiEnv, ASPNETCORE_ENVIRONMENT: apiEnvironment },
       ...(apiPort !== undefined && apiPort !== apiConfiguration.apiPort
         ? { notice: `AURA_API_PORT is busy; using available API port ${apiPort}.` }
         : {}),

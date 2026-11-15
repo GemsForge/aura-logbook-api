@@ -13,10 +13,10 @@ namespace AuraLogbook.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/aura")]
-public sealed class AuraController(IFileUserRepository users, IFileMoodRepository moods, IMoodCombinationRepository combinations, IAuraSeasonRepository seasons) : ControllerBase
+public sealed class AuraController(IFileUserRepository users, IFileMoodRepository moods, IAuraColorSource colors, IAuraSeasonRepository seasons) : ControllerBase
 {
     /// <summary>
-    /// Computes the current aura from recent mood logs and authored mood-combination hues (#345).
+    /// Computes the current aura from recent mood logs using the same visible color definitions as mood controls.
     /// Computed on read, so it reflects the latest check-ins; profile and pathway choices do not set its color.
     /// </summary>
     /// <response code="200">The aura tone and its contributors.</response>
@@ -31,7 +31,7 @@ public sealed class AuraController(IFileUserRepository users, IFileMoodRepositor
         if (user is null) return NotFound("User not found.");
 
         var entries = await moods.GetAllByUserAsync(userId);
-        var hues = await combinations.GetHuesAsync();
+        var hues = await colors.GetMoodHuesAsync();
         return Ok(AuraEngine.Compute(user, entries, DateOnly.FromDateTime(DateTime.UtcNow), hues));
     }
 
@@ -46,13 +46,14 @@ public sealed class AuraController(IFileUserRepository users, IFileMoodRepositor
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var entries = await moods.GetAllByUserAsync(userId);
+        var hues = await colors.GetMoodHuesAsync();
         var dailyKeys = Enumerable.Range(0, AuraSeasons.WindowDays)
             .Select(offset => today.AddDays(-offset))
             .Select(day =>
             {
                 var dayEntries = entries.Where(entry => entry.Date == day).ToList();
                 if (dayEntries.Count == 0) return null;
-                var aura = AuraEngine.Compute(user, dayEntries, day, null);
+                var aura = AuraEngine.Compute(user, dayEntries, day, hues);
                 return AuraSeasons.KeyFor(aura.Hue, aura.Strength);
             })
             .Reverse().ToList();

@@ -60,6 +60,39 @@ Use Swagger for the complete current route list and request/response schemas. Au
 
 Spotify account linking, current listening metadata and playlist cards are documented in [Spotify integration](../docs/spotify-integration.md), including local setup, OAuth recovery, typed API responses and token storage.
 
+Mood requests may include `occurredAt`, an ISO timestamp with the selected UTC offset
+(for example, `1998-01-01T23:30:00-08:00`), alongside `date: "1998-01-01"`.
+The timestamp's local date must match `date`; the instant cannot be in the future.
+The original offset is retained for timeline clocks and hour-of-day summaries.
+`CreatedAt` remains the immutable server save timestamp. Migration 034 adds a nullable
+`OccurredAt` column: legacy rows are not backfilled, omitted creates remain null,
+and omitted same-day updates preserve any existing occurrence. A date-only edit
+moves the saved wall-clock time and offset to the selected date, rejecting a
+reconciled future instant before writing. It does not invent a clock for legacy
+rows with no occurrence. Readers fall back to
+`CreatedAt` when no occurrence was recorded. Day-based counts continue using `date`.
+
+Mood create/update requests may include an optional `pathwayReflection` snapshot:
+
+```json
+{
+  "sourceId": "chakra:root:2026-11-13:3",
+  "pathway": "energy",
+  "insightType": "chakra-mood-pattern",
+  "text": "Would grounding feel meaningful today?",
+  "response": "resonates"
+}
+```
+
+The snapshot saves atomically with the mood and inherits its ownership and deletion
+rules. Supported responses are `resonates`, `maybe`, and `not-for-me`; supported
+insight types are `pathway-prompt`, `chakra-mood-pattern`, and `mood-combination`.
+Source IDs are limited to 160 characters and invitation text to 1,500 characters.
+An unanswered invitation creates no snapshot. Omitting it while editing preserves
+an existing response. Migration 032 adds the nullable JSON column; existing moods
+remain unanswered. The client supplies an interpretive invitation, not a verified
+clinical inference or an independent provider result.
+
 Private mood images are stored outside `wwwroot`; the SQLite migration stores
 owner-scoped metadata while image bytes remain in the configured
 `Storage:PrivateMediaPath` directory. Set that path to persistent private storage
