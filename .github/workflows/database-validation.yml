@@ -1,45 +1,41 @@
 name: Database validation
 
+# Two kinds of check:
+# 1. "API and migration tests" runs the test suite once. The tests create their
+#    own in-memory/temporary SQLite databases, so environment settings do not
+#    affect them and running them per environment would only repeat them.
+# 2. "<env> database configuration" starts the API exactly as that environment
+#    starts it (ASPNETCORE_ENVIRONMENT -> appsettings.<Environment>.json, plus
+#    Database__ConnectionString and Jwt__Key from the environment) against a
+#    brand-new SQLite file, then checks /health/database: every migration
+#    applied, the right environment loaded, and a restart applies nothing new.
+#    Production must also refuse missing, in-memory, and development databases.
+# No job connects to a real database or uses real secrets.
 on:
   pull_request:
     paths:
       - 'AuraLogbook.Api/**'
       - 'AuraLogbook.Api.Tests/**'
-      - 'AuraLogbook.sln'
       - '*.sln'
+      - 'Scripts/validate-database-environment.mjs'
       - '.github/workflows/database-validation.yml'
   push:
     branches: [master]
     paths:
       - 'AuraLogbook.Api/**'
       - 'AuraLogbook.Api.Tests/**'
-      - 'AuraLogbook.sln'
       - '*.sln'
+      - 'Scripts/validate-database-environment.mjs'
       - '.github/workflows/database-validation.yml'
 
 permissions:
   contents: read
 
 jobs:
-  database-validation:
-    name: ${{ matrix.environment }} database validation
+  tests:
+    name: API and migration tests
     runs-on: ubuntu-latest
-    environment: ${{ matrix.environment }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - environment: dev
-            aspnet: Development
-          - environment: fit
-            aspnet: Staging
-          - environment: prod
-            aspnet: Production
     timeout-minutes: 30
-    env:
-      ASPNETCORE_ENVIRONMENT: ${{ matrix.aspnet }}
-      AURA_ENV: ${{ matrix.environment }}
-      ConnectionStrings__DefaultConnection: Data Source=${{ github.workspace }}/.ci/AuraLogbook_${{ matrix.environment }}.sqlite
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,3 +45,26 @@ jobs:
           dotnet-version: '9.0.x'
       - name: Run API and migration tests
         run: dotnet test AuraLogbook.sln --configuration Release
+
+  environment:
+    name: ${{ matrix.environment }} database configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, fit, prod]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build API
+        run: dotnet build AuraLogbook.sln --configuration Release
+      - name: Start ${{ matrix.environment }} against a fresh database
+        run: node Scripts/validate-database-environment.mjs ${{ matrix.environment }}
