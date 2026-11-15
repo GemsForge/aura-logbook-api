@@ -6,6 +6,8 @@
 
 <p align="center">A gentle mood log and reflective journal, with optional mindfulness, faith, and astrology pathways.</p>
 
+<p align="center">Designed and built by <a href="https://www.gemsforge.com">GemsForge</a>.</p>
+
 ## What it does
 
 - **Mood check-ins:** log how you feel in a few taps, with optional notes, photos, and what's having the biggest impact.
