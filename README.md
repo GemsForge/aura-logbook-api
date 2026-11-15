@@ -6,7 +6,7 @@
 
 <p align="center">A gentle mood log and reflective journal, with optional mindfulness, faith, and astrology pathways.</p>
 
-<p align="center">Designed and built by <a href="https://www.gemsforge.com">GemsForge</a>.</p>
+<p align="center">Designed and built by <a href="https://www.gemsforge.com/portfolio/projects/auralogbook/">GemsForge</a>.</p>
 
 ## What it does
 
