@@ -212,10 +212,12 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         var booksRoot = await ProviderText.GetJsonAsync(client, booksRequest, cancellationToken);
         if (!booksRoot.TryGetProperty("data", out var books) || books.ValueKind != JsonValueKind.Array)
             throw ProviderText.Unusable("API.Bible");
-        var apiBookName = ApiBibleBookName(book);
-        var bookId = books.EnumerateArray()
-            .FirstOrDefault(item => item.TryGetProperty("name", out var name)
-                && string.Equals(name.GetString(), apiBookName, StringComparison.OrdinalIgnoreCase));
+        // Bibles name books differently ("Psalm", "Gen.", "Prov."), so prefer the standard USFM book id
+        // for a recognised English name, then fall back to the Bible's own name, long name, or abbreviation.
+        var usfmId = BibleBookIds.TryGet(book);
+        var bookId = books.EnumerateArray().FirstOrDefault(item =>
+            (usfmId is not null && item.TryGetProperty("id", out var itemId) && string.Equals(itemId.GetString(), usfmId, StringComparison.OrdinalIgnoreCase))
+            || BibleBookIds.NameMatches(item, book));
         if (bookId.ValueKind != JsonValueKind.Object || !bookId.TryGetProperty("id", out var id))
             throw new HttpRequestException("The selected Bible does not contain that book.", null, HttpStatusCode.NotFound);
 
@@ -255,11 +257,6 @@ public sealed class ApiBibleProvider(IHttpClientFactory factory, IOptions<Sacred
         chapter.TryGetProperty("reference", out var reference) && !string.IsNullOrWhiteSpace(reference.GetString())
             ? reference.GetString()
             : null;
-
-    /// <summary>Maps common reader aliases to API.Bible's canonical book names.</summary>
-    private static string ApiBibleBookName(string book) => book.Trim().Equals("Psalm", StringComparison.OrdinalIgnoreCase)
-        ? "Psalms"
-        : book;
 
     /// <summary>Fetches the World English Bible (public domain) from bible-api.com; no key required.</summary>
     private async Task<SacredPassageDto> GetPublicDomainAsync(SacredTextOptions o, string display, CancellationToken cancellationToken)
@@ -692,4 +689,46 @@ public sealed class SacredTextService(IEnumerable<ISacredTextProvider> providers
         if (passage is not null) cache.Set(cacheKey, passage, options.Value.CacheDuration);
         return passage;
     }
+}
+
+/// <summary>
+/// Maps English Bible book names (and common variants) to standard USFM book ids, which API.Bible uses
+/// for every Bible even when its display names are abbreviated (for example "Psalm" or "Gen.").
+/// </summary>
+public static class BibleBookIds
+{
+    private static readonly string[] Canon =
+    [
+        "GEN Genesis", "EXO Exodus", "LEV Leviticus", "NUM Numbers", "DEU Deuteronomy", "JOS Joshua", "JDG Judges", "RUT Ruth",
+        "1SA 1 Samuel", "2SA 2 Samuel", "1KI 1 Kings", "2KI 2 Kings", "1CH 1 Chronicles", "2CH 2 Chronicles", "EZR Ezra",
+        "NEH Nehemiah", "EST Esther", "JOB Job", "PSA Psalms", "PRO Proverbs", "ECC Ecclesiastes", "SNG Song of Solomon",
+        "ISA Isaiah", "JER Jeremiah", "LAM Lamentations", "EZK Ezekiel", "DAN Daniel", "HOS Hosea", "JOL Joel", "AMO Amos",
+        "OBA Obadiah", "JON Jonah", "MIC Micah", "NAM Nahum", "HAB Habakkuk", "ZEP Zephaniah", "HAG Haggai", "ZEC Zechariah",
+        "MAL Malachi", "MAT Matthew", "MRK Mark", "LUK Luke", "JHN John", "ACT Acts", "ROM Romans", "1CO 1 Corinthians",
+        "2CO 2 Corinthians", "GAL Galatians", "EPH Ephesians", "PHP Philippians", "COL Colossians", "1TH 1 Thessalonians",
+        "2TH 2 Thessalonians", "1TI 1 Timothy", "2TI 2 Timothy", "TIT Titus", "PHM Philemon", "HEB Hebrews", "JAS James",
+        "1PE 1 Peter", "2PE 2 Peter", "1JN 1 John", "2JN 2 John", "3JN 3 John", "JUD Jude", "REV Revelation",
+    ];
+
+    private static readonly Dictionary<string, string> Ids = BuildIds();
+
+    private static Dictionary<string, string> BuildIds()
+    {
+        var ids = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in Canon) ids[entry[4..]] = entry[..3];
+        // Singular/alternate titles readers commonly use.
+        ids["Psalm"] = "PSA"; ids["Proverb"] = "PRO"; ids["Song of Songs"] = "SNG"; ids["Canticles"] = "SNG";
+        ids["Revelations"] = "REV"; ids["Acts of the Apostles"] = "ACT";
+        return ids;
+    }
+
+    /// <summary>Returns the USFM id for an English book name, ignoring case and extra spaces, or null when unknown.</summary>
+    public static string? TryGet(string book) =>
+        Ids.TryGetValue(string.Join(' ', book.Split(' ', StringSplitOptions.RemoveEmptyEntries)), out var id) ? id : null;
+
+    /// <summary>True when a provider book's name, long name, or abbreviation equals the requested book (case-insensitive).</summary>
+    public static bool NameMatches(System.Text.Json.JsonElement item, string book) =>
+        new[] { "name", "nameLong", "abbreviation" }.Any(key => item.TryGetProperty(key, out var value)
+            && value.ValueKind == System.Text.Json.JsonValueKind.String
+            && string.Equals(value.GetString()?.Trim(), book.Trim(), StringComparison.OrdinalIgnoreCase));
 }

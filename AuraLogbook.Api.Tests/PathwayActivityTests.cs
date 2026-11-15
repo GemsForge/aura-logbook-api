@@ -75,12 +75,22 @@ public sealed class PathwayActivityTests : IDisposable
     [InlineData("faith", "faith-practice-check-in", "faith-practice-check-in", """{"practices":{"astrology":true}}""")]
     [InlineData("energy", "daily-astrology", "insight-feedback", """{"insightType":"faith-practice","response":"maybe"}""")]
     [InlineData("energy", "daily-astrology", "insight-feedback", """{"insightType":"horoscope","response":"love it"}""")]
+    [InlineData("faith", "sacred-texts", "pathway-reflection", """{"insightType":"reader-reflection","prompt":"p","responseText":"r"}""")]                    // reader reflection without its passage
+    [InlineData("faith", "sacred-texts", "pathway-reflection", """{"insightType":"word-of-day","prompt":"p","responseText":"r","reference":"Proverbs 3"}""")] // passage only allowed on reader reflections
     public async Task Rejects_malformed_or_mismatched_payloads(string pathway, string module, string type, string content)
     {
         var result = await _service.CreateAsync(1, Request(pathway, module, type, content));
 
         Assert.False(result.Success);
         Assert.Empty(await _service.GetByUserAsync(1, null, null, null));
+    }
+
+    /// <summary>Reader reflections keep the passage they were written about so the journal can link back to it.</summary>
+    [Fact]
+    public async Task Accepts_reader_reflection_with_its_passage()
+    {
+        Assert.True((await _service.CreateAsync(1, Request("faith", "sacred-texts", "pathway-reflection",
+            """{"insightType":"reader-reflection","prompt":"As you read Proverbs 3, what stands out to you?","responseText":"Trust.","reference":"Proverbs 3","segment":"Proverbs 3:5"}"""))).Success);
     }
 
     [Fact]

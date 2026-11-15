@@ -138,12 +138,21 @@ public sealed class PathwayActivityService : IPathwayActivityService
             (SpiritualPathwayKeys.Mindfulness, "mindfulness-guide") => new HashSet<string>(StringComparer.Ordinal) { "mindfulness-concept" },
             (SpiritualPathwayKeys.Energy, "daily-astrology") => new HashSet<string>(StringComparer.Ordinal) { "horoscope", "moon-phase", "birth-chart-placement" },
             (SpiritualPathwayKeys.Energy, "chakra-reference") => new HashSet<string>(StringComparer.Ordinal) { "chakra-theme", "chakra-mood-pattern" },
-            (SpiritualPathwayKeys.Faith, "sacred-texts") => new HashSet<string>(StringComparer.Ordinal) { "word-of-day" },
+            (SpiritualPathwayKeys.Faith, "sacred-texts") => new HashSet<string>(StringComparer.Ordinal) { "word-of-day", "reader-reflection" },
             (SpiritualPathwayKeys.Faith, "faith-practice-check-in") => new HashSet<string>(StringComparer.Ordinal) { "faith-practice" },
             _ => new HashSet<string>(StringComparer.Ordinal)
         };
-        if (properties.Count != 3 || !properties.SetEquals(["insightType", "prompt", "responseText"])
-            || !TryString(content, "insightType", 48, required: true, out var insightType)
+        // A sacred-text reader reflection also carries the passage it was written about, so the journal
+        // can link back to it: a required section reference and an optional verse/segment reference.
+        string[] core = ["insightType", "prompt", "responseText"];
+        TryString(content, "insightType", 48, required: true, out var insightType);
+        var isReaderReflection = insightType == "reader-reflection";
+        var shapeIsValid = isReaderReflection
+            ? properties.IsSupersetOf([.. core, "reference"]) && properties.IsSubsetOf([.. core, "reference", "segment"])
+                && TryString(content, "reference", 120, required: true) && TryString(content, "segment", 160, required: false)
+            : properties.Count == 3 && properties.SetEquals(core);
+        if (!shapeIsValid
+            || !TryString(content, "insightType", 48, required: true)
             || !allowedTypes.Contains(insightType)
             || !TryString(content, "prompt", 500, required: true)
             || !TryString(content, "responseText", 2000, required: true))
