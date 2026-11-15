@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="aura-ui/public/logo/aura-logbook-approved.png" alt="Aura Logbook logo: an open book beneath a glowing moon and a stylized A" width="160">
+  <img src="docs/assets/aura-logbook-logo.png" alt="Aura Logbook logo: an open book beneath a crescent moon, stars, and a stylized A" width="160">
 </p>
 
 <h1 align="center">Aura Logbook</h1>
