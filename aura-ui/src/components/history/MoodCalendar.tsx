@@ -7,6 +7,7 @@ import Typography from "@mui/joy/Typography";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MoodEntry } from "@/features/mood/models/schema";
+import type { PathwayActivity } from "@/features/pathways/pathwayActivityApi";
 import type { MoodType } from "@/features/mood/models/schema/MoodType";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAuraSeasonsQuery } from "@/store/auraApi";
@@ -42,7 +43,7 @@ const visuallyHidden = { position: "absolute", width: 1, height: 1, overflow: "h
 const navButtonSx = { ...tapTarget44, borderRadius: "50%", color: "var(--al-theme-ink)", borderColor: "var(--al-theme-control-border, var(--al-theme-border))", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } } as const;
 
 /** Draws standard groups of five tally strokes; the date button keeps the exact count for assistive technology. */
-function MoodEntryTallies({ count }: { count: number }) {
+function MoodEntryTallies({ count, pathwayCount = 0 }: { count: number; pathwayCount?: number }) {
   const groups = Array.from({ length: Math.ceil(count / 5) }, (_, index) =>
     Math.min(5, count - index * 5),
   );
@@ -68,6 +69,7 @@ function MoodEntryTallies({ count }: { count: number }) {
           )}
         </svg>
       ))}
+      {pathwayCount > 0 && <span style={{ fontSize: 10, lineHeight: "12px" }} aria-hidden="true">{Array.from({ length: Math.min(pathwayCount, 3) }, () => "◆").join("")}{pathwayCount > 3 ? "+" : ""}</span>}
     </Box>
   );
 }
@@ -79,11 +81,15 @@ function MoodEntryTallies({ count }: { count: number }) {
  */
 export default function MoodCalendar({
   entries,
+  pathwayEntries = [],
+  filter = "all",
   selectedDate,
   onSelectDate,
   onMonthChange,
 }: {
   entries: MoodEntry[];
+  pathwayEntries?: PathwayActivity[];
+  filter?: "all" | "check-ins" | "pathway";
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
   /** Called with the first day of the month whenever the visible month changes, so page stats can follow it. */
@@ -115,6 +121,11 @@ export default function MoodCalendar({
     }
     return counts;
   }, [entries]);
+  const pathwayCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (filter !== "check-ins") for (const entry of pathwayEntries) counts.set(entry.occurredOn, (counts.get(entry.occurredOn) ?? 0) + 1);
+    return counts;
+  }, [filter, pathwayEntries]);
   const dominantMoods = useMemo(() => {
     const dailyCounts = new Map<string, Map<MoodType, number>>();
     for (const entry of entries) {
@@ -231,7 +242,9 @@ export default function MoodCalendar({
             <Box component="tr" key={week[0]?.format("YYYY-MM-DD")}>
               {week.map((day) => {
                 const key = day.format("YYYY-MM-DD");
-                const count = entryCounts.get(key) ?? 0;
+                const moodCount = filter === "pathway" ? 0 : entryCounts.get(key) ?? 0;
+                const pathwayCount = pathwayCounts.get(key) ?? 0;
+                const count = moodCount + pathwayCount;
                 const prominentMood = dominantMoods.get(key);
                 const moodDefinition = referenceData?.moods.find((definition) => definition.key === prominentMood);
                 const moodAura = referenceData?.auras.find((aura) => aura.key === moodDefinition?.auraColorKeys[0]);
@@ -245,14 +258,15 @@ export default function MoodCalendar({
                 );
                 // Include the season ribbon and mood tint meanings because their visual marks are decorative.
                 const seasonLabel = season ? `, ${season.name} season` : "";
-                const moodLabel = prominentMood ? `, most frequent mood ${prominentMood}` : "";
+                const moodLabel = moodCount > 0 && prominentMood ? `, most frequent mood ${prominentMood}` : "";
+                const reflectionLabel = `, ${moodCount} ${moodCount === 1 ? "check-in" : "check-ins"}, ${pathwayCount} ${pathwayCount === 1 ? "pathway reflection" : "pathway reflections"}`;
                 return (
                   <Box component="td" key={key} sx={{ p: 0, verticalAlign: "top" }}>
                     <IconButton
                       variant="plain"
                       disabled={future}
                       // Selection is stated in the name; aria-current marks today, matching how screen readers expect dates.
-                      aria-label={`${day.format("dddd, MMMM D, YYYY")}, ${count} ${count === 1 ? "mood entry" : "mood entries"}${moodLabel}${seasonLabel}${selected ? ", selected" : ""}`}
+                      aria-label={`${day.format("dddd, MMMM D, YYYY")}${reflectionLabel}${moodLabel}${seasonLabel}${selected ? ", selected" : ""}`}
                       aria-current={day.isSame(today, "day") ? "date" : undefined}
                       data-date={key}
                       data-selected={selected || undefined}
@@ -280,7 +294,7 @@ export default function MoodCalendar({
                         border: "1px solid",
                         borderColor: selected ? "var(--al-theme-focus)" : count ? "var(--al-theme-border)" : "transparent",
                         color: moodInk ?? "var(--al-theme-ink)",
-                        background: moodTint ?? "transparent",
+                        background: moodCount ? moodTint ?? "transparent" : pathwayCount ? "color-mix(in srgb, #6d5aa4 18%, var(--al-theme-surface))" : "transparent",
                         boxShadow: selected ? "0 0 0 2px var(--al-theme-surface), 0 0 0 4px var(--al-theme-focus)" : "none",
                         opacity: outsideMonth ? 0.55 : 1,
                         // Keep the mood fill and contrast ink when Joy applies its pressed (selected) styles.
@@ -296,7 +310,7 @@ export default function MoodCalendar({
                     >
                       <Typography level="title-sm" sx={{ color: "inherit", lineHeight: 1.15, fontWeight: count || selected ? 700 : 500 }}>{day.date()}</Typography>
                       <Box sx={{ minHeight: "1.1em", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {count > 0 && <MoodEntryTallies count={count} />}
+                        {count > 0 && <MoodEntryTallies count={moodCount} pathwayCount={pathwayCount} />}
                       </Box>
                       {season && <Box aria-hidden="true" sx={{ width: "80%", height: 3, borderRadius: 99, bgcolor: "var(--aura-accent)", opacity: 0.75 }} />}
                     </IconButton>
