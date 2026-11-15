@@ -16,6 +16,7 @@ import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
  * One reflection, read like a journal entry: a margin rule in the first mood's aura color, the logged time
  * and moods as a quiet line, the writing in the serif voice, then the moment strip (song, weather, photos).
  * Photos appear only in the moment strip; the card offers no photo management controls.
+ * The card may shrink below its content width (minWidth: 0) so a long moment strip scrolls instead of overflowing.
  */
 export function MoodCard({
   entry,
@@ -32,7 +33,7 @@ export function MoodCard({
   // The timeline clock follows the recorded moment, not the later server save time.
   const time = moodOccurrenceTime(entry).format("h:mm A");
   return (
-    <Box component="article" aria-label={`${time} reflection: ${entry.moods.join(", ")}`} sx={{ pl: 1.5, py: .25, borderLeft: "3px solid", borderColor: aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)" }}>
+    <Box component="article" aria-label={`${time} reflection: ${entry.moods.join(", ")}`} sx={{ minWidth: 0, pl: 1.5, py: .25, borderLeft: "3px solid", borderColor: aura?.shades?.[500] ?? aura?.baseHex ?? "var(--aura-accent)" }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
         <Typography level="body-xs" color="neutral">{time}</Typography>
         <Box sx={{ display: "flex", flexShrink: 0 }}>
