@@ -125,6 +125,11 @@
   border-radius: 0.12em;
 }
 
+/* Recogito blends highlights with multiply, which can only darken: on dark canvases use screen so they glow. */
+.sacred-reader-annotation-root.is-dark-canvas .r6o-span-highlight-layer {
+  mix-blend-mode: screen;
+}
+
 /* A passage opened from a note or journal link is briefly outlined so the reader can find it. */
 .sacred-reader-text [data-reference].sacred-reader-target {
   outline: 2px solid var(--al-theme-focus, #668879);
