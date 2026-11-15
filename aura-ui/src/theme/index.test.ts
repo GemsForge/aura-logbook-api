@@ -48,4 +48,12 @@ describe("interface theme adapters", () => {
     expect(getAuraJoyTheme("not-a-theme").colorSchemes.dark.palette.background.body)
       .toBe(getInterfaceThemeTokens("Aurora", "light").canvas);
   });
+  it("keeps outlined neutral controls readable on hover in every scheme", () => {
+    for (const mode of ["light", "dark"] as const) {
+      const theme = getAuraJoyTheme("not-a-theme", undefined, undefined, mode);
+      const neutral = theme.colorSchemes[mode].palette.neutral;
+      expect(neutral.outlinedHoverBg).toBe(neutral[100]);
+      expect(neutral.outlinedHoverColor).toBe(theme.colorSchemes[mode].palette.text.primary);
+    }
+  });
 });
