@@ -12,6 +12,7 @@ import {
   DialogTitle,
   FormControl,
   FormLabel,
+  Autocomplete,
   Input,
   Modal,
   ModalDialog,
@@ -21,6 +22,7 @@ import {
   Typography,
 } from "@mui/joy";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
+import { sacredTextBookOptions } from "@/features/pathways/sacredTextBooks";
 import BookmarkBorderRounded from "@mui/icons-material/BookmarkBorderRounded";
 import ChevronLeftRounded from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
@@ -104,7 +106,18 @@ export default function SacredTextReader() {
     setSelectedSegment(section.segments.find((segment) => querySegment && segment.reference === querySegment)?.reference
       ?? section.segments.find((segment) => queryReference && segment.reference.endsWith(queryReference.split(":").at(-1) ?? ""))?.reference
       ?? section.segments[0]?.reference ?? "");
-    readerHeading.current?.focus();
+    const targetSegment = querySegment && section.segments.some((segment) => segment.reference === querySegment) ? querySegment : "";
+    readerHeading.current?.focus({ preventScroll: Boolean(targetSegment) });
+    if (!targetSegment) return;
+    // Opened from a note or journal link: bring the verse into view and outline it briefly.
+    const frame = requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(`.sacred-reader-text [lang][data-reference="${CSS.escape(targetSegment)}"]`);
+      if (!target) return;
+      target.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      target.classList.add("sacred-reader-target");
+      window.setTimeout(() => target.classList.remove("sacred-reader-target"), 2400);
+    });
+    return () => cancelAnimationFrame(frame);
   }, [framework, queryReference, querySegment, section]);
 
   const textBlocks = useMemo(() => section ? buildSacredTextBlocks(section) : [], [section]);
@@ -229,6 +242,16 @@ export default function SacredTextReader() {
     value: annotation.note ?? "",
   });
 
+  /** Opens a saved note's passage: loads its section if needed, selects its verse, and scrolls to it. */
+  const goToAnnotation = (annotation: SacredTextAnnotation) => {
+    const params = new URLSearchParams({ reference: annotation.sectionReference });
+    if (annotation.segmentReference) params.set("segment", annotation.segmentReference);
+    setReference(annotation.sectionReference);
+    setSelectedSegment(annotation.segmentReference ?? "");
+    setNotesOpen(false);
+    navigate(`/pathways/sacred-texts/reader?${params.toString()}`);
+  };
+
   const removeAnnotation = async (annotation: SacredTextAnnotation | number) => {
     const annotationId = typeof annotation === "number" ? annotation : annotation.id;
     const kind = typeof annotation === "number" ? "annotation" : annotation.kind;
@@ -288,7 +311,14 @@ export default function SacredTextReader() {
         moduleKey: "sacred-texts",
         activityType: "pathway-reflection",
         occurredOn: localActivityDate(),
-        content: { insightType: "word-of-day", prompt: `As you read ${section.reference}, what stands out to you?`, responseText },
+        // Keep the passage with the reflection so the journal can link back to it.
+        content: {
+          insightType: "reader-reflection",
+          prompt: `As you read ${section.reference}, what stands out to you?`,
+          responseText,
+          reference: section.reference,
+          ...(selectedSegment ? { segment: selectedSegment } : {}),
+        },
       });
       setReflection("");
       setReflectionMessage("Saved to your journal.");
@@ -328,7 +358,15 @@ export default function SacredTextReader() {
         {framework === "muslim" ? <FormControl size="sm" sx={{ minWidth: 140 }}>
           <FormLabel>Surah number</FormLabel><Input type="number" value={chapter} slotProps={{ input: { min: 1, max: 114 } }} onChange={(event) => setChapter(event.target.value)} />
         </FormControl> : <>
-          <FormControl size="sm" sx={{ minWidth: 160, flex: 1 }}><FormLabel>Book or work</FormLabel><Input value={book} onChange={(event) => setBook(event.target.value)} placeholder={framework === "jewish" ? "For example, Psalms" : "For example, John"} /></FormControl>
+          {/* A searchable list of canonical names, not free text: providers match books by exact name, so typos like "Proverb" failed. */}
+          <FormControl size="sm" sx={{ minWidth: 160, flex: 1 }}><FormLabel>Book or work</FormLabel><Autocomplete
+            options={sacredTextBookOptions(framework === "jewish" ? "jewish" : "christian", book)}
+            value={book || null}
+            onChange={(_event, value) => { setBook(value ?? ""); if (value && value !== book) setChapter("1"); }}
+            placeholder={framework === "jewish" ? "Choose a book, e.g. Psalms" : "Choose a book, e.g. John"}
+            autoHighlight
+            disableClearable={!!book}
+          /></FormControl>
           <FormControl size="sm" sx={{ width: 112 }}><FormLabel>Chapter</FormLabel><Input type="number" value={chapter} slotProps={{ input: { min: 1 } }} onChange={(event) => setChapter(event.target.value)} /></FormControl>
         </>}
         <Button size="sm" variant="soft" onClick={goToChapter} disabled={!chapter || (framework !== "muslim" && !book.trim())}>Open section</Button>
@@ -415,6 +453,7 @@ export default function SacredTextReader() {
           onExport={exportAnnotations}
           onPrint={() => window.print()}
           onEdit={editSavedNote}
+          onGoTo={goToAnnotation}
           onDelete={(annotation) => void removeAnnotation(annotation)}
           onToggle={() => setNotesOpen((open) => !open)}
         />

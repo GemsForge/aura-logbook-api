@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
 import { Box, Button, IconButton, Textarea, Typography } from "@mui/joy";
+import { Link } from "react-router-dom";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import CheckOutlined from "@mui/icons-material/CheckOutlined";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import { PathwayActivityApi, type PathwayActivity, type PathwayActivityRequest } from "../pathwayActivityApi";
 
+/** A saved reflection; reader reflections also carry the passage (`reference`, optional `segment`) they were written on. */
 type SavedReflection = PathwayActivity & {
-  content: { insightType: string; prompt: string; responseText: string };
+  content: { insightType: string; prompt: string; responseText: string; reference?: string; segment?: string };
 };
+
+/** Reader link for a reflection written in the sacred-text reader, or null for other pathway reflections. */
+function passageLink(item: SavedReflection): string | null {
+  if (item.moduleKey !== "sacred-texts" || !item.content.reference) return null;
+  const params = new URLSearchParams({ reference: item.content.reference });
+  if (item.content.segment) params.set("segment", item.content.segment);
+  return `/pathways/sacred-texts/reader?${params.toString()}`;
+}
 
 function isSavedReflection(activity: PathwayActivity): activity is SavedReflection {
   return activity.activityType === "pathway-reflection"
@@ -72,6 +82,7 @@ export function PathwayReflectionJournal() {
       sx={{ py: 1.25, borderBottom: "1px solid var(--al-theme-border)" }}>
       <Typography level="body-xs" color="neutral">{item.occurredOn} · {item.moduleKey.replace(/-/g, " ")}</Typography>
       <Typography level="body-sm" sx={{ mt: .5 }}>{item.content.prompt}</Typography>
+      {passageLink(item) && <Button component={Link} to={passageLink(item)!} size="sm" variant="plain" sx={{ px: 0 }}>Open {item.content.segment ?? item.content.reference}</Button>}
       {editingId === item.id
         ? <>
           <Textarea aria-label="Edit saved reflection" value={draft} minRows={2} maxRows={6} slotProps={{ textarea: { maxLength: 2000 } }} onChange={(event) => setDraft(event.target.value)} sx={{ mt: .5 }} />

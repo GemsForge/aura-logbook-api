@@ -1,4 +1,4 @@
-import { Component, Fragment, useEffect } from "react";
+import { Component, Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import { Annotorious, useAnnotator } from "@annotorious/react";
 import { TextAnnotator, TextAnnotationPopup } from "@recogito/react-text-annotator";
@@ -39,9 +39,16 @@ export function SacredTextAnnotationCanvas({
   onRemove(id: number): void;
   onEditNote(id: number, range: SacredTextRange, value: string): void;
 }) {
+  const themeRoot = useRef<HTMLDivElement>(null);
+  const highlightColor = useThemeHighlightColor(themeRoot);
   return <SacredTextAnnotationBoundary blocks={blocks}>
+  <div ref={themeRoot} style={{ display: "contents" }}>
   <Annotorious>
-    <TextAnnotator className="sacred-reader-annotation-root">
+    <TextAnnotator className="sacred-reader-annotation-root" style={{
+      // Recogito paints highlights itself (page CSS does not reach them), so pass a concrete theme color.
+      // A strong fill plus a solid underline keeps saved marks visible on dark/night-mode screens.
+      fill: highlightColor, fillOpacity: 0.45, underlineColor: highlightColor, underlineThickness: 2, underlineOffset: 2,
+    }}>
       <div className="sacred-reader-text" aria-label="Select text to highlight or annotate">
         {blocks.map((block, index) => <Fragment key={`${block.reference}-${block.language}`}>
           {index > 0 ? "\n\n" : null}
@@ -59,7 +66,26 @@ export function SacredTextAnnotationCanvas({
     </TextAnnotator>
     <SavedAnnotationsLayer section={section} annotations={annotations} text={text} />
   </Annotorious>
+  </div>
   </SacredTextAnnotationBoundary>;
+}
+
+/** Fallback when no theme focus color is available (matches the light theme's sage primary). */
+const DEFAULT_HIGHLIGHT_COLOR = "#668879";
+
+/**
+ * Resolves the active theme's focus color (`--al-theme-focus`) as a concrete value for Recogito's
+ * highlight renderer, which cannot read CSS variables. Every theme tunes its focus color to stand out
+ * from its canvas in light and dark modes. Re-reads after each render so theme switches apply.
+ */
+function useThemeHighlightColor(root: React.RefObject<HTMLElement | null>): string {
+  const [color, setColor] = useState(DEFAULT_HIGHLIGHT_COLOR);
+  useLayoutEffect(() => {
+    const element = root.current?.parentElement ?? document.documentElement;
+    const next = getComputedStyle(element).getPropertyValue("--al-theme-focus").trim() || DEFAULT_HIGHLIGHT_COLOR;
+    if (next !== color) setColor(next);
+  });
+  return color;
 }
 
 /**

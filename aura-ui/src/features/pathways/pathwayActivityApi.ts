@@ -8,7 +8,8 @@ export type PathwayActivityContent =
   | { practice: string; durationMinutes?: number; note?: string }
   | { practices: Record<string, boolean>; note?: string }
   | { practiceKeys: string[] }
-  | { insightType: string; prompt: string; responseText: string }
+  /** Written reflection; `reference`/`segment` are sent only for sacred-text reader reflections ("reader-reflection"). */
+  | { insightType: string; prompt: string; responseText: string; reference?: string; segment?: string }
   | { insightType: string; response: InsightFeedbackValue };
 
 /** Private user activity returned by the pathway-activity API. */
