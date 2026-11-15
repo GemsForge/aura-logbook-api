@@ -1,8 +1,9 @@
-import { Fragment, useEffect } from "react";
+import { Component, Fragment, useEffect } from "react";
+import type { ErrorInfo, ReactNode } from "react";
 import { Annotorious, useAnnotator } from "@annotorious/react";
 import { TextAnnotator, TextAnnotationPopup } from "@recogito/react-text-annotator";
 import type { TextAnnotation, RecogitoTextAnnotator } from "@recogito/react-text-annotator";
-import { Box, Button } from "@mui/joy";
+import { Box, Button, Typography } from "@mui/joy";
 import type { SacredTextAnnotation, SacredTextSection } from "@/store/auraApi";
 
 /** A language-specific text run with offsets in the complete visible section. */
@@ -38,7 +39,8 @@ export function SacredTextAnnotationCanvas({
   onEditNote(id: number, range: SacredTextRange, value: string): void;
   onAnchorsSkipped(count: number): void;
 }) {
-  return <Annotorious>
+  return <SacredTextAnnotationBoundary blocks={blocks}>
+  <Annotorious>
     <TextAnnotator className="sacred-reader-annotation-root">
       <div className="sacred-reader-text" aria-label="Select text to highlight or annotate">
         {blocks.map((block, index) => <Fragment key={`${block.reference}-${block.language}`}>
@@ -56,7 +58,35 @@ export function SacredTextAnnotationCanvas({
       />} />
     </TextAnnotator>
     <SavedAnnotationsLayer section={section} annotations={annotations} blocks={blocks} onAnchorsSkipped={onAnchorsSkipped} />
-  </Annotorious>;
+  </Annotorious>
+  </SacredTextAnnotationBoundary>;
+}
+
+/**
+ * Keeps the reader usable when the annotation layer fails: the error is logged and the
+ * section text is shown as plain, readable text instead of the router's crash screen.
+ */
+class SacredTextAnnotationBoundary extends Component<{ blocks: SacredTextBlock[]; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Sacred text annotation layer failed", error, info.componentStack);
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return <Box className="sacred-reader-text" role="region" aria-label="Section text">
+      <Typography level="body-sm" role="status" sx={{ mb: 1 }}>Highlights and notes are unavailable right now. You can keep reading.</Typography>
+      {this.props.blocks.map((block, index) => <Fragment key={`${block.reference}-${block.language}`}>
+        {index > 0 ? "\n\n" : null}
+        <span lang={block.language} dir={block.direction} data-reference={block.reference}>{block.text}</span>
+      </Fragment>)}
+    </Box>;
+  }
 }
 
 /** Saves or edits selected-text actions with an accessible, touch-friendly popup. */
@@ -73,6 +103,7 @@ function SelectionActions({
   onRemove(): void;
   onEditNote(id: number, range: SacredTextRange, value: string): void;
 }) {
+  // May be null until Recogito mounts; Dismiss is a no-op until then.
   const annotator = useAnnotator<RecogitoTextAnnotator>();
   const serverId = Number(annotation.properties?.serverId);
   const range = getAnnotationRange(annotation);
@@ -84,7 +115,7 @@ function SelectionActions({
     </> : <>
       <Button size="sm" onClick={onHighlight}>Highlight</Button>
       <Button size="sm" variant="soft" onClick={onAddNote}>Add note</Button>
-      <Button size="sm" variant="plain" onClick={() => annotator.removeAnnotation(annotation.id)}>Dismiss</Button>
+      <Button size="sm" variant="plain" onClick={() => annotator?.removeAnnotation(annotation.id)}>Dismiss</Button>
     </>}
   </Box>;
 }
@@ -98,6 +129,9 @@ function SavedAnnotationsLayer({ section, annotations, blocks, onAnchorsSkipped 
 }) {
   const annotator = useAnnotator<RecogitoTextAnnotator>();
   useEffect(() => {
+    // The Recogito annotator is created after the first render (and StrictMode re-runs this
+    // effect before it exists); wait for it — this effect re-runs once `annotator` is set.
+    if (!annotator) return;
     let active = true;
     annotator.setAnnotations([]);
     onAnchorsSkipped(0);
