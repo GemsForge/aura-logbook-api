@@ -75,13 +75,21 @@ export function ribbonPoints(period: InsightPeriod, entries: MoodEntry[], range:
     const points: RibbonPoint[] = [];
     for (let day = 0; day < 7; day++) {
       const date = range.start.add(day, "day");
-      const dayEntries = inRange.filter((entry) => dayjs(entry.date).isSame(date, "day")).sort((a, b) => loggedAt(a).valueOf() - loggedAt(b).valueOf());
+      const dayEntries = inRange.filter((entry) => dayjs(entry.date).isSame(date, "day"));
       if (!dayEntries.length) { points.push({ x: (day + 0.5) / 7, energy: null, mood: null, moods: [], label: `${date.format("ddd")}: no check-in` }); continue; }
-      dayEntries.forEach((entry) => {
-        const time = loggedAt(entry);
-        const fraction = (time.hour() * 60 + time.minute()) / 1440;
-        points.push({ x: (day + Math.min(Math.max(fraction, 0.08), 0.92)) / 7, energy: entryEnergy(entry, moods), mood: entry.moods[0] ?? null, moods: entry.moods, label: `${date.format("ddd")} · ${entry.moods.join(", ")} · ${time.format("h:mm A")}` });
-      });
+      // Order by the plotted position (wall-clock time on the journal day), not the absolute instant: a
+      // backdated or legacy entry whose timestamp falls on another day would otherwise sort after an
+      // earlier-placed point and make the ribbon loop backwards. Instant and id settle ties.
+      dayEntries
+        .map((entry) => {
+          const time = loggedAt(entry);
+          const fraction = Math.min(Math.max((time.hour() * 60 + time.minute()) / 1440, 0.08), 0.92);
+          return { entry, time, x: (day + fraction) / 7 };
+        })
+        .sort((a, b) => a.x - b.x || a.time.valueOf() - b.time.valueOf() || a.entry.id - b.entry.id)
+        .forEach(({ entry, time, x }) => {
+          points.push({ x, energy: entryEnergy(entry, moods), mood: entry.moods[0] ?? null, moods: entry.moods, label: `${date.format("ddd")} · ${entry.moods.join(", ")} · ${time.format("h:mm A")}` });
+        });
     }
     return points;
   }
