@@ -3,7 +3,7 @@ import type { RootState } from "../store";
 import { DEFAULT_INTERFACE_MODE, readSystemInterfaceMode, resolveEffectiveInterfaceMode, resolveInterfaceTheme, resolveInterfaceMode, type InterfaceMode, type InterfaceModePreference, type InterfaceTheme } from "@/features/auth/models/InterfaceTheme";
 
 export const GUEST_MODE_STORAGE_KEY = "aura-interface-mode";
-/** Browser storage can be unavailable; the guest session still starts safely in light mode. */
+/** Browser storage can be unavailable; the guest session still follows system appearance. */
 export function readGuestInterfaceMode(): InterfaceModePreference {
   try { return resolveInterfaceMode(localStorage.getItem(GUEST_MODE_STORAGE_KEY)); }
   catch { return DEFAULT_INTERFACE_MODE; }
