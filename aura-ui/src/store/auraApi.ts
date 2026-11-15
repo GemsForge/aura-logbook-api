@@ -34,6 +34,52 @@ export type SacredPassage = {
   readingUrl: string;
 };
 
+/** One chapter/section segment; Arabic source text can accompany its translation. */
+export type SacredTextSegment = { reference: string; text: string; sourceText?: string | null };
+
+/** Provider section with stable source-version and per-language direction metadata. */
+export type SacredTextSection = {
+  framework: "christian" | "muslim" | "jewish";
+  reference: string;
+  translation: string;
+  sourceVersion: string;
+  attribution: string;
+  readingUrl: string;
+  textLanguage: string;
+  textDirection: "ltr" | "rtl";
+  sourceLanguage?: string | null;
+  sourceDirection?: "ltr" | "rtl" | null;
+  segments: SacredTextSegment[];
+  previousReference?: string | null;
+  nextReference?: string | null;
+  sourceLicenseUrl?: string | null;
+};
+
+/** Persisted private note, highlight, or bookmark with segment-relative offsets and an optional drift hash. */
+export type SacredTextAnnotation = {
+  id: number;
+  framework: "christian" | "muslim" | "jewish";
+  sectionReference: string;
+  sourceVersion: string;
+  language: string;
+  kind: "highlight" | "note" | "bookmark";
+  startOffset: number;
+  endOffset: number;
+  segmentReference?: string | null;
+  anchorHash?: string | null;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Owner-authored annotation fields accepted by `POST/PUT /api/faith/annotations`. */
+export type SacredTextAnnotationInput = Omit<SacredTextAnnotation, "id" | "createdAt" | "updatedAt" | "framework"> & {
+  framework: SacredTextAnnotation["framework"];
+};
+
+/** The only mutable field after a reader annotation has been anchored. */
+export type SacredTextAnnotationUpdate = Pick<SacredTextAnnotation, "note">;
+
 /** Pathway reflection returned for one exact selected mood combination. */
 export type MoodCombinationInterpretation = {
   combinationId: string;
@@ -54,7 +100,7 @@ export const auraApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura", "AuraSeasons", "FaithContent"],
+  tagTypes: ["Zodiac", "MoodCombinationInterpretation", "Aura", "AuraSeasons", "FaithContent", "SacredTextAnnotations"],
   endpoints: (build) => ({
     /** Derived aura (#343); refetched on mount so new check-ins show up. */
     getCurrentAura: build.query<DerivedAura, void>({
@@ -75,6 +121,31 @@ export const auraApi = createApi({
     getSacredPassage: build.query<SacredPassage | null, "christian" | "muslim" | "jewish">({
       query: (framework) => ({ url: "/faith/passage", params: { framework } }),
       providesTags: ["FaithContent"],
+    }),
+    /** Loads a navigable chapter/section through the selected framework's server-side provider. */
+    getSacredTextSection: build.query<SacredTextSection, { framework: SacredPassage["framework"]; reference: string }>({
+      query: ({ framework, reference }) => ({ url: "/faith/section", params: { framework, reference } }),
+      providesTags: ["FaithContent"],
+    }),
+    /** Lists private reader annotations for the signed-in owner and one selected framework. */
+    getSacredTextAnnotations: build.query<SacredTextAnnotation[], SacredPassage["framework"]>({
+      query: (framework) => ({ url: "/faith/annotations", params: { framework } }),
+      providesTags: ["SacredTextAnnotations"],
+    }),
+    /** Saves a private note, highlight, or bookmark. */
+    createSacredTextAnnotation: build.mutation<SacredTextAnnotation, SacredTextAnnotationInput>({
+      query: (body) => ({ url: "/faith/annotations", method: "POST", body }),
+      invalidatesTags: ["SacredTextAnnotations"],
+    }),
+    /** Updates only the owner-authored note; the persisted source identity and segment anchor never change. */
+    updateSacredTextAnnotation: build.mutation<void, { id: number; body: SacredTextAnnotationUpdate }>({
+      query: ({ id, body }) => ({ url: `/faith/annotations/${id}`, method: "PUT", body }),
+      invalidatesTags: ["SacredTextAnnotations"],
+    }),
+    /** Deletes one private reader annotation. */
+    deleteSacredTextAnnotation: build.mutation<void, number>({
+      query: (id) => ({ url: `/faith/annotations/${id}`, method: "DELETE" }),
+      invalidatesTags: ["SacredTextAnnotations"],
     }),
     getZodiacInsight: build.query<ZodiacInsightResponse, void>({
       /** Loads the zodiac insight through the shared API client. */
@@ -109,4 +180,16 @@ export const auraApi = createApi({
   }),
 });
 
-export const { useGetZodiacInsightQuery, useGetMoodCombinationInterpretationQuery, useGetCurrentAuraQuery, useGetAuraSeasonsQuery, useGetFaithWordOfDayQuery, useGetSacredPassageQuery } = auraApi;
+export const {
+  useGetZodiacInsightQuery,
+  useGetMoodCombinationInterpretationQuery,
+  useGetCurrentAuraQuery,
+  useGetAuraSeasonsQuery,
+  useGetFaithWordOfDayQuery,
+  useGetSacredPassageQuery,
+  useGetSacredTextSectionQuery,
+  useGetSacredTextAnnotationsQuery,
+  useCreateSacredTextAnnotationMutation,
+  useUpdateSacredTextAnnotationMutation,
+  useDeleteSacredTextAnnotationMutation,
+} = auraApi;

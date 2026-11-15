@@ -1,0 +1,175 @@
+/** Quiet reading layout that follows Aura's active semantic theme. */
+.sacred-text-reader {
+  color: var(--al-theme-ink, #352d2c);
+}
+
+.sacred-reader-prism {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--al-theme-border, #d8ddd4);
+  border-radius: 999px;
+  background: var(--al-theme-surface, #fffcf7);
+}
+
+.sacred-reader-prism span {
+  width: 0.48rem;
+  height: 1.05rem;
+  border-radius: 0.18rem;
+  background: var(--al-theme-primary, #668879);
+  transform: skewY(-24deg);
+}
+
+.sacred-reader-prism span:nth-child(2) { opacity: 0.72; transform: skewY(24deg); }
+.sacred-reader-prism span:nth-child(3) { opacity: 0.46; }
+
+.sacred-reader-toolbar,
+.sacred-reader-navigation,
+.sacred-reader-display-controls,
+.sacred-reader-source,
+.sacred-reader-resume,
+.sacred-reader-notes-header,
+.sacred-reader-export-actions,
+.sacred-reader-note-actions,
+.sacred-reader-segment-actions,
+.sacred-reader-chapter-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sacred-reader-toolbar {
+  justify-content: space-between;
+  padding: 0.8rem;
+  border: 1px solid var(--al-theme-border, #d8ddd4);
+  border-radius: 1rem;
+  background: var(--al-theme-surface, #fffcf7);
+}
+
+.sacred-reader-navigation { flex: 1 1 34rem; }
+.sacred-reader-display-controls { justify-content: flex-end; }
+
+.sacred-reader-source {
+  justify-content: space-between;
+  margin: 0.85rem 0;
+  color: var(--al-theme-ink-muted, #6f716d);
+}
+
+.sacred-reader-resume {
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.8rem;
+  border-left: 3px solid var(--al-theme-primary, #668879);
+  background: var(--al-theme-surface-raised, #ede5d9);
+}
+
+.sacred-reader-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
+  align-items: start;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.sacred-reader-reading-surface,
+.sacred-reader-notes {
+  min-width: 0;
+  border: 1px solid var(--al-theme-border, #d8ddd4);
+  border-radius: 1.15rem;
+  background: var(--al-theme-surface, #fffcf7);
+}
+
+.sacred-reader-reading-surface { padding: clamp(1rem, 3vw, 2.25rem); }
+.sacred-reader-reading-toolbar { display: flex; align-items: end; gap: 0.7rem; margin-bottom: 1.25rem; }
+
+.sacred-reader-text {
+  min-height: 14rem;
+  color: var(--al-theme-ink, #352d2c);
+  font-family: var(--joy-fontFamily-display, Georgia, serif);
+  font-size: var(--sacred-reader-font-size, 18px);
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.sacred-reader-text [dir="rtl"] {
+  display: inline-block;
+  width: 100%;
+  text-align: right;
+  font-family: var(--joy-fontFamily-body, sans-serif);
+}
+
+.sacred-reader-segment-reference::before {
+  display: block;
+  margin-top: 0.85rem;
+  color: var(--al-theme-primary, #668879);
+  content: attr(data-reference);
+  direction: ltr;
+  font-family: var(--joy-fontFamily-body, sans-serif);
+  font-size: 0.68em;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.sacred-reader-annotation-root .r6o-span-highlight-layer .r6o-annotation {
+  background-color: rgb(102 136 121 / 24%) !important;
+  background-color: color-mix(in srgb, var(--al-theme-primary, #668879) 24%, transparent) !important;
+  border-radius: 0.12em;
+}
+
+.sacred-reader-selection-popup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-width: min(22rem, calc(100vw - 24px));
+  padding: 0.45rem;
+  border: 1px solid var(--al-theme-border, #d8ddd4);
+  border-radius: 0.7rem;
+  background: var(--al-theme-surface, #fffcf7);
+  box-shadow: 0 0.5rem 1.5rem rgb(25 35 30 / 18%);
+}
+
+.sacred-reader-segment-actions,
+.sacred-reader-chapter-footer {
+  justify-content: space-between;
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--al-theme-border, #d8ddd4);
+}
+
+.sacred-reader-reflection { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--al-theme-border, #d8ddd4); }
+.sacred-reader-reflection summary { cursor: pointer; font-weight: 600; }
+
+.sacred-reader-notes { position: sticky; top: 1rem; padding: 1rem; }
+.sacred-reader-notes-header { justify-content: space-between; align-items: flex-start; }
+.sacred-reader-export-actions { margin-top: 0.5rem; }
+.sacred-reader-note-list { display: grid; gap: 0.6rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.sacred-reader-note-item { padding: 0.75rem; border: 1px solid var(--al-theme-border, #d8ddd4); border-radius: 0.75rem; overflow-wrap: anywhere; }
+.sacred-reader-note-actions { justify-content: flex-end; margin-top: 0.3rem; }
+.sacred-reader-mobile-notes-toggle { display: none; }
+
+@media (max-width: 760px) {
+  .sacred-reader-columns { grid-template-columns: minmax(0, 1fr); }
+  .sacred-reader-notes { display: none; position: static; }
+  .sacred-reader-notes.is-open { display: block; }
+  .sacred-reader-mobile-notes-toggle { display: inline-flex; position: sticky; bottom: 0.75rem; margin: 0.75rem 0 0 0.5rem; z-index: 2; }
+  .sacred-reader-reading-toolbar { align-items: stretch; flex-direction: column; }
+  .sacred-reader-prism { flex: 0 0 auto; }
+}
+
+@media print {
+  .sacred-reader-toolbar,
+  .sacred-reader-reading-toolbar,
+  .sacred-reader-segment-actions,
+  .sacred-reader-chapter-footer,
+  .sacred-reader-mobile-notes-toggle,
+  .sacred-reader-reflection,
+  .sacred-reader-notes-header button,
+  .sacred-reader-export-actions { display: none !important; }
+  .sacred-reader-columns { display: block; }
+  .sacred-reader-reading-surface,
+  .sacred-reader-notes { border: 0; position: static; }
+}

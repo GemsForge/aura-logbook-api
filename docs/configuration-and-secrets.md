@@ -135,19 +135,59 @@ any other value returns `204 No Content`.
 | Framework | Default source | Translation and license | Key needed |
 |---|---|---|---|
 | `christian` | bible-api.com | World English Bible, public domain | No |
-| `muslim` | Quran.com API (Quran Foundation) | Saheeh International | No |
+| `muslim` | Quran Foundation Content API, with legacy Quran.com fallback | Saheeh International | Optional |
 | `jewish` | Sefaria | JPS 1917 (*The Holy Scriptures: A New Translation*), public domain | No |
 
 Christian and Jewish passages default to public-domain translations, so no non-commercial or
-display license applies. To use a different licensed Bible translation instead, set both:
+display license applies. Quran Foundation credentials use the OAuth client-credentials flow
+and stay on the server. Configure both values to use the authenticated content API:
+
+```bash
+SacredText__QuranClientId=your-quran-foundation-client-id
+SacredText__QuranClientSecret=your-quran-foundation-client-secret
+```
+
+`SacredText__QuranScope` defaults to `content`; set it to a narrower approved scope if the
+Quran Foundation client is provisioned that way. Without credentials, the adapter retains its
+legacy public Quran.com endpoint fallback. Quran Foundation's current developer terms limit
+regular API-response content caching to one week ([Quran Foundation terms](https://api-docs.quran.foundation/legal/developer-terms/)); API.Bible requires refresh within 30 days
+and recommends 14 days or less ([API.Bible caching requirements](https://care.api.bible/article/401-caching-content)). Sefaria's [developer client documentation](https://sefaria.github.io/sefaria-frontend-toolkit/reference/client.html)
+documents bounded client caching but publishes no maximum retention duration. Aura uses the existing six-hour cache duration for
+successful sections and daily passages, below the stated API.Bible and Quran Foundation limits
+and conservatively short for Sefaria. Section entries are isolated by framework, normalized
+reference, and configured source version; provider failures are never cached. The reader
+displays Quran Foundation attribution and does not export the
+provider's source text. Follow the current [Quran Foundation developer terms](https://api-docs.quran.foundation/legal/developer-terms/)
+and [content API authentication guidance](https://api-docs.quran.foundation/docs/quickstart/).
+
+To use a different licensed Bible translation instead, set both:
 
 ```bash
 SacredText__ApiBibleKey=your-api-bible-key
 SacredText__ApiBibleBibleId=id-of-a-translation-licensed-for-display
+SacredText__ApiBibleTranslationName=Human-readable licensed edition title
 ```
 
+API.Bible remains disabled by default. Do not configure its key until client-side
+FUMS tracking records each displayed reading, as required by the
+[core user journey](ux/core-user-journeys.md). The translation name is optional
+and falls back to the Bible ID when omitted.
+
 The Sefaria version is pinned with `SacredText__SefariaVersion`. Daily references are Tanakh
-verses because JPS 1917 covers the Tanakh. Keys stay server-side. Each day's passage is cached
+verses because JPS 1917 covers the Tanakh. The in-app reader's authenticated
+`GET /api/faith/section` endpoint returns one requested chapter/section from only
+that framework's provider. Reusable Hebrew source text is shown only when Sefaria
+returns an exact, trimmed, case-insensitive `Public Domain`, `CC0`, `CC-BY`, or
+`CC-BY-SA` license. The Sefaria Genesis 1 Hebrew edition metadata reports
+`CC-BY-SA`; the response attribution includes its edition title and license and
+links the CC-BY-SA 4.0 deed unless Sefaria supplies a license URL. `NC`, `ND`,
+unknown, and missing licenses remain excluded. This allowance was approved by the
+product owner on 2026-11-14. Hebrew text is displayed after provider markup
+cleaning and is not stored or exported. See [Sefaria's reuse guidance](https://help.sefaria.org/hc/en-us/articles/18490043237148-How-to-Find-and-Understand-Licensing-or-Copyright-Information).
+`GET/POST/PUT/DELETE /api/faith/annotations` stores
+owner-private notes, highlights, and bookmarks; anchors include the provider
+version, segment-relative offsets, and an anchor digest, while quoted source text is not stored. The reader requires
+Migration 035. Keys stay server-side. Each day's passage is cached
 (`SacredText__CacheDuration`, default 6 hours) to respect provider rate limits. The attribution
 returned by the API must be shown with the text. Review the Saheeh International translation's
 terms before production use.

@@ -285,6 +285,30 @@ public sealed class RelationalRepositoryTests : IDisposable
         Assert.Contains(MoodType.Harmonious, entry.Moods);
     }
 
+    /// <summary>#410: note edits preserve the source version, section, and anchor, and stay owner-scoped.</summary>
+    [Fact]
+    public async Task Sacred_text_annotation_update_changes_only_the_owner_note()
+    {
+        var repository = new SqliteSacredTextAnnotationRepository(_factory);
+        var id = await repository.CreateAsync(new SacredTextAnnotation
+        {
+            UserId = 7, Framework = "christian", SectionReference = "Genesis 1", SourceVersion = "WEB:v1",
+            Language = "en", Kind = "note", StartOffset = 4, EndOffset = 8,
+            SegmentReference = "Genesis 1:2", Note = "Original", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+        });
+
+        Assert.False(await repository.UpdateAsync(8, id, "Other owner", DateTime.UtcNow));
+        Assert.True(await repository.UpdateAsync(7, id, "Revised", DateTime.UtcNow));
+
+        var stored = await repository.GetByIdAsync(7, id);
+        Assert.NotNull(stored);
+        Assert.Equal("Revised", stored.Note);
+        Assert.Equal("Genesis 1", stored.SectionReference);
+        Assert.Equal("WEB:v1", stored.SourceVersion);
+        Assert.Equal("Genesis 1:2", stored.SegmentReference);
+        Assert.Null(await repository.GetByIdAsync(8, id));
+    }
+
     /// <summary>#384: impact topics round-trip through create, update, and read; untouched entries read as empty.</summary>
     [Fact]
     public async Task Mood_repository_round_trips_impact_topics()

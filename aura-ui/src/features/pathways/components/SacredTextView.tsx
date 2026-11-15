@@ -1,4 +1,5 @@
 import { Box, Button, Typography } from "@mui/joy";
+import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
 import { useGetFaithWordOfDayQuery, useGetSacredPassageQuery } from "@/store/auraApi";
 import { PathwayReflectionPrompt } from "./PathwayReflectionPrompt";
 import { InsightFeedback } from "./InsightFeedback";
@@ -46,6 +47,9 @@ export function SacredTextView({ framework, publisher }: SacredTextViewProps) {
             </Typography>
             <Typography level="body-xs" color="neutral" sx={{ mt: .25 }}>{passage.data.attribution}</Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: .75 }}>
+              <Button component="a" href={`/pathways/sacred-texts/reader?reference=${encodeURIComponent(passage.data.reference)}`} size="sm" variant="solid" startDecorator={<MenuBookRounded />}>
+                Read in Aura
+              </Button>
               <Button component="a" href={passage.data.readingUrl} target="_blank" rel="noreferrer" size="sm" variant="plain">
                 Read passage at source
               </Button>
