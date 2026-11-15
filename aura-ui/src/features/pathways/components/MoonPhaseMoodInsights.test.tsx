@@ -28,26 +28,34 @@ describe("moon phase mood exploration", () => {
     expect(first).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("heading", { level: 2, name: "Moods across moon phases" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Waxing Crescent phase illustration" })).toBeInTheDocument();
+    await user.click(first);
     expect(within(screen.getByRole("list", { name: "Mood counts during Waxing Crescent" })).getByText("Curious")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try another phase" }));
     const full = screen.getByRole("button", { name: /Full Moon.*4 entries/ });
     act(() => full.focus());
     await user.keyboard("[Enter]");
-    expect(full).toHaveAttribute("aria-pressed", "true");
-    expect(first).toHaveAttribute("aria-pressed", "false");
+    await user.click(screen.getAllByRole("button", { name: /^Pick a phase/ })[0]);
+    expect(screen.getByRole("button", { name: /Full Moon.*4 entries/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Waxing Crescent.*3 entries/ })).toHaveAttribute("aria-pressed", "false");
+    await user.keyboard("[Tab]");
+    await user.click(screen.getAllByRole("button", { name: /^See moods/ })[0]);
     const selectedCounts = screen.getByRole("list", { name: "Mood counts during Full Moon" });
     expect(within(selectedCounts).getByText("Content")).toBeInTheDocument();
     expect(within(selectedCounts).getByText("4")).toBeInTheDocument();
     expect(within(selectedCounts).queryByText("Calm")).not.toBeInTheDocument();
     expect(screen.getByText(/7 of 9 entries have phase data/)).toBeInTheDocument();
     expect(screen.getByText(/unavailable for 2 dates/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Note it" }));
     expect(screen.getByText("Optional reflection")).toBeInTheDocument();
   });
 
   it("retains an unknown provider label without assigning a moon illustration", async () => {
     vi.mocked(getMoonPhaseMoodInsights).mockResolvedValue({ ...summary, phases: [{ phase: "Unspecified phase", entryCount: 7, moodCounts: {} }] });
+    const user = userEvent.setup();
     render(<MoonPhaseMoodInsights />);
-    expect(await screen.findByRole("button", { name: /Unspecified phase.*7 entries/ })).toBeInTheDocument();
+    const unknown = await screen.findByRole("button", { name: /Unspecified phase.*7 entries/ });
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    await user.click(unknown);
     expect(screen.getByText(/No individual mood counts were returned/)).toBeInTheDocument();
   });
 

@@ -49,17 +49,20 @@ describe("FaithPracticeCheckIn explicit recording", () => {
         { occurredOn: "2026-11-12", content: { practices: { prayer: false } } },
       ] : []));
     render(<FaithPracticeCheckIn />);
-    await screen.findByRole("heading", { name: "Your check-ins" });
-    const counts = within(screen.getByRole("complementary", { name: "Faith practice frequency" }));
+    // Returning users open on today's check-in; nothing is saved by opening it.
+    await screen.findByRole("heading", { name: "Today’s check-in" });
+    expect(screen.getByRole("button", { name: "Save today" })).toBeDisabled();
+    expect(screen.queryByRole("checkbox", { name: "Gratitude" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: /^Look back/ })[0]);
+    const counts = within(await screen.findByRole("complementary", { name: "Faith practice frequency" }));
+    expect(counts.getByRole("heading", { name: "Your check-ins" })).toBeInTheDocument();
     expect(counts.getByText("Did 1 days · Didn’t 1 days")).toBeInTheDocument();
     expect(counts.queryByText("Gratitude")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save today" })).toBeDisabled();
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(screen.queryByRole("checkbox", { name: "Gratitude" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Edit practices" }));
-    expect(screen.getByRole("button", { name: "Close practice choices" })).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getAllByRole("button", { name: /^Choose/ })[0]);
     fireEvent.click(screen.getByRole("checkbox", { name: "Gratitude" }));
-    expect(screen.queryByRole("heading", { name: "Today’s check-in" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: /^Check in/ })[0]);
+    expect(screen.queryByRole("button", { name: "Save today" })).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Save your updated choices");
   });
   it("keeps failed preference loads distinct from first-time setup and lets the user retry", async () => {
