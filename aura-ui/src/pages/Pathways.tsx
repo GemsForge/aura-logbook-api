@@ -24,6 +24,12 @@ import "@/features/pathways/pathwayStudio.css";
 import { MoodPathwayReflectionPanel } from "@/features/pathways/components/MoodPathwayReflectionPanel";
 
 
+/** Modules laid out as a three-step path; when one is open and enabled, the page subtitle describes the path. */
+const STEP_PATH_MODULES = new Set(["mindfulness-guide", "faith-practice-check-in"]);
+
+/** Hides text visually while keeping it in the accessibility tree. */
+const visuallyHidden = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } as const;
+
 /** Composes illustrated, interactive modules for the one profile-selected pathway and enabled routes. */
 export default function Pathways() {
   const { moduleKey } = useParams();
@@ -71,7 +77,7 @@ export default function Pathways() {
   return <Box className="signed-in-content pathway-studio" sx={{ maxWidth: 1200, mx: "auto" }}>
     <Box component="header" sx={{ mb: 3, py: 1 }}>
       <Typography component="h1" level="h1" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontWeight: 500, mt: 1 }}>{pathway === "energy" ? (moduleKey === "chakra-reference" ? "Chakra & color reference" : "Your sky") : pathway === "mindfulness" ? (moduleKey === "practice-log" ? "A little practice, your way" : "Mindful living") : pathway === "faith" ? (moduleKey === "faith-practice-check-in" ? "Your practice, your pace" : "A moment with meaning") : pageTitle}</Typography>
-      <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>{pathway === "energy" ? (moduleKey === "chakra-reference" ? "Seven centers. Many ways to reflect." : "Your horoscope, chart, and moods across the moon’s phases.") : pathway === "mindfulness" ? "Explore a skill. Try a moment. Return when you’re ready." : "Make room for what matters to you."}</Typography>
+      <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>{activeModule && STEP_PATH_MODULES.has(activeModule.key) ? "Three short steps. Skip any of them." : pathway === "energy" ? (moduleKey === "chakra-reference" ? "Seven centers. Many ways to reflect." : "Your horoscope, chart, and moods across the moon’s phases.") : pathway === "mindfulness" ? "Explore a skill. Try a moment. Return when you’re ready." : "Make room for what matters to you."}</Typography>
     </Box>
 
     {invalidModuleRoute && <Box role="status" sx={{ py: 2 }}>
@@ -121,7 +127,8 @@ export default function Pathways() {
         <SacredTextView framework={faithResource?.key} publisher={faithResource} />
       </Box> : null}
       {focus.includes("faith-practice-check-in") && showModule("faith-practice-check-in") && <Box className="aura-highlight" component="section" id="faith-practice-check-in" aria-labelledby="faith-practice-title" sx={{ p: 2.5, my: 1, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}>
-        <Typography id="faith-practice-title" component="h2" level="title-lg">Faith practice check-in</Typography>
+        {/* On the module's own page the h1 already names it, so the card title stays for screen readers only. */}
+        <Typography id="faith-practice-title" component="h2" level="title-lg" sx={moduleKey ? visuallyHidden : undefined}>Faith practice check-in</Typography>
         <FaithPracticeCheckIn />
       </Box>}
     </Box>}
