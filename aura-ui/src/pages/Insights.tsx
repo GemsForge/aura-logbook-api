@@ -56,6 +56,7 @@ export default function Insights() {
   const current = entriesInRange(entries, range);
   const previous = entriesInRange(entries, previousRange(period, range));
   const mix = moodCounts(current);
+  const moodMixCount = mix.reduce((sum, [, count]) => sum + count, 0);
   const energy = averageEnergy(current, moods);
   const previousEnergy = averageEnergy(previous, moods);
   const factors = energyFactors(current, moods);
@@ -101,7 +102,7 @@ export default function Insights() {
           <Sheet component="section" aria-labelledby="mix-title" className="aura-panel" sx={{ gridColumn: "1 / -1", p: 2 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <Typography id="mix-title" component="h2" level="title-md">Mood mix</Typography>
-              <Typography level="body-xs" color="neutral">{mix.reduce((sum, [, count]) => sum + count, 0)} moods</Typography>
+              <Typography level="body-xs" color="neutral">{moodMixCount} {moodMixCount === 1 ? "mood" : "moods"}</Typography>
             </Box>
             {mix.length ? <>
               {/* Segmented bar: one entry fills it with a single color rather than leaving an empty chart. */}
@@ -119,15 +120,18 @@ export default function Insights() {
             </> : <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>No check-ins this {PERIOD_WORD[period]} yet.</Typography>}
           </Sheet>
 
-          {factors.length > 0 && (
-            <Sheet component="section" aria-labelledby="factors-title" className="aura-panel" sx={{ gridColumn: "1 / -1", p: 2 }}>
-              <Typography id="factors-title" component="h2" level="title-md">What shapes your energy</Typography>
+          {/* Keep the optional factor panel discoverable even when strict sample requirements yield no rows. */}
+          <Sheet component="section" aria-labelledby="factors-title" className="aura-panel" sx={{ gridColumn: "1 / -1", p: 2 }}>
+            <Typography id="factors-title" component="h2" level="title-md">What shapes your energy</Typography>
+            {factors.length > 0 ? <>
               <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0, mt: .5 }}>
                 {factors.map((factor) => <FactorRow key={factor.key} factor={factor} />)}
               </Box>
               <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>Based on {current.length} {current.length === 1 ? "check-in" : "check-ins"}. Patterns, not causes.</Typography>
-            </Sheet>
-          )}
+            </> : <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>
+              No patterns to show for this {PERIOD_WORD[period]} yet. With a few check-ins both with and without things like music, a photo, clear-sky weather, or late-night timing, you may start to notice patterns.
+            </Typography>}
+          </Sheet>
         </Box>
       )}
 

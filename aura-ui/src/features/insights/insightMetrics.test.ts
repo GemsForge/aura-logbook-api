@@ -51,6 +51,19 @@ describe("insightMetrics", () => {
     expect(factors.map((factor) => factor.key)).not.toContain("music");
   });
 
+  it("keeps the two-entry threshold for both with and without groups", () => {
+    const withoutFactor = (count: number) => Array.from({ length: count }, (_, index) =>
+      entry(`2026-11-${String(index + 1).padStart(2, "0")}`, 9, "Weary", { musicTrack: null }));
+    const withFactor = (count: number) => Array.from({ length: count }, (_, index) =>
+      entry(`2026-11-${String(index + 11).padStart(2, "0")}`, 9, "Empowered", { musicTrack: JSON.stringify({ name: "Song", artists: "Artist" }) }));
+
+    expect(energyFactors([...withFactor(1), ...withoutFactor(2)], moods)).toEqual([]);
+    expect(energyFactors([...withFactor(2), ...withoutFactor(1)], moods)).toEqual([]);
+    expect(energyFactors([...withFactor(2), ...withoutFactor(2)], moods)).toContainEqual(expect.objectContaining({
+      key: "music", withCount: 2, delta: 4,
+    }));
+  });
+
   it("uses the recorded occurrence hour and offset for timeline points and time-of-day metrics", () => {
     const loggedLater = entry("2026-11-11", 8, "Empowered", { occurredAt: "2026-11-11T19:30:00+05:30" });
     expect(loggedAt(loggedLater).hour()).toBe(19);
