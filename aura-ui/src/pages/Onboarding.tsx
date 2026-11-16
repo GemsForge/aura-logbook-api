@@ -12,6 +12,7 @@ import { AuraInput } from "@/components/ui/AuraInput";
 import { useCompleteOnboardingMutation } from "@/store/authApi";
 import { useToast } from "@/hooks/useToast";
 import type { SpiritualPathway } from "@/features/auth/models";
+import { FAITH_TRADITIONS } from "@/features/pathways/pathwayResources";
 import { QUIZ_QUESTIONS, PATHWAY_NAMES, scoreQuiz } from "@/features/onboarding/quiz";
 import { CHECK_IN_OPENERS, PATHWAY_FOCUS, sunSign, toggleFocus } from "@/features/onboarding/pathwayPages";
 import { STEPS, buildOnboardingRequest, clearDraft, loadDraft, saveDraft, type OnboardingDraft } from "@/features/onboarding/draft";
@@ -161,6 +162,7 @@ export default function Onboarding() {
           <Link component="button" onClick={() => jump("birthday")}>Add your birthday to see your sky</Link>
         ))}
         <Typography className="aura-eyebrow" level="body-xs">{p === "Energy" ? "I'd like nudges about" : p === "Faith" ? "Daily encouragement" : "Intentions"}</Typography>
+        <Typography level="body-xs" color="neutral">These choices shape optional prompts. Your pathway’s modules are enabled by default and can be managed in Profile settings.</Typography>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           {PATHWAY_FOCUS[p].map((c) => (
             <Button key={c.key} variant={draft.focus.includes(c.key) ? "contained" : "outlined"} aria-pressed={draft.focus.includes(c.key)}
@@ -181,6 +183,20 @@ export default function Onboarding() {
       </Box>
     );
     primary = <Button variant="contained" onClick={() => go(1)}>Continue</Button>;
+  } else if (step.kind === "faith-framework") {
+    eyebrow = "Faith & Religion · optional";
+    heading = "Which belief framework would you like to use?";
+    sub = "Choose the tradition or style for Sacred Texts. You can skip this or change it later in Profile settings.";
+    body = <Box component="fieldset" sx={{ minWidth: 0, border: 0, p: 0, m: 0, display: "grid", gap: 1 }}>
+      <Typography component="legend" level="body-sm" sx={{ mb: .5, fontWeight: 600 }}>Choose one, or leave it unset</Typography>
+      {FAITH_TRADITIONS.map((framework) => <Sheet key={framework.key} component="label" variant={draft.faithTradition === framework.key ? "soft" : "outlined"}
+        sx={{ display: "flex", alignItems: "center", gap: 1.25, minHeight: 48, px: 1.5, py: 1, borderRadius: "md", cursor: "pointer", borderColor: draft.faithTradition === framework.key ? "var(--al-theme-focus)" : "var(--al-theme-border)", "&:focus-within": { outline: "3px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
+        <input type="radio" name="faith-framework" value={framework.key} checked={draft.faithTradition === framework.key} onChange={() => update({ faithTradition: framework.key as NonNullable<OnboardingDraft["faithTradition"]> })} style={{ width: 20, height: 20, flex: "0 0 auto", accentColor: "var(--al-theme-focus)" }} />
+        <Typography level="body-md">{framework.label}</Typography>
+      </Sheet>)}
+      <Typography level="body-xs" color="neutral">“Another tradition,” “My own wording,” and “Neutral reflection” don’t select a sacred text.</Typography>
+    </Box>;
+    primary = <><Button variant="contained" onClick={() => go(1)}>Continue</Button><Button variant="plain" onClick={() => { update({ faithTradition: undefined }); go(1); }}>Skip for now</Button></>;
   } else {
     eyebrow = "Gentle reminders";
     heading = "You're all set";

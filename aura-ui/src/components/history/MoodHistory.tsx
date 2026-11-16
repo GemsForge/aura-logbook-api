@@ -25,7 +25,12 @@ import { tapTarget44 } from "@/components/ui/tapTarget";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useAppDispatch } from "@/store/hooks";
 import { auraApi } from "@/store/auraApi";
-import { PathwayReflectionJournal } from "@/features/pathways/components/PathwayReflectionJournal";
+import { PathwayReflectionCard } from "@/features/pathways/components/PathwayReflectionJournal";
+import type { PathwayActivity, PathwayActivityRequest } from "@/features/pathways/pathwayActivityApi";
+import { PathwayActivityApi } from "@/features/pathways/pathwayActivityApi";
+import SegmentedToggle from "@/components/ui/SegmentedToggle";
+import { PATHWAY_MODULES, pathwayModuleKey, resolvePathwayFocus } from "@/features/pathways/pathwayResources";
+import { useAppSelector } from "@/store/hooks";
 
 /** Counts moods by distinct check-in day so a busy day does not outweigh quieter days. */
 function topMoodByDay(entries: MoodEntry[]) {
@@ -52,6 +57,7 @@ function topMoodByDay(entries: MoodEntry[]) {
 export default function MoodHistoryPage() {
   const dispatch = useAppDispatch();
   const [logs, setLogs] = useState<MoodEntry[]>([]);
+  const [pathwayItems, setPathwayItems] = useState<PathwayActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState<Dayjs>(() => dayjs().startOf("month"));
@@ -59,11 +65,22 @@ export default function MoodHistoryPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(() => new URLSearchParams(window.location.search).get("date"));
   const [entryToEdit, setEntryToEdit] = useState<MoodEntry | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<MoodEntry | null>(null);
+  const [pathwayToDelete, setPathwayToDelete] = useState<PathwayActivity | null>(null);
+  const [pathwayToEdit, setPathwayToEdit] = useState<PathwayActivity | null>(null);
+  const [pathwayDraft, setPathwayDraft] = useState("");
+  const [pathwayMessage, setPathwayMessage] = useState("");
+  const [filter, setFilter] = useState<"all" | "check-ins" | "pathway">(() => {
+    try { const saved = localStorage.getItem("aura.reflections.filter"); return saved === "check-ins" || saved === "pathway" ? saved : "all"; } catch { return "all"; }
+  });
+  const [showInactive, setShowInactive] = useState(() => {
+    try { return localStorage.getItem("aura.reflections.showInactivePathways") !== "false"; } catch { return true; }
+  });
   const { showToast } = useToast();
   // Held in a ref so a toast helper that changes identity between renders never re-triggers the load.
   const showToastRef = useRef(showToast);
   showToastRef.current = showToast;
   const { data: referenceData } = useGetReferenceDataQuery();
+  const user = useAppSelector((state) => state.auth.profile);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -93,15 +110,55 @@ export default function MoodHistoryPage() {
   };
 
   useEffect(() => { void fetchLogs(); }, [fetchLogs]);
+  const fetchPathwayItems = useCallback(async () => {
+    try { setPathwayItems(await PathwayActivityApi.getMine({ activityType: "pathway-reflection" })); }
+    catch { setPathwayMessage("Saved pathway reflections aren’t available right now."); }
+  }, []);
+  useEffect(() => { void fetchPathwayItems(); }, [fetchPathwayItems]);
   const onMonthChange = useCallback((month: Dayjs) => setVisibleMonth(month), []);
 
   const monthLogs = logs.filter((entry) => dayjs(entry.date).isSame(visibleMonth, "month"));
+  const pathwayReflections = pathwayItems.filter((item) => item.activityType === "pathway-reflection" && "responseText" in item.content && "prompt" in item.content && "insightType" in item.content);
+  const selectedPathwayKey = pathwayModuleKey(user?.selectedPathway);
+  const activeModules = new Set(selectedPathwayKey ? resolvePathwayFocus(user?.selectedPathway, user?.pathwayPreferences?.focus) : []);
+  const isActiveReflection = (item: PathwayActivity) => {
+    const moduleExists = Object.values(PATHWAY_MODULES).some((modules) => modules.some((module) => module.key === item.moduleKey));
+    return !moduleExists || (selectedPathwayKey === item.pathway && activeModules.has(item.moduleKey));
+  };
+  const visiblePathwayReflections = pathwayReflections.filter((item) => showInactive || isActiveReflection(item));
   // With no day picked, open the month's most recent reflection day so the journal column is never empty.
-  const latestDay = [...monthLogs].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? null;
+  const latestDay = [...monthLogs.map((entry) => entry.date), ...visiblePathwayReflections.map((item) => item.occurredOn).filter((date) => dayjs(date).isSame(visibleMonth, "month"))].sort((a, b) => b.localeCompare(a))[0] ?? null;
   const activeDate = selectedDate ?? latestDay;
   const dayEntries = logs
     .filter((entry) => entry.date === activeDate)
     .sort(compareMoodOccurrence);
+  const dayPathwayReflections = visiblePathwayReflections.filter((item) => item.occurredOn === activeDate).sort((left, right) => left.createdAt.localeCompare(right.createdAt) || left.id - right.id);
+  const dayMoodEntries = filter === "pathway" ? [] : dayEntries;
+  const dayPathwayItems = filter === "check-ins" ? [] : dayPathwayReflections;
+  const timeline = [
+    ...dayMoodEntries.map((entry) => ({ kind: "mood" as const, entry, time: new Date(entry.occurredAt ?? entry.createdAt).getTime() })),
+    ...dayPathwayItems.map((item) => ({ kind: "pathway" as const, item, time: new Date(item.createdAt).getTime() })),
+  ].sort((left, right) => left.time - right.time);
+  const chooseFilter = (value: "all" | "check-ins" | "pathway") => {
+    setFilter(value);
+    try { localStorage.setItem("aura.reflections.filter", value); } catch { /* Preference still applies for this visit. */ }
+  };
+  const chooseShowInactive = (checked: boolean) => {
+    setShowInactive(checked);
+    try { localStorage.setItem("aura.reflections.showInactivePathways", String(checked)); } catch { /* Preference still applies for this visit. */ }
+  };
+  const editPathway = (item: PathwayActivity) => { setPathwayToEdit(item); setPathwayDraft("responseText" in item.content ? item.content.responseText : ""); };
+  const savePathwayEdit = async () => {
+    if (!pathwayToEdit || !("responseText" in pathwayToEdit.content) || !("prompt" in pathwayToEdit.content)) return;
+    const request: PathwayActivityRequest = { pathway: pathwayToEdit.pathway, moduleKey: pathwayToEdit.moduleKey, activityType: pathwayToEdit.activityType, occurredOn: pathwayToEdit.occurredOn, content: { ...pathwayToEdit.content, responseText: pathwayDraft.trim() } };
+    try { await PathwayActivityApi.update(pathwayToEdit.id, request); setPathwayToEdit(null); setPathwayMessage("Journal reflection updated."); await fetchPathwayItems(); }
+    catch { setPathwayMessage("Couldn’t update this reflection. Try again."); }
+  };
+  const deletePathway = async () => {
+    if (!pathwayToDelete) return;
+    try { await PathwayActivityApi.remove(pathwayToDelete.id); setPathwayToDelete(null); setPathwayMessage("Journal reflection deleted."); await fetchPathwayItems(); }
+    catch { setPathwayMessage("Couldn’t delete this reflection. Try again."); }
+  };
 
   const liveliest = liveliestTime(logs, referenceData?.moods ?? []);
   const topMood = topMoodByDay(monthLogs);
@@ -128,9 +185,9 @@ export default function MoodHistoryPage() {
 
       {loading && <Typography role="status" level="body-sm" sx={{ mb: 1.5 }}>Gathering your reflections…</Typography>}
       {failed && <Box role="alert" className="aura-panel" sx={{ p: 2, mb: 2 }}><Typography color="danger">We couldn’t load your reflections.</Typography><Button onClick={() => fetchLogs()}>Try again</Button></Box>}
-      {!loading && !failed && !logs.length && <Box className="aura-panel" sx={{ p: 3, textAlign: "center", mb: 2 }}><Typography level="h2">Every story starts somewhere.</Typography><Typography level="body-md" color="neutral" sx={{ my: 1 }}>Your saved reflections will find their home here.</Typography><Button component="a" href="/log-mood" variant="solid">Write your first reflection</Button></Box>}
+      {!loading && !failed && !logs.length && !visiblePathwayReflections.length && <Box className="aura-panel" sx={{ p: 3, textAlign: "center", mb: 2 }}><Typography level="h2">Every story starts somewhere.</Typography><Typography level="body-md" color="neutral" sx={{ my: 1 }}>Your saved reflections will find their home here.</Typography><Button component="a" href="/log-mood" variant="solid">Write your first reflection</Button></Box>}
 
-      {!loading && !failed && logs.length > 0 && (
+      {!loading && !failed && (logs.length > 0 || visiblePathwayReflections.length > 0) && (
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.05fr) minmax(0, 1fr)" }, gap: 2, alignItems: "start", mb: 2 }}>
           <Box sx={{ display: "grid", gap: 1.5, minWidth: 0, "& .signed-in-calendar": { mb: 0 } }}>
                         {/* Stat cards are plain content, not labeled regions, so they add no landmarks (WCAG 1.3.1). */}
@@ -140,33 +197,40 @@ export default function MoodHistoryPage() {
               <StatCard label="Streak" value={`${streak} ${streak === 1 ? "day" : "days"}`}
                 adornment={<Box aria-hidden="true" sx={{ display: "flex", gap: .375 }}>{Array.from({ length: Math.min(streak, 7) }, (_, index) => <Box key={index} component="span" sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: topMoodColor }} />)}</Box>} />
             </Box>
-            <MoodCalendar entries={logs} selectedDate={activeDate} onSelectDate={setSelectedDate} onMonthChange={onMonthChange} />
+            <MoodCalendar entries={logs} pathwayEntries={visiblePathwayReflections} selectedDate={activeDate} onSelectDate={setSelectedDate} onMonthChange={onMonthChange} filter={filter} />
           </Box>
 
           {/* One minmax(0, 1fr) track: an implicit auto track grows to the moment strip's full width, pushing
               cards, actions, and photos past the panel edge instead of letting the strip scroll inside it. */}
           <Sheet component="section" aria-labelledby="reflection-day-title" className="aura-panel" sx={{ p: { xs: 1.75, sm: 2.25 }, minWidth: 0, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 2 }}>
             {/* Day heading, count, and a compact add action share one quiet row so the entries lead. */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography id="reflection-day-title" component="h2" sx={{ fontFamily: "var(--joy-fontFamily-display)", fontSize: "1.1rem", lineHeight: 1.25 }}>
                   {activeDate ? dayjs(activeDate).format("dddd, MMMM D") : visibleMonth.format("MMMM YYYY")}
                 </Typography>
-                {dayEntries.length > 0 && <Typography level="body-xs" color="neutral" sx={{ whiteSpace: "nowrap" }}>{dayEntries.length} {dayEntries.length === 1 ? "check-in" : "check-ins"}</Typography>}
+                {(dayEntries.length > 0 || dayPathwayReflections.length > 0) && <Typography level="body-xs" color="neutral">{filter === "pathway" ? `${dayPathwayReflections.length} ${dayPathwayReflections.length === 1 ? "pathway reflection" : "pathway reflections"}` : filter === "check-ins" ? `${dayEntries.length} ${dayEntries.length === 1 ? "check-in" : "check-ins"}` : `${dayEntries.length} ${dayEntries.length === 1 ? "check-in" : "check-ins"}${dayPathwayReflections.length > 0 ? ` · ${dayPathwayReflections.length} ${dayPathwayReflections.length === 1 ? "pathway reflection" : "pathway reflections"}` : ""}`}</Typography>}
               </Box>
+              <SegmentedToggle label="Reflections filter" value={filter} onChange={chooseFilter} size="sm" options={[{ value: "all", label: "All" }, { value: "check-ins", label: "Check-ins" }, { value: "pathway", label: "Pathway reflections" }]} />
               <IconButton component="a" href="/log-mood" size="sm" variant="outlined" aria-label="Add a reflection" title="Add a reflection" sx={{ ...tapTarget44, borderRadius: "50%", flexShrink: 0 }}><AddOutlined fontSize="small" /></IconButton>
             </Box>
-            {dayEntries.length === 0
-              ? <Typography role="status" level="body-sm" color="neutral">{activeDate ? "No reflections were saved this day." : "No reflections this month. Pick a day with color to read it."}</Typography>
-              : dayEntries.map((entry) => <MoodCard key={entry.id} entry={entry} onEdit={setEntryToEdit} onDelete={setEntryToDelete} />)}
+            <Box component="label" sx={{ display: "flex", alignItems: "center", gap: 1, fontSize: "var(--joy-fontSize-sm)" }}>
+              <input type="checkbox" checked={showInactive} onChange={(event) => chooseShowInactive(event.target.checked)} /> Show reflections from inactive pathways
+            </Box>
+            {pathwayMessage && <Typography role="status" level="body-xs">{pathwayMessage}</Typography>}
+            {timeline.length === 0
+              ? <Typography role="status" level="body-sm" color="neutral">{filter === "pathway" ? "No pathway reflections this day." : filter === "check-ins" ? "No check-ins this day." : activeDate ? "No reflections were saved this day." : "No reflections this month. Pick a day to read it."}</Typography>
+              : timeline.map((item) => item.kind === "mood"
+                ? <MoodCard key={`mood-${item.entry.id}`} entry={item.entry} onEdit={setEntryToEdit} onDelete={setEntryToDelete} />
+                : <PathwayReflectionCard key={`pathway-${item.item.id}`} item={item.item as PathwayActivity & { content: { prompt: string; responseText: string; insightType: string; reference?: string; segment?: string } }} onEdit={editPathway} onDelete={setPathwayToDelete} editing={pathwayToEdit?.id === item.item.id} draft={pathwayDraft} onDraftChange={setPathwayDraft} onCancelEdit={() => setPathwayToEdit(null)} onSave={() => void savePathwayEdit()} />)}
           </Sheet>
         </Box>
       )}
 
-      <PathwayReflectionJournal />
 
       {entryToEdit && <MoodUpdateModal entry={entryToEdit} onClose={() => setEntryToEdit(null)} onSuccess={fetchLogs} />}
       {entryToDelete && <DeleteConfirmDialog entry={entryToDelete} onClose={() => setEntryToDelete(null)} onConfirm={handleDelete} />}
+      {pathwayToDelete && <Box role="alertdialog" aria-modal="true" aria-labelledby="delete-pathway-title" className="aura-panel" sx={{ position: "fixed", inset: 0, zIndex: 1500, display: "grid", placeContent: "center", bgcolor: "rgba(0,0,0,.45)", p: 2 }}><Sheet sx={{ p: 3, maxWidth: 400 }}><Typography id="delete-pathway-title" level="h2">Delete this pathway reflection?</Typography><Typography level="body-sm" sx={{ mt: 1 }}>This action cannot be undone.</Typography><Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}><Button variant="plain" onClick={() => setPathwayToDelete(null)}>Keep</Button><Button color="danger" onClick={() => void deletePathway()}>Delete</Button></Box></Sheet></Box>}
     </Box>
   );
 }

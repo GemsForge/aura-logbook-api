@@ -1,5 +1,6 @@
 import type { SpiritualPathway } from "@/features/auth/models/SpiritualPathway";
 import type { OnboardingRequest } from "@/features/auth/models/Auth";
+import { PATHWAY_MODULES, pathwayModuleKey } from "@/features/pathways/pathwayResources";
 import type { QuizAnswers } from "./quiz";
 
 /** Steps in order: quiz questions are one step each, keyed by question number. */
@@ -8,6 +9,7 @@ export type OnboardingStep =
   | { kind: "birthday" }
   | { kind: "reveal" }
   | { kind: "pathway" }
+  | { kind: "faith-framework" }
   | { kind: "reminder" };
 
 /** Everything Alex has chosen so far; persisted so a refresh mid-flow keeps answers. */
@@ -20,6 +22,7 @@ export interface OnboardingDraft {
   pathway?: SpiritualPathway;
   focus: string[];
   checkInOpener?: string;
+  faithTradition?: "christian" | "muslim" | "jewish" | "other" | "custom" | "neutral";
 }
 
 /** The full step sequence (spec flow). */
@@ -28,6 +31,7 @@ export const STEPS: readonly OnboardingStep[] = [
   { kind: "birthday" },
   { kind: "reveal" },
   { kind: "pathway" },
+  { kind: "faith-framework" },
   { kind: "reminder" },
 ];
 
@@ -60,24 +64,25 @@ export function clearDraft(storage: Pick<Storage, "removeItem"> | undefined = gl
 
 /**
  * Builds the `PUT /Auth/me/onboarding` body. A skipped flow sends Mindfulness with no answers;
- * preferences are sent only when Alex picked something on the pathway page.
+ * every module for the selected pathway is enabled while intention selections stay optional.
  */
 export function buildOnboardingRequest(draft: OnboardingDraft): OnboardingRequest {
   const selectedPathway = draft.pathway ?? "Mindfulness";
+  const modulePathway = pathwayModuleKey(selectedPathway);
+  const moduleDefaults = modulePathway ? PATHWAY_MODULES[modulePathway].map(({ key }) => key) : [];
   const answers = Object.entries(draft.answers)
     .filter(([, pathway]) => pathway)
     .map(([questionNumber, pathway]) => ({ questionNumber: Number(questionNumber), pathway: pathway! }))
     .sort((a, b) => a.questionNumber - b.questionNumber);
-  const hasPrefs = draft.focus.length > 0 || (selectedPathway === "Mindfulness" && draft.checkInOpener);
   return {
     selectedPathway,
     birthday: draft.birthday || undefined,
     answers,
-    pathwayPreferences: hasPrefs
-      ? {
-          focus: draft.focus,
-          checkInOpener: selectedPathway === "Mindfulness" ? draft.checkInOpener : undefined,
-        }
-      : undefined,
+    pathwayPreferences: {
+      // Module availability is independent of optional onboarding intention selections.
+      focus: moduleDefaults,
+      checkInOpener: selectedPathway === "Mindfulness" ? draft.checkInOpener : undefined,
+      faithTradition: selectedPathway === "Faith" ? draft.faithTradition : undefined,
+    },
   };
 }

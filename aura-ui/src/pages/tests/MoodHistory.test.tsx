@@ -1,10 +1,14 @@
 import dayjs from "dayjs";
 import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderWithProviders } from "../../test/testUtilities";
 import MoodHistoryPage from "../../components/history/MoodHistory";
 import { MoodApi } from "@/api/MoodApi";
 import type { MoodType } from "@/features/mood/models/schema";
+
+const pathwayActivities = vi.hoisted(() => ({ getMine: vi.fn() }));
+vi.mock("@/features/pathways/pathwayActivityApi", () => ({ PathwayActivityApi: { getMine: pathwayActivities.getMine, update: vi.fn(), remove: vi.fn() } }));
 
 vi.mock("@/store/auraApi", () => ({
   auraApi: { reducerPath: "auraApi", reducer: (state = {}) => state, middleware: () => (next: (action: unknown) => unknown) => next },
@@ -75,6 +79,7 @@ describe("MoodHistoryPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedMoodApi.getAllMoods.mockResolvedValue(testData.moodEntries);
+    pathwayActivities.getMine.mockResolvedValue([]);
   });
 
   /**
@@ -104,5 +109,26 @@ describe("MoodHistoryPage", () => {
     expect(mockedMoodApi.getAllMoods).toHaveBeenCalledWith();
     // The latest reflection day opens by default and its entries show in the journal column.
     expect(screen.getByRole("button", { name: /export 1 journal entries/i })).toBeInTheDocument();
+  });
+
+  it("loads pathway reflections into the selected day timeline and filters both sources", async () => {
+    pathwayActivities.getMine.mockResolvedValue([{
+      id: 12, userId: 1, pathway: "faith", moduleKey: "sacred-texts", activityType: "pathway-reflection",
+      occurredOn: testData.moodEntries[0].date, createdAt: "2026-11-15T13:00:00Z", updatedAt: "2026-11-15T13:00:00Z",
+      content: { insightType: "reader-reflection", prompt: "What stood out?", responseText: "A quiet answer.", reference: "Proverbs 3", segment: "Proverbs 3:5" },
+    }]);
+    renderWithProviders(<MoodHistoryPage />);
+
+    expect(await screen.findByText("A quiet answer.")).toBeInTheDocument();
+    expect(screen.getByText("Faith & Religion · Sacred texts")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Proverbs 3:5" })).toHaveAttribute("href", expect.stringContaining("segment=Proverbs"));
+    expect(screen.getByText("1 check-in · 1 pathway reflection")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Check-ins" }));
+    expect(screen.getByTestId("mood-card")).toBeInTheDocument();
+    expect(screen.queryByText("A quiet answer.")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Pathway reflections" }));
+    expect(screen.queryByTestId("mood-card")).not.toBeInTheDocument();
+    expect(screen.getByText("A quiet answer.")).toBeInTheDocument();
   });
 });
