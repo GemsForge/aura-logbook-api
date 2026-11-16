@@ -67,4 +67,23 @@ public sealed class AstrologyController : ControllerBase
         var result = await _moonInsights.GetInsightsAsync(userId, startDate, endDate, cancellationToken);
         return Ok(result);
     }
+
+    /// <summary>Returns date-specific moon details and the signed-in user's mood counts for a range of up to 31 days.</summary>
+    [HttpGet("moon-cycle")]
+    public async Task<IActionResult> GetMoonCycle(
+        [FromQuery] DateOnly startDate,
+        [FromQuery] DateOnly endDate,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, "Moon cycle details are not configured.");
+        if (endDate < startDate || endDate.DayNumber - startDate.DayNumber > 30)
+            return BadRequest("Choose a date range no longer than 31 days.");
+
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim is null || !int.TryParse(claim.Value, out var userId))
+            return Unauthorized();
+
+        return Ok(await _moonInsights.GetCycleAsync(userId, startDate, endDate, cancellationToken));
+    }
 }

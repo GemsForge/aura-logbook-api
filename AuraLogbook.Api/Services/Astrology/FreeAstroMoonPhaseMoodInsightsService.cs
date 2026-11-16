@@ -83,11 +83,40 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
                 .ToArray());
     }
 
+    /// <inheritdoc />
+    public async Task<MoonCycleDto> GetCycleAsync(int userId, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
+    {
+        var entries = await _moods.GetEntriesForUserAsync(
+            userId,
+            startDate.ToDateTime(TimeOnly.MinValue),
+            endDate.ToDateTime(TimeOnly.MaxValue));
+        var byDate = entries.GroupBy(entry => entry.Date)
+            .ToDictionary(group => group.Key, group => group.ToArray());
+        var days = new List<MoonDayDto>();
+
+        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var moon = await GetMoonAsync(date, cancellationToken);
+            var sameDateEntries = byDate.GetValueOrDefault(date) ?? [];
+            var counts = sameDateEntries.SelectMany(entry => entry.Moods.Distinct(StringComparer.OrdinalIgnoreCase))
+                .GroupBy(mood => mood, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+            days.Add(new MoonDayDto(date, moon?.Phase, moon?.Illumination, moon?.MoonSign, sameDateEntries.Length, counts));
+        }
+
+        return new MoonCycleDto(startDate, endDate, days);
+    }
+
     /// <summary>Uses a global date cache and serializes cache misses to respect the provider's free-tier rate limit.</summary>
     private async Task<string?> GetPhaseAsync(DateOnly date, CancellationToken cancellationToken)
+        => (await GetMoonAsync(date, cancellationToken))?.Phase;
+
+    /// <summary>Gets only named phase, illumination, and moon sign fields from the provider's date response.</summary>
+    private async Task<MoonDetails?> GetMoonAsync(DateOnly date, CancellationToken cancellationToken)
     {
         var cacheKey = $"freeastro-moon-phase:{date:yyyy-MM-dd}";
-        if (_cache.TryGetValue(cacheKey, out string? cached)) return cached;
+        if (_cache.TryGetValue(cacheKey, out MoonDetails? cached)) return cached;
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return null;
 
         IAsyncDisposable? requestLease = null;
@@ -96,7 +125,7 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
             if (_cache.TryGetValue(cacheKey, out cached)) return cached;
             requestLease = await _requestPacer.EnterAsync(cancellationToken);
             if (_cache.TryGetValue(cacheKey, out cached)) return cached;
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}?date={date:yyyy-MM-dd}T12:00:00&include_interpretation=false");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}?date={date:yyyy-MM-dd}T12:00:00&include_interpretation=false&include_zodiac=true");
             request.Headers.Add("x-api-key", _options.ApiKey);
             using var response = await _http.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -107,14 +136,15 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
 
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-            if (!document.RootElement.TryGetProperty("phase", out var phaseElement) ||
-                !phaseElement.TryGetProperty("name", out var nameElement) ||
-                string.IsNullOrWhiteSpace(nameElement.GetString()))
-                return null;
+            var root = document.RootElement;
+            var phase = ReadString(root, "phase", "name");
+            var illumination = ReadDecimal(root, "phase", "illumination");
+            var moonSign = ReadString(root, "zodiac", "sign");
+            if (phase is null && illumination is null && moonSign is null) return null;
 
-            var phaseName = nameElement.GetString()!;
-            _cache.Set(cacheKey, phaseName, CacheDuration);
-            return phaseName;
+            var details = new MoonDetails(phase, illumination, moonSign);
+            _cache.Set(cacheKey, details, CacheDuration);
+            return details;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -137,6 +167,25 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
                 await requestLease.DisposeAsync();
         }
     }
+
+    private static string? ReadString(JsonElement root, string parent, string property)
+    {
+        if (!root.TryGetProperty(parent, out var element) || element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.String)
+            return null;
+        return string.IsNullOrWhiteSpace(value.GetString()) ? null : value.GetString();
+    }
+
+    private static decimal? ReadDecimal(JsonElement root, string parent, string property)
+    {
+        if (!root.TryGetProperty(parent, out var element) || element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(property, out var value)) return null;
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var number)) return number;
+        if (value.ValueKind == JsonValueKind.String && decimal.TryParse(value.GetString(), out number)) return number;
+        return null;
+    }
+
+    private sealed record MoonDetails(string? Phase, decimal? Illumination, string? MoonSign);
 
     private sealed class MutablePhaseCount
     {
