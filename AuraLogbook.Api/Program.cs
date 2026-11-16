@@ -112,6 +112,8 @@ builder.Services.AddScoped<IPathwayActivityRepository, SqlitePathwayActivityRepo
 builder.Services.AddScoped<IPathwayActivityService, PathwayActivityService>();
 // #410: owner-scoped reader annotations and bookmarks stay in relational storage.
 builder.Services.AddScoped<ISacredTextAnnotationRepository, SqliteSacredTextAnnotationRepository>();
+// #433: provider-reported moon details are keyed by date and survive API restarts.
+builder.Services.AddScoped<IMoonPhaseSnapshotRepository, SqliteMoonPhaseSnapshotRepository>();
 
 // Services
 builder.Services.AddScoped<JwtTokenService>();
@@ -147,6 +149,8 @@ builder.Services.AddSingleton<SacredTextService>();
 // one shared pacer keeps both services within the provider's free-tier request rate.
 builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
 builder.Services.AddSingleton<FreeAstroApiRequestPacer>();
+builder.Services.AddSingleton<MoonCyclePrefetchQueue>();
+builder.Services.AddHostedService<MoonCyclePrefetchWorker>();
 builder.Services.AddHttpClient<IMoonPhaseMoodInsightsService, FreeAstroMoonPhaseMoodInsightsService>();
 builder.Services.AddHttpClient<IDailyHoroscopeService, FreeAstroDailyHoroscopeService>();
 builder.Services.AddSingleton(TimeProvider.System);

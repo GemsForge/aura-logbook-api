@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text.Json;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
+using AuraLogbook.Api.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -17,6 +19,8 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
     private readonly FreeAstroApiOptions _options;
     private readonly ILogger<FreeAstroMoonPhaseMoodInsightsService> _logger;
     private readonly FreeAstroApiRequestPacer _requestPacer;
+    private readonly MoonCyclePrefetchQueue _prefetchQueue;
+    private readonly IMoonPhaseSnapshotRepository? _snapshots;
 
     /// <summary>Creates the provider-backed summary service with shared date caching and request pacing.</summary>
     public FreeAstroMoonPhaseMoodInsightsService(
@@ -25,12 +29,16 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
         IMemoryCache cache,
         FreeAstroApiRequestPacer requestPacer,
         IOptions<FreeAstroApiOptions> options,
-        ILogger<FreeAstroMoonPhaseMoodInsightsService> logger)
+        ILogger<FreeAstroMoonPhaseMoodInsightsService> logger,
+        MoonCyclePrefetchQueue? prefetchQueue = null,
+        IMoonPhaseSnapshotRepository? snapshots = null)
     {
         _http = http;
         _moods = moods;
         _cache = cache;
         _requestPacer = requestPacer;
+        _prefetchQueue = prefetchQueue ?? new MoonCyclePrefetchQueue();
+        _snapshots = snapshots;
         _options = options.Value;
         _logger = logger;
         _http.Timeout = TimeSpan.FromSeconds(10);
@@ -83,11 +91,79 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
                 .ToArray());
     }
 
-    /// <summary>Uses a global date cache and serializes cache misses to respect the provider's free-tier rate limit.</summary>
+    /// <inheritdoc />
+    public async Task<MoonCycleDto> GetCycleAsync(int userId, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
+    {
+        var entries = await _moods.GetEntriesForUserAsync(
+            userId,
+            startDate.ToDateTime(TimeOnly.MinValue),
+            endDate.ToDateTime(TimeOnly.MaxValue));
+        var byDate = entries.GroupBy(entry => entry.Date)
+            .ToDictionary(group => group.Key, group => group.ToArray());
+        var days = new List<MoonDayDto>();
+
+        if (_snapshots is not null)
+        {
+            foreach (var snapshot in await _snapshots.GetRangeAsync(startDate, endDate, cancellationToken))
+                _cache.Set(CacheKey(snapshot.Date), ToDetails(snapshot), CacheDuration);
+        }
+
+        // Resolve the selected day inline so the initial path stays responsive, then warm
+        // older cache misses in the background instead of holding the request for 30 calls.
+        var selectedMoon = await GetMoonAsync(endDate, cancellationToken);
+        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var moon = date == endDate ? selectedMoon : GetCachedMoon(date);
+            if (date != endDate && moon is null && !string.IsNullOrWhiteSpace(_options.ApiKey))
+                _prefetchQueue.Enqueue(date);
+            var sameDateEntries = byDate.GetValueOrDefault(date) ?? [];
+            var counts = sameDateEntries.SelectMany(entry => entry.Moods.Distinct(StringComparer.OrdinalIgnoreCase))
+                .GroupBy(mood => mood, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+            days.Add(new MoonDayDto(date, moon?.Phase, moon?.Illumination, moon?.MoonSign, sameDateEntries.Length, counts));
+        }
+
+        // A worker can finish its final date while this response is being assembled; include that cache result now.
+        for (var index = 0; index < days.Count; index++)
+        {
+            var day = days[index];
+            var completedMoon = GetCachedMoon(day.Date);
+            if (completedMoon is not null)
+                days[index] = day with { Phase = completedMoon.Phase, Illumination = completedMoon.Illumination, MoonSign = completedMoon.MoonSign };
+        }
+
+        return new MoonCycleDto(startDate, endDate, days)
+        {
+            IsPrefetching = days.Any(day => day.Date != endDate && _prefetchQueue.IsPending(day.Date)),
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task PrefetchMoonAsync(DateOnly date, CancellationToken cancellationToken)
+    {
+        _ = await GetMoonAsync(date, cancellationToken);
+    }
+
+    /// <summary>Uses persistent and in-memory date caches, pacing provider misses to respect the free-tier rate limit.</summary>
     private async Task<string?> GetPhaseAsync(DateOnly date, CancellationToken cancellationToken)
+        => (await GetMoonAsync(date, cancellationToken))?.Phase;
+
+    /// <summary>Loads named phase, illumination, and moon sign fields from storage or the provider's date response.</summary>
+    private async Task<MoonDetails?> GetMoonAsync(DateOnly date, CancellationToken cancellationToken)
     {
         var cacheKey = $"freeastro-moon-phase:{date:yyyy-MM-dd}";
-        if (_cache.TryGetValue(cacheKey, out string? cached)) return cached;
+        if (_cache.TryGetValue(cacheKey, out MoonDetails? cached)) return cached;
+        if (_snapshots is not null)
+        {
+            var snapshot = await _snapshots.GetAsync(date, cancellationToken);
+            if (snapshot is not null)
+            {
+                var details = ToDetails(snapshot);
+                _cache.Set(cacheKey, details, CacheDuration);
+                return details;
+            }
+        }
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return null;
 
         IAsyncDisposable? requestLease = null;
@@ -96,7 +172,7 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
             if (_cache.TryGetValue(cacheKey, out cached)) return cached;
             requestLease = await _requestPacer.EnterAsync(cancellationToken);
             if (_cache.TryGetValue(cacheKey, out cached)) return cached;
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}?date={date:yyyy-MM-dd}T12:00:00&include_interpretation=false");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}?date={date:yyyy-MM-dd}T12:00:00&include_interpretation=false&include_zodiac=true");
             request.Headers.Add("x-api-key", _options.ApiKey);
             using var response = await _http.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -107,14 +183,30 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
 
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-            if (!document.RootElement.TryGetProperty("phase", out var phaseElement) ||
-                !phaseElement.TryGetProperty("name", out var nameElement) ||
-                string.IsNullOrWhiteSpace(nameElement.GetString()))
-                return null;
+            var root = document.RootElement;
+            var phase = ReadString(root, "phase", "name");
+            var illumination = ReadDecimal(root, "phase", "illumination");
+            var moonSign = ReadString(root, "zodiac", "sign");
+            if (phase is null && illumination is null && moonSign is null) return null;
 
-            var phaseName = nameElement.GetString()!;
-            _cache.Set(cacheKey, phaseName, CacheDuration);
-            return phaseName;
+            var details = new MoonDetails(phase, illumination, moonSign);
+            _cache.Set(cacheKey, details, CacheDuration);
+            if (_snapshots is not null)
+            {
+                try
+                {
+                    await _snapshots.SaveAsync(new MoonPhaseSnapshot(date, phase, illumination, moonSign), cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Could not persist moon details for {Date}; the in-memory result remains available.", date);
+                }
+            }
+            return details;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -137,6 +229,34 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
                 await requestLease.DisposeAsync();
         }
     }
+
+    private MoonDetails? GetCachedMoon(DateOnly date) =>
+        _cache.TryGetValue(CacheKey(date), out MoonDetails? cached) ? cached : null;
+
+    private static string CacheKey(DateOnly date) => $"freeastro-moon-phase:{date:yyyy-MM-dd}";
+
+    private static MoonDetails ToDetails(MoonPhaseSnapshot snapshot) =>
+        new(snapshot.Phase, snapshot.Illumination, snapshot.MoonSign);
+
+    private static string? ReadString(JsonElement root, string parent, string property)
+    {
+        if (!root.TryGetProperty(parent, out var element) || element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.String)
+            return null;
+        return string.IsNullOrWhiteSpace(value.GetString()) ? null : value.GetString();
+    }
+
+    private static decimal? ReadDecimal(JsonElement root, string parent, string property)
+    {
+        if (!root.TryGetProperty(parent, out var element) || element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(property, out var value)) return null;
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var number)) return number;
+        if (value.ValueKind == JsonValueKind.String &&
+            decimal.TryParse(value.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out number)) return number;
+        return null;
+    }
+
+    private sealed record MoonDetails(string? Phase, decimal? Illumination, string? MoonSign);
 
     private sealed class MutablePhaseCount
     {

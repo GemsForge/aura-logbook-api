@@ -1,27 +1,20 @@
-import { useEffect, useState } from "react";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
-import Link from "@mui/joy/Link";
 import Typography from "@mui/joy/Typography";
 import { useParams } from "react-router-dom";
 import { MindfulnessGuide } from "@/features/pathways/components/MindfulnessGuide";
-import { SunSignReading } from "@/features/pathways/components/SunSignReading";
-import { useGetZodiacInsightQuery } from "@/store/auraApi";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { openProfileModal } from "@/store/slices/uiSlice";
 import { FAITH_RESOURCES, PATHWAY_MODULES, pathwayModuleKey, resolvePathwayFocus } from "@/features/pathways/pathwayResources";
-import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { MindfulPracticeLog } from "@/features/pathways/components/MindfulPracticeLog";
 import { FaithPracticeCheckIn } from "@/features/pathways/components/FaithPracticeCheckIn";
 import { MoonPhaseMoodInsights } from "@/features/pathways/components/MoonPhaseMoodInsights";
-import { getDailyHoroscope, type DailyHoroscope } from "@/features/pathways/astrologyApi";
-import { BirthChartReading } from "@/features/pathways/components/BirthChartReading";
 import { SacredTextView } from "@/features/pathways/components/SacredTextView";
 import { useDailyPathwayReflection } from "@/features/pathways/useDailyPathwayReflection";
 import { ChakraReference } from "@/features/pathways/components/ChakraReference";
-import "@/features/pathways/pathwayStudio.css";
 import { MoodPathwayReflectionPanel } from "@/features/pathways/components/MoodPathwayReflectionPanel";
+import "@/features/pathways/pathwayStudio.css";
 
 
 /** Modules laid out as a three-step path; when one is open and enabled, the page subtitle describes the path. */
@@ -39,12 +32,7 @@ export default function Pathways() {
   const pathway = pathwayModuleKey(user?.selectedPathway);
   const preferences = user?.pathwayPreferences;
   const focus = resolvePathwayFocus(user?.selectedPathway, preferences?.focus);
-  const [dailyHoroscope, setDailyHoroscope] = useState<DailyHoroscope | null>(null);
-  const [horoscopeLoading, setHoroscopeLoading] = useState(false);
-  const [horoscopeUnavailable, setHoroscopeUnavailable] = useState(false);
   const hasZodiac = focus.includes("daily-astrology") || focus.includes("my-sign");
-  const { data: zodiac, isLoading: zodiacLoading } = useGetZodiacInsightQuery(undefined, { skip: !hasZodiac });
-  const { data: referenceData } = useGetReferenceDataQuery(undefined, { skip: pathway !== "energy" });
   const faithTradition = preferences?.faithTradition ?? null;
   const faithResource = FAITH_RESOURCES.find((resource) => resource.key === faithTradition);
   const activeModule = pathway && moduleKey
@@ -52,23 +40,6 @@ export default function Pathways() {
     : undefined;
   const invalidModuleRoute = Boolean(moduleKey && !activeModule);
   const showModule = (key: string) => !moduleKey || moduleKey === key;
-
-  useEffect(() => {
-    if (!hasZodiac || !user?.birthday) {
-      setDailyHoroscope(null);
-      setHoroscopeUnavailable(false);
-      return;
-    }
-
-    let active = true;
-    setHoroscopeLoading(true);
-    setHoroscopeUnavailable(false);
-    void getDailyHoroscope()
-      .then((reading) => { if (active) setDailyHoroscope(reading); })
-      .catch(() => { if (active) setHoroscopeUnavailable(true); })
-      .finally(() => { if (active) setHoroscopeLoading(false); });
-    return () => { active = false; };
-  }, [hasZodiac, user?.birthday]);
 
   const pageTitle = pathway === "mindfulness" ? "Mindful Living"
     : pathway === "energy" ? "Astrology & Energy"
@@ -98,24 +69,11 @@ export default function Pathways() {
     {pathway === "energy" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
       {hasZodiac && showModule("daily-astrology") && <Box component="section" id="daily-astrology" aria-labelledby="zodiac-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="zodiac-title" component="h2" level="title-lg" sx={{ mb: 2, display: moduleKey ? "none" : "block" }}>Daily astrology</Typography>
-        <Box sx={{ minWidth: 0 }}>
-          {!user?.birthday ? <Box className="aura-highlight" sx={{ p: 3, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm" }}><Typography level="body-sm">Share a birthday for your sun-sign reading. It’s optional.</Typography><Button size="sm" variant="plain" onClick={() => dispatch(openProfileModal())}>Profile settings</Button></Box>
-            : <SunSignReading zodiac={zodiac} loading={zodiacLoading} horoscope={dailyHoroscope} horoscopeLoading={horoscopeLoading} unavailable={horoscopeUnavailable} description={referenceData?.zodiacSigns.find((sign) => sign.key.toLowerCase() === zodiac?.sign.toLowerCase())?.description} />}
-        </Box>
-        <Box data-testid="astrology-reading-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 1.2fr) minmax(0, 1fr)" }, gap: { xs: 3, md: 4 }, mt: 3, pt: 3, borderTop: "1px solid var(--al-theme-border)", alignItems: "start" }}>
-          <Box sx={{ minWidth: 0 }}>
-            {preferences?.saveBirthDetails && preferences.birthTime && preferences.birthPlace
-              ? <BirthChartReading enabled={Boolean(user?.birthday)} />
-              : <MiniFeature title="Birth chart" text="Save birth time and place for an optional chart." />}
-            <Button size="sm" variant="plain" sx={{ mt: 1, px: 1, py: .25, minHeight: 44 }} onClick={() => dispatch(openProfileModal())}>Birth details settings</Button>
-          </Box>
-          <MoonPhaseMoodInsights />
-        </Box>
+        <MoonPhaseMoodInsights />
         {/* The shared mood invitation remains available without competing with the day's reading. */}
         <Box component="details" className="pathway-disclosure" sx={{ mt: 3 }}>
           <Box component="summary">Reflect with a mood check-in</Box>
           <MoodPathwayReflectionPanel reflection={dailyReflection.reflection} loading={dailyReflection.loading} />
-          <Link href="/log-mood" sx={{ display: "inline-flex", alignItems: "center", minHeight: 44, mt: 1 }}>Add this reflection to a mood check-in</Link>
         </Box>
       </Box>}
       {(focus.includes("chakra-reference") || focus.includes("chakras")) && showModule("chakra-reference") && <ChakraReference />}
@@ -133,9 +91,4 @@ export default function Pathways() {
       </Box>}
     </Box>}
   </Box>;
-}
-
-/** Small supporting panel for the astrology page's chart and moon insights. */
-function MiniFeature({ title, text }: { title: string; text: string }) {
-  return <Box component="section" sx={{ minWidth: 0 }}><Typography level="title-sm">{title}</Typography><Typography level="body-sm" color="neutral" sx={{ mt: .5 }}>{text}</Typography></Box>;
 }

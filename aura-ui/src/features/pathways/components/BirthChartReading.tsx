@@ -26,7 +26,7 @@ const pointLenses: Record<string, { title: string; text: string }> = {
 };
 
 /** Shows recognized provider placements with supplementary symbols after explicit birth-detail saving. */
-export function BirthChartReading({ enabled }: { enabled: boolean }) {
+export function BirthChartReading({ enabled, selectedMoonSign }: { enabled: boolean; selectedMoonSign?: string | null }) {
   const [chart, setChart] = useState<NatalChart | null>(null);
   const [loading, setLoading] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
@@ -56,21 +56,28 @@ export function BirthChartReading({ enabled }: { enabled: boolean }) {
   const lens = selected ? pointLenses[selected.name.toLowerCase()] : undefined;
 
   return <Box component="section" aria-labelledby="birth-chart-title" sx={{ minWidth: 0 }}>
-    <Typography id="birth-chart-title" component="h2" level="title-lg">Birth chart</Typography>
+    <Typography id="birth-chart-title" component="h3" level="title-lg">Your saved birth placements</Typography>
     {loading ? <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>Calculating your chart…</Typography>
       : unavailable ? <Box sx={{ mt: .5 }}><Typography role="status" level="body-sm" color="neutral">Your chart is unavailable right now. Try again later.</Typography><Button variant="plain" size="sm" onClick={() => setAttempt((value) => value + 1)} sx={{ minHeight: 44 }}>Try again</Button></Box>
         : placements.length === 0 ? <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>No chart placements are available to display.</Typography>
           : <>
             <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>Select a placement to explore its lens.</Typography>
             <Box role="group" aria-label="Birth chart placements" sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: .5, mt: 1.5 }}>
-              {placements.map((placement) => <Button key={placement.name} size="sm" variant={selected?.name === placement.name ? "soft" : "plain"} color="neutral" aria-pressed={selected?.name === placement.name}
+              {placements.map((placement) => {
+                const moonMatch = Boolean(selectedMoonSign && placement.sign.toLowerCase() === selectedMoonSign.toLowerCase());
+                return <Button key={placement.name} size="sm" variant={moonMatch ? "soft" : "plain"} color="neutral" aria-pressed={selected?.name === placement.name}
                 onClick={() => setSelectedPoint(placement.name.toLowerCase())}
-                sx={{ minWidth: 0, minHeight: 88, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: .5, px: 1, py: 1, borderRadius: "xs", borderBottom: "2px solid", borderColor: selected?.name === placement.name ? "var(--al-theme-ink)" : "transparent", textAlign: "left", color: "var(--al-theme-ink)" }}>
+                aria-describedby={moonMatch ? "moon-chart-match" : undefined}
+                sx={{ minWidth: 0, minHeight: 88, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: .5, px: 1, py: 1, borderRadius: "xs", border: "2px solid", borderColor: moonMatch ? "var(--al-theme-accent)" : "transparent", borderBottomColor: moonMatch && selected?.name === placement.name ? "var(--al-theme-ink)" : undefined, textAlign: "left", color: "var(--al-theme-ink)" }}>
                 <Typography component="span" aria-hidden="true" sx={{ fontSize: "1.25rem", lineHeight: 1.2 }}>{pointSymbols[placement.name.toLowerCase()]}</Typography>
                 <Typography component="span" level="body-xs" sx={{ color: "inherit", overflowWrap: "anywhere" }}>{placement.name === "Ascendant" ? "Rising" : placement.name}</Typography>
                 <Typography component="span" level="title-sm" sx={{ color: "inherit", overflowWrap: "anywhere" }}>{placement.sign}</Typography>
-              </Button>)}
+              </Button>;
+              })}
             </Box>
+            {selectedMoonSign && placements.some((placement) => placement.sign.toLowerCase() === selectedMoonSign.toLowerCase())
+              ? <Typography id="moon-chart-match" level="body-sm" sx={{ mt: 1 }}>The selected day’s Moon in {selectedMoonSign} touches your chart.</Typography>
+              : selectedMoonSign && <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>No saved placement matches today’s Moon in {selectedMoonSign}.</Typography>}
             {selected && <Box aria-live="polite" aria-atomic="true" sx={{ mt: 2, minWidth: 0 }}>
               <Typography component="h3" level="title-md">{lens?.title ?? selected.name}</Typography>
               <Typography level="body-sm" color="neutral" sx={{ mt: .75, lineHeight: 1.6 }}>{lens?.text}</Typography>

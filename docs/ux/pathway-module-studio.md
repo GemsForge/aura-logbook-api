@@ -25,13 +25,22 @@ and the approved interactive pathway design. It is part of follow-up story
 The sign and provider horoscope lead in one broad illustrated surface. The
 existing twelve zodiac illustrations identify the user's actual sign; reference
 descriptions remain available through **Explore [sign]**. Feedback and writing
-are secondary to reading.
+are secondary to reading. Daily Astrology uses the shared pathway step shell:
+the top moon-cycle strip selects a local date, while its open step shows the
+phase, available illumination and Moon sign, the current daily horoscope, and
+only exact Moon-sign matches in an explicitly saved birth chart. The final step
+shows moods logged on the selected date, with an explicit mood action and the
+existing non-causal note. Missing birthday skips the chart step and provides an
+optional profile invitation; missing birth time/place leaves the chart optional.
+The authenticated `/api/astrology/moon-cycle` response supplies the date range,
+provider fields, and that user's day-level mood counts without storing data on
+page view.
 
 Recognized birth-chart placements are selectable, with the selected placement's
 metadata and conventional interpretive role immediately below. The lunar module
-uses the existing moon-phase artwork and phase discs, a compact phase selector,
-and recorded mood counts. Historical counts do not stand in for today's Moon
-phase or illumination, and they do not imply that the Moon caused a mood.
+uses the existing moon-phase artwork and phase discs, a compact date selector,
+and recorded mood counts. Historical values are tied to their selected local
+date and do not imply that the Moon caused a mood.
 
 The chakra reference uses the existing seated-body artwork and chakra symbols.
 Named controls change the selected center, its anatomical highlight, and its

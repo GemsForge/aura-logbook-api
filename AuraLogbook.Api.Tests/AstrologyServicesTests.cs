@@ -108,15 +108,53 @@ public sealed class AstrologyServicesTests
     }
 
     [Fact]
+    public async Task Moon_cycle_returns_provider_phase_illumination_sign_and_date_scoped_mood_counts()
+    {
+        var day1 = new DateOnly(2026, 11, 1);
+        var day2 = new DateOnly(2026, 11, 2);
+        var moods = new Mock<IMoodService>();
+        moods.Setup(m => m.GetEntriesForUserAsync(7, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync(
+        [
+            new MoodEntry { UserId = 7, Date = day1, Moods = ["Centered", "Tense"] },
+            new MoodEntry { UserId = 7, Date = day2, Moods = ["Weary"] },
+        ]);
+        var handler = new StubHandler(_ => (HttpStatusCode.OK,
+            """{"phase":{"name":"Waxing Crescent","illumination":0.25},"zodiac":{"sign":"Taurus"}}"""));
+        var service = new FreeAstroMoonPhaseMoodInsightsService(new HttpClient(handler), moods.Object,
+            new MemoryCache(new MemoryCacheOptions()), new FreeAstroApiRequestPacer(), Keyed,
+            NullLogger<FreeAstroMoonPhaseMoodInsightsService>.Instance);
+
+        var result = await service.GetCycleAsync(7, day1, day2, CancellationToken.None);
+
+        Assert.Equal(day1, result.StartDate);
+        Assert.Equal(day2, result.EndDate);
+        Assert.Equal(2, result.Days.Count);
+        Assert.Null(result.Days[0].Phase);
+        Assert.Null(result.Days[0].Illumination);
+        Assert.Null(result.Days[0].MoonSign);
+        Assert.Equal(1, result.Days[0].EntryCount);
+        Assert.Equal(1, result.Days[0].MoodCounts["Centered"]);
+        Assert.Equal("Waxing Crescent", result.Days[1].Phase);
+        Assert.Equal(.25m, result.Days[1].Illumination);
+        Assert.Equal("Taurus", result.Days[1].MoonSign);
+        Assert.Equal("Weary", Assert.Single(result.Days[1].MoodCounts).Key);
+        var selectedDateRequest = Assert.Single(handler.Requests);
+        Assert.Contains("include_zodiac=true", selectedDateRequest.RequestUri!.Query);
+        Assert.Contains("2026-11-02T12:00:00", selectedDateRequest.RequestUri.Query);
+    }
+
+    [Fact]
     public async Task Controller_rejects_ranges_over_31_days_and_reports_missing_configuration()
     {
         var keyed = Controller(Keyed);
         var tooLong = await keyed.GetMoonMoodCounts(new DateOnly(2026, 1, 1), new DateOnly(2026, 2, 1), CancellationToken.None);
         var reversed = await keyed.GetMoonMoodCounts(new DateOnly(2026, 2, 1), new DateOnly(2026, 1, 1), CancellationToken.None);
+        var cycleTooLong = await keyed.GetMoonCycle(new DateOnly(2026, 1, 1), new DateOnly(2026, 2, 1), CancellationToken.None);
         var unconfigured = await Controller(Options.Create(new FreeAstroApiOptions())).GetDailyHoroscope(CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(tooLong);
         Assert.IsType<BadRequestObjectResult>(reversed);
+        Assert.IsType<BadRequestObjectResult>(cycleTooLong);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, Assert.IsType<ObjectResult>(unconfigured).StatusCode);
     }
 
