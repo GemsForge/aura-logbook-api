@@ -12,6 +12,7 @@
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { mkdirSync, rmSync } from "node:fs";
+import { createServer } from "node:net";
 import { join, resolve } from "node:path";
 
 const environments = { dev: "Development", fit: "Staging", prod: "Production" };
@@ -24,6 +25,7 @@ if (!aspnet) {
 
 const repo = resolve(import.meta.dirname, "..");
 const project = join(repo, "AuraLogbook.Api");
+const apiDll = join(project, "bin", "Release", "net9.0", "AuraLogbook.Api.dll");
 const root = join(repo, ".ci", "db-validation", target);
 rmSync(root, { recursive: true, force: true });
 mkdirSync(root, { recursive: true });
@@ -33,7 +35,8 @@ const jwtKey = randomBytes(48).toString("base64");
 
 function startApi(connectionString) {
   const output = [];
-  const child = spawn("dotnet", ["run", "--no-build", "--configuration", "Release", "--no-launch-profile"], {
+  // Launch the API process itself so stopping it cannot leave a dotnet-run child behind.
+  const child = spawn("dotnet", [apiDll], {
     cwd: project,
     env: {
       ...process.env,
@@ -47,6 +50,16 @@ function startApi(connectionString) {
   child.stderr.on("data", (chunk) => output.push(chunk));
   const exited = new Promise((done) => child.on("exit", (code) => done(code)));
   return { child, exited, log: () => Buffer.concat(output).toString() };
+}
+
+/** Verifies no prior server can answer health checks on this run's port. */
+async function assertPortFree() {
+  const server = createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", resolve);
+  });
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }
 
 async function waitForHealth(api) {
@@ -68,6 +81,7 @@ async function stop(api) {
 }
 
 async function run(label, connectionString) {
+  await assertPortFree();
   const api = startApi(connectionString);
   try {
     const health = await waitForHealth(api);
@@ -78,6 +92,7 @@ async function run(label, connectionString) {
     return health.migrations;
   } finally {
     await stop(api);
+    await assertPortFree();
   }
 }
 
@@ -92,12 +107,14 @@ if (target === "prod") {
     ["in-memory database", "Data Source=:memory:"],
     ["development database file", `Data Source=${join(root, "auralogbook-dev.db")}`],
   ]) {
+    await assertPortFree();
     const api = startApi(unsafe);
     const code = await Promise.race([api.exited, new Promise((r) => setTimeout(() => r("running"), 60_000))]);
     if (code === "running") {
       await stop(api);
       throw new Error(`Production started with an unsafe database setting (${label}).`);
     }
+    await assertPortFree();
     if (code === 0) throw new Error(`Production exited cleanly instead of refusing ${label}.`);
     console.log(`✓ Production refuses ${label}`);
   }
