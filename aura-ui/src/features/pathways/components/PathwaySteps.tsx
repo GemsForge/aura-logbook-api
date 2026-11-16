@@ -62,7 +62,8 @@ export function PathwaySteps({ steps, current, onStepChange, label }: {
           </Button>
           // No live region here: focus moves to this group, which announces its name instead of reading the whole step.
           : <Box ref={openStep} role="group" aria-label={`${step.title}, step ${index + 1} of ${steps.length}`} tabIndex={-1} sx={{ pb: 3, minWidth: 0, maxWidth: 600, outline: "none", "&:focus-visible": { outline: "3px solid var(--al-theme-focus)", outlineOffset: 4, borderRadius: "sm" } }}>
-            <Typography level="body-xs" color="neutral">Step {index + 1} of {steps.length}</Typography>
+            {/* Use the theme ink color so progress stays readable against the pathway surface. */}
+            <Typography level="body-xs" sx={{ color: "var(--al-theme-ink)" }}>Step {index + 1} of {steps.length}</Typography>
             {step.content}
           </Box>}
       </StepRow>)}
