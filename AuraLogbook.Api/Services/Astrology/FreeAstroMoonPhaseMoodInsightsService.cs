@@ -18,6 +18,7 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
     private readonly FreeAstroApiOptions _options;
     private readonly ILogger<FreeAstroMoonPhaseMoodInsightsService> _logger;
     private readonly FreeAstroApiRequestPacer _requestPacer;
+    private readonly MoonCyclePrefetchQueue _prefetchQueue;
 
     /// <summary>Creates the provider-backed summary service with shared date caching and request pacing.</summary>
     public FreeAstroMoonPhaseMoodInsightsService(
@@ -26,12 +27,14 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
         IMemoryCache cache,
         FreeAstroApiRequestPacer requestPacer,
         IOptions<FreeAstroApiOptions> options,
-        ILogger<FreeAstroMoonPhaseMoodInsightsService> logger)
+        ILogger<FreeAstroMoonPhaseMoodInsightsService> logger,
+        MoonCyclePrefetchQueue? prefetchQueue = null)
     {
         _http = http;
         _moods = moods;
         _cache = cache;
         _requestPacer = requestPacer;
+        _prefetchQueue = prefetchQueue ?? new MoonCyclePrefetchQueue();
         _options = options.Value;
         _logger = logger;
         _http.Timeout = TimeSpan.FromSeconds(10);
@@ -95,10 +98,15 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
             .ToDictionary(group => group.Key, group => group.ToArray());
         var days = new List<MoonDayDto>();
 
+        // Resolve the selected day inline so the initial path stays responsive, then warm
+        // older cache misses in the background instead of holding the request for 30 calls.
+        var selectedMoon = await GetMoonAsync(endDate, cancellationToken);
         for (var date = startDate; date <= endDate; date = date.AddDays(1))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var moon = await GetMoonAsync(date, cancellationToken);
+            var moon = date == endDate ? selectedMoon : GetCachedMoon(date);
+            if (date != endDate && moon is null && !string.IsNullOrWhiteSpace(_options.ApiKey))
+                _prefetchQueue.Enqueue(date);
             var sameDateEntries = byDate.GetValueOrDefault(date) ?? [];
             var counts = sameDateEntries.SelectMany(entry => entry.Moods.Distinct(StringComparer.OrdinalIgnoreCase))
                 .GroupBy(mood => mood, StringComparer.OrdinalIgnoreCase)
@@ -107,6 +115,12 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
         }
 
         return new MoonCycleDto(startDate, endDate, days);
+    }
+
+    /// <inheritdoc />
+    public async Task PrefetchMoonAsync(DateOnly date, CancellationToken cancellationToken)
+    {
+        _ = await GetMoonAsync(date, cancellationToken);
     }
 
     /// <summary>Uses a global date cache and serializes cache misses to respect the provider's free-tier rate limit.</summary>
@@ -168,6 +182,9 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
                 await requestLease.DisposeAsync();
         }
     }
+
+    private MoonDetails? GetCachedMoon(DateOnly date) =>
+        _cache.TryGetValue($"freeastro-moon-phase:{date:yyyy-MM-dd}", out MoonDetails? cached) ? cached : null;
 
     private static string? ReadString(JsonElement root, string parent, string property)
     {

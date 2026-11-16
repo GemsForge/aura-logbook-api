@@ -135,9 +135,10 @@ public sealed class AstrologyServicesTests
         Assert.Equal(1, result.Days[0].EntryCount);
         Assert.Equal(1, result.Days[0].MoodCounts["Centered"]);
         Assert.Equal("Weary", Assert.Single(result.Days[1].MoodCounts).Key);
-        Assert.All(handler.Requests, request => Assert.Contains("include_zodiac=true", request.RequestUri!.Query));
-        Assert.Contains("2026-11-01T12:00:00", handler.Requests[0].RequestUri!.Query);
-        Assert.Contains("2026-11-02T12:00:00", handler.Requests[1].RequestUri!.Query);
+        var selectedDateRequest = Assert.Single(handler.Requests);
+        Assert.Contains("include_zodiac=true", selectedDateRequest.RequestUri!.Query);
+        Assert.Contains("2026-11-02T12:00:00", selectedDateRequest.RequestUri.Query);
+        Assert.Null(result.Days[0].Phase);
     }
 
     [Fact]
