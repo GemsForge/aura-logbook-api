@@ -75,8 +75,6 @@ public sealed class AstrologyController : ControllerBase
         [FromQuery] DateOnly endDate,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, "Moon cycle details are not configured.");
         if (endDate < startDate || endDate.DayNumber - startDate.DayNumber > 30)
             return BadRequest("Choose a date range no longer than 31 days.");
 
