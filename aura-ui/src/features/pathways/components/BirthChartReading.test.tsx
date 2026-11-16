@@ -22,13 +22,23 @@ describe("birth chart placement presentation", () => {
     vi.mocked(getNatalChart).mockResolvedValue({ provider: "Chart provider", retrievedAt: "2026-11-13", chart: { placements: [{ name: "Sun", sign: "Aries", degree: 0, house: 1 }, { planet: "Moon", zodiac_sign: "Taurus" }, { name: "Unrecognized", sign: "Gemini" }], internal: "private raw value" } });
     render(<BirthChartReading enabled />);
     expect(await screen.findByText("Aries")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Birth chart" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Your saved birth placements" })).toBeInTheDocument();
     expect(screen.getByText("0° · House 1")).toBeInTheDocument();
     expect(screen.getByText("Taurus")).toBeInTheDocument();
     expect(screen.getByText(/Chart provider · A symbolic reference/)).toBeInTheDocument();
     expect(screen.queryByText("Gemini")).not.toBeInTheDocument();
     expect(screen.queryByText("private raw value")).not.toBeInTheDocument();
     expect(screen.getByText("Optional chart reflection")).toBeInTheDocument();
+  });
+
+  it("highlights only placements whose sign exactly matches the selected day's Moon sign", async () => {
+    vi.mocked(getNatalChart).mockResolvedValue({ provider: "Chart provider", retrievedAt: "2026-11-13", chart: { placements: [{ name: "Sun", sign: "Aries" }, { name: "Moon", sign: "Taurus" }] } });
+    render(<BirthChartReading enabled selectedMoonSign="Taurus" />);
+    const sun = await screen.findByRole("button", { name: /Sun Aries/ });
+    const moon = screen.getByRole("button", { name: /Moon Taurus/ });
+    expect(sun).not.toHaveAttribute("aria-describedby", "moon-chart-match");
+    expect(moon).toHaveAttribute("aria-describedby", "moon-chart-match");
+    expect(screen.getByText("The selected day’s Moon in Taurus touches your chart.")).toBeInTheDocument();
   });
 
   it("opens the selected provider placement's lens with the keyboard", async () => {

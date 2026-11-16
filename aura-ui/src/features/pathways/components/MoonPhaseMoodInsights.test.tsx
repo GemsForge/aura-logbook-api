@@ -1,85 +1,100 @@
+import { act, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getMoonPhaseMoodInsights, type MoonPhaseMoodInsights as MoonInsights } from "../astrologyApi";
+import { getDailyHoroscope, getMoonCycle } from "../astrologyApi";
 import { MoonPhaseMoodInsights } from "./MoonPhaseMoodInsights";
 
-vi.mock("../astrologyApi", () => ({ getMoonPhaseMoodInsights: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  user: { birthday: "1990-03-21", pathwayPreferences: { saveBirthDetails: false } } as { birthday?: string; pathwayPreferences: { saveBirthDetails: boolean; birthTime?: string; birthPlace?: string } },
+  logMood: vi.fn(),
+  dispatch: vi.fn(),
+}));
+
+vi.mock("../astrologyApi", () => ({ getMoonCycle: vi.fn(), getDailyHoroscope: vi.fn() }));
+vi.mock("@/store/hooks", () => ({ useAppSelector: () => mocks.user, useAppDispatch: () => mocks.dispatch }));
+vi.mock("@/store/slices/authSlice", () => ({ selectCurrentUser: vi.fn() }));
+vi.mock("@/store/slices/uiSlice", () => ({ openProfileModal: vi.fn() }));
+vi.mock("@/store/auraApi", () => ({ useGetZodiacInsightQuery: () => ({ data: { sign: "Aries", element: "Fire", description: "A reference description." }, isLoading: false }) }));
+vi.mock("@/store/referenceDataApi", () => ({ useGetReferenceDataQuery: () => ({ data: {
+  moods: [{ key: "Centered", displayName: "Centered", icon: "sun", auraColorKeys: ["calm"] }],
+  auras: [{ key: "calm", baseHex: "#668877", shades: { 500: "#668877" }, sortOrder: 1 }],
+  zodiacSigns: [{ key: "Aries", description: "A reference description." }],
+} }) }));
+vi.mock("@/store/moodApi", () => ({ useLogMoodMutation: () => [mocks.logMood] }));
 vi.mock("./InsightFeedback", () => ({ InsightFeedback: ({ children }: { children: ReactNode }) => <>{children}</> }));
 vi.mock("./PathwayReflectionPrompt", () => ({ PathwayReflectionPrompt: () => <div>Optional reflection</div> }));
 
-const summary: MoonInsights = {
-  startDate: "2026-10-15", endDate: "2026-11-13", moodEntryCount: 9, entriesWithPhaseData: 7, datesWithoutPhaseData: 2,
-  phases: [
-    { phase: "Waxing Crescent", entryCount: 3, moodCounts: { calm: 3, hopeful: 2, tired: 1, joyful: 1, curious: 1 } },
-    { phase: "Full Moon", entryCount: 4, moodCounts: { content: 4 } },
-  ],
+const today = new Date();
+const dateFor = (offset: number) => {
+  const date = new Date(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}T12:00:00`);
+  date.setDate(date.getDate() + offset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 };
 
-describe("moon phase mood exploration", () => {
-  beforeEach(() => { vi.mocked(getMoonPhaseMoodInsights).mockReset(); });
+describe("daily astrology date path", () => {
+  beforeEach(() => {
+    mocks.user = { birthday: "1990-03-21", pathwayPreferences: { saveBirthDetails: false } };
+    mocks.logMood.mockReset().mockReturnValue({ unwrap: () => Promise.resolve({ id: 1 }) });
+    vi.mocked(getDailyHoroscope).mockReset().mockResolvedValue({ sign: "aries", date: dateFor(0), text: "A steady day.", provider: "Test" });
+    vi.mocked(getMoonCycle).mockReset().mockResolvedValue({ startDate: dateFor(-29), endDate: dateFor(0), days: [
+      { date: dateFor(-1), phase: "Waning Crescent", illumination: 0.1, moonSign: "Pisces", entryCount: 1, moodCounts: { Tired: 1 } },
+      { date: dateFor(0), phase: "Waxing Gibbous", illumination: 0.75, moonSign: "Aries", entryCount: 2, moodCounts: { Centered: 2 } },
+    ] });
+  });
 
-  it("shows API counts with phase illustrations and supports keyboard selection", async () => {
-    vi.mocked(getMoonPhaseMoodInsights).mockResolvedValue(summary);
+  it("opens on today and keeps each chosen date connected to moon and mood counts", async () => {
+    render(<MoonPhaseMoodInsights />);
+    const todayButton = await screen.findByRole("button", { name: new RegExp(`${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(`${dateFor(0)}T12:00:00`))}.*Waxing Gibbous.*2 moods logged`) });
+    expect(todayButton).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/75% illuminated · Moon in Aries/)).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button", { name: /In your chart/ })[0]);
+    expect(screen.getByText(/Birth time and place are optional/)).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button", { name: /Your pattern/ })[0]);
+    expect(screen.getByText(/Moods logged during Waxing Gibbous on/)).toBeInTheDocument();
+    expect(screen.getByText("Centered · 2")).toBeInTheDocument();
+    expect(screen.getByText(/not evidence that the moon caused a mood/)).toBeInTheDocument();
+
+    const priorDay = screen.getByRole("button", { name: /Waning Crescent.*1 mood logged/ });
+    await userEvent.click(priorDay);
+    expect(priorDay).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getAllByRole("button", { name: /Your pattern/ })[0]);
+    expect(screen.getByText(/Moods logged during Waning Crescent on/)).toBeInTheDocument();
+    expect(screen.getByText("Tired · 1")).toBeInTheDocument();
+  });
+
+  it("moves keyboard focus between date buttons with arrow keys and saves only on mood activation", async () => {
     const user = userEvent.setup();
     render(<MoonPhaseMoodInsights />);
-    const first = await screen.findByRole("button", { name: /Waxing Crescent.*3 entries/ });
-    expect(first).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("heading", { level: 2, name: "Moods across moon phases" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Waxing Crescent phase illustration" })).toBeInTheDocument();
-    await user.click(first);
-    expect(within(screen.getByRole("list", { name: "Mood counts during Waxing Crescent" })).getByText("Curious")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Try another phase" }));
-    const full = screen.getByRole("button", { name: /Full Moon.*4 entries/ });
-    act(() => full.focus());
-    await user.keyboard("[Enter]");
-    await user.click(screen.getAllByRole("button", { name: /^Pick a phase/ })[0]);
-    expect(screen.getByRole("button", { name: /Full Moon.*4 entries/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: /Waxing Crescent.*3 entries/ })).toHaveAttribute("aria-pressed", "false");
-    await user.keyboard("[Tab]");
-    await user.click(screen.getAllByRole("button", { name: /^See moods/ })[0]);
-    const selectedCounts = screen.getByRole("list", { name: "Mood counts during Full Moon" });
-    expect(within(selectedCounts).getByText("Content")).toBeInTheDocument();
-    expect(within(selectedCounts).getByText("4")).toBeInTheDocument();
-    expect(within(selectedCounts).queryByText("Calm")).not.toBeInTheDocument();
-    expect(screen.getByText(/7 of 9 entries have phase data/)).toBeInTheDocument();
-    expect(screen.getByText(/unavailable for 2 dates/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Note it" }));
-    expect(screen.getByText("Optional reflection")).toBeInTheDocument();
+    const priorDay = await screen.findByRole("button", { name: /Waning Crescent.*1 mood logged/ });
+    act(() => priorDay.focus());
+    await user.keyboard("{ArrowRight}");
+    expect(document.activeElement).toHaveAccessibleName(/Waxing Gibbous.*2 moods logged/);
+    await user.keyboard("{Enter}");
+    expect(mocks.logMood).not.toHaveBeenCalled();
+    await user.click(screen.getAllByRole("button", { name: /Your pattern/ })[0]);
+    await user.click(screen.getByRole("button", { name: "Centered" }));
+    await waitFor(() => expect(mocks.logMood).toHaveBeenCalledWith({ date: dateFor(0), moods: ["Centered"] }));
   });
 
-  it("retains an unknown provider label without assigning a moon illustration", async () => {
-    vi.mocked(getMoonPhaseMoodInsights).mockResolvedValue({ ...summary, phases: [{ phase: "Unspecified phase", entryCount: 7, moodCounts: {} }] });
-    const user = userEvent.setup();
+  it("skips the chart step and offers a birthday invitation when none is saved", async () => {
+    mocks.user = { pathwayPreferences: { saveBirthDetails: false } };
+    vi.mocked(getMoonCycle).mockResolvedValue({ startDate: dateFor(0), endDate: dateFor(0), days: [{ date: dateFor(0), phase: null, illumination: null, moonSign: null, entryCount: 0, moodCounts: {} }] });
     render(<MoonPhaseMoodInsights />);
-    const unknown = await screen.findByRole("button", { name: /Unspecified phase.*7 entries/ });
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    await user.click(unknown);
-    expect(screen.getByText(/No individual mood counts were returned/)).toBeInTheDocument();
+    expect(await screen.findByText("Add a birthday for your optional sun-sign horoscope.")).toBeInTheDocument();
+    expect(screen.getAllByRole("group", { name: /Today's sky, step 1 of 2/ })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /In your chart/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Moon details aren’t available for this day/)).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button", { name: /Your pattern/ })[0]);
+    expect(screen.getByText("No moods logged for this day yet. Choose a mood below to log it.")).toBeInTheDocument();
   });
 
-  it("distinguishes loading and service failure from an empty journal", async () => {
-    let rejectRequest!: (reason: Error) => void;
-    vi.mocked(getMoonPhaseMoodInsights).mockImplementation(() => new Promise((_resolve, reject) => { rejectRequest = reject; }));
+  it("keeps the moon visible and offers a retry when the horoscope provider is unavailable", async () => {
+    vi.mocked(getDailyHoroscope).mockRejectedValueOnce(new Error("provider down")).mockResolvedValueOnce({ sign: "aries", date: dateFor(0), text: "Available again.", provider: "Test" });
     render(<MoonPhaseMoodInsights />);
-    expect(screen.getByText("Loading phase counts…")).toBeInTheDocument();
-    await act(async () => rejectRequest(new Error("unavailable")));
-    expect(await screen.findByText("Moon phase counts are unavailable right now.")).toBeInTheDocument();
-    expect(screen.queryByText("Log a mood to begin noticing patterns.")).not.toBeInTheDocument();
-  });
-
-  it("invites a first entry when the API returns no recorded moods", async () => {
-    vi.mocked(getMoonPhaseMoodInsights).mockResolvedValue({ ...summary, moodEntryCount: 0, entriesWithPhaseData: 0, phases: [] });
-    render(<MoonPhaseMoodInsights />);
-    expect(await screen.findByText("Log a mood to begin noticing patterns.")).toBeInTheDocument();
-  });
-
-  it("reports missing coverage when moods exist but no phase data was returned", async () => {
-    vi.mocked(getMoonPhaseMoodInsights).mockResolvedValue({ ...summary, entriesWithPhaseData: 0, phases: [] });
-    render(<MoonPhaseMoodInsights />);
-    expect(await screen.findByText("No phase counts are available for this period.")).toBeInTheDocument();
-    expect(screen.getByText(/0 of 9 entries have phase data/)).toBeInTheDocument();
-    expect(screen.getByText(/unavailable for 2 dates/)).toBeInTheDocument();
+    expect(await screen.findByText("Today’s reading isn’t available right now.")).toBeInTheDocument();
+    expect(screen.getByText("Waxing Gibbous")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Available again.")).toBeInTheDocument();
   });
 });

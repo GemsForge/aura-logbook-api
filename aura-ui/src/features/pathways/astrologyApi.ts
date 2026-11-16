@@ -17,6 +17,23 @@ export interface MoonPhaseMoodInsights {
   phases: MoonPhaseMoodCount[];
 }
 
+/** Date-specific lunar data and private mood totals returned for each local calendar day. */
+export interface MoonCycleDay {
+  date: string;
+  phase: string | null;
+  illumination: number | null;
+  moonSign: string | null;
+  entryCount: number;
+  moodCounts: Record<string, number>;
+}
+
+/** Up to 31 date-specific moon snapshots for the selected daily astrology path. */
+export interface MoonCycle {
+  startDate: string;
+  endDate: string;
+  days: MoonCycleDay[];
+}
+
 /** A provider-sourced daily sun-sign reading. */
 export interface DailyHoroscope {
   sign: string;
@@ -47,5 +64,11 @@ export async function getNatalChart() {
 /** Loads phase counts for only the authenticated user's own mood entries. */
 export async function getMoonPhaseMoodInsights(startDate: string, endDate: string) {
   const response = await api.get<MoonPhaseMoodInsights>("astrology/moon-mood-counts", { params: { startDate, endDate } });
+  return response.data;
+}
+
+/** Loads moon details and the signed-in user's mood counts for each date in the range. */
+export async function getMoonCycle(startDate: string, endDate: string) {
+  const response = await api.get<MoonCycle>("astrology/moon-cycle", { params: { startDate, endDate } });
   return response.data;
 }

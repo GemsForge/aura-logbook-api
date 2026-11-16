@@ -10,13 +10,15 @@ const illustratedSigns = new Set(["aries", "taurus", "gemini", "cancer", "leo", 
  * Gives the saved birthday's actual sign and provider reading a visual identity.
  * Sign characteristics come from the reference response; artwork never supplies personality claims.
  */
-export function SunSignReading({ zodiac, loading, horoscope, horoscopeLoading, unavailable, description }: {
+export function SunSignReading({ zodiac, loading, horoscope, horoscopeLoading, unavailable, description, onRetry }: {
   zodiac?: ZodiacInsightResponse;
   loading: boolean;
   horoscope: DailyHoroscope | null;
   horoscopeLoading: boolean;
   unavailable: boolean;
   description?: string;
+  /** Retries the provider reading without reloading the rest of the pathway. */
+  onRetry?: () => void;
 }) {
   const key = zodiac?.sign.toLowerCase();
   return <Box component="section" aria-labelledby="sun-sign-title" sx={{ minWidth: 0 }}>
@@ -35,7 +37,7 @@ export function SunSignReading({ zodiac, loading, horoscope, horoscopeLoading, u
               : horoscope ? <>
                 <Typography component="blockquote" sx={{ m: 0, fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "var(--joy-fontSize-xl)", sm: "var(--joy-fontSize-xl2)" }, lineHeight: 1.6, maxWidth: "48ch", overflowWrap: "anywhere" }}>{horoscope.text}</Typography>
                 <Typography level="body-xs" color="neutral" sx={{ mt: 1.5 }}>{horoscope.date} · {horoscope.provider}</Typography>
-              </> : unavailable ? <Typography role="status" level="body-sm">Today’s reading is unavailable right now.</Typography> : null}
+              </> : unavailable ? <Box><Typography role="status" level="body-sm">Today’s reading isn’t available right now.</Typography>{onRetry && <Box component="button" type="button" onClick={onRetry} sx={{ mt: .5, minHeight: 44, border: 0, px: 0, bgcolor: "transparent", color: "var(--al-theme-ink)", textDecoration: "underline", cursor: "pointer" }}>Try again</Box>}</Box> : null}
       </Box>
       {zodiac && (description || zodiac.description) && <Box component="details" sx={{ gridColumn: { xs: "1 / -1", sm: 1 }, mt: 1.5, "& summary": { cursor: "pointer", minHeight: 44, display: "list-item", alignContent: "center", fontSize: "var(--joy-fontSize-sm)" }, "& summary:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
         <Box component="summary">Explore {zodiac.sign}</Box>
