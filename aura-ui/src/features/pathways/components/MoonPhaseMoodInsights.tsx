@@ -138,11 +138,22 @@ export function MoonPhaseMoodInsights() {
     <Box role="group" aria-label="Moon cycle, last 30 days" sx={{ display: "flex", overflowX: "auto", gap: .5, py: 1.5, mt: 1, scrollSnapType: "x mandatory" }}>
       {dates.map((date, index) => {
         const day = cycle.find((item) => item.date === date);
-        const label = `${formatDate(date)}, ${day?.phase ?? "moon phase unavailable"}, ${day?.entryCount ?? 0} ${day?.entryCount === 1 ? "mood" : "moods"} logged`;
-        return <Button key={date} ref={(element) => { dayButtons.current[index] = element; }} variant={date === selectedDate ? "soft" : "plain"} color="neutral" aria-label={label} aria-pressed={date === selectedDate} onClick={() => selectDay(date)} onKeyDown={(event) => onDayKeyDown(event, index)} sx={{ flex: "0 0 64px", minWidth: 64, minHeight: 64, p: .5, display: "flex", flexDirection: "column", gap: .25, scrollSnapAlign: "center", color: "var(--al-theme-ink)", border: "1px solid", borderColor: date === selectedDate ? "var(--al-theme-focus)" : "transparent" }}>
+        const loggedMoods = Object.entries(day?.moodCounts ?? {}).flatMap(([key, count]) => Array.from({ length: count }, () => key));
+        const moodNames = [...new Set(loggedMoods)].map(formatMood);
+        const label = `${formatDate(date)}, ${day?.phase ?? "moon phase unavailable"}, ${day?.entryCount ?? 0} ${day?.entryCount === 1 ? "mood" : "moods"} logged${moodNames.length ? `: ${moodNames.join(", ")}` : ""}`;
+        const moodDots = loggedMoods.flatMap((key) => {
+          const definition = referenceData?.moods.find((mood) => mood.key.toLowerCase() === key.toLowerCase());
+          const aura = definition && referenceData?.auras.find((item) => item.key === definition.auraColorKeys[0]);
+          const color = aura?.shades?.[500] ?? aura?.baseHex;
+          return color ? [{ key, color }] : [];
+        });
+        return <Button key={date} ref={(element) => { dayButtons.current[index] = element; }} variant={date === selectedDate ? "soft" : "plain"} color="neutral" aria-label={label} aria-pressed={date === selectedDate} onClick={() => selectDay(date)} onKeyDown={(event) => onDayKeyDown(event, index)} sx={{ flex: "0 0 64px", minWidth: 64, minHeight: 64, p: .5, display: "flex", flexDirection: "column", gap: .25, scrollSnapAlign: "center", color: "var(--al-theme-ink)", border: "1px solid", borderColor: date === selectedDate ? "var(--al-theme-focus)" : "transparent", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
           {day?.phase ? <MoonPhaseDisc phase={day.phase} size={24} /> : <Box aria-hidden sx={{ width: 24, height: 24, borderRadius: "50%", border: "1px solid var(--al-theme-border)" }} />}
           <Typography component="span" level="body-xs" sx={{ color: "inherit" }}>{new Date(`${date}T12:00:00`).getDate()}</Typography>
-          {(day?.entryCount ?? 0) > 0 && <Box aria-hidden sx={{ display: "flex", gap: .25 }}>{Array.from({ length: Math.min(day!.entryCount, 3) }, (_, dot) => <Box key={dot} sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "var(--al-theme-ink)" }} />)}</Box>}
+          {moodDots.length > 0 && <Box aria-hidden sx={{ display: "flex", gap: .25, alignItems: "center" }}>
+            {moodDots.slice(0, 8).map((dot, dotIndex) => <Box key={`${dot.key}-${dotIndex}`} data-testid="moon-cycle-mood-dot" sx={{ width: 4, height: 4, flexShrink: 0, borderRadius: "50%", bgcolor: dot.color }} />)}
+            {moodDots.length > 8 && <Typography component="span" level="body-xs" sx={{ color: "var(--al-theme-ink)", fontSize: "8px", lineHeight: 1 }}>+{moodDots.length - 8}</Typography>}
+          </Box>}
         </Button>;
       })}
     </Box>

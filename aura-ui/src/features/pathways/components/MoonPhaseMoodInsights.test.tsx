@@ -45,8 +45,9 @@ describe("daily astrology date path", () => {
 
   it("opens on today and keeps each chosen date connected to moon and mood counts", async () => {
     render(<MoonPhaseMoodInsights />);
-    const todayButton = await screen.findByRole("button", { name: new RegExp(`${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(`${dateFor(0)}T12:00:00`))}.*Waxing Gibbous.*2 moods logged`) });
+    const todayButton = await screen.findByRole("button", { name: new RegExp(`${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(`${dateFor(0)}T12:00:00`))}.*Waxing Gibbous.*2 moods logged.*Centered`) });
     expect(todayButton).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByTestId("moon-cycle-mood-dot")).toHaveLength(2);
     expect(screen.getByText(/75% illuminated · Moon in Aries/)).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: /In your chart/ })[0]);
     expect(screen.getByText(/Birth time and place are optional/)).toBeInTheDocument();
