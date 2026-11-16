@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
+using AuraLogbook.Api.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -19,6 +20,7 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
     private readonly ILogger<FreeAstroMoonPhaseMoodInsightsService> _logger;
     private readonly FreeAstroApiRequestPacer _requestPacer;
     private readonly MoonCyclePrefetchQueue _prefetchQueue;
+    private readonly IMoonPhaseSnapshotRepository? _snapshots;
 
     /// <summary>Creates the provider-backed summary service with shared date caching and request pacing.</summary>
     public FreeAstroMoonPhaseMoodInsightsService(
@@ -28,13 +30,15 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
         FreeAstroApiRequestPacer requestPacer,
         IOptions<FreeAstroApiOptions> options,
         ILogger<FreeAstroMoonPhaseMoodInsightsService> logger,
-        MoonCyclePrefetchQueue? prefetchQueue = null)
+        MoonCyclePrefetchQueue? prefetchQueue = null,
+        IMoonPhaseSnapshotRepository? snapshots = null)
     {
         _http = http;
         _moods = moods;
         _cache = cache;
         _requestPacer = requestPacer;
         _prefetchQueue = prefetchQueue ?? new MoonCyclePrefetchQueue();
+        _snapshots = snapshots;
         _options = options.Value;
         _logger = logger;
         _http.Timeout = TimeSpan.FromSeconds(10);
@@ -98,6 +102,12 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
             .ToDictionary(group => group.Key, group => group.ToArray());
         var days = new List<MoonDayDto>();
 
+        if (_snapshots is not null)
+        {
+            foreach (var snapshot in await _snapshots.GetRangeAsync(startDate, endDate, cancellationToken))
+                _cache.Set(CacheKey(snapshot.Date), ToDetails(snapshot), CacheDuration);
+        }
+
         // Resolve the selected day inline so the initial path stays responsive, then warm
         // older cache misses in the background instead of holding the request for 30 calls.
         var selectedMoon = await GetMoonAsync(endDate, cancellationToken);
@@ -123,15 +133,25 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
         _ = await GetMoonAsync(date, cancellationToken);
     }
 
-    /// <summary>Uses a global date cache and serializes cache misses to respect the provider's free-tier rate limit.</summary>
+    /// <summary>Uses persistent and in-memory date caches, pacing provider misses to respect the free-tier rate limit.</summary>
     private async Task<string?> GetPhaseAsync(DateOnly date, CancellationToken cancellationToken)
         => (await GetMoonAsync(date, cancellationToken))?.Phase;
 
-    /// <summary>Gets only named phase, illumination, and moon sign fields from the provider's date response.</summary>
+    /// <summary>Loads named phase, illumination, and moon sign fields from storage or the provider's date response.</summary>
     private async Task<MoonDetails?> GetMoonAsync(DateOnly date, CancellationToken cancellationToken)
     {
         var cacheKey = $"freeastro-moon-phase:{date:yyyy-MM-dd}";
         if (_cache.TryGetValue(cacheKey, out MoonDetails? cached)) return cached;
+        if (_snapshots is not null)
+        {
+            var snapshot = await _snapshots.GetAsync(date, cancellationToken);
+            if (snapshot is not null)
+            {
+                var details = ToDetails(snapshot);
+                _cache.Set(cacheKey, details, CacheDuration);
+                return details;
+            }
+        }
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return null;
 
         IAsyncDisposable? requestLease = null;
@@ -159,6 +179,21 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
 
             var details = new MoonDetails(phase, illumination, moonSign);
             _cache.Set(cacheKey, details, CacheDuration);
+            if (_snapshots is not null)
+            {
+                try
+                {
+                    await _snapshots.SaveAsync(new MoonPhaseSnapshot(date, phase, illumination, moonSign), cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Could not persist moon details for {Date}; the in-memory result remains available.", date);
+                }
+            }
             return details;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -184,7 +219,12 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
     }
 
     private MoonDetails? GetCachedMoon(DateOnly date) =>
-        _cache.TryGetValue($"freeastro-moon-phase:{date:yyyy-MM-dd}", out MoonDetails? cached) ? cached : null;
+        _cache.TryGetValue(CacheKey(date), out MoonDetails? cached) ? cached : null;
+
+    private static string CacheKey(DateOnly date) => $"freeastro-moon-phase:{date:yyyy-MM-dd}";
+
+    private static MoonDetails ToDetails(MoonPhaseSnapshot snapshot) =>
+        new(snapshot.Phase, snapshot.Illumination, snapshot.MoonSign);
 
     private static string? ReadString(JsonElement root, string parent, string property)
     {

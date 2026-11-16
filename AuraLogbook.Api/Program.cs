@@ -112,6 +112,8 @@ builder.Services.AddScoped<IPathwayActivityRepository, SqlitePathwayActivityRepo
 builder.Services.AddScoped<IPathwayActivityService, PathwayActivityService>();
 // #410: owner-scoped reader annotations and bookmarks stay in relational storage.
 builder.Services.AddScoped<ISacredTextAnnotationRepository, SqliteSacredTextAnnotationRepository>();
+// #433: provider-reported moon details are keyed by date and survive API restarts.
+builder.Services.AddScoped<IMoonPhaseSnapshotRepository, SqliteMoonPhaseSnapshotRepository>();
 
 // Services
 builder.Services.AddScoped<JwtTokenService>();
