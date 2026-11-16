@@ -6,6 +6,7 @@ import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
 import SelfImprovementRounded from "@mui/icons-material/SelfImprovementRounded";
 import AutoAwesomeRounded from "@mui/icons-material/AutoAwesomeRounded";
+import { tapTarget44 } from "@/components/ui/tapTarget";
 import CheckOutlined from "@mui/icons-material/CheckOutlined";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import { PathwayActivityApi, type PathwayActivity, type PathwayActivityRequest } from "../pathwayActivityApi";
@@ -66,7 +67,7 @@ export function PathwayReflectionCard({ item, onEdit, onDelete, onSave, editing 
 }
 
 /** Retains the legacy standalone pathway reflection list for existing consumers; history uses the shared timeline card. */
-export function PathwayReflectionJournal({ onItemsChange, onEdit, onDelete }: { onItemsChange?: (items: PathwayActivity[]) => void; onEdit?: (item: SavedReflection) => void; onDelete?: (item: SavedReflection) => void } = {}) {
+export function PathwayReflectionJournal({ onItemsChange }: { onItemsChange?: (items: PathwayActivity[]) => void } = {}) {
   const [items, setItems] = useState<SavedReflection[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");

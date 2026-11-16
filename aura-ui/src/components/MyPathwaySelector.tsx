@@ -8,7 +8,7 @@ import type { PathwayPreferences } from "@/features/auth/models/Auth";
 import { PATHWAY_MODULES } from "@/features/pathways/pathwayResources";
 
 type PathwayField = { spiritualPathway: string; pathwayPreferences: PathwayPreferences };
-/** Lets a user choose one pathway and configure its modules in the Profile step. */
+/** Lets a user choose one pathway, discover its modules, and configure optional frameworks in Profile. */
 export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
   control,
   setValue,
@@ -30,7 +30,7 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
 
   return (
     <Box sx={{ display: "grid", gap: 1.5 }}>
-      <Typography variant="body2" color="text.secondary">Choose one primary pathway. Its modules appear in your navigation.</Typography>
+      <Typography variant="body2" color="text.secondary">Choose one primary pathway. Its modules are enabled by default and appear in your navigation. Turn off any you don’t want to see.</Typography>
       {!data || isError ? <FormHelperText error role="alert">Pathway choices are unavailable. Reload to try again.</FormHelperText> : (
         <Controller
           name={(name ?? ("spiritualPathway" as Path<TForm>)) as Path<TForm>}
@@ -48,7 +48,8 @@ export function MyPathwaySelector<TForm extends FieldValues & PathwayField>({
                     <Typography variant="caption" color="text.secondary">{pathway.description}</Typography>
                   </Box>} />
                   {field.value === pathway.key && <Box sx={{ pl: 4.5, pt: 1 }}>
-                    <Typography variant="overline" sx={{ letterSpacing: ".12em" }}>Modules</Typography>
+                    <Typography variant="subtitle2" sx={{ mt: .5, fontWeight: 700 }}>Your pathway modules</Typography>
+                    <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: .25, mb: .75 }}>These are optional areas within {pathway.displayName}. Each can be turned on or off at any time.</Typography>
                     <Controller name={"pathwayPreferences" as Path<TForm>} control={control} render={({ field: preferenceField }) => {
                       const value = preferenceField.value as PathwayPreferences;
                       const focus = value.focus ?? [];
@@ -98,10 +99,12 @@ function FaithFrameworkField<TForm extends FieldValues & PathwayField>({ control
   return <Controller name={"pathwayPreferences" as Path<TForm>} control={control} render={({ field }) => {
     const preferences = field.value as PathwayPreferences;
     return <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-      <TextField select size="small" label="Framework" value={preferences.faithTradition ?? ""} onChange={(event) => field.onChange({ ...preferences, faithTradition: event.target.value || null })} SelectProps={{ native: true }}>
+      <Typography variant="subtitle2" sx={{ mb: .5, fontWeight: 700 }}>Optional reading framework</Typography>
+      <FormHelperText sx={{ mt: 0, mb: .5 }}>Choose a tradition or style for Sacred Texts. You can leave this unset and change it later.</FormHelperText>
+      <TextField select size="small" label="Reading framework" value={preferences.faithTradition ?? ""} onChange={(event) => field.onChange({ ...preferences, faithTradition: event.target.value || null })} SelectProps={{ native: true }}>
         <option value="">No framework selected</option><option value="christian">Christian</option><option value="muslim">Muslim</option><option value="jewish">Jewish</option><option value="other">Another tradition</option><option value="custom">My own wording</option><option value="neutral">Neutral reflection</option>
       </TextField>
-      <FormHelperText>Only the chosen framework’s sacred text and reading link appear.</FormHelperText>
+      <FormHelperText>Only content and links for your chosen framework appear. “Another tradition” and “My own wording” do not select a sacred text.</FormHelperText>
     </FormControl>;
   }} />;
 }

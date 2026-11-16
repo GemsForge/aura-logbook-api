@@ -31,7 +31,6 @@ import { PathwayActivityApi } from "@/features/pathways/pathwayActivityApi";
 import SegmentedToggle from "@/components/ui/SegmentedToggle";
 import { PATHWAY_MODULES, pathwayModuleKey, resolvePathwayFocus } from "@/features/pathways/pathwayResources";
 import { useAppSelector } from "@/store/hooks";
-import DeleteConfirmDialog from "../DeleteConfirmDialog";
 
 /** Counts moods by distinct check-in day so a busy day does not outweigh quieter days. */
 function topMoodByDay(entries: MoodEntry[]) {

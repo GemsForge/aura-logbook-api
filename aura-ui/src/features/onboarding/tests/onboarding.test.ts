@@ -46,14 +46,20 @@ describe("pathway pages", () => {
 });
 
 describe("draft", () => {
-  it("builds a skipped request as Mindfulness with no answers or preferences", () => {
-    expect(buildOnboardingRequest(EMPTY_DRAFT)).toEqual({ selectedPathway: "Mindfulness", birthday: undefined, answers: [], colorMomentHue: undefined, pathwayPreferences: undefined });
+  it("builds a skipped request with Mindfulness modules enabled", () => {
+    expect(buildOnboardingRequest(EMPTY_DRAFT)).toEqual({ selectedPathway: "Mindfulness", birthday: undefined, answers: [], colorMomentHue: undefined, pathwayPreferences: { focus: ["mindfulness-guide", "practice-log"], checkInOpener: undefined } });
   });
   it("sends ordered answers and drops the opener outside Mindful Living", () => {
     const req = buildOnboardingRequest({ ...EMPTY_DRAFT, answers: { 3: "Energy", 1: "Faith" }, pathway: "Energy", focus: ["chakras"], checkInOpener: "one-minute", birthday: "1994-09-12", colorMomentHue: 210 });
     expect(req.answers.map((a) => a.questionNumber)).toEqual([1, 3]);
-    expect(req.pathwayPreferences).toEqual({ focus: ["chakras"], checkInOpener: undefined });
+    expect(req.pathwayPreferences).toEqual({ focus: ["daily-astrology", "chakra-reference"], checkInOpener: undefined });
     expect(req.birthday).toBe("1994-09-12");
+  });
+  it("saves a chosen faith framework only for the Faith pathway", () => {
+    const faith = buildOnboardingRequest({ ...EMPTY_DRAFT, pathway: "Faith", faithTradition: "muslim" });
+    expect(faith.pathwayPreferences).toEqual({ focus: ["faith-practice-check-in", "sacred-texts"], checkInOpener: undefined, faithTradition: "muslim" });
+    const mindful = buildOnboardingRequest({ ...EMPTY_DRAFT, faithTradition: "muslim" });
+    expect(mindful.pathwayPreferences?.faithTradition).toBeUndefined();
   });
   it("restores a saved draft and clamps a bad step index", () => {
     const store = { getItem: () => JSON.stringify({ stepIndex: 99, answers: { 1: "Faith" } }) };
