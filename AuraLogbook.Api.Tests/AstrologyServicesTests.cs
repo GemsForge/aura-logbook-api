@@ -129,16 +129,18 @@ public sealed class AstrologyServicesTests
         Assert.Equal(day1, result.StartDate);
         Assert.Equal(day2, result.EndDate);
         Assert.Equal(2, result.Days.Count);
-        Assert.Equal("Waxing Crescent", result.Days[0].Phase);
-        Assert.Equal(.25m, result.Days[0].Illumination);
-        Assert.Equal("Taurus", result.Days[0].MoonSign);
+        Assert.Null(result.Days[0].Phase);
+        Assert.Null(result.Days[0].Illumination);
+        Assert.Null(result.Days[0].MoonSign);
         Assert.Equal(1, result.Days[0].EntryCount);
         Assert.Equal(1, result.Days[0].MoodCounts["Centered"]);
+        Assert.Equal("Waxing Crescent", result.Days[1].Phase);
+        Assert.Equal(.25m, result.Days[1].Illumination);
+        Assert.Equal("Taurus", result.Days[1].MoonSign);
         Assert.Equal("Weary", Assert.Single(result.Days[1].MoodCounts).Key);
         var selectedDateRequest = Assert.Single(handler.Requests);
         Assert.Contains("include_zodiac=true", selectedDateRequest.RequestUri!.Query);
         Assert.Contains("2026-11-02T12:00:00", selectedDateRequest.RequestUri.Query);
-        Assert.Null(result.Days[0].Phase);
     }
 
     [Fact]
