@@ -32,6 +32,8 @@ export interface MoonCycle {
   startDate: string;
   endDate: string;
   days: MoonCycleDay[];
+  /** True while the API's background worker is filling missing moon dates. */
+  isPrefetching?: boolean;
 }
 
 /** A provider-sourced daily sun-sign reading. */

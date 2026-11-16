@@ -25,4 +25,8 @@ public sealed record MoonDayDto(
     IReadOnlyDictionary<string, int> MoodCounts);
 
 /// <summary>Date-bounded moon and private mood details for the daily astrology path.</summary>
-public sealed record MoonCycleDto(DateOnly StartDate, DateOnly EndDate, IReadOnlyList<MoonDayDto> Days);
+public sealed record MoonCycleDto(DateOnly StartDate, DateOnly EndDate, IReadOnlyList<MoonDayDto> Days)
+{
+    /// <summary>Indicates that missing historical moon details are still being loaded into the shared cache.</summary>
+    public bool IsPrefetching { get; init; }
+}

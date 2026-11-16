@@ -24,6 +24,7 @@ export function MoonPhaseMoodInsights() {
   const [selectedDate, setSelectedDate] = useState(() => localDate(new Date()));
   const [cycle, setCycle] = useState<MoonCycleDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prefetching, setPrefetching] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [step, setStep] = useState(0);
@@ -49,13 +50,35 @@ export function MoonPhaseMoodInsights() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    let firstRequest = true;
+    let refreshTimer: number | undefined;
     setUnavailable(false);
-    void getMoonCycle(dates[0], dates[dates.length - 1])
-      .then((result) => { if (active) setCycle(result.days); })
-      .catch(() => { if (active) setUnavailable(true); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    setPrefetching(false);
+    const loadCycle = async () => {
+      const showInitialLoading = firstRequest;
+      firstRequest = false;
+      if (showInitialLoading) setLoading(true);
+      try {
+        const result = await getMoonCycle(dates[0], dates[dates.length - 1]);
+        if (!active) return;
+        setCycle(result.days);
+        setUnavailable(false);
+        setPrefetching(result.isPrefetching ?? false);
+        if (result.isPrefetching) refreshTimer = window.setTimeout(() => void loadCycle(), 2000);
+      } catch {
+        if (active) {
+          setUnavailable(true);
+          setPrefetching(false);
+        }
+      } finally {
+        if (active && showInitialLoading) setLoading(false);
+      }
+    };
+    void loadCycle();
+    return () => {
+      active = false;
+      if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+    };
   }, [dates, today, attempt]);
 
   useEffect(() => {
@@ -158,6 +181,7 @@ export function MoonPhaseMoodInsights() {
       })}
     </Box>
     {loading && <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}><CircularProgress size="sm" /><Typography level="body-xs">Loading the moon cycle…</Typography></Box>}
+    {prefetching && !loading && <Typography role="status" level="body-xs" sx={{ mb: 1 }}>Filling in older moon dates…</Typography>}
     {unavailable && <Typography role="status" level="body-sm" sx={{ mb: 1 }}>Some moon details may be unavailable. You can still select dates and review your saved chart and moods.</Typography>}
     <PathwaySteps label="Today's sky path" steps={steps} current={Math.min(step, stepCount - 1)} onStepChange={setStep} />
   </Box>;

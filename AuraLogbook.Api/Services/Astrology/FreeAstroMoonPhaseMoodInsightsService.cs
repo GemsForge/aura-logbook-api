@@ -124,7 +124,19 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
             days.Add(new MoonDayDto(date, moon?.Phase, moon?.Illumination, moon?.MoonSign, sameDateEntries.Length, counts));
         }
 
-        return new MoonCycleDto(startDate, endDate, days);
+        // A worker can finish its final date while this response is being assembled; include that cache result now.
+        for (var index = 0; index < days.Count; index++)
+        {
+            var day = days[index];
+            var completedMoon = GetCachedMoon(day.Date);
+            if (completedMoon is not null)
+                days[index] = day with { Phase = completedMoon.Phase, Illumination = completedMoon.Illumination, MoonSign = completedMoon.MoonSign };
+        }
+
+        return new MoonCycleDto(startDate, endDate, days)
+        {
+            IsPrefetching = days.Any(day => day.Date != endDate && _prefetchQueue.IsPending(day.Date)),
+        };
     }
 
     /// <inheritdoc />

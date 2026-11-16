@@ -24,6 +24,12 @@ public sealed class MoonCyclePrefetchQueue
         }
     }
 
+    /// <summary>Reports whether a date remains queued or is currently being fetched.</summary>
+    public bool IsPending(DateOnly date)
+    {
+        lock (_sync) return _pending.Contains(date);
+    }
+
     /// <summary>Reads the next date queued for provider cache warming.</summary>
     public IAsyncEnumerable<DateOnly> ReadAllAsync(CancellationToken cancellationToken) =>
         _dates.Reader.ReadAllAsync(cancellationToken);
