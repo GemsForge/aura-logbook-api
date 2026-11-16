@@ -119,15 +119,18 @@ export default function Insights() {
             </> : <Typography level="body-sm" color="neutral" sx={{ mt: 1 }}>No check-ins this {PERIOD_WORD[period]} yet.</Typography>}
           </Sheet>
 
-          {factors.length > 0 && (
-            <Sheet component="section" aria-labelledby="factors-title" className="aura-panel" sx={{ gridColumn: "1 / -1", p: 2 }}>
-              <Typography id="factors-title" component="h2" level="title-md">What shapes your energy</Typography>
+          {/* Keep the optional factor panel discoverable even when strict sample requirements yield no rows. */}
+          <Sheet component="section" aria-labelledby="factors-title" className="aura-panel" sx={{ gridColumn: "1 / -1", p: 2 }}>
+            <Typography id="factors-title" component="h2" level="title-md">What shapes your energy</Typography>
+            {factors.length > 0 ? <>
               <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0, mt: .5 }}>
                 {factors.map((factor) => <FactorRow key={factor.key} factor={factor} />)}
               </Box>
               <Typography level="body-xs" color="neutral" sx={{ mt: .75 }}>Based on {current.length} {current.length === 1 ? "check-in" : "check-ins"}. Patterns, not causes.</Typography>
-            </Sheet>
-          )}
+            </> : <Typography role="status" level="body-sm" color="neutral" sx={{ mt: .5 }}>
+              No patterns to show for this {PERIOD_WORD[period]} yet. Patterns appear when enough check-ins are available.
+            </Typography>}
+          </Sheet>
         </Box>
       )}
 

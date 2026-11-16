@@ -5,13 +5,14 @@ import { createAuthenticatedState, renderWithProviders } from "../../test/testUt
 import Insights from "../Insights";
 
 const pathway = vi.hoisted(() => ({ selectedPathway: "Mindfulness" }));
+const moodEntries = vi.hoisted(() => ({ values: [] as Array<Record<string, unknown>> }));
 
 vi.mock("../../store/hooks", async () => {
   const actual = await vi.importActual<typeof import("../../store/hooks")>("../../store/hooks");
   return { ...actual, useAppSelector: () => ({ selectedPathway: pathway.selectedPathway }) };
 });
 vi.mock("../../store/moodApi", () => ({
-  useGetAllMoodsQuery: () => ({ isLoading: false, data: [{ id: 1, date: dayjs().format("YYYY-MM-DD"), createdAt: new Date().toISOString(), moods: ["Centered"] }] }),
+  useGetAllMoodsQuery: () => ({ isLoading: false, data: moodEntries.values }),
 }));
 vi.mock("../../store/referenceDataApi", async () => ({
   ...(await vi.importActual<object>("../../store/referenceDataApi")),
@@ -25,8 +26,34 @@ vi.mock("../../store/auraApi", () => ({
 
 /** The Insights page owns the pattern summary and breakdown that used to sit at the bottom of Today. */
 describe("Insights", () => {
+  it("keeps the energy factors panel visible with an accessible empty state", () => {
+    pathway.selectedPathway = "Mindfulness";
+    moodEntries.values = [{ id: 1, userId: 1, date: dayjs().format("YYYY-MM-DD"), createdAt: new Date().toISOString(), moods: ["Centered"] }];
+    renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
+    expect(screen.getByRole("region", { name: "What shapes your energy" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/patterns to show/i);
+    expect(screen.getByText(/Patterns appear when enough check-ins are available/)).toBeInTheDocument();
+  });
+
+  it("renders qualified factors from mood entry context", () => {
+    pathway.selectedPathway = "Mindfulness";
+    const today = dayjs().format("YYYY-MM-DD");
+    moodEntries.values = [
+      { id: 1, userId: 1, date: today, createdAt: `${today}T09:00:00Z`, moods: ["Empowered"], occurredAt: `${today}T09:00:00Z`, musicTrack: JSON.stringify({ name: "Song", artists: "Artist" }) },
+      { id: 2, userId: 1, date: today, createdAt: `${today}T10:00:00Z`, moods: ["Empowered"], occurredAt: `${today}T10:00:00Z`, musicTrack: JSON.stringify({ name: "Song", artists: "Artist" }) },
+      { id: 3, userId: 1, date: today, createdAt: `${today}T11:00:00Z`, moods: ["Centered"], occurredAt: `${today}T11:00:00Z`, musicTrack: null },
+      { id: 4, userId: 1, date: today, createdAt: `${today}T12:00:00Z`, moods: ["Centered"], occurredAt: `${today}T12:00:00Z`, musicTrack: null },
+    ];
+    renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
+    expect(screen.getByRole("region", { name: "What shapes your energy" })).toBeInTheDocument();
+    expect(screen.getByText("Entries with music")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "What shapes your energy" })).toHaveTextContent("About the same");
+    expect(screen.getByText(/Patterns, not causes/)).toBeInTheDocument();
+  });
+
   it("shows average energy and mood mix without celestial content on the mindful pathway", () => {
     pathway.selectedPathway = "Mindfulness";
+    moodEntries.values = [{ id: 1, date: dayjs().format("YYYY-MM-DD"), createdAt: new Date().toISOString(), moods: ["Centered"] }];
     renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
     expect(screen.getByRole("heading", { level: 1, name: "Insights" })).toBeInTheDocument();
     // Average energy replaces top mood on Insights; one Centered (energy 3) check-in averages 3.0.
@@ -36,14 +63,16 @@ describe("Insights", () => {
     expect(screen.getByRole("heading", { name: "Mood mix" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Insights period" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Aura ribbon" })).toBeInTheDocument();
-    // One check-in is not a pattern: no "log more" nag and no factor rows.
-    expect(screen.queryByRole("heading", { name: "What shapes your energy" })).not.toBeInTheDocument();
+    // One check-in is not a pattern: the accessible empty state replaces factor rows without a "log more" nag.
+    expect(screen.getByRole("heading", { name: "What shapes your energy" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/patterns to show/i);
     expect(screen.queryByText(/log a few more/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/virgo/i)).not.toBeInTheDocument();
   });
 
   it("adds the celestial lens on the Astrology & Energy pathway", () => {
     pathway.selectedPathway = "Energy";
+    moodEntries.values = [{ id: 1, date: dayjs().format("YYYY-MM-DD"), createdAt: new Date().toISOString(), moods: ["Centered"] }];
     renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
     expect(screen.getByRole("heading", { name: /virgo • earth/i })).toBeInTheDocument();
   });

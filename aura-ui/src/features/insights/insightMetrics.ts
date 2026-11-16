@@ -136,6 +136,7 @@ export interface EnergyFactor { key: "clear-sky" | "music" | "photo" | "late-nig
  * Compares average energy with and without each factor. A factor appears only when both groups have at
  * least {@link MIN_FACTOR_SAMPLE} check-ins, so a single entry never becomes a "pattern". Weather rows
  * compare only entries that captured weather, since entries without a snapshot say nothing about the sky.
+ * Results describe optional, self-recorded context patterns and do not imply that a factor causes energy changes.
  */
 export function energyFactors(entries: MoodEntry[], moods: MoodDefinition[]): EnergyFactor[] {
   const withWeather = entries.filter((entry) => weatherOf(entry));
