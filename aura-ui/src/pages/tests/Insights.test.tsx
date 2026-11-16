@@ -32,7 +32,7 @@ describe("Insights", () => {
     renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
     expect(screen.getByRole("region", { name: "What shapes your energy" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent(/patterns to show/i);
-    expect(screen.getByText(/Patterns appear when enough check-ins are available/)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/a few check-ins both with and without things like music, a photo, clear-sky weather, or late-night timing/i);
   });
 
   it("renders qualified factors from mood entry context", () => {
@@ -61,6 +61,7 @@ describe("Insights", () => {
     expect(screen.getByText("3.0")).toBeInTheDocument();
     expect(screen.queryByText("Top mood")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Mood mix" })).toBeInTheDocument();
+    expect(screen.getByText("1 mood")).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Insights period" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Aura ribbon" })).toBeInTheDocument();
     // One check-in is not a pattern: the accessible empty state replaces factor rows without a "log more" nag.
@@ -68,6 +69,17 @@ describe("Insights", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/patterns to show/i);
     expect(screen.queryByText(/log a few more/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/virgo/i)).not.toBeInTheDocument();
+  });
+
+  it("pluralizes the mood mix count for multiple moods", () => {
+    pathway.selectedPathway = "Mindfulness";
+    const today = dayjs().format("YYYY-MM-DD");
+    moodEntries.values = [
+      { id: 1, date: today, createdAt: `${today}T09:00:00Z`, moods: ["Centered"] },
+      { id: 2, date: today, createdAt: `${today}T10:00:00Z`, moods: ["Centered"] },
+    ];
+    renderWithProviders(<Insights />, { preloadedState: createAuthenticatedState() });
+    expect(screen.getByText("2 moods")).toBeInTheDocument();
   });
 
   it("adds the celestial lens on the Astrology & Energy pathway", () => {
