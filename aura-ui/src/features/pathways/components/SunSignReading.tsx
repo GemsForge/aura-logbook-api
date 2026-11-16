@@ -26,7 +26,8 @@ export function SunSignReading({ zodiac, loading, horoscope, horoscopeLoading, u
     <Box className="aura-highlight" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr) 88px", sm: "minmax(0, 1fr) 120px" }, columnGap: { xs: 1.5, sm: 2 }, alignItems: "center", p: { xs: 2, sm: 2.5 }, bgcolor: "var(--al-theme-surface-raised)", borderRadius: "sm", minWidth: 0 }}>
       <Box sx={{ minWidth: 0 }}>
         <Typography level="body-sm" color="neutral">Your horoscope for today</Typography>
-        <Typography id="sun-sign-title" className="pathway-display-title" component="h2" level="h2" sx={{ textTransform: "capitalize", fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.75rem", sm: "2.25rem" }, fontWeight: 500, lineHeight: 1.15, mt: .5 }}>{zodiac?.sign ?? "Your sun sign"}</Typography>
+        {/* h4 under the open step's h3, and no pathway-display-title class: its !important 4rem size pushed the Next button below the fold. */}
+        <Typography id="sun-sign-title" component="h4" level="h2" sx={{ textTransform: "capitalize", fontFamily: "var(--joy-fontFamily-display)", fontSize: { xs: "1.75rem", sm: "2.25rem" }, fontWeight: 500, lineHeight: 1.15, mt: .5 }}>{zodiac?.sign ?? "Your sun sign"}</Typography>
         {zodiac && <Typography level="body-sm" color="neutral" sx={{ textTransform: "capitalize", mt: .75 }}>{zodiac.element} · Sun sign</Typography>}
       </Box>
       {key && illustratedSigns.has(key) && <Box component="img" src={`/theme-assets/pathways/astrology-energy/zodiac-illustrations/zodiac-${key}.svg`} alt={`${zodiac?.sign} zodiac illustration`} sx={{ width: "100%", maxWidth: 120, aspectRatio: "1", objectFit: "contain", justifySelf: "center", gridColumn: 2, gridRow: { xs: 1, sm: "1 / 4" } }} />}
