@@ -11,22 +11,19 @@ import { MindfulPracticeLog } from "@/features/pathways/components/MindfulPracti
 import { FaithPracticeCheckIn } from "@/features/pathways/components/FaithPracticeCheckIn";
 import { MoonPhaseMoodInsights } from "@/features/pathways/components/MoonPhaseMoodInsights";
 import { SacredTextView } from "@/features/pathways/components/SacredTextView";
-import { useDailyPathwayReflection } from "@/features/pathways/useDailyPathwayReflection";
 import { ChakraReference } from "@/features/pathways/components/ChakraReference";
-import { MoodPathwayReflectionPanel } from "@/features/pathways/components/MoodPathwayReflectionPanel";
 import "@/features/pathways/pathwayStudio.css";
 
 
 /** Modules laid out as a three-step path; when one is open and enabled, the page subtitle describes the path. */
 const STEP_PATH_MODULES = new Set(["mindfulness-guide", "faith-practice-check-in"]);
 
-/** Hides text visually while keeping it in the accessibility tree. */
-const visuallyHidden = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } as const;
+/** Hides text visually while keeping it in the accessibility tree. MUI sx treats unitless 1 as 100%, so sizes must be "1px". */
+const visuallyHidden = { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } as const;
 
 /** Composes illustrated, interactive modules for the one profile-selected pathway and enabled routes. */
 export default function Pathways() {
   const { moduleKey } = useParams();
-  const dailyReflection = useDailyPathwayReflection();
   const user = useAppSelector(selectCurrentUser);
   const dispatch = useAppDispatch();
   const pathway = pathwayModuleKey(user?.selectedPathway);
@@ -57,7 +54,7 @@ export default function Pathways() {
       <Button size="sm" variant="plain" onClick={() => dispatch(openProfileModal())}>Profile settings</Button>
     </Box>}
 
-    {pathway === "mindfulness" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
+    {pathway === "mindfulness" && !invalidModuleRoute && <Box sx={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 1 }}>
       {focus.includes("mindfulness-guide") && showModule("mindfulness-guide") && <MindfulnessGuide breathingEnabled={preferences?.breathingEnabled !== false} practiceLogEnabled={focus.includes("practice-log")} />}
       {focus.includes("practice-log") && showModule("practice-log") && <Box component="section" id="practice-log" aria-labelledby="practice-log-title" sx={{ py: 2, minWidth: 0 }}>
         <Typography id="practice-log-title" component="h2" level="title-lg">Practice log</Typography>
@@ -66,21 +63,17 @@ export default function Pathways() {
       </Box>}
     </Box>}
 
-    {pathway === "energy" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
+    {pathway === "energy" && !invalidModuleRoute && <Box sx={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 1 }}>
       {hasZodiac && showModule("daily-astrology") && <Box component="section" id="daily-astrology" aria-labelledby="zodiac-title" sx={{ py: 2, borderBottom: "1px solid var(--al-theme-border)" }}>
         <Typography id="zodiac-title" component="h2" level="title-lg" sx={{ mb: 2, display: moduleKey ? "none" : "block" }}>Daily astrology</Typography>
+        {/* Step 3 of the path ends with the shared mood buttons, so this page has a single check-in. */}
         <MoonPhaseMoodInsights />
-        {/* The shared mood invitation remains available without competing with the day's reading. */}
-        <Box component="details" className="pathway-disclosure" sx={{ mt: 3 }}>
-          <Box component="summary">Reflect with a mood check-in</Box>
-          <MoodPathwayReflectionPanel reflection={dailyReflection.reflection} loading={dailyReflection.loading} />
-        </Box>
       </Box>}
       {(focus.includes("chakra-reference") || focus.includes("chakras")) && showModule("chakra-reference") && <ChakraReference />}
 
     </Box>}
 
-    {pathway === "faith" && !invalidModuleRoute && <Box sx={{ display: "grid", gap: 1 }}>
+    {pathway === "faith" && !invalidModuleRoute && <Box sx={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 1 }}>
       {(focus.includes("sacred-texts") || focus.includes("verse")) && showModule("sacred-texts") ? <Box id="sacred-texts" sx={{ py: 2 }}>
         <SacredTextView framework={faithResource?.key} publisher={faithResource} />
       </Box> : null}

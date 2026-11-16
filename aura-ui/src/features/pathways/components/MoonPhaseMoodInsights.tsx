@@ -45,6 +45,12 @@ export function MoonPhaseMoodInsights() {
   }), [today]);
   const selectedDay = cycle.find((day) => day.date === selectedDate);
   const dayButtons = useRef<(HTMLElement | null)[]>([]);
+  const strip = useRef<HTMLDivElement>(null);
+  // The strip opens on today (the newest, right-most date), as the wireframe specifies. Instant strip-only
+  // scrolling avoids a page jump and respects reduced-motion preferences.
+  useEffect(() => {
+    if (strip.current) strip.current.scrollLeft = strip.current.scrollWidth;
+  }, [dates]);
   const stepCount = user?.birthday ? 3 : 2;
   const birthDetailsSaved = Boolean(user?.pathwayPreferences?.saveBirthDetails && user.pathwayPreferences.birthTime && user.pathwayPreferences.birthPlace);
 
@@ -117,20 +123,22 @@ export function MoonPhaseMoodInsights() {
 
   const steps = [
     { title: "Today's sky", summary: selectedDay?.phase ?? "Moon details unavailable", content: <>
-      <StepHeading>{selectedDate === today ? "Today’s sky" : `Sky for ${formatDate(selectedDate)}`}</StepHeading>
-      {selectedDay?.phase ? <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1 }}>
-        <MoonPhaseDisc phase={selectedDay.phase} size={52} />
-        <Box><Typography level="title-md">{selectedDay.phase}</Typography>
-          <Typography level="body-sm" color="neutral">{selectedDay.illumination !== null ? `${Math.round(selectedDay.illumination * 100)}% illuminated` : "Illumination unavailable"}{selectedDay.moonSign ? ` · Moon in ${selectedDay.moonSign}` : " · Moon sign unavailable"}</Typography>
+      {/* The selected day's moon is the step's hero; the sign reading follows as supporting context. */}
+      {selectedDay?.phase ? <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
+        <MoonPhaseDisc phase={selectedDay.phase} size={72} />
+        <Box sx={{ minWidth: 0 }}><StepHeading>{selectedDay.phase}</StepHeading>
+          <Typography level="body-sm" color="neutral">{selectedDay.moonSign ? `In ${selectedDay.moonSign}` : "Moon sign unavailable"} · {selectedDay.illumination !== null ? `${Math.round(selectedDay.illumination * 100)}% lit` : "Illumination unavailable"} · {selectedDate === today ? "Today" : formatDate(selectedDate)}</Typography>
         </Box>
-      </Box> : <Typography role="status" level="body-sm" sx={{ mt: 1 }}>Moon details aren’t available for this day. Try again, or browse another date.</Typography>}
+      </Box> : <><StepHeading>{selectedDate === today ? "Today’s sky" : `Sky for ${formatDate(selectedDate)}`}</StepHeading><Typography role="status" level="body-sm" sx={{ mt: 1 }}>Moon details aren’t available for this day. Try again, or browse another date.</Typography></>}
       {!user?.birthday ? <Box sx={{ mt: 2 }}><Typography level="body-sm">Add a birthday for your optional sun-sign horoscope.</Typography><Button variant="plain" onClick={() => dispatch(openProfileModal())} sx={{ minHeight: 44, px: 0 }}>Add birthday</Button></Box>
-        : <Box sx={{ mt: 2 }}><SunSignReading zodiac={zodiac} loading={zodiacLoading} horoscope={horoscope} horoscopeLoading={!horoscope && !horoscopeUnavailable} unavailable={horoscopeUnavailable} description={referenceData?.zodiacSigns.find((sign) => sign.key.toLowerCase() === zodiac?.sign.toLowerCase())?.description} onRetry={() => setHoroscopeAttempt((value) => value + 1)} /></Box>}
+        : <Box sx={{ mt: 1.5 }}><SunSignReading zodiac={zodiac} loading={zodiacLoading} horoscope={horoscope} horoscopeLoading={!horoscope && !horoscopeUnavailable} unavailable={horoscopeUnavailable} description={referenceData?.zodiacSigns.find((sign) => sign.key.toLowerCase() === zodiac?.sign.toLowerCase())?.description} onRetry={() => setHoroscopeAttempt((value) => value + 1)} /></Box>}
+      <NextStep label={user?.birthday ? "Next: In your chart" : "Next: Your pattern"} onClick={() => setStep(1)} />
     </> },
     ...(user?.birthday ? [{ title: "In your chart", summary: selectedDay?.moonSign ? `Moon in ${selectedDay.moonSign}` : "Optional", content: <>
       <StepHeading>In your chart</StepHeading>
       {birthDetailsSaved ? <BirthChartReading enabled selectedMoonSign={selectedDay?.moonSign} />
         : <Box sx={{ mt: 1 }}><Typography level="body-sm">Your sun sign is {zodiac?.sign ?? "available from your saved birthday"}. Birth time and place are optional and help calculate more placements.</Typography><Button variant="plain" onClick={() => dispatch(openProfileModal())} sx={{ minHeight: 44, px: 0 }}>Add birth details</Button></Box>}
+      <NextStep label="Next: Your pattern" onClick={() => setStep(2)} />
     </> }] : []),
     { title: "Your pattern", summary: selectedDay ? `${selectedDay.entryCount} ${selectedDay.entryCount === 1 ? "mood" : "moods"} logged` : "Mood counts", content: <>
       <StepHeading>Your pattern</StepHeading>
@@ -155,10 +163,12 @@ export function MoonPhaseMoodInsights() {
     </> },
   ];
 
-  return <Box component="section" aria-labelledby="moon-moods-title" sx={{ minWidth: 0 }}>
-    <Typography id="moon-moods-title" component="h2" level="title-lg">Today’s sky</Typography>
-    <Typography level="body-xs" color="neutral" sx={{ mt: .5 }}>A date-by-date path through the moon, your chart, and moods you choose to log.</Typography>
-    <Box role="group" aria-label="Moon cycle, last 30 days" sx={{ display: "flex", overflowX: "auto", gap: .5, py: 1.5, mt: 1, scrollSnapType: "x mandatory" }}>
+  // The page h1 and the open step already name this module, so the section title is for screen readers only
+  // and the visible check-in starts at the moon strip, keeping the open step within one screen.
+  // Keep the 30-day min-content strip inside this section; only the strip may scroll horizontally.
+  return <Box component="section" aria-labelledby="moon-moods-title" sx={{ minWidth: 0, width: "100%", overflow: "hidden" }}>
+    <Typography id="moon-moods-title" component="h2" sx={visuallyHidden}>Today’s sky: a date-by-date path through the moon, your chart, and moods you choose to log</Typography>
+    <Box ref={strip} role="group" aria-label="Moon cycle, last 30 days" sx={{ display: "flex", minWidth: 0, maxWidth: "100%", overflowX: "auto", gap: .25, py: .5, scrollSnapType: "x mandatory" }}>
       {dates.map((date, index) => {
         const day = cycle.find((item) => item.date === date);
         const loggedMoods = Object.entries(day?.moodCounts ?? {}).flatMap(([key, count]) => Array.from({ length: count }, () => key));
@@ -170,9 +180,9 @@ export function MoonPhaseMoodInsights() {
           const color = aura?.shades?.[500] ?? aura?.baseHex;
           return color ? [{ key, color }] : [];
         });
-        return <Button key={date} ref={(element) => { dayButtons.current[index] = element; }} variant={date === selectedDate ? "soft" : "plain"} color="neutral" aria-label={label} aria-pressed={date === selectedDate} onClick={() => selectDay(date)} onKeyDown={(event) => onDayKeyDown(event, index)} sx={{ flex: "0 0 64px", minWidth: 64, minHeight: 64, p: .5, display: "flex", flexDirection: "column", gap: .25, scrollSnapAlign: "center", color: "var(--al-theme-ink)", border: "1px solid", borderColor: date === selectedDate ? "var(--al-theme-focus)" : "transparent", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
+        return <Button key={date} ref={(element) => { dayButtons.current[index] = element; }} variant={date === selectedDate ? "soft" : "plain"} color="neutral" aria-label={label} aria-pressed={date === selectedDate} onClick={() => selectDay(date)} onKeyDown={(event) => onDayKeyDown(event, index)} sx={{ flex: "0 0 48px", minWidth: 48, minHeight: 52, p: .25, display: "flex", flexDirection: "column", gap: .25, scrollSnapAlign: "center", color: "var(--al-theme-ink)", border: "1px solid", borderColor: date === selectedDate ? "var(--al-theme-focus)" : "transparent", "&:focus-visible": { outline: "2px solid var(--al-theme-focus)", outlineOffset: 2 } }}>
           {day?.phase ? <MoonPhaseDisc phase={day.phase} size={24} /> : <Box aria-hidden sx={{ width: 24, height: 24, borderRadius: "50%", border: "1px solid var(--al-theme-border)" }} />}
-          <Typography component="span" level="body-xs" sx={{ color: "inherit" }}>{new Date(`${date}T12:00:00`).getDate()}</Typography>
+          <Typography component="span" level="body-xs" sx={{ color: "inherit", fontWeight: date === today ? 700 : undefined }}>{date === today ? "Today" : new Date(`${date}T12:00:00`).getDate()}</Typography>
           {moodDots.length > 0 && <Box aria-hidden sx={{ display: "flex", gap: .25, alignItems: "center" }}>
             {moodDots.slice(0, 8).map((dot, dotIndex) => <Box key={`${dot.key}-${dotIndex}`} data-testid="moon-cycle-mood-dot" sx={{ width: 4, height: 4, flexShrink: 0, borderRadius: "50%", bgcolor: dot.color }} />)}
             {moodDots.length > 8 && <Typography component="span" level="body-xs" sx={{ color: "var(--al-theme-ink)", fontSize: "8px", lineHeight: 1 }}>+{moodDots.length - 8}</Typography>}
@@ -180,12 +190,34 @@ export function MoonPhaseMoodInsights() {
         </Button>;
       })}
     </Box>
+    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mb: 1.5, color: "var(--al-theme-ink-muted)" }}>
+      <Typography level="body-xs" sx={{ color: "inherit" }}>‹ Earlier days</Typography>
+      <Typography level="body-xs" sx={{ color: "inherit", textAlign: "right" }}>Dots are moods you logged</Typography>
+    </Box>
     {loading && <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}><CircularProgress size="sm" /><Typography level="body-xs">Loading the moon cycle…</Typography></Box>}
     {prefetching && !loading && <Typography role="status" level="body-xs" sx={{ mb: 1 }}>Filling in older moon dates…</Typography>}
     {unavailable && <Typography role="status" level="body-sm" sx={{ mb: 1 }}>Some moon details may be unavailable. You can still select dates and review your saved chart and moods.</Typography>}
-    <PathwaySteps label="Today's sky path" steps={steps} current={Math.min(step, stepCount - 1)} onStepChange={setStep} />
+    {/* On wide screens a summary keeps the selected day's moon in view while Alex moves between steps. */}
+    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", lg: "minmax(0, 1fr) 220px" }, gap: 4, alignItems: "start", minWidth: 0 }}>
+      <PathwaySteps label="Today's sky path" steps={steps} current={Math.min(step, stepCount - 1)} onStepChange={setStep} />
+      {/* This is a named complementary summary, so its duplicate moon facts can be deliberately revisited by landmark navigation. */}
+      {selectedDay?.phase && <Box component="aside" aria-label="Selected day's moon summary" sx={{ display: { xs: "none", lg: "block" }, position: "sticky", top: 24, pl: 3, borderLeft: "1px solid var(--al-theme-border)", textAlign: "center", color: "var(--al-theme-ink-muted)" }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}><MoonPhaseDisc phase={selectedDay.phase} size={84} /></Box>
+        <Typography level="title-sm" sx={{ color: "var(--al-theme-ink)" }}>{selectedDay.phase}</Typography>
+        <Typography level="body-xs" sx={{ color: "inherit" }}>{selectedDay.moonSign ? `in ${selectedDay.moonSign}` : "Moon sign unavailable"}{selectedDay.illumination !== null ? ` · ${Math.round(selectedDay.illumination * 100)}% lit` : ""}</Typography>
+        <Typography level="body-xs" sx={{ mt: 1.5, color: "inherit" }}>{selectedDay.entryCount} {selectedDay.entryCount === 1 ? "mood" : "moods"} logged {selectedDate === today ? "today" : `on ${formatDate(selectedDate)}`}</Typography>
+      </Box>}
+    </Box>
   </Box>;
 }
+
+/** Moves the path forward from the end of a step, so progress never depends on finding the rail. */
+function NextStep({ label, onClick }: { label: string; onClick: () => void }) {
+  return <Button onClick={onClick} sx={{ mt: 2, minHeight: 44, borderRadius: "xl", "&:focus-visible": { outline: "3px solid var(--al-theme-focus)", outlineOffset: 3 } }}>{label} →</Button>;
+}
+
+/** Hides text visually while keeping it in the accessibility tree. Pixel units preserve the one-pixel clipped box. */
+const visuallyHidden = { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)", clipPath: "inset(50%)", whiteSpace: "nowrap" } as const;
 
 /** Formats dates with the device's local calendar without shifting them through UTC. */
 function localDate(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }

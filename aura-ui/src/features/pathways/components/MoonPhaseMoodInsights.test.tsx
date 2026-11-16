@@ -48,7 +48,7 @@ describe("daily astrology date path", () => {
     const todayButton = await screen.findByRole("button", { name: new RegExp(`${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(`${dateFor(0)}T12:00:00`))}.*Waxing Gibbous.*2 moods logged.*Centered`) });
     expect(todayButton).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByTestId("moon-cycle-mood-dot")).toHaveLength(2);
-    expect(screen.getByText(/75% illuminated · Moon in Aries/)).toBeInTheDocument();
+    expect(screen.getByText(/In Aries · 75% lit · Today/)).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: /In your chart/ })[0]);
     expect(screen.getByText(/Birth time and place are optional/)).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: /Your pattern/ })[0]);
@@ -78,6 +78,17 @@ describe("daily astrology date path", () => {
     await waitFor(() => expect(mocks.logMood).toHaveBeenCalledWith({ date: dateFor(0), moods: ["Centered"] }));
   });
 
+  it("moves focus to the opened step after Next and exposes the Today and selected-moon summary labels", async () => {
+    const user = userEvent.setup();
+    render(<MoonPhaseMoodInsights />);
+    const today = await screen.findByRole("button", { name: /Waxing Gibbous.*2 moods logged/ });
+    expect(today).toHaveTextContent("Today");
+    expect(screen.getByRole("complementary", { name: "Selected day's moon summary" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next: In your chart →" }));
+    await waitFor(() => expect(document.activeElement).toHaveAccessibleName("In your chart, step 2 of 3"));
+  });
+
   it("skips the chart step and offers a birthday invitation when none is saved", async () => {
     mocks.user = { pathwayPreferences: { saveBirthDetails: false } };
     vi.mocked(getMoonCycle).mockResolvedValue({ startDate: dateFor(0), endDate: dateFor(0), days: [{ date: dateFor(0), phase: null, illumination: null, moonSign: null, entryCount: 0, moodCounts: {} }] });
@@ -94,7 +105,7 @@ describe("daily astrology date path", () => {
     vi.mocked(getDailyHoroscope).mockRejectedValueOnce(new Error("provider down")).mockResolvedValueOnce({ sign: "aries", date: dateFor(0), text: "Available again.", provider: "Test" });
     render(<MoonPhaseMoodInsights />);
     expect(await screen.findByText("Today’s reading isn’t available right now.")).toBeInTheDocument();
-    expect(screen.getByText("Waxing Gibbous")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Waxing Gibbous" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("Available again.")).toBeInTheDocument();
   });
