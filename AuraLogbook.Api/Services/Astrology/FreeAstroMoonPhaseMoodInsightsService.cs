@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using AuraLogbook.Api.Models;
 using AuraLogbook.Api.Models.Dto;
@@ -181,7 +182,8 @@ public sealed class FreeAstroMoonPhaseMoodInsightsService : IMoonPhaseMoodInsigh
         if (!root.TryGetProperty(parent, out var element) || element.ValueKind != JsonValueKind.Object ||
             !element.TryGetProperty(property, out var value)) return null;
         if (value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var number)) return number;
-        if (value.ValueKind == JsonValueKind.String && decimal.TryParse(value.GetString(), out number)) return number;
+        if (value.ValueKind == JsonValueKind.String &&
+            decimal.TryParse(value.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out number)) return number;
         return null;
     }
 
