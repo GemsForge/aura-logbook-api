@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
 import { Box, Button, Typography } from "@mui/joy";
+import Air from "@mui/icons-material/Air";
+import AutoAwesome from "@mui/icons-material/AutoAwesome";
+import LocalFireDepartment from "@mui/icons-material/LocalFireDepartment";
+import Public from "@mui/icons-material/Public";
+import WaterDrop from "@mui/icons-material/WaterDrop";
 import { Link as RouterLink } from "react-router-dom";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAllMoodsQuery } from "@/store/moodApi";
@@ -34,6 +39,7 @@ export function ChakraReference() {
   const body = data?.graphics.find((item) => item.key === "chakra-body-map");
   const iconFor = (key: string, assetKey: string) => data?.graphics.find((item) => item.key === assetKey)?.path ?? `/theme-assets/pathways/astrology-energy/chakra-symbols/chakra-${key}.svg`;
   const colorAura = data?.auras.find((aura) => aura.displayName.toLowerCase() === current?.colorAssociation.toLowerCase());
+  const elementMark = current ? elementAssociationMark(current.elementAssociation) : null;
   // Count distinct recorded days, never infer an energetic condition from a mood key.
   const pattern = chakras.map((chakra) => {
     const keys = new Set(chakra.moodAssociationKeys.map((key) => key.toLowerCase()));
@@ -54,7 +60,7 @@ export function ChakraReference() {
       display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(0, .9fr) minmax(0, 1.1fr)" }, gridTemplateRows: { xs: "auto auto", sm: "minmax(0, 1fr)" }, gap: { xs: 1, sm: 3 } }}>
     {/* The figure is the picker: each center's symbol is a named, 44px button placed on the spine. */}
     <Box role="group" aria-label="Choose a chakra on the seated figure" className="aura-highlight"
-      sx={{ position: "relative", width: { xs: 216, sm: "100%" }, height: { xs: 270, sm: "auto" }, maxHeight: 360, aspectRatio: "4 / 5", alignSelf: "center", mx: "auto", minHeight: 0 }}>
+      sx={{ position: "relative", width: { xs: "min(100%, 216px)", sm: "100%" }, height: "auto", maxHeight: { xs: 270, sm: 360 }, maxWidth: "100%", aspectRatio: "4 / 5", alignSelf: "center", mx: "auto", minWidth: 0, minHeight: 0 }}>
       <Box component="img" src={body?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"}
         alt={body?.alternativeText ?? "Seated human silhouette with seven centers aligned along the spine"}
         sx={{ width: "100%", height: "100%", display: "block", objectFit: "contain", borderRadius: "sm" }} />
@@ -73,7 +79,7 @@ export function ChakraReference() {
                 outline: selected ? "2px solid var(--al-theme-focus)" : "none", outlineOffset: 2 }} />
           </Button>
           {/* Names sit beside the figure on wider screens; the aura connection label shows on its chakra everywhere. */}
-          <Typography level="body-xs" aria-hidden="true" sx={{ position: "absolute", top: 0, left: 26, transform: "translateY(-50%)", display: { xs: linked ? "block" : "none", sm: "block" }, whiteSpace: "nowrap", fontWeight: selected || linked ? 600 : 500,
+          <Typography level="body-xs" aria-hidden="true" sx={{ position: "absolute", top: 0, left: 26, transform: "translateY(-50%)", display: { xs: linked ? "block" : "none", sm: "block" }, maxWidth: { xs: "calc(50vw - 42px)", sm: "none" }, whiteSpace: { xs: "normal", sm: "nowrap" }, fontWeight: selected || linked ? 600 : 500,
             px: .5, py: .25, border: "1px solid var(--al-theme-control-border)", borderRadius: "sm", bgcolor: "var(--al-theme-surface)", color: "var(--al-theme-ink)", boxShadow: "0 0 10px var(--al-theme-glow)" }}>
             {linked ? <>{"★ "}<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>{chakra.displayName} · </Box>your aura<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}> today</Box></> : chakra.displayName}
           </Typography>
@@ -81,7 +87,13 @@ export function ChakraReference() {
       })}
     </Box>
 
-    <Box aria-live="polite" data-testid="chakra-detail-card" tabIndex={0} aria-label={`${current.displayName} details`} sx={{ minHeight: 0, overflow: { xs: "visible", sm: "auto" }, p: { xs: 1, sm: 1.5 }, border: "1px solid var(--al-theme-control-border)", borderRadius: "sm", bgcolor: "var(--al-theme-surface)", color: "var(--al-theme-ink)" }}>
+    <Box aria-live="polite" data-testid="chakra-detail-card" tabIndex={0} aria-label={`${current.displayName} details`} sx={{ position: "relative", isolation: "isolate", minHeight: 0, overflow: { xs: "visible", sm: "auto" }, scrollbarWidth: "thin", scrollbarColor: "color-mix(in srgb, var(--al-theme-ink-muted) 32%, transparent) transparent",
+      "&::-webkit-scrollbar": { width: 6 }, "&::-webkit-scrollbar-track": { background: "transparent" },
+      "&::-webkit-scrollbar-thumb": { backgroundColor: "color-mix(in srgb, var(--al-theme-ink-muted) 32%, transparent)", borderRadius: 999 },
+      "&:hover::-webkit-scrollbar-thumb": { backgroundColor: "color-mix(in srgb, var(--al-theme-ink-muted) 52%, transparent)" },
+      "& > :not([data-element-watermark])": { position: "relative", zIndex: 1 },
+      p: { xs: 1, sm: 1.5 }, border: "1px solid var(--al-theme-control-border)", borderRadius: "sm", bgcolor: "var(--al-theme-surface)", color: "var(--al-theme-ink)" }}>
+      {elementMark && <Box data-testid="chakra-element-watermark" data-element-watermark aria-hidden="true" sx={{ position: "absolute", right: 8, bottom: 8, zIndex: 0, fontSize: { xs: 88, sm: 144 }, lineHeight: 1, color: "var(--al-theme-ink-muted)", opacity: .1, pointerEvents: "none" }}>{elementMark}</Box>}
       <Box sx={{ display: "flex", gap: 1.25, alignItems: "center" }}>
         <Box component="img" src={iconFor(current.key, current.symbolAssetKey)} alt="" sx={{ width: 40, height: 40, objectFit: "contain" }} />
         <Typography component="h2" level="h3" className="pathway-display-title" aria-label={`${current.displayName} · ${current.sanskritName}`}>{current.displayName}</Typography>
@@ -96,7 +108,10 @@ export function ChakraReference() {
         {current.elementAssociation && <><Box component="dt" sx={{ color: "var(--al-theme-ink)" }}>Element association</Box><Box component="dd" sx={{ m: 0 }}>{current.elementAssociation}</Box></>}
         <Box component="dt" sx={{ color: "var(--al-theme-ink)" }}>Challenges in this lens</Box><Box component="dd" sx={{ m: 0 }}>{current.challengeAssociation}</Box>
       </Box>
-      <Box sx={{ borderTop: "1px solid var(--al-theme-border)", pt: .5 }}>
+      {/* Keep each disclosure summary's hit target on the label so the gap cannot toggle a panel. */}
+      <Box sx={{ borderTop: "1px solid var(--al-theme-border)", pt: .5,
+        "& > details.pathway-disclosure > summary": { boxSizing: "border-box", minHeight: 44, py: 0 },
+        "& > details + details": { mt: .5 } }}>
         <Box component="details" className="pathway-disclosure">
           <Box component="summary">This week and patterns</Box>
           <Typography level="body-sm" sx={{ mt: 1 }} data-testid="chakra-week-strip">{currentWeekDays ? `Your moods connected here on ${currentWeekDays} ${currentWeekDays === 1 ? "day" : "days"} this week.` : "No check-ins connected here this week."}</Typography>
@@ -112,6 +127,18 @@ export function ChakraReference() {
       <Typography level="body-xs" sx={{ mt: 1.5, color: "var(--al-theme-ink-muted)" }}>Associations vary and are offered for reflection only; they are not a diagnosis or universal teaching.</Typography>
     </Box>
   </Box>;
+}
+
+/** Returns a quiet background symbol for the chakra's named element association. */
+function elementAssociationMark(element?: string) {
+  switch (element?.trim().toLowerCase()) {
+    case "air": return <Air fontSize="inherit" />;
+    case "earth": return <Public fontSize="inherit" />;
+    case "fire": return <LocalFireDepartment fontSize="inherit" />;
+    case "space": return <AutoAwesome fontSize="inherit" />;
+    case "water": return <WaterDrop fontSize="inherit" />;
+    default: return null;
+  }
 }
 
 /** Local calendar boundaries keep the two-week pattern sample and the 7-day strip aligned with journal days. */

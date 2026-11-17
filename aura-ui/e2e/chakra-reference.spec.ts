@@ -45,6 +45,7 @@ for (const interfaceMode of ["light", "dark"] as const) for (const width of [320
 
   const detail = page.getByTestId("chakra-detail-card");
   expect(await detail.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toMatch(/rgba\(0, 0, 0, 0\)/);
+  expect(await detail.evaluate((element) => getComputedStyle(element).scrollbarWidth)).toBe("thin");
   const swatch = reference.getByTestId("chakra-color-swatch");
   await expect(swatch).toBeVisible();
   expect(await swatch.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgb(76, 175, 80)");
@@ -53,6 +54,7 @@ for (const interfaceMode of ["light", "dark"] as const) for (const width of [320
   await expect(page.getByRole("heading", { name: "Throat · Viśuddha" })).toBeVisible();
   await expect(reference.getByText("Communication, expression, and clarity.")).toBeVisible();
   await expect(reference.getByText("Blue", { exact: true })).toBeVisible();
+  await expect(reference.getByTestId("chakra-element-watermark")).toBeVisible();
   const throatButton = page.getByRole("button", { name: /Throat · Viśuddha/ });
   const throatIcon = await throatButton.locator("img").boundingBox();
   expect(figureBox && throatIcon && Math.abs(throatIcon.x + throatIcon.width / 2 - (figureBox.x + figureBox.width / 2))).toBeLessThanOrEqual(1);
@@ -61,6 +63,10 @@ for (const interfaceMode of ["light", "dark"] as const) for (const width of [320
   await page.getByText("Add a reflection", { exact: true }).click();
   await expect(page.getByText("Is there something you would like to express in your own words?", { exact: true })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Your reflection" })).toBeVisible();
+  const weekSummary = reference.locator("summary").filter({ hasText: "This week and patterns" });
+  const reflectionSummary = reference.locator("summary").filter({ hasText: "Add a reflection" });
+  const [weekBounds, reflectionBounds] = await Promise.all([weekSummary.boundingBox(), reflectionSummary.boundingBox()]);
+  expect(weekBounds && reflectionBounds && reflectionBounds.y - (weekBounds.y + weekBounds.height)).toBeLessThanOrEqual(8);
 
   const [updatedFigureBox, detailBox] = await Promise.all([figure.boundingBox(), detail.boundingBox()]);
   expect(updatedFigureBox && detailBox && (width < 600
