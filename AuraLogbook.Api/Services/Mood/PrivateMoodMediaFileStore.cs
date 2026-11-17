@@ -8,11 +8,11 @@ public sealed class PrivateMoodMediaFileStore : IMoodMediaFileStore
 {
     private readonly string _directory;
 
-    /// <summary>Resolves and creates the configured private directory, rejecting paths beneath wwwroot.</summary>
+    /// <summary>Resolves and creates the configured private directory, rejecting missing paths and paths beneath wwwroot.</summary>
     public PrivateMoodMediaFileStore(IOptions<StorageSettings> options, IWebHostEnvironment environment)
     {
         var configuredPath = string.IsNullOrWhiteSpace(options.Value.PrivateMediaPath)
-            ? "Data/private-media"
+            ? throw new InvalidOperationException("Storage:PrivateMediaPath must be configured for private mood media.")
             : options.Value.PrivateMediaPath;
         _directory = Path.GetFullPath(Path.IsPathRooted(configuredPath)
             ? configuredPath

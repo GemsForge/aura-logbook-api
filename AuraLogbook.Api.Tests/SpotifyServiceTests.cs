@@ -48,7 +48,9 @@ public sealed class SpotifyServiceTests
             clients.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient(handler, false));
             return new SpotifyService(Options.Create(new SpotifyOptions
             {
-                ClientId = configured ? "client" : "", ClientSecret = configured ? "secret" : ""
+                ClientId = configured ? "client" : "", ClientSecret = configured ? "secret" : "",
+                RedirectUri = "http://127.0.0.1:5082/api/spotify/callback",
+                FrontendRedirectUri = "http://127.0.0.1:58407/dashboard"
             }), Repository.Object, clients.Object, Protection);
         }
 

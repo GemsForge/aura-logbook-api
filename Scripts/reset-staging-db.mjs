@@ -10,7 +10,7 @@ if (process.argv[2] !== "--confirm") {
   throw new Error("Refusing to reset the staging database: pass --confirm explicitly.");
 }
 
-const databasePath = resolve(process.env.AURA_STAGING_DATABASE || "AuraLogbook.Api/Data/auralogbook-staging.db");
+const databasePath = resolve(process.env.AURA_STAGING_DATABASE || "AuraLogbook.Api/Data/auralogbook-fit.db");
 if (existsSync(databasePath)) {
   unlinkSync(databasePath);
   console.log(`Removed staging database: ${databasePath}`);
