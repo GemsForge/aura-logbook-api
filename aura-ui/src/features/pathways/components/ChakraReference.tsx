@@ -1,24 +1,45 @@
 import { useMemo, useState } from "react";
 import { Box, Button, Typography } from "@mui/joy";
+import Air from "@mui/icons-material/Air";
+import AutoAwesome from "@mui/icons-material/AutoAwesome";
+import LocalFireDepartment from "@mui/icons-material/LocalFireDepartment";
+import Public from "@mui/icons-material/Public";
+import WaterDrop from "@mui/icons-material/WaterDrop";
+import { Link as RouterLink } from "react-router-dom";
 import { useGetReferenceDataQuery } from "@/store/referenceDataApi";
 import { useGetAllMoodsQuery } from "@/store/moodApi";
 import type { MoodEntry } from "@/features/mood/models/schema";
 import { CHAKRA_BODY_MAP_TOP } from "../chakraReference";
+import { chakraDaysSince, latestEntry, linkMoodsToChakras } from "../chakraMoodLink";
 import { InsightFeedback } from "./InsightFeedback";
 import { PathwayReflectionPrompt } from "./PathwayReflectionPrompt";
 
-/** Body-led reference: named symbol controls update the educational detail and the artwork's selected marker. */
+/**
+ * Viewport-bounded chakra reference personalised by the user's latest check-in (#453).
+ * One bordered module, two halves: the seated-body figure is the only picker (each center's own
+ * symbol sits on the spine as a named button), and one detail card shows the selected center's
+ * meaning. The aura connection is shown on the chakra it links to; reflection and weekly context
+ * stay collapsed. Only inner regions scroll, never the page. Links come from aura `chakraKey`
+ * data and are reflective only, never diagnostic.
+ */
 export function ChakraReference() {
   const { data, isLoading, isError, refetch } = useGetReferenceDataQuery();
   const [selectedKey, setSelectedKey] = useState("");
   const chakras = useMemo(() => data?.chakras.filter((item) => Object.prototype.hasOwnProperty.call(CHAKRA_BODY_MAP_TOP, item.key)) ?? [], [data?.chakras]);
-  const current = chakras.find((item) => item.key === selectedKey) ?? chakras[0];
   const period = recentDateRange();
-  const { data: entries } = useGetAllMoodsQuery(period);
-  const moods: MoodEntry[] = entries ?? [];
+  const { data: entries, isLoading: moodsLoading } = useGetAllMoodsQuery({ startDate: period.startDate, endDate: period.endDate });
+  const moods: MoodEntry[] = useMemo(() => entries ?? [], [entries]);
+  const reference = useMemo(() => ({ moods: data?.moods ?? [], auras: data?.auras ?? [], chakras }), [data?.moods, data?.auras, chakras]);
+  const latest = latestEntry(moods);
+  const links = useMemo(() => latest ? linkMoodsToChakras(latest.moods, reference) : [], [latest, reference]);
+  const weekDays = useMemo(() => chakraDaysSince(moods, period.weekStart, reference), [moods, period.weekStart, reference]);
+  const linkedKeys = new Set(links.map((link) => link.chakra.key));
+  // Open on the chakra the current mood connects with; with no connection, begin at the crown.
+  const current = chakras.find((item) => item.key === selectedKey) ?? links[0]?.chakra ?? chakras.find((item) => item.key === "crown") ?? chakras[0];
   const body = data?.graphics.find((item) => item.key === "chakra-body-map");
-  const symbol = data?.graphics.find((item) => item.key === current?.symbolAssetKey);
-  const colorFor = (key: string) => data?.auras.find((item) => item.chakraKey?.replace(/_/g, "-") === key)?.baseHex ?? "var(--al-theme-primary)";
+  const iconFor = (key: string, assetKey: string) => data?.graphics.find((item) => item.key === assetKey)?.path ?? `/theme-assets/pathways/astrology-energy/chakra-symbols/chakra-${key}.svg`;
+  const colorAura = data?.auras.find((aura) => aura.displayName.toLowerCase() === current?.colorAssociation.toLowerCase());
+  const elementMark = current ? elementAssociationMark(current.elementAssociation) : null;
   // Count distinct recorded days, never infer an energetic condition from a mood key.
   const pattern = chakras.map((chakra) => {
     const keys = new Set(chakra.moodAssociationKeys.map((key) => key.toLowerCase()));
@@ -30,63 +51,103 @@ export function ChakraReference() {
   if (isError) return <Box><Typography role="status">Chakra reference is unavailable right now.</Typography><Button size="sm" variant="plain" onClick={() => void refetch()}>Try again</Button></Box>;
   if (!current) return <Typography role="status">No chakra references are available yet.</Typography>;
 
-  return <Box component="section" id="chakra-reference" aria-label="Chakra reference" sx={{ minWidth: 0 }}>
-    <Box data-testid="chakra-reference-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(180px, .8fr) minmax(0, 1.2fr)" }, gap: { xs: 2, md: 4 }, alignItems: "start" }}>
-      <Box sx={{ minWidth: 0 }}>
-        <Box role="group" aria-label="Seven chakra centers on a seated human figure" className="aura-highlight" sx={{ position: "relative", width: { xs: 216, sm: 256, md: 288 }, maxWidth: "100%", aspectRatio: "4 / 5", mx: "auto", borderRadius: "sm" }}>
-          <Box component="img" src={body?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"}
-            alt={body?.alternativeText ?? "Seated human silhouette with seven colored centers aligned along the spine"}
-            sx={{ width: "100%", height: "100%", display: "block", objectFit: "contain", borderRadius: "sm" }} />
-          {/* The small anatomical markers are visual only. Their equivalent named controls below
-              have separate 44px targets, so adjacent spine centers cannot intercept one another. */}
-          <Box aria-hidden="true" sx={{ position: "absolute", pointerEvents: "none", top: `${CHAKRA_BODY_MAP_TOP[current.key]}%`, left: "50%", transform: "translate(-50%, -50%)", width: 24, height: 24, borderRadius: "50%", border: "2px solid var(--al-theme-focus)", boxShadow: `0 0 12px ${colorFor(current.key)}` }} />
-        </Box>
-        <Typography level="body-xs" sx={{ mt: 1.5, textAlign: "center", color: "var(--al-theme-ink-muted)" }}>Choose a center by name to explore.</Typography>
-      </Box>
-      <Box sx={{ minWidth: 0 }}>
-        <Box role="group" aria-label="Choose a chakra" sx={{ display: "flex", flexWrap: "wrap", gap: .5, mb: 2 }}>
-          {chakras.map((chakra) => <Button key={chakra.key} size="sm" color="neutral" variant={chakra.key === current.key ? "soft" : "plain"} aria-pressed={chakra.key === current.key}
-            aria-label={`${chakra.displayName} · ${chakra.sanskritName}`} onClick={() => setSelectedKey(chakra.key)} sx={{ minHeight: 44, px: 1, gap: .75, borderRadius: "sm" }}>
-            <Box component="img" src={data?.graphics.find((item) => item.key === chakra.symbolAssetKey)?.path ?? `/theme-assets/pathways/astrology-energy/chakra-symbols/chakra-${chakra.key}.svg`} alt="" sx={{ width: 24, height: 24, objectFit: "contain" }} />{chakra.displayName}
-          </Button>)}
-        </Box>
-        <Box aria-live="polite" aria-atomic="true">
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-            {symbol && <Box component="img" src={symbol.path} alt="" sx={{ width: 44, height: 44, objectFit: "contain" }} />}
-            <Typography component="h2" level="h2" className="pathway-display-title" aria-label={`${current.displayName} · ${current.sanskritName}`}>{current.displayName}</Typography>
-          </Box>
-          <Typography level="body-sm" sx={{ mt: .75, color: "var(--al-theme-ink-muted)" }}>{current.sanskritName} · {current.bodyLocation}</Typography>
-          <Typography component="h3" level="title-md" sx={{ mt: 2.5 }}>{current.interpretiveTheme}</Typography>
-          <Typography className="pathway-reflection-quote" sx={{ mt: 1.5, pl: 2, borderLeft: "2px solid var(--al-theme-primary)" }}>{current.reflectionPrompt}</Typography>
-        </Box>
-        <InsightFeedback key={current.key} pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" />
-        <PathwayReflectionPrompt pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" prompt={current.reflectionPrompt} />
-        <Box component="details" sx={{ mt: 2 }} className="pathway-disclosure">
-          <Box component="summary">Read the reference</Box>
-          <Typography level="body-sm" sx={{ mt: 1 }}>{current.description}</Typography>
-          <Box component="dl" sx={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", gap: 1, fontSize: "var(--joy-fontSize-sm)", my: 2 }}>
-            <Box component="dt">Color association</Box><Box component="dd" sx={{ m: 0 }}>{current.colorAssociation}</Box>
-            {current.elementAssociation && <><Box component="dt">Element association</Box><Box component="dd" sx={{ m: 0 }}>{current.elementAssociation}</Box></>}
-            <Box component="dt">Challenges in this lens</Box><Box component="dd" sx={{ m: 0 }}>{current.challengeAssociation}</Box>
-          </Box>
-          <Typography level="body-xs" sx={{ color: "var(--al-theme-ink-muted)" }}>Common Sanskrit names and body locations meet a contemporary psychological lens. Associations vary; they are not a diagnosis or universal teaching.</Typography>
-        </Box>
-      </Box>
+  const currentLink = links.find((link) => link.chakra.key === current.key);
+  const currentWeekDays = weekDays.get(current.key) ?? 0;
+
+  return <Box component="section" id="chakra-reference" aria-label="Chakra reference" data-testid="chakra-reference"
+    // App chrome (page header above, footer below) is ~280px on desktop and ~420px on mobile (tabs, footer, bottom-nav padding).
+    sx={{ minWidth: 0, height: { xs: "auto", md: "calc(100dvh - 290px)" }, minHeight: { xs: 0, md: 240 }, p: { xs: 1, sm: 2 }, borderRadius: "md", border: "1px solid var(--al-theme-border)",
+      display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(0, .9fr) minmax(0, 1.1fr)" }, gridTemplateRows: { xs: "auto auto", sm: "minmax(0, 1fr)" }, gap: { xs: 1, sm: 3 } }}>
+    {/* The figure is the picker: each center's symbol is a named, 44px button placed on the spine. */}
+    <Box role="group" aria-label="Choose a chakra on the seated figure" className="aura-highlight"
+      sx={{ position: "relative", width: { xs: "min(100%, 216px)", sm: "100%" }, height: "auto", maxHeight: { xs: 270, sm: 360 }, maxWidth: "100%", aspectRatio: "4 / 5", alignSelf: "center", mx: "auto", minWidth: 0, minHeight: 0 }}>
+      <Box component="img" src={body?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"}
+        alt={body?.alternativeText ?? "Seated human silhouette with seven centers aligned along the spine"}
+        sx={{ width: "100%", height: "100%", display: "block", objectFit: "contain", borderRadius: "sm" }} />
+      {chakras.map((chakra, index) => {
+        const selected = chakra.key === current.key;
+        const linked = linkedKeys.has(chakra.key);
+        // Three invisible target lanes keep 44px controls separate while the visible symbols stay on the body's centerline.
+        const targetOffset = [0, -52, 52][index % 3];
+        const symbolTransform = targetOffset === 0 ? "translate(-50%, -50%)" : `translate(calc(-50% + ${-targetOffset}px), -50%)`;
+        return <Box key={chakra.key} sx={{ position: "absolute", top: `${CHAKRA_BODY_MAP_TOP[chakra.key]}%`, left: "50%", transform: "translate(-50%, -50%)", width: 0, height: 0, zIndex: selected ? 2 : 1 }}>
+          <Button size="sm" variant="plain" color="neutral" aria-pressed={selected}
+            aria-label={`${chakra.displayName} · ${chakra.sanskritName}${linked ? " · connects with your current mood" : ""}`} onClick={() => setSelectedKey(chakra.key)}
+            sx={{ position: "absolute", top: 0, left: targetOffset, transform: "translate(-50%, -50%)", p: 0, minHeight: 44, minWidth: 44, borderRadius: "50%", bgcolor: "transparent", "--variant-plainHoverBg": "transparent", "--variant-plainActiveBg": "transparent", "&:hover, &:active": { bgcolor: "transparent" }, "&:focus-visible": { outline: "none" } }}>
+            <Box component="img" alt="" src={iconFor(chakra.key, chakra.symbolAssetKey)}
+              sx={{ position: "absolute", top: "50%", left: "50%", transform: symbolTransform, width: { xs: 18, sm: 24 }, height: { xs: 18, sm: 24 }, objectFit: "contain", borderRadius: "50%",
+                outline: selected ? "2px solid var(--al-theme-focus)" : "none", outlineOffset: 2 }} />
+          </Button>
+          {/* Names sit beside the figure on wider screens; the aura connection label shows on its chakra everywhere. */}
+          <Typography level="body-xs" aria-hidden="true" sx={{ position: "absolute", top: 0, left: 26, transform: "translateY(-50%)", display: { xs: linked ? "block" : "none", sm: "block" }, maxWidth: { xs: "calc(50vw - 42px)", sm: "none" }, whiteSpace: { xs: "normal", sm: "nowrap" }, fontWeight: selected || linked ? 600 : 500,
+            px: .5, py: .25, border: "1px solid var(--al-theme-control-border)", borderRadius: "sm", bgcolor: "var(--al-theme-surface)", color: "var(--al-theme-ink)", boxShadow: "0 0 10px var(--al-theme-glow)" }}>
+            {linked ? <>{"★ "}<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>{chakra.displayName} · </Box>your aura<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}> today</Box></> : chakra.displayName}
+          </Typography>
+        </Box>;
+      })}
     </Box>
-    {pattern && <Box component="aside" aria-label="Optional mood and chakra reflection" sx={{ mt: 4, pt: 2, borderTop: "1px solid var(--al-theme-border)" }}>
-      <Typography component="h3" level="title-md">A pattern to explore</Typography>
-      <Typography level="body-sm" sx={{ mt: 1 }}>You logged {pattern.chakra.moodAssociationKeys.map((key) => data?.moods.find((mood) => mood.key.toLowerCase() === key.toLowerCase())?.displayName ?? key).join(" or ")} on {pattern.count} days in the past two weeks. Does the {pattern.chakra.interpretiveTheme.toLowerCase()} theme connect with your experience?</Typography>
-      <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-mood-pattern" />
-      <PathwayReflectionPrompt pathway="energy" moduleKey="chakra-reference" insightType="chakra-mood-pattern" prompt="What, if anything, does this pattern mean to you?" />
-    </Box>}
+
+    <Box aria-live="polite" data-testid="chakra-detail-card" tabIndex={0} aria-label={`${current.displayName} details`} sx={{ position: "relative", isolation: "isolate", minHeight: 0, overflow: { xs: "visible", sm: "auto" }, scrollbarWidth: "thin", scrollbarColor: "color-mix(in srgb, var(--al-theme-ink-muted) 32%, transparent) transparent",
+      "&::-webkit-scrollbar": { width: 6 }, "&::-webkit-scrollbar-track": { background: "transparent" },
+      "&::-webkit-scrollbar-thumb": { backgroundColor: "color-mix(in srgb, var(--al-theme-ink-muted) 32%, transparent)", borderRadius: 999 },
+      "&:hover::-webkit-scrollbar-thumb": { backgroundColor: "color-mix(in srgb, var(--al-theme-ink-muted) 52%, transparent)" },
+      "& > :not([data-element-watermark])": { position: "relative", zIndex: 1 },
+      p: { xs: 1, sm: 1.5 }, border: "1px solid var(--al-theme-control-border)", borderRadius: "sm", bgcolor: "var(--al-theme-surface)", color: "var(--al-theme-ink)" }}>
+      {elementMark && <Box data-testid="chakra-element-watermark" data-element-watermark aria-hidden="true" sx={{ position: "absolute", right: 8, bottom: 8, zIndex: 0, fontSize: { xs: 88, sm: 144 }, lineHeight: 1, color: "var(--al-theme-ink-muted)", opacity: .1, pointerEvents: "none" }}>{elementMark}</Box>}
+      <Box sx={{ display: "flex", gap: 1.25, alignItems: "center" }}>
+        <Box component="img" src={iconFor(current.key, current.symbolAssetKey)} alt="" sx={{ width: 40, height: 40, objectFit: "contain" }} />
+        <Typography component="h2" level="h3" className="pathway-display-title" aria-label={`${current.displayName} · ${current.sanskritName}`}>{current.displayName}</Typography>
+      </Box>
+      <Typography level="body-sm" sx={{ mt: .5, color: "var(--al-theme-ink-muted)" }}>{current.sanskritName} · {current.bodyLocation}</Typography>
+      {currentLink && <Typography level="body-sm" sx={{ mt: 1, color: "var(--al-theme-primary)" }}>★ Your {currentLink.moodName.toLowerCase()} mood ({currentLink.auraName}) connects here.</Typography>}
+      {!moodsLoading && !latest && <Typography level="body-sm" sx={{ mt: 1, color: "var(--al-theme-ink-muted)" }}>Log a mood to see where your aura connects. <RouterLink to="/dashboard">Check in</RouterLink></Typography>}
+      {/* The center's meaning is the card's main content (formerly behind "Read more"). */}
+      <Typography level="body-md" sx={{ mt: 1.5 }}>{current.description}</Typography>
+      <Box component="dl" sx={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", columnGap: 2, rowGap: .75, fontSize: "var(--joy-fontSize-sm)", my: 1.5 }}>
+        <Box component="dt" sx={{ color: "var(--al-theme-ink)" }}>Color association</Box><Box component="dd" sx={{ m: 0, display: "inline-flex", alignItems: "center", gap: .75 }}><Box data-testid="chakra-color-swatch" aria-hidden="true" sx={{ width: 18, height: 18, flex: "0 0 18px", border: "1px solid var(--al-theme-control-border)", borderRadius: "50%", bgcolor: colorAura?.baseHex ?? current.colorAssociation.toLowerCase() }} />{current.colorAssociation}</Box>
+        {current.elementAssociation && <><Box component="dt" sx={{ color: "var(--al-theme-ink)" }}>Element association</Box><Box component="dd" sx={{ m: 0 }}>{current.elementAssociation}</Box></>}
+        <Box component="dt" sx={{ color: "var(--al-theme-ink)" }}>Challenges in this lens</Box><Box component="dd" sx={{ m: 0 }}>{current.challengeAssociation}</Box>
+      </Box>
+      {/* Keep each disclosure summary's hit target on the label so the gap cannot toggle a panel. */}
+      <Box sx={{ borderTop: "1px solid var(--al-theme-border)", pt: .5,
+        "& > details.pathway-disclosure > summary": { boxSizing: "border-box", minHeight: 44, py: 0 },
+        "& > details + details": { mt: .5 } }}>
+        <Box component="details" className="pathway-disclosure">
+          <Box component="summary">This week and patterns</Box>
+          <Typography level="body-sm" sx={{ mt: 1 }} data-testid="chakra-week-strip">{currentWeekDays ? `Your moods connected here on ${currentWeekDays} ${currentWeekDays === 1 ? "day" : "days"} this week.` : "No check-ins connected here this week."}</Typography>
+          {pattern && <Box sx={{ mt: 1 }} role="group" aria-label="Optional mood and chakra reflection">
+            <Typography level="title-sm">A pattern to explore</Typography>
+            <Typography level="body-sm" sx={{ mt: .5 }}>You logged {pattern.chakra.moodAssociationKeys.map((key) => data?.moods.find((mood) => mood.key.toLowerCase() === key.toLowerCase())?.displayName ?? key).join(" or ")} on {pattern.count} days in the past two weeks. Does the {pattern.chakra.interpretiveTheme.toLowerCase()} theme connect with your experience?</Typography>
+            <InsightFeedback pathway="energy" moduleKey="chakra-reference" insightType="chakra-mood-pattern" />
+          </Box>}
+        </Box>
+        {/* The reflection prompt renders only inside "Add a reflection". */}
+        <PathwayReflectionPrompt key={current.key} pathway="energy" moduleKey="chakra-reference" insightType="chakra-theme" prompt={current.reflectionPrompt} />
+      </Box>
+      <Typography level="body-xs" sx={{ mt: 1.5, color: "var(--al-theme-ink-muted)" }}>Associations vary and are offered for reflection only; they are not a diagnosis or universal teaching.</Typography>
+    </Box>
   </Box>;
 }
 
-/** Local calendar boundaries keep the reference's two-week sample aligned with journal days. */
+/** Returns a quiet background symbol for the chakra's named element association. */
+function elementAssociationMark(element?: string) {
+  switch (element?.trim().toLowerCase()) {
+    case "air": return <Air fontSize="inherit" />;
+    case "earth": return <Public fontSize="inherit" />;
+    case "fire": return <LocalFireDepartment fontSize="inherit" />;
+    case "space": return <AutoAwesome fontSize="inherit" />;
+    case "water": return <WaterDrop fontSize="inherit" />;
+    default: return null;
+  }
+}
+
+/** Local calendar boundaries keep the two-week pattern sample and the 7-day strip aligned with journal days. */
 function recentDateRange() {
   const end = new Date();
   const start = new Date(end);
   start.setDate(start.getDate() - 13);
+  const week = new Date(end);
+  week.setDate(week.getDate() - 6);
   const localDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  return { startDate: localDate(start), endDate: localDate(end) };
+  return { startDate: localDate(start), endDate: localDate(end), weekStart: localDate(week) };
 }
