@@ -44,6 +44,8 @@ function startApi(connectionString) {
       ASPNETCORE_URLS: `http://127.0.0.1:${port}`,
       Database__ConnectionString: connectionString,
       Jwt__Key: jwtKey,
+      // Production startup requires a CORS origin; this smoke test uses a non-routable placeholder.
+      ...(target === "prod" ? { Cors__AllowedOrigins__0: "https://aura.example" } : {}),
     },
   });
   child.stdout.on("data", (chunk) => output.push(chunk));
