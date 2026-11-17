@@ -53,14 +53,16 @@ export function ChakraReference() {
       display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "minmax(0, .9fr) minmax(0, 1.1fr)" }, gridTemplateRows: { xs: "auto minmax(0, 1fr)", sm: "minmax(0, 1fr)" }, gap: { xs: 1, sm: 3 } }}>
     {/* The figure is the picker: each center's symbol is a named, 44px button placed on the spine. */}
     <Box role="group" aria-label="Choose a chakra on the seated figure" className="aura-highlight"
-      sx={{ position: "relative", height: { xs: 150, sm: "100%" }, maxHeight: 520, aspectRatio: "4 / 5", mx: "auto", minHeight: 0 }}>
+      sx={{ position: "relative", width: { xs: 256, sm: "100%" }, height: { xs: 320, sm: "auto" }, maxHeight: 520, aspectRatio: "4 / 5", alignSelf: "center", mx: "auto", minHeight: 0 }}>
       <Box component="img" src={body?.path ?? "/theme-assets/pathways/astrology-energy/chakra-illustrations/chakra-body-map.svg"}
         alt={body?.alternativeText ?? "Seated human silhouette with seven centers aligned along the spine"}
         sx={{ width: "100%", height: "100%", display: "block", objectFit: "contain", borderRadius: "sm" }} />
-      {chakras.map((chakra) => {
+      {chakras.map((chakra, index) => {
         const selected = chakra.key === current.key;
         const linked = linkedKeys.has(chakra.key);
-        return <Box key={chakra.key} sx={{ position: "absolute", top: `${CHAKRA_BODY_MAP_TOP[chakra.key]}%`, left: "50%", transform: "translate(-22px, -50%)", display: "flex", alignItems: "center", gap: .5, zIndex: selected ? 2 : 1 }}>
+        // Phone targets alternate around the spine so 44px buttons stay separate despite close vertical centers.
+        const phoneTransform = index % 2 === 0 ? "translate(-47px, -50%)" : "translate(3px, -50%)";
+        return <Box key={chakra.key} sx={{ position: "absolute", top: `${CHAKRA_BODY_MAP_TOP[chakra.key]}%`, left: "50%", transform: { xs: phoneTransform, sm: "translate(-22px, -50%)" }, display: "flex", alignItems: "center", gap: .5, zIndex: selected ? 2 : 1 }}>
           <Button size="sm" variant="plain" color="neutral" aria-pressed={selected}
             aria-label={`${chakra.displayName} · ${chakra.sanskritName}${linked ? " · connects with your current mood" : ""}`} onClick={() => setSelectedKey(chakra.key)}
             sx={{ p: 0, minHeight: 44, minWidth: 44, borderRadius: "50%", bgcolor: selected ? "var(--al-theme-surface, rgba(255,255,255,.12))" : "transparent" }}>
@@ -71,7 +73,7 @@ export function ChakraReference() {
           {/* Names sit beside the figure on wider screens; the aura connection label shows on its chakra everywhere. */}
           <Typography level="body-xs" aria-hidden="true" sx={{ display: { xs: linked ? "block" : "none", sm: "block" }, whiteSpace: "nowrap", fontWeight: selected || linked ? 600 : 400,
             color: selected || linked ? "var(--al-theme-ink)" : "var(--al-theme-ink-muted)", textShadow: "0 0 4px var(--al-theme-bg, transparent)" }}>
-            {linked ? <>{"★ "}<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>{chakra.displayName} · </Box>your aura today</> : chakra.displayName}
+            {linked ? <>{"★ "}<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>{chakra.displayName} · </Box>your aura<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}> today</Box></> : chakra.displayName}
           </Typography>
         </Box>;
       })}
