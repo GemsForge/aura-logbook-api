@@ -52,7 +52,8 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddCors();
+var corsPolicy = CorsOriginPolicy.Create(builder.Configuration, builder.Environment);
+builder.Services.AddCors(options => options.AddDefaultPolicy(corsPolicy));
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
 builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
 // Prefer the documented deployment secret name while retaining ASP.NET's section-based alias.
@@ -172,10 +173,7 @@ app.Services.GetRequiredService<DatabaseMigrator>().ApplyMigrations();
 await app.Services.GetRequiredService<ReflectionStartupImporter>().ImportAsync();
 if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"))
     await app.Services.GetRequiredService<JsonUserSeeder>().SeedUsersAsync();
-app.UseCors(policy =>
-    policy.AllowAnyOrigin()
-          .AllowAnyMethod()
-          .AllowAnyHeader());
+app.UseCors();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
