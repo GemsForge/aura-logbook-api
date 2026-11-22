@@ -3,7 +3,7 @@
 <!-- Owner-run guide for issue #449. It names settings only; never paste secret values into this file, issues, or PRs. -->
 
 This guide sets up a free Azure home for Aura Logbook: the API on Azure App
-Service (Free F1, Linux, .NET 9) and the website on Azure Static Web Apps
+Service (Free F1, Linux, .NET 10 LTS) and the website on Azure Static Web Apps
 (Free). You perform every portal step; secret values stay in Azure and GitHub.
 
 Non-goals: custom domains, paid tiers, containers.
@@ -50,15 +50,16 @@ _Screenshot placeholder: resource group overview._
 3. **Basics** tab, **Instance details**:
    - **Name:** `auralogbook-api` (must be globally unique; if taken, add a
      suffix such as `auralogbook-api-gf` and use that name everywhere below).
+   - If the portal shows no hostname toggle and a random suffix appears under the name (for example `-abc123.westus3-01.azurewebsites.net`), that is expected: use that full address everywhere this guide says `auralogbook-api.azurewebsites.net`.
    - **Secure unique default hostname:** turn **off** so the address is the
      simple `https://<name>.azurewebsites.net`. (If you leave it on, Azure
      adds random characters; then copy the real **Default domain** from the
      Overview page and use it wherever this guide says
      `auralogbook-api.azurewebsites.net`.)
    - **Publish:** `Code`.
-   - **Runtime stack:** `.NET 9 (STS)`.
+   - **Runtime stack:** `.NET 10 (LTS)`. .NET 9 is no longer offered (support ended November 2026); the API must target `net10.0` first (issue #461).
    - **Operating System:** `Linux`.
-   - **Region:** the same region as the resource group (`East US`).
+   - **Region:** any region offering Free F1 (for example `East US` or `West US 3`). It need not match the resource group; use a nearby region for the Static Web App too.
 4. **Basics** tab, **Pricing plans**:
    - **Linux Plan:** **Create new** → name `asp-auralogbook` → **OK**.
    - **Pricing plan:** click **Explore pricing plans** → **Dev/Test** →
@@ -66,17 +67,21 @@ _Screenshot placeholder: resource group overview._
      (Basic/Premium cost money).
    - **Zone redundancy:** Disabled (or not shown on F1).
 5. **Database** tab (if shown): leave unchecked. The app uses its own SQLite file.
-6. **Deployment** tab: **Continuous deployment:** `Disable`. The GitHub
-   workflow from #450 deploys instead.
+6. **Deployment** tab: **Continuous deployment:** `Disable`. A warning may say
+   GitHub Actions setup is not supported for this OS and plan; that is
+   expected. The portal wizard cannot generate a workflow on Linux Free F1,
+   but GitHub Actions still works: the repository workflow from #450 builds,
+   tests, and deploys with the `AZURE_API_PUBLISH_PROFILE` secret (step 6),
+   and keeps the workflow under the repository CI and commit policies.
 7. **Networking** tab: **Enable public access:** `On`. Leave the rest.
 8. **Monitoring + secure** tab: **Enable Application Insights:** `No`
    (avoids possible charges). Leave Defender off.
 9. Skip **Tags**. **Review + create** → confirm the summary says **Free F1**,
-   **Linux**, **.NET 9** → **Create**.
+   **Linux**, **.NET 10 (LTS)** → **Create**.
 10. When deployment finishes → **Go to resource**. On **Overview**, copy the
     **Default domain** (for example `auralogbook-api.azurewebsites.net`).
 11. Left menu → **Settings → Configuration → General settings**:
-    - **Stack settings:** .NET, version 9.
+    - **Stack settings:** .NET, version 10 (LTS).
     - **SCM Basic Auth Publishing Credentials:** `On` (needed to download the
       publish profile in step 6). **Save**.
     - **Always on** is unavailable on F1; that is expected.
@@ -158,7 +163,7 @@ _Screenshot placeholder: App settings list with values hidden._
 ## Verification checklist
 
 - [ ] Resource group `rg-auralogbook` exists.
-- [ ] App Service (Free F1, Linux, .NET 9) exists.
+- [ ] App Service (Free F1, Linux, .NET 10 LTS) exists.
 - [ ] Static Web App (Free) exists and its URL is recorded.
 - [ ] All app settings in step 4 are entered (names reviewed; values never shared).
 - [ ] Spotify redirect URI registered and matching.
