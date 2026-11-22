@@ -6,7 +6,7 @@ This guide sets up a free Azure home for Aura Logbook: the API on Azure App
 Service (Free F1, Linux, .NET 10 LTS) and the website on Azure Static Web Apps
 (Free). You perform every portal step; secret values stay in Azure and GitHub.
 
-Non-goals: custom domains, paid tiers, containers.
+Non-goals: custom domain for the API, paid tiers, containers. A custom domain for the website is optional (step 3a).
 
 > The Free F1 plan sleeps when idle (the first request is slow) and has daily
 > CPU limits. That is acceptable for this portfolio app.
@@ -113,6 +113,46 @@ _Screenshot placeholder: App Service overview showing the default domain._
 
 _Screenshot placeholder: Static Web App overview showing the URL._
 
+## 3a. Optional: custom domain for the website (Cloudflare DNS)
+
+The Free Static Web Apps plan supports custom domains with a free, automatic
+HTTPS certificate. The API on Free F1 cannot use a custom domain; it keeps its
+`azurewebsites.net` address, which visitors never see.
+
+Example: `aura.gemsforge.com`. DNS for `gemsforge.com` is hosted on
+**Cloudflare** (the domain is registered at Squarespace, but its nameservers
+point to Cloudflare). Records added in Squarespace have no effect. Check with
+`dig +short NS gemsforge.com`.
+
+1. Static Web App → **Settings → Custom domains** → **+ Add** → **Custom
+   domain on other DNS**. (Not "Azure DNS", which costs money, and not "New
+   Custom Domain", which buys a domain.)
+2. **Domain name:** `aura.gemsforge.com` → **Next**.
+3. Azure validates ownership. It may offer **CNAME** or fall back to **TXT**;
+   each new attempt generates a **new TXT code**, so always copy the value
+   currently shown in Azure.
+
+   **TXT validation (what worked):** a name cannot hold a CNAME and a TXT
+   record at the same time, so:
+   1. Cloudflare → **DNS → Records**: delete any `aura` CNAME.
+   2. **Add record:** Type `TXT`, Name `aura`, Content = the value from
+      Azure's copy icon, TTL Auto → **Save**. Keep only one `aura` TXT record.
+   3. Verify: `dig +short TXT aura.gemsforge.com @1.1.1.1` must print the same
+      code Azure shows.
+   4. Wait for Azure status **Validated** (minutes with Cloudflare, despite the
+      "up to 12 hours" banner). Click **Refresh** to update. If several
+      `aura.gemsforge.com` entries appear in Azure, delete all but the newest.
+4. Direct traffic to the app: in Cloudflare delete the `aura` TXT record and
+   add Type `CNAME`, Name `aura`, Target = the Static Web App's
+   auto-generated host (for example `<generated>.azurestaticapps.net`),
+   **Proxy status: DNS only** (grey cloud), TTL Auto. The orange proxy blocks
+   Azure validation and certificate renewal.
+5. Verify: `dig +short CNAME aura.gemsforge.com @1.1.1.1` returns the
+   `azurestaticapps.net` host, and `https://aura.gemsforge.com` loads with a
+   valid certificate after the first deployment.
+6. Add the domain as a second CORS origin in step 4:
+   `Cors__AllowedOrigins__1=https://aura.gemsforge.com`.
+
 ## 4. Enter API app settings
 
 App Service `auralogbook-api` → **Settings → Environment variables → App
@@ -130,6 +170,7 @@ settings** → add each name below → **Apply** → confirm the restart.
 | `Database__ConnectionString` | `Data Source=/home/data/auralogbook.db` |
 | `Storage__PrivateMediaPath` | `/home/data/private-media` |
 | `Cors__AllowedOrigins__0` | The UI origin from step 3 (scheme + host, no path, no trailing slash) |
+| `Cors__AllowedOrigins__1` | Optional custom domain from step 3a, for example `https://aura.gemsforge.com` |
 
 Notes:
 
