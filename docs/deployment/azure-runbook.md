@@ -67,7 +67,8 @@ _Screenshot placeholder: resource group overview._
      (Basic/Premium cost money).
    - **Zone redundancy:** Disabled (or not shown on F1).
 5. **Database** tab (if shown): leave unchecked. The app uses its own SQLite file.
-6. **Deployment** tab: **Continuous deployment:** `Disable`. A warning may say
+6. **Deployment** tab: **Basic authentication:** `Enable` (required for the publish profile in step 6).
+    **Continuous deployment:** `Disable`. A warning may say
    GitHub Actions setup is not supported for this OS and plan; that is
    expected. The portal wizard cannot generate a workflow on Linux Free F1,
    but GitHub Actions still works: the repository workflow from #450 builds,
