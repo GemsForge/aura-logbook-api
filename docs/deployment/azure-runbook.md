@@ -71,7 +71,7 @@ _Screenshot placeholder: resource group overview._
 
    ![Deployment tab: Basic authentication set to Enable](images/app-service-basic-auth.png)
 
-    **Continuous deployment:** `Disable`. A warning may say
+   **Continuous deployment:** `Disable`. A warning may say
    GitHub Actions setup is not supported for this OS and plan; that is
    expected. The portal wizard cannot generate a workflow on Linux Free F1,
    but GitHub Actions still works: the repository workflow from #450 builds,
