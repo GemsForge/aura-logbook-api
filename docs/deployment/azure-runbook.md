@@ -195,10 +195,10 @@ _Screenshot placeholder: App settings list with values hidden._
    General settings → SCM Basic Auth Publishing Credentials** first.)
 2. Static Web App `auralogbook-ui` → **Overview** → **Manage deployment
    token** → copy.
-3. GitHub → `aura-logbook` → **Settings → Secrets and variables → Actions**:
-   - Secret `AZURE_API_PUBLISH_PROFILE` = full contents of the publish profile file.
-   - Secret `AZURE_SWA_TOKEN` = the deployment token.
-   - Variable `VITE_API_BASE_URL` = `https://auralogbook-api.azurewebsites.net/api`
+3. GitHub → `aura-logbook-api` → **Settings → Environments** → **prod** (create it if missing). Under **Deployment branches and tags** choose **Selected branches and tags** → add `master`. Then add (environment-scoped, so only `master` deploy jobs using `environment: prod` can read them):
+   - Environment secret `AZURE_API_PUBLISH_PROFILE` = full contents of the publish profile file.
+   - Environment secret `AZURE_SWA_TOKEN` = the deployment token.
+   - Environment variable `VITE_API_BASE_URL` = `https://auralogbook-api.azurewebsites.net/api`
      (public build setting used by #450).
 4. Delete the downloaded publish profile file from your computer.
 
