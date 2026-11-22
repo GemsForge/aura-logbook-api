@@ -28,38 +28,82 @@ Pick names now and use them throughout (examples):
 
 ## 1. Create the resource group
 
-1. Portal → **Resource groups** → **Create**.
-2. Subscription: yours. Name: `rg-auralogbook`. Region: one close to you
-   (use the same region for everything below).
-3. **Review + create** → **Create**.
+A resource group is a folder that holds everything for this app.
+
+1. Portal search bar → type **Resource groups** → open it → **+ Create**.
+2. **Basics** tab:
+   - **Subscription:** `Azure subscription 1` (your free subscription).
+   - **Resource group name:** `rg-auralogbook`
+   - **Region:** `(US) East US`. Write it down; use it for everything below.
+3. Skip **Tags**. Click **Review + create** → wait for "Validation passed" →
+   **Create**.
+4. Wait for the "Resource group created" notification (bell icon, top right).
 
 _Screenshot placeholder: resource group overview._
 
 ## 2. Create the API (App Service, Free F1)
 
-1. Portal → **App Services** → **Create** → **Web App**.
-2. Resource group: `rg-auralogbook`. Name: `auralogbook-api`.
-3. Publish: **Code**. Runtime stack: **.NET 9 (STS)**. OS: **Linux**.
-4. Pricing plan: create a new Linux plan and choose **Free F1**.
-5. **Review + create** → **Create**.
-6. Open the app → **Settings → Configuration → General settings**: confirm
-   the stack is .NET 9. Leave **Always On** off (not available on F1).
+1. Portal search bar → **App Services** → **+ Create** → **Web App**.
+2. **Basics** tab, **Project details**:
+   - **Subscription:** `Azure subscription 1`.
+   - **Resource Group:** `rg-auralogbook`.
+3. **Basics** tab, **Instance details**:
+   - **Name:** `auralogbook-api` (must be globally unique; if taken, add a
+     suffix such as `auralogbook-api-gf` and use that name everywhere below).
+   - **Secure unique default hostname:** turn **off** so the address is the
+     simple `https://<name>.azurewebsites.net`. (If you leave it on, Azure
+     adds random characters; then copy the real **Default domain** from the
+     Overview page and use it wherever this guide says
+     `auralogbook-api.azurewebsites.net`.)
+   - **Publish:** `Code`.
+   - **Runtime stack:** `.NET 9 (STS)`.
+   - **Operating System:** `Linux`.
+   - **Region:** the same region as the resource group (`East US`).
+4. **Basics** tab, **Pricing plans**:
+   - **Linux Plan:** **Create new** → name `asp-auralogbook` → **OK**.
+   - **Pricing plan:** click **Explore pricing plans** → **Dev/Test** →
+     select **Free F1** (shows $0) → **Select**. Do not keep the default
+     (Basic/Premium cost money).
+   - **Zone redundancy:** Disabled (or not shown on F1).
+5. **Database** tab (if shown): leave unchecked. The app uses its own SQLite file.
+6. **Deployment** tab: **Continuous deployment:** `Disable`. The GitHub
+   workflow from #450 deploys instead.
+7. **Networking** tab: **Enable public access:** `On`. Leave the rest.
+8. **Monitoring + secure** tab: **Enable Application Insights:** `No`
+   (avoids possible charges). Leave Defender off.
+9. Skip **Tags**. **Review + create** → confirm the summary says **Free F1**,
+   **Linux**, **.NET 9** → **Create**.
+10. When deployment finishes → **Go to resource**. On **Overview**, copy the
+    **Default domain** (for example `auralogbook-api.azurewebsites.net`).
+11. Left menu → **Settings → Configuration → General settings**:
+    - **Stack settings:** .NET, version 9.
+    - **SCM Basic Auth Publishing Credentials:** `On` (needed to download the
+      publish profile in step 6). **Save**.
+    - **Always on** is unavailable on F1; that is expected.
+
+`/home` is App Service persistent storage, so the database and private
+media live under `/home/data`. Keep **Scale out** at 1 instance (SQLite
+allows one writer).
 
 _Screenshot placeholder: App Service overview showing the default domain._
 
-`/home` is the App Service persistent storage, so the database and private
-media live under `/home/data`. Run a single instance only (SQLite allows one
-writer).
-
 ## 3. Create the website (Static Web Apps, Free)
 
-1. Portal → **Static Web Apps** → **Create**.
-2. Resource group: `rg-auralogbook`. Name: `auralogbook-ui`. Plan: **Free**.
-3. Deployment source: **Other** (the GitHub Actions workflow from #450 will
-   deploy it; do not let the portal generate a workflow).
-4. **Review + create** → **Create**.
-5. Copy the generated URL (`https://<generated>.azurestaticapps.net`). This
-   is the **UI origin** used below.
+1. Portal search bar → **Static Web Apps** → **+ Create**.
+2. **Basics** tab:
+   - **Subscription:** `Azure subscription 1`.
+   - **Resource Group:** `rg-auralogbook`.
+   - **Name:** `auralogbook-ui`.
+   - **Plan type:** `Free`.
+   - **Source** (Deployment details): **Other**. Do not pick GitHub; the
+     portal would commit its own workflow. The #450 workflow deploys with a
+     token instead.
+3. **Advanced** tab (if shown): region for staging/API features → `East US 2`
+   (or the closest offered). This does not cost anything on Free.
+4. Skip **Tags**. **Review + create** → confirm **Plan: Free** → **Create**.
+5. **Go to resource**. On **Overview**, copy the **URL**
+   (`https://<generated>.azurestaticapps.net`). This is the **UI origin**
+   used in step 4.
 
 _Screenshot placeholder: Static Web App overview showing the URL._
 
