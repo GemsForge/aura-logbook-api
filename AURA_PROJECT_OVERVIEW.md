@@ -41,7 +41,7 @@ Color, emoji, hover, and motion must never be the only way to understand a state
 
 ## Technical shape
 
-- **Backend:** .NET 9 and ASP.NET Core REST API
+- **Backend:** .NET 10 (LTS) and ASP.NET Core REST API
 - **Frontend:** React 19, TypeScript, Vite, Redux Toolkit/RTK Query, Axios, and React Router
 - **UI:** Material UI, Joy UI, Emotion, and Recharts
 - **Authentication:** JWT bearer tokens with BCrypt password hashing

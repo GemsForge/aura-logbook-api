@@ -12,6 +12,7 @@ This index separates current project guidance from preserved historical material
 | UI configuration and checks | [UI README](../aura-ui/README.md) |
 | Major libraries, tools, and external services | [Dependencies and tools](../DEPENDENCIES.md) |
 | Runtime aliases, configuration order, seeding, and migrations | [Runtime environments](runtime-environments.md) |
+| First no-cost hosting pilot, free-tier tradeoffs, and staging domains | [☁️ First hosting pilot](first-hosting-pilot.md) |
 
 ## Product and experience guidance
 
