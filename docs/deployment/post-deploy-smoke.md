@@ -25,7 +25,26 @@ between attempts. It accepts only a JSON health response with
 `status: "healthy"`, then requires the UI root to return HTTP 200. The script
 does not print the health response body or deployment URLs to logs.
 
-## Call it from a deployment workflow
+## Deployment workflow configuration
+
+The production workflow validates the API and UI, packages both artifacts,
+waits for the `prod` environment protection rules, deploys the API before the
+UI, then calls this workflow as its final job. Configure these non-secret
+repository variables:
+
+- `VITE_API_BASE_URL`, including `/api`, for example
+  `https://auralogbook-api.azurewebsites.net/api`.
+- `AZURE_API_URL`, the API origin without a path, for example
+  `https://auralogbook-api.azurewebsites.net`.
+- `AZURE_UI_URL`, the UI origin without a path, for example
+  `https://aura.gemsforge.com`.
+
+The `prod` GitHub environment must contain the `AZURE_API_PUBLISH_PROFILE` and
+`AZURE_SWA_TOKEN` secrets and should restrict deployments to `master`. Configure
+required reviewers in that environment if production approval is desired. The
+workflow never passes those secrets to pull-request jobs.
+
+## Call it from another deployment workflow
 
 After the API and UI deployment jobs succeed, a deployment workflow can call
 the reusable workflow as its final job:
