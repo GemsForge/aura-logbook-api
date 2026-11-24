@@ -17,11 +17,11 @@
 
 ## Tech stack
 
-Aura Logbook has a .NET 9 / ASP.NET Core API and a separate React, TypeScript, and Vite UI. Development and FIT/Staging use SQLite through Dapper with versioned startup migrations. The committed JSON files are retained as import and local-development seed sources rather than the active Development data store.
+Aura Logbook has a .NET 10 (LTS) / ASP.NET Core API and a separate React, TypeScript, and Vite UI. Development and FIT/Staging use SQLite through Dapper with versioned startup migrations. The committed JSON files are retained as import and local-development seed sources rather than the active Development data store.
 
 ## Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js 20 or newer](https://nodejs.org/) and npm
 - Git
 

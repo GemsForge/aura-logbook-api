@@ -10,13 +10,13 @@ This is a maintained overview of the project's major runtime dependencies, exter
 
 | Area | Dependency/tool | Purpose |
 | --- | --- | --- |
-| Backend | .NET 9 (`net9.0` target) / ASP.NET Core | Web API host, controllers, dependency injection, configuration, logging, and HTTP client infrastructure. |
+| Backend | .NET 10 LTS (`net10.0` target) / ASP.NET Core | Web API host, controllers, dependency injection, configuration, logging, and HTTP client infrastructure. |
 | Frontend | React 19 and React DOM | Browser UI and rendering. |
 | Frontend build | Node.js 20 in GitHub Actions; npm | Frontend package installation, tests, lint, and builds. |
 | Frontend bundler | Vite 6 | Development server and production asset bundling. |
 | Source control automation | GitHub Actions | Pull-request policies, issue/PR metadata synchronization, and UI validation. |
 
-Use a .NET 9 SDK locally to match the backend target. The UI CI currently pins Node.js 20 and installs from the committed npm lockfile with `npm ci`.
+Use a .NET 10 SDK locally to match the backend target. The UI CI currently pins Node.js 20 and installs from the committed npm lockfile with `npm ci`.
 
 ## Backend packages
 
@@ -24,7 +24,7 @@ Direct package references declared by `AuraLogbook.Api.csproj`:
 
 | Package | Declared version | Role / status |
 | --- | --- | --- |
-| `Microsoft.AspNetCore.Authentication.JwtBearer` | `8.0.17` | Bearer-token authentication for the API's JWT-protected routes. |
+| `Microsoft.AspNetCore.Authentication.JwtBearer` | `10.0.15` | Bearer-token authentication for the API's JWT-protected routes. |
 | `Swashbuckle.AspNetCore` | `6.6.2` | Swagger/OpenAPI document and development UI. |
 | `BCrypt.Net-Next` | `4.0.3` | Password hashing and verification. |
 | `Dapper` | `2.1.66` | SQL mapping used by the active SQLite repositories and migration/data-access path. |

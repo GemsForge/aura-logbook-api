@@ -25,7 +25,7 @@ if (!aspnet) {
 
 const repo = resolve(import.meta.dirname, "..");
 const project = join(repo, "AuraLogbook.Api");
-const apiDll = join(project, "bin", "Release", "net9.0", "AuraLogbook.Api.dll");
+const apiDll = join(project, "bin", "Release", "net10.0", "AuraLogbook.Api.dll");
 const root = join(repo, ".ci", "db-validation", target);
 rmSync(root, { recursive: true, force: true });
 mkdirSync(root, { recursive: true });
