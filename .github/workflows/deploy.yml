@@ -50,11 +50,12 @@ jobs:
       - name: Require the Azure-supported .NET target before release
         if: github.event_name != 'pull_request'
         run: |
-          if rg -n '<TargetFramework>net9\.0</TargetFramework>' --glob '*.csproj' .; then
+          # GitHub's Ubuntu runner includes grep; ripgrep is not installed by default.
+          if grep -R -n -E --include='*.csproj' '<TargetFramework>net9\\.0</TargetFramework>' .; then
             echo "::error::Merge #461 before deploying; the Azure App Service target is .NET 10."
             exit 1
           fi
-          rg -q '<TargetFramework>net10\.0</TargetFramework>' AuraLogbook.Api/AuraLogbook.Api.csproj || {
+          grep -q -E '<TargetFramework>net10\\.0</TargetFramework>' AuraLogbook.Api/AuraLogbook.Api.csproj || {
             echo "::error::The API must target .NET 10 before deployment."
             exit 1
           }
