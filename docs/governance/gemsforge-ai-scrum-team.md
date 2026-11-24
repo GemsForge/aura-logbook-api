@@ -22,7 +22,7 @@ These are responsibilities, not separate permissions or human identities. One ag
 
 | Product | Known repository/context | Local authority |
 | --- | --- | --- |
-| Aura Logbook | GemsForge/aura-logbook-api, default branch master, .NET 9 API + React/Vite UI | README, AURA_PROJECT_OVERVIEW.md, .github/ISSUE_WORKFLOW.md, docs/ |
+| Aura Logbook | GemsForge/aura-logbook-api, default branch master, .NET 10 LTS API + React/Vite UI | README, AURA_PROJECT_OVERVIEW.md, .github/ISSUE_WORKFLOW.md, docs/ |
 | Gem Life POS | Repository not identified in the inspected accessible repositories | Do not guess; bind after the repository is confirmed |
 | Project Portfolio | GemsForge/professional-portfolio, default branch main, React/TypeScript + hosted worker/storage | README, docs/story-and-delivery-workflow.md, docs/ui-development-workflow.md, hosting rules |
 | Future repositories | Confirmed one at a time | Read local README, AGENTS.md, contribution/policy docs, workflows, package/project files, and metadata first |
