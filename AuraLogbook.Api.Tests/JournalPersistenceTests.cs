@@ -42,12 +42,39 @@ public sealed class JournalPersistenceTests
         Assert.NotNull(JournalPersistence.ValidateProductionConnection(connection));
     }
 
+    /// <summary>Production cannot accidentally open the separate FIT/Staging journal.</summary>
+    [Theory]
+    [InlineData("Data Source=Data/auralogbook-fit.db")]
+    [InlineData("Data Source=/var/data/AuraLogbook-Fit.db")]
+    public void Production_rejects_fit_database(string connection)
+    {
+        Assert.NotNull(JournalPersistence.ValidateProductionConnection(connection));
+    }
+
     [Theory]
     [InlineData("Data Source=/var/lib/auralogbook/auralogbook.db")]
     [InlineData("Data Source=/home/data/aura-prod.db;Cache=Shared")]
     public void Production_accepts_an_explicit_durable_database(string connection)
     {
         Assert.Null(JournalPersistence.ValidateProductionConnection(connection));
+    }
+
+    /// <summary>Committed environment settings map each alias to a distinct local SQLite file.</summary>
+    [Fact]
+    public void Environment_settings_select_distinct_database_files()
+    {
+        var apiDirectory = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "AuraLogbook.Api"));
+
+        Assert.Equal(JournalPersistence.DevelopmentDatabaseFile, Path.GetFileName(ConnectionString("appsettings.Development.json")));
+        Assert.Equal(JournalPersistence.FitDatabaseFile, Path.GetFileName(ConnectionString("appsettings.Staging.json")));
+        Assert.Equal(JournalPersistence.ProductionDatabaseFile, Path.GetFileName(ConnectionString("appsettings.Production.json")));
+
+        string ConnectionString(string file)
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(apiDirectory, file)));
+            return document.RootElement.GetProperty("Database").GetProperty("ConnectionString").GetString()!;
+        }
     }
 
     private static Type? Implementation<TService>(IServiceCollection services) =>

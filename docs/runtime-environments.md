@@ -40,16 +40,25 @@ Later providers override earlier values. For example, development loads both
 `appsettings.json` and `appsettings.Development.json`; the development file
 overrides matching base settings.
 
-Development and local FIT use environment-specific local database,
-file-storage, and OAuth redirect values. Production must provide a durable
-`Database:ConnectionString` and `Storage:PrivateMediaPath`; the API rejects an
-empty private-media path. Environment variables use double underscores, such as
-`Database__ConnectionString` and `Storage__PrivateMediaPath`. The API README
-contains the Production settings table and identifies which values are secrets.
+Development, local FIT, and local Production use environment-specific database,
+file-storage, and OAuth redirect values. Production may use its local
+`auralogbook-prod.db` default for now; a hosted Production deployment must
+provide a durable `Database:ConnectionString` and `Storage:PrivateMediaPath`.
+The API rejects an empty private-media path. Environment variables use double
+underscores, such as `Database__ConnectionString` and
+`Storage__PrivateMediaPath`. The API README contains the Production settings
+table and identifies which values are secrets.
 
 ## Database behavior
 
-Development uses `Data/auralogbook-dev.db` and has:
+Development uses `Data/auralogbook-dev.db`; local FIT/Staging uses
+`Data/auralogbook-fit.db`; and Production defaults to the separate
+`Data/auralogbook-prod.db`. Production is the current working database while
+hosting is undecided. A hosted Production deployment must override the local
+default with a durable path before relying on it. Production refuses to start
+with a connection string that targets either the DEV or FIT database file.
+
+Development has:
 
 ```json
 "SeedUsersOnStartup": true
@@ -59,18 +68,19 @@ At API startup, migrations run first and users from
 `AuraLogbook.Api/Data/users.json` are then validated, normalized, and upserted
 into the development `Users` table.
 
-Staging and production have startup seeding disabled. Local FIT/Staging uses
+Staging and Production have startup seeding disabled. Local FIT/Staging uses
 its own `Data/auralogbook-fit.db` and the local UI/API URLs, matching the
 Development workflow without sharing its database or seeded users. A hosted
 Staging deployment should override local URLs and storage paths through
-environment variables and keep its database on durable storage. Production
-database connection strings and secrets should be supplied through deployment
-configuration rather than committed JSON files. Every environment, including Production, uses the
+environment variables and keep its database on durable storage. A hosted
+Production deployment should override the local database path with durable
+deployment configuration. Every environment, including Production, uses the
 SQLite repositories for users, moods, and zodiac insights (#353); the JSON
 files are import and audit sources only. Production refuses to start unless
-`Database:ConnectionString` names its own durable SQLite file (not in-memory and
-not `auralogbook-dev.db`). See [Production cutover](#production-cutover-from-json-files)
-before switching an existing Production deployment.
+`Database:ConnectionString` names its own file-based SQLite database (not
+in-memory, `auralogbook-dev.db`, or `auralogbook-fit.db`). See [Production
+cutover](#production-cutover-from-json-files) before switching an existing
+Production deployment.
 
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.
@@ -186,7 +196,9 @@ rebuilding all active relational data.
 Production now reads and writes users, moods, and zodiac insights only through
 SQLite. A deployment that still has JSON-backed data needs a one-time,
 operator-approved cutover. Nothing below runs automatically, and no live data
-is changed by the code. Do every step on copies first.
+is changed by the code. The local `auralogbook-prod.db` default is the current
+working database, but it does not copy data from legacy JSON files or an older
+hosted database. Do every cutover step on copies first.
 
 **Storage requirements**
 
