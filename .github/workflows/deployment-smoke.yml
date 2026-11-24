@@ -1,0 +1,44 @@
+name: Deployment smoke check
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        description: Deployed API origin, without a path
+        required: true
+        type: string
+      ui_url:
+        description: Deployed UI origin, without a path
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: Deployed API origin, without a path
+        required: true
+        type: string
+      ui_url:
+        description: Deployed UI origin, without a path
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Check deployed API and UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check API readiness and UI response
+        run: node Scripts/deployment-smoke-test.mjs
+        env:
+          AURA_SMOKE_API_URL: ${{ inputs.api_url }}
+          AURA_SMOKE_UI_URL: ${{ inputs.ui_url }}

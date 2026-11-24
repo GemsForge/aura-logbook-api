@@ -70,7 +70,7 @@ Controllers use the `/api` prefix. Key routes include:
 | Reflections | `GET /api/reflections/prompts`, `GET/POST /api/reflections/responses`, `GET /api/reflections/responses/{id}` | Bearer token required. Responses are restricted to the authenticated user's mood entries and data. |
 | Reference data | `GET /api/reference-data/auras`, `GET /api/reference-data/chakras`, `GET /api/reference-data/pathways`, `GET /api/reference-data/mood-aura-mappings` | Public read-only reference data used to keep clients aligned. |
 | Weather | `GET /api/Weather/current` | Public; accept `lat` + `lon`, or `city` with optional `state` and `country`. |
-| Database health | `GET /health/database` | Reports resolved environment and applied migration count without connection details. |
+| Database health | `GET /health/database` | Reports readiness; Development and Staging also include environment and migration count, while Production returns only the status. |
 
 Reflection prompts may be filtered by `pathwayKey`, `auraColorKey`, and
 `chakraKey`. When a context filter is supplied, matching prompts and prompts

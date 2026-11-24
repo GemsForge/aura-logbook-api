@@ -121,8 +121,9 @@ error type. Production users and reset tokens now share the SQLite database
 
 FIT/Staging deployments should provide their own `Database:ConnectionString`
 through deployment configuration. The database health diagnostic is available
-at `GET /health/database` and reports the resolved environment and applied
-migration count without exposing connection details.
+at `GET /health/database`. Development and Staging responses report the
+resolved environment and applied migration count. Production returns only the
+health status, and no response includes connection details.
 
 To reset only the staging database, use an explicit FIT environment and
 confirmation flag:
