@@ -5,7 +5,7 @@
 
 # dotenv files
 .env.*
-
+!aura-ui/.env.example
 
 # User-specific files
 *.rsuser

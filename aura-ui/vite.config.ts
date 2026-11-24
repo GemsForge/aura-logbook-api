@@ -1,4 +1,5 @@
 import { configDefaults, defineConfig } from 'vitest/config';
+import { loadEnv } from 'vite';
 import plugin from '@vitejs/plugin-react';
 
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -7,27 +8,35 @@ import tsconfigPaths from "vite-tsconfig-paths";
 const apiProxyTarget = process.env.AURA_API_PROXY_TARGET ?? "http://127.0.0.1:5082";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  // Concurrent local preview and browser checks must not replace each other's optimized imports.
-  cacheDir: process.env.VITE_CACHE_DIR ?? "node_modules/.vite",
-  plugins: [plugin(), tsconfigPaths()],
-  server: {
-    port: 58407,
-    // Fixed port: PasswordReset:ResetUrlBase in appsettings.Development.json points here (#335).
-    strictPort: true,
-    // Route phone-preview API requests through the laptop while the API remains on loopback.
-    proxy: {
-      "/api": { target: apiProxyTarget, changeOrigin: true },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "VITE_");
+  // Fail before bundling so a deployed UI cannot silently call an empty API base URL.
+  if (mode === "production" && !env.VITE_API_BASE_URL?.trim()) {
+    throw new Error("VITE_API_BASE_URL is required for production builds. Set it to the deployed API base URL (for example, https://api.example.com/api).");
+  }
+
+  return {
+    // Concurrent local preview and browser checks must not replace each other's optimized imports.
+    cacheDir: process.env.VITE_CACHE_DIR ?? "node_modules/.vite",
+    plugins: [plugin(), tsconfigPaths()],
+    server: {
+      port: 58407,
+      // Fixed port: PasswordReset:ResetUrlBase in appsettings.Development.json points here (#335).
+      strictPort: true,
+      // Route phone-preview API requests through the laptop while the API remains on loopback.
+      proxy: {
+        "/api": { target: apiProxyTarget, changeOrigin: true },
+      },
     },
-  },
-  test: {
-    environment: "jsdom",
-    setupFiles: "./src/test/setup.ts",
-    globals: true,
-    // Playwright owns e2e/ browser specs; keep them out of the jsdom unit run.
-    exclude: [...configDefaults.exclude, "e2e/**"],
-    // RTK Query builds absolute URLs from this; without it Node fetch rejects "undefined/Auth/...".
-    // CI has no .env file, so unit tests get a fixed placeholder origin (requests are mocked).
-    env: { VITE_API_BASE_URL: "http://localhost/api" },
-  },
+    test: {
+      environment: "jsdom",
+      setupFiles: "./src/test/setup.ts",
+      globals: true,
+      // Playwright owns e2e/ browser specs; keep them out of the jsdom unit run.
+      exclude: [...configDefaults.exclude, "e2e/**"],
+      // RTK Query builds absolute URLs from this; without it Node fetch rejects "undefined/Auth/...".
+      // CI has no .env file, so unit tests get a fixed placeholder origin (requests are mocked).
+      env: { VITE_API_BASE_URL: "http://localhost/api" },
+    },
+  };
 });

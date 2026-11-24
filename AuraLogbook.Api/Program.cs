@@ -52,7 +52,8 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddCors();
+var corsPolicy = CorsOriginPolicy.Create(builder.Configuration, builder.Environment);
+builder.Services.AddCors(options => options.AddDefaultPolicy(corsPolicy));
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection(SpotifyOptions.SectionName));
 builder.Services.Configure<FreeAstroApiOptions>(builder.Configuration.GetSection(FreeAstroApiOptions.SectionName));
 // Prefer the documented deployment secret name while retaining ASP.NET's section-based alias.
@@ -172,10 +173,7 @@ app.Services.GetRequiredService<DatabaseMigrator>().ApplyMigrations();
 await app.Services.GetRequiredService<ReflectionStartupImporter>().ImportAsync();
 if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Database:SeedUsersOnStartup"))
     await app.Services.GetRequiredService<JsonUserSeeder>().SeedUsersAsync();
-app.UseCors(policy =>
-    policy.AllowAnyOrigin()
-          .AllowAnyMethod()
-          .AllowAnyHeader());
+app.UseCors();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -203,6 +201,17 @@ app.MapGet("/health/database", (IDbConnectionFactory factory, IWebHostEnvironmen
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM __SchemaMigrations;";
         var migrationCount = Convert.ToInt32(command.ExecuteScalar());
+        if (migrationCount <= 0)
+        {
+            return Results.Problem("Database migration status is unavailable.", statusCode: 503);
+        }
+
+        // Production exposes readiness only; environment names and schema counts stay in diagnostics.
+        if (environment.IsProduction())
+        {
+            return Results.Ok(new { status = "healthy" });
+        }
+
         return Results.Ok(new
         {
             status = "healthy",

@@ -16,7 +16,7 @@ public sealed class PasswordResetOptions
     /// UI page that receives <c>?token=</c>. Set per environment; the Development value matches the
     /// Vite dev server port (58407, <c>strictPort</c>).
     /// </summary>
-    public string ResetUrlBase { get; set; } = "http://localhost:58407/reset-password";
+    public string ResetUrlBase { get; set; } = "";
 
     /// <summary>Token lifetime.</summary>
     public int TokenLifetimeMinutes { get; set; } = 30;

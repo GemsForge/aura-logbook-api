@@ -47,7 +47,8 @@ ORDER BY MigrationName;
 ```
 
 The diagnostic `GET /health/database` reports whether migration status is
-available, the resolved environment, and the applied migration count. It does
+available. Development and Staging responses include the resolved environment
+and applied migration count; Production returns only the health status. It does
 not replace checking which migration failed in the logs.
 
 ## If an applied migration needs to be undone

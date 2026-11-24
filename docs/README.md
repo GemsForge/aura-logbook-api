@@ -13,6 +13,7 @@ This index separates current project guidance from preserved historical material
 | Major libraries, tools, and external services | [Dependencies and tools](../DEPENDENCIES.md) |
 | Runtime aliases, configuration order, seeding, and migrations | [Runtime environments](runtime-environments.md) |
 | First no-cost hosting pilot, free-tier tradeoffs, and staging domains | [☁️ First hosting pilot](first-hosting-pilot.md) |
+| Post-deployment API and UI smoke check | [Deployment smoke check](deployment/post-deploy-smoke.md) |
 
 ## Product and experience guidance
 

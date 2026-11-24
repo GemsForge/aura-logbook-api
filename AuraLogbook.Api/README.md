@@ -25,7 +25,27 @@ The `http` launch profile uses the Development environment and port 5082. Swagge
 ## Configuration and data
 
 - Settings are loaded from `appsettings.json`, environment-specific settings, environment variables, and .NET user secrets. `AuraLogbook.Api.csproj` defines the user-secrets ID `AuraLogbook.Api`.
+- Browser requests are allowed only from origins in `Cors:AllowedOrigins`. Development includes the local UI origins `http://localhost:58407` and `http://127.0.0.1:58407`. Production must set the deployed UI origin in Azure App Settings, for example `Cors__AllowedOrigins__0=https://your-ui.example`; without it, API startup fails with a configuration error. Add further origins with indexed settings such as `Cors__AllowedOrigins__1` when explicitly required. Origins include their scheme and port and must not include a path.
 - Provide a private `Jwt:Key` in user secrets or the deployment environment; do not commit signing keys or provider credentials. `Jwt:Issuer` and `Jwt:Audience` must match the values used by token validation.
+- Production receives deployment-specific URLs and paths through environment variables (ASP.NET Core maps `__` to `:`). Keep credentials in the host's secret store.
+- Production settings:
+
+  | Setting | Example | Secret? |
+  | --- | --- | --- |
+  | `Database__ConnectionString` | `Data Source=/persistent/aura/auralogbook.db` | No; use a durable volume |
+  | `Storage__PrivateMediaPath` | `/persistent/aura/private-media` | No; keep outside `wwwroot` on durable storage |
+  | `Cors__AllowedOrigins__0` | `https://app.example.com` | No |
+  | `PasswordReset__ResetUrlBase` | `https://app.example.com/reset-password` | No; needed only when password recovery is enabled |
+  | `Spotify__RedirectUri` | `https://api.example.com/api/spotify/callback` | No; must match Spotify's registered callback |
+  | `Spotify__FrontendRedirectUri` | `https://app.example.com/dashboard` | No |
+  | `Spotify__ClientId` | `<spotify-client-id>` | No; needed only for Spotify linking |
+  | `Spotify__ClientSecret` | `<spotify-client-secret>` | Yes; needed only for Spotify linking |
+  | `Jwt__Key` | `<random-signing-key>` | Yes |
+  | `Email__Smtp__Host` / `Email__Smtp__Port` / `Email__Smtp__FromAddress` | `<smtp-host>` / `587` / `no-reply@example.com` | No; needed only for password recovery |
+  | `Email__Smtp__Username` / `Email__Smtp__Password` | `<smtp-user>` / `<smtp-password>` | Yes; needed only for password recovery |
+  | `FreeAstroApi__ApiKey` | `<provider-key>` | Yes; needed for daily horoscope and moon data |
+  | `FreeAstrologyApi__ApiKey` | `<provider-key>` | Yes; needed for birth charts |
+
 - Development and Staging register the SQLite user, mood, zodiac-insight, and reflection repositories. `Database:ConnectionString` selects the database, and startup applies every versioned SQL migration not already recorded in `__SchemaMigrations`.
 - After migrations, startup imports the curated mood-combination reflections from `Data/aura_logbook_mood_combinations.json`, which ships with the build (copied from `aura-ui/data`). The import is idempotent, touches no users or mood entries, and logs the source combination count and expected and stored interpretation counts, with `Status: reconciled` when they match or an error listing the mismatches when they don't. A missing or invalid source logs an error, keeps the existing rows, and the API still starts. Turn it off with `Database:ImportReflectionsOnStartup=false`. `DatabaseSeeder --mode reflections` runs the same import without a restart; see [Mood-combination reflections](../docs/mood-combination-reflections.md).
 - Development can import users from the configured `Storage:UserFilePath` when `Database:SeedUsersOnStartup` is enabled. The broader JSON files remain import/audit sources; they are not the active Development repository.
@@ -50,7 +70,7 @@ Controllers use the `/api` prefix. Key routes include:
 | Reflections | `GET /api/reflections/prompts`, `GET/POST /api/reflections/responses`, `GET /api/reflections/responses/{id}` | Bearer token required. Responses are restricted to the authenticated user's mood entries and data. |
 | Reference data | `GET /api/reference-data/auras`, `GET /api/reference-data/chakras`, `GET /api/reference-data/pathways`, `GET /api/reference-data/mood-aura-mappings` | Public read-only reference data used to keep clients aligned. |
 | Weather | `GET /api/Weather/current` | Public; accept `lat` + `lon`, or `city` with optional `state` and `country`. |
-| Database health | `GET /health/database` | Reports resolved environment and applied migration count without connection details. |
+| Database health | `GET /health/database` | Reports readiness; Development and Staging also include environment and migration count, while Production returns only the status. |
 
 Reflection prompts may be filtered by `pathwayKey`, `auraColorKey`, and
 `chakraKey`. When a context filter is supplied, matching prompts and prompts
