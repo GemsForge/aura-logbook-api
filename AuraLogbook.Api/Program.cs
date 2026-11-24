@@ -201,6 +201,17 @@ app.MapGet("/health/database", (IDbConnectionFactory factory, IWebHostEnvironmen
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM __SchemaMigrations;";
         var migrationCount = Convert.ToInt32(command.ExecuteScalar());
+        if (migrationCount <= 0)
+        {
+            return Results.Problem("Database migration status is unavailable.", statusCode: 503);
+        }
+
+        // Production exposes readiness only; environment names and schema counts stay in diagnostics.
+        if (environment.IsProduction())
+        {
+            return Results.Ok(new { status = "healthy" });
+        }
+
         return Results.Ok(new
         {
             status = "healthy",

@@ -82,15 +82,31 @@ async function stop(api) {
   await api.exited;
 }
 
-async function run(label, connectionString) {
+async function run(label, connectionString, expectedProductionMigrationLogs) {
   await assertPortFree();
   const api = startApi(connectionString);
   try {
     const health = await waitForHealth(api);
     if (health.status !== "healthy") throw new Error(`${label}: unexpected status ${JSON.stringify(health)}`);
-    if (health.environment !== aspnet) throw new Error(`${label}: started as ${health.environment}, expected ${aspnet}`);
-    if (!(health.migrations > 0)) throw new Error(`${label}: no migrations were recorded`);
-    console.log(`✓ ${label}: ${health.environment}, ${health.migrations} migrations recorded`);
+    if (target === "prod") {
+      if ("environment" in health || "migrations" in health) {
+        throw new Error(`${label}: Production health response exposed internal diagnostics`);
+      }
+      // Production health is intentionally sanitized, so validate migration application from local API logs.
+      const appliedMigrations = (api.log().match(/Applied database migration /g) ?? []).length;
+      if (expectedProductionMigrationLogs === "present" && appliedMigrations === 0) {
+        throw new Error(`${label}: no database migrations were applied`);
+      }
+      if (expectedProductionMigrationLogs === "absent" && appliedMigrations !== 0) {
+        throw new Error(`${label}: restart applied ${appliedMigrations} additional migrations`);
+      }
+    } else {
+      if (health.environment !== aspnet) throw new Error(`${label}: started as ${health.environment}, expected ${aspnet}`);
+      if (!(health.migrations > 0)) throw new Error(`${label}: no migrations were recorded`);
+    }
+    console.log(target === "prod"
+      ? `✓ ${label}: Production readiness response is sanitized`
+      : `✓ ${label}: ${health.environment}, ${health.migrations} migrations recorded`);
     return health.migrations;
   } finally {
     await stop(api);
@@ -99,9 +115,11 @@ async function run(label, connectionString) {
 }
 
 const database = `Data Source=${join(root, `AuraLogbook_${target}.db`)}`;
-const fresh = await run("fresh database migrated", database);
-const restarted = await run("restart is idempotent", database);
-if (restarted !== fresh) throw new Error(`Restart changed the migration count (${fresh} → ${restarted}).`);
+const fresh = await run("fresh database migrated", database, "present");
+const restarted = await run("restart is idempotent", database, "absent");
+if (target !== "prod" && restarted !== fresh) {
+  throw new Error(`Restart changed the migration count (${fresh} → ${restarted}).`);
+}
 
 if (target === "prod") {
   for (const [label, unsafe] of [
