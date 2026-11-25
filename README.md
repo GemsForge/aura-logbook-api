@@ -209,6 +209,7 @@ Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, exerci
 - [Safe local and remote branch cleanup](BRANCH_CLEANUP.md)
 - [Developer console toolbar and synthetic FIT sign-in](docs/development-toolbar.md)
 - [Repository issue and pull-request workflow](.github/ISSUE_WORKFLOW.md)
+- [Cloudflare FIT hosting and Access-protected API proxy](docs/deployment/cloudflare-fit.md)
 
 ## License
 

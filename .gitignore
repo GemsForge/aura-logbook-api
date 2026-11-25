@@ -504,3 +504,5 @@ AuraLogbook.Api/Data/reflection-seed-report.json
 
 # Local synthetic test-account credentials are read only by Scripts/dev.mjs.
 Scripts/dev-test-clients.local.json
+# Local Cloudflare Pages Function bindings may contain credentials.
+.dev.vars*

@@ -14,6 +14,7 @@ This index separates current project guidance from preserved historical material
 | Major libraries, tools, and external services | [Dependencies and tools](../DEPENDENCIES.md) |
 | Runtime aliases, configuration order, seeding, and migrations | [Runtime environments](runtime-environments.md) |
 | Post-deployment API and UI smoke check | [Deployment smoke check](deployment/post-deploy-smoke.md) |
+| Cloudflare FIT web hosting and protected API proxy | [Cloudflare FIT hosting](deployment/cloudflare-fit.md) |
 
 ## Product and experience guidance
 

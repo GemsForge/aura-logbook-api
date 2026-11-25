@@ -120,6 +120,18 @@ owner-scoped metadata while image bytes remain in the configured
 for hosted environments. See [Private media attachments](../docs/private-media-attachments.md)
 for supported formats, limits, routes, and storage behavior.
 
+## Cloudflare FIT host
+
+Cloudflare Pages hosts the web UI and its same-origin proxy functions; the API
+remains an ASP.NET Core service on a separate durable host behind Cloudflare
+Access and Tunnel. Run the FIT API as `Staging` with a durable FIT-only SQLite
+path and private-media directory, both outside `wwwroot`. Bind only to
+loopback and keep the API hostname behind an Access Service Auth policy. The
+Pages Function holds the service-token credentials; they must never enter the
+browser or this API repository. See the [Cloudflare FIT hosting
+runbook](../docs/deployment/cloudflare-fit.md) for the deployment boundary and
+verification steps.
+
 ## Tests
 
 From the repository root:
