@@ -52,6 +52,15 @@ Color, emoji, hover, and motion must never be the only way to understand a state
 
 All environments register SQLite repositories for users, moods, zodiac insights, and reflections. Production database durability and hosting still require an explicit deployment decision.
 
+The planned FIT web host uses Cloudflare Pages for the React/Vite UI and
+server-side Pages Functions to proxy same-origin API and database-health
+requests through Cloudflare Access and Tunnel to the .NET API on a durable
+owner-controlled host. Cloudflare Pages does not run the API or store its
+SQLite database and private media. FIT remains separate from Production and
+uses synthetic test identities only. See the [Cloudflare FIT hosting
+runbook](docs/deployment/cloudflare-fit.md); a code build does not prove that
+the Cloudflare account, host, Access policies, DNS, or deployment is configured.
+
 ## Repository map
 
 - `AuraLogbook.Api/` — API controllers, services, repositories, models, configuration, and data sources

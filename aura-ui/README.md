@@ -56,6 +56,17 @@ npm run test:startup
 npm run build
 ```
 
+## Cloudflare FIT build
+
+The Cloudflare Pages project must use the repository root so its root-level
+Pages Functions are included. Build with
+`npm ci --prefix aura-ui && npm run build --prefix aura-ui`, publish
+`aura-ui/dist`, and set `VITE_API_BASE_URL=/api`. The Pages Function adds the
+Access service token on the server and forwards the user's Aura bearer token;
+never place Access credentials in a Vite variable. See the [Cloudflare FIT
+hosting runbook](../docs/deployment/cloudflare-fit.md) for API host, Access,
+Tunnel, bindings, verification, and rollback requirements.
+
 See [DEPENDENCIES.md](../DEPENDENCIES.md) for major UI dependencies and [the API README](../AuraLogbook.Api/README.md) for routes and backend configuration.
 
 ## Interface screen mode

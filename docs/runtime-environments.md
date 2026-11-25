@@ -75,6 +75,18 @@ before switching an existing Production deployment.
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.
 
+## Cloudflare FIT hosting
+
+The Cloudflare FIT plan serves the React/Vite UI and Pages Functions from
+Cloudflare Pages. The API remains an ASP.NET Core process on a separate
+owner-controlled host behind Cloudflare Access and Tunnel. Run it as
+`Staging`; configure a durable FIT-only `Database__ConnectionString` and
+`Storage__PrivateMediaPath`, bind the API to loopback, and keep the origin
+behind the Pages Function's Access service identity. Do not enable startup
+user seeding or reuse Production credentials/data. See the [Cloudflare FIT
+hosting runbook](deployment/cloudflare-fit.md) for host, Access, smoke-check,
+and rollback details.
+
 ## Password recovery
 
 Recovery links expire after 30 minutes by default and can be used once. The API

@@ -201,6 +201,7 @@ Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify
 - [Major dependencies, tools, and external-service terms](DEPENDENCIES.md)
 - [Safe local and remote branch cleanup](BRANCH_CLEANUP.md)
 - [Repository issue and pull-request workflow](.github/ISSUE_WORKFLOW.md)
+- [Cloudflare FIT hosting and Access-protected API proxy](docs/deployment/cloudflare-fit.md)
 
 ## License
 

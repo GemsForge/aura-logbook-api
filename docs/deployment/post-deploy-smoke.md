@@ -25,6 +25,21 @@ between attempts. It accepts only a JSON health response with
 `status: "healthy"`, then requires the UI root to return HTTP 200. The script
 does not print the health response body or deployment URLs to logs.
 
+### Cloudflare FIT
+
+For a Cloudflare FIT deployment, the API field must be the Pages UI origin,
+not the Access-protected API Tunnel hostname. The Pages Function at
+`/health/database` adds the server-side Access identity and forwards the
+readiness request to the API. Calling the Tunnel hostname directly without
+Service Auth should remain denied. The current generic smoke workflow does not
+authenticate a caller to a Cloudflare Access member gate; configure an
+approved authenticated FIT smoke path before expecting its unattended UI-root
+check to pass. Do not weaken Access to make the check green.
+
+The production workflow and its Azure variables/secrets remain separate from
+FIT. See the [Cloudflare FIT hosting runbook](cloudflare-fit.md) for Pages
+bindings and end-to-end verification.
+
 ## Deployment workflow configuration
 
 The production workflow validates the API and UI, packages both artifacts,
