@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import net from "node:net";
+import { createDevControlServer, readDevTestClients } from "./dev-control.mjs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -86,10 +87,20 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
   const uiEnv = { ...env };
   // The local key belongs only to the API child; never pass it to Vite's environment.
   const apiEnv = { ...env };
+  for (const key of ["AURA_DEV_TEST_CLIENTS", "AURA_DEV_TEST_CLIENTS_JSON", "AURA_DEV_CONTROL_TARGET"]) {
+    delete uiEnv[key];
+    delete apiEnv[key];
+  }
+  // Keep API/database/provider secrets out of the Vite child environment, even when exported by the launcher caller.
+  const privateEnvironmentKey = /(?:SECRET|PASSWORD|TOKEN|API_KEY|(?:^|__)KEY$|CONNECTION_STRING|CONNECTIONSTRING|PRIVATE.*PATH)/i;
+  for (const key of Object.keys(uiEnv)) {
+    if (privateEnvironmentKey.test(key)) delete uiEnv[key];
+  }
   const freeAstroKey = env.FREE_ASTRO_API_KEY || localFreeAstroApiKey(root);
   if (freeAstroKey) apiEnv.FREE_ASTRO_API_KEY = freeAstroKey;
   delete uiEnv.FREE_ASTRO_API_KEY;
   delete uiEnv.FreeAstroApi__ApiKey;
+  const apiEnvironmentAlias = String(env.AURA_ENV || env.ASPNETCORE_ENVIRONMENT || "DEV").trim().toUpperCase();
   const apiEnvironment = resolveApiEnvironment(env.AURA_ENV || env.ASPNETCORE_ENVIRONMENT || "DEV");
   const selectedApiPort = apiPort ?? apiConfiguration.apiPort;
   const defaultApiUrl = `http://localhost:${selectedApiPort}/api`;
@@ -99,8 +110,41 @@ export function createServicePlan({ root = repositoryRoot, platform = process.pl
       ? defaultApiUrl
       : (apiConfiguration.configuredUiApiUrl || defaultApiUrl);
 
-  const apiArgs = ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http"];
+  // Ignore launchSettings.json environment overrides so DEV/FIT/PRO selected above reaches ASP.NET Core.
+  const apiArgs = ["run", "--project", "AuraLogbook.Api.csproj", "--no-launch-profile"];
   apiArgs.push("--", "--urls", `http://localhost:${selectedApiPort}`);
+
+  const controlPort = configuredPort(env.AURA_DEV_CONTROL_PORT, uiPort === 65535 ? 58408 : uiPort + 1, "AURA_DEV_CONTROL_PORT");
+  let localApi = true;
+  if (apiConfiguration.configuredUiApiUrl) {
+    try {
+      const configuredApiUrl = new URL(apiConfiguration.configuredUiApiUrl);
+      localApi = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(configuredApiUrl.hostname);
+    } catch {
+      localApi = apiConfiguration.configuredUiApiUrl.startsWith("/");
+      if (localApi && env.AURA_API_PROXY_TARGET) {
+        try {
+          const proxyTarget = new URL(env.AURA_API_PROXY_TARGET);
+          localApi = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(proxyTarget.hostname);
+        } catch {
+          localApi = false;
+        }
+      }
+    }
+  }
+  const enableDeveloperToolbar = localApi && apiEnvironmentAlias !== "PRO" && apiEnvironment !== "Production";
+  if (enableDeveloperToolbar && [uiPort, selectedApiPort].includes(controlPort)) {
+    throw new Error("AURA_DEV_CONTROL_PORT must differ from AURA_UI_PORT and AURA_API_PORT.");
+  }
+  uiEnv.VITE_AURA_DEV_TOOLBAR = enableDeveloperToolbar ? "true" : "false";
+  uiEnv.VITE_AURA_ENV = apiEnvironmentAlias === "FIT" ? "FIT" : apiEnvironmentAlias === "PRO" || apiEnvironment === "Production" ? "PRO" : "DEV";
+  if (enableDeveloperToolbar) {
+    uiEnv.AURA_DEV_CONTROL_TARGET = `http://127.0.0.1:${controlPort}`;
+    if (uiEnv.VITE_API_BASE_URL.startsWith("/")) {
+      uiEnv.AURA_API_PROXY_TARGET = env.AURA_API_PROXY_TARGET || `http://127.0.0.1:${selectedApiPort}`;
+    }
+  }
+  else delete uiEnv.AURA_DEV_CONTROL_TARGET;
 
   return [
     {
@@ -271,12 +315,75 @@ export function runDevelopment({
   log = message => console.log(message),
   plan = createServicePlan({ platform }),
   stop = stopChild,
+  control = null,
 } = {}) {
-  const children = [];
+  const children = new Map();
   let stopping = false;
   let resolveRun;
   let exitCode = 0;
   let stopPromise;
+  let apiState = "stopped";
+  let apiFailure = false;
+  let controlServer;
+  let apiActionQueue = Promise.resolve();
+
+  const apiService = plan.find(service => service.name === "API");
+  const otherServices = plan.filter(service => service.name !== "API");
+
+  const serializeApiAction = action => {
+    apiActionQueue = apiActionQueue.then(action, action);
+    return apiActionQueue;
+  };
+
+  const startApi = () => serializeApiAction(async () => {
+    if (stopping) return;
+    if (!apiService) throw new Error("The local API launcher is not configured.");
+    if (children.has("API")) return;
+    apiState = "starting";
+    apiFailure = false;
+    const child = spawnService(apiService, true);
+    if (!child) {
+      apiState = "failed";
+      apiFailure = true;
+      return;
+    }
+    children.set("API", child);
+    apiState = "running";
+  });
+
+  const stopApi = () => serializeApiAction(async () => {
+    const child = children.get("API");
+    if (!child) {
+      apiState = "stopped";
+      apiFailure = false;
+      return;
+    }
+    apiState = "stopping";
+    children.delete("API");
+    await stop(child, platform, spawnProcess);
+    apiState = "stopped";
+    apiFailure = false;
+  });
+
+  const restartApi = () => serializeApiAction(async () => {
+    if (stopping) return;
+    const child = children.get("API");
+    if (child) {
+      apiState = "stopping";
+      children.delete("API");
+      await stop(child, platform, spawnProcess);
+    }
+    apiState = "starting";
+    apiFailure = false;
+    const next = spawnService(apiService, true);
+    if (!next) {
+      apiState = "failed";
+      apiFailure = true;
+      return;
+    }
+    children.set("API", next);
+    apiState = "running";
+  });
 
   const result = new Promise(resolveResult => {
     resolveRun = resolveResult;
@@ -287,7 +394,8 @@ export function runDevelopment({
     stopping = true;
     exitCode = code;
     removeSignals();
-    stopPromise = Promise.all(children.map(child => stop(child, platform, spawnProcess)))
+    if (controlServer?.listening) controlServer.close();
+    stopPromise = Promise.all([...children.values()].map(child => stop(child, platform, spawnProcess)))
       .then(() => resolveRun(exitCode));
     return stopPromise;
   };
@@ -308,10 +416,11 @@ export function runDevelopment({
   signalSource.on("SIGINT", onInterrupt);
   signalSource.on("SIGTERM", onTerminate);
 
-  try {
-    for (const service of plan) {
+  function spawnService(service, managedApi = false) {
       if (service.notice) log(`[${service.name}] ${service.notice}`);
-      const child = spawnProcess(service.command, service.args, {
+      let child;
+      try {
+        child = spawnProcess(service.command, service.args, {
         cwd: service.cwd,
         env: service.env,
         stdio: ["inherit", "pipe", "pipe"],
@@ -319,7 +428,15 @@ export function runDevelopment({
         shell: platform === "win32",
         windowsHide: true,
       });
-      children.push(child);
+      } catch (error) {
+        log(`[${service.name}] Could not start: ${error.message}`);
+        if (managedApi) {
+          apiState = "failed";
+          apiFailure = true;
+          return null;
+        }
+        throw error;
+      }
       const stdoutPending = { value: "" };
       const stderrPending = { value: "" };
       child.stdout?.on("data", chunk => writePrefixed(service.name, process.stdout, chunk, stdoutPending));
@@ -330,13 +447,57 @@ export function runDevelopment({
       });
       child.once("error", error => {
         log(`[${service.name}] Could not start: ${error.message}`);
-        void stopAll(1);
+        if (managedApi && !stopping) {
+          child.__startError = true;
+          apiState = "failed";
+          apiFailure = true;
+          children.delete("API");
+        } else {
+          void stopAll(1);
+        }
       });
       child.once("exit", (code, signal) => {
         if (stopping) return;
+        if (managedApi) {
+          if (!["stopping", "stopped"].includes(apiState)) {
+            children.delete("API");
+            apiState = "failed";
+            apiFailure = true;
+            log(`[${service.name}] exited unexpectedly (${signal ?? `code ${code}`}); use the developer toolbar to restart it.`);
+          }
+          return;
+        }
         log(`[${service.name}] exited unexpectedly (${signal ?? `code ${code}`}); stopping both services.`);
         void stopAll(code && code > 0 ? code : 1);
       });
+      return child;
+  }
+
+  try {
+    if (control) {
+      controlServer = createDevControlServer({
+        lifecycle: {
+          start: startApi,
+          stop: stopApi,
+          restart: restartApi,
+          status: () => ({ state: apiState, failed: apiFailure }),
+        },
+        ...control,
+      });
+      controlServer.listen(control.controlPort, "127.0.0.1", () => {
+        log(`[DEV] Toolbar companion listening on http://127.0.0.1:${control.controlPort}`);
+      });
+      controlServer.on("error", error => log(`[DEV] Toolbar companion unavailable: ${error.message}`));
+      void startApi();
+      for (const service of otherServices) {
+        const child = spawnService(service);
+        children.set(service.name, child);
+      }
+    } else {
+      for (const service of plan) {
+        const child = spawnService(service);
+        children.set(service.name, child);
+      }
     }
   } catch (error) {
     log(`Could not start development services: ${error.message}`);
@@ -349,7 +510,23 @@ export function runDevelopment({
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   let exitCode;
   try {
-    exitCode = await runDevelopment({ plan: await createDevelopmentPlan() });
+    const plan = await createDevelopmentPlan();
+    const [apiService, uiService] = plan;
+    const controlEnabled = uiService.env.VITE_AURA_DEV_TOOLBAR === "true";
+    const uiPort = configuredPort(process.env.AURA_UI_PORT, 58407, "AURA_UI_PORT");
+    const controlPort = configuredPort(process.env.AURA_DEV_CONTROL_PORT, uiPort === 65535 ? 58408 : uiPort + 1, "AURA_DEV_CONTROL_PORT");
+    const testClients = readDevTestClients(repositoryRoot);
+    const apiOrigin = new URL(apiService.args.at(-1)).origin;
+    exitCode = await runDevelopment({
+      plan,
+      control: controlEnabled ? {
+        apiBaseUrl: `${apiOrigin}/api`,
+        uiPort,
+        controlPort,
+        clients: testClients.clients,
+        configurationError: testClients.error,
+      } : null,
+    });
   } catch (error) {
     console.error(`[API] ${error.message}`);
     exitCode = 1;

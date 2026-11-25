@@ -50,7 +50,7 @@ From the repository root:
 npm run dev
 ```
 
-This starts the API and UI together, prefixes their output with `[API]` and `[UI]`, and stops the sibling service if one exits or fails to start. Press **Ctrl+C** once to stop both services.
+This starts the API and UI together, prefixes their output with `[API]` and `[UI]`, and provides a top-of-app toolbar for local API lifecycle controls. If the API fails or exits, Vite stays available so you can inspect the error and restart the API from the toolbar. If the UI exits, the launcher stops the API. Press **Ctrl+C** once to stop all services.
 
 | Service | Local URL |
 | --- | --- |
@@ -63,6 +63,12 @@ The launcher keeps the local API listener and the UI's API target aligned. By de
 For local horoscope and moon data, the launcher loads `FREE_ASTRO_API_KEY` from
 the Git-ignored `AuraLogbook.Api/.env.local` into the API environment only.
 See [configuration and secrets](docs/configuration-and-secrets.md#astrology-providers).
+
+When using the combined local launcher, the development console toolbar appears
+above Aura with API lifecycle controls and an optional selector for two
+synthetic test accounts. Credentials belong only in the ignored local config;
+see [Developer console toolbar](docs/development-toolbar.md) for local and FIT
+setup. Production builds omit the toolbar.
 
 ### Preview the web UI on a phone
 
@@ -179,6 +185,7 @@ The combined launcher orchestration tests run from the repository root:
 
 ```bash
 node --test Scripts/dev.test.mjs
+node --test Scripts/dev-control.test.mjs
 ```
 
 ## Troubleshooting
@@ -189,7 +196,7 @@ node --test Scripts/dev.test.mjs
 - **JWT or authentication fails:** Ensure a private `Jwt:Key` is configured and that the token was issued by the current API configuration. `GET /api/Auth/me` and mood routes require a valid bearer token; register or log in again after changing the signing key.
 - **Weather unavailable:** `GET /api/Weather/current` uses Open-Meteo geocoding and forecast endpoints. No API key is needed for local development. Check API logs and provider connectivity; see [DEPENDENCIES.md](DEPENDENCIES.md) for service terms and attribution.
 
-Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify the UI reaches the local API, then press Ctrl+C and confirm both services stop.
+Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, exercise API start/stop/restart and a configured synthetic sign-in, then press Ctrl+C and confirm the API, UI, and local companion stop.
 
 ## Project documentation
 
@@ -200,6 +207,7 @@ Manual smoke test: run `npm run dev`, open the UI and Swagger URLs above, verify
 - [React Native / Expo mobile shell](docs/ux/mobile-shell.md)
 - [Major dependencies, tools, and external-service terms](DEPENDENCIES.md)
 - [Safe local and remote branch cleanup](BRANCH_CLEANUP.md)
+- [Developer console toolbar and synthetic FIT sign-in](docs/development-toolbar.md)
 - [Repository issue and pull-request workflow](.github/ISSUE_WORKFLOW.md)
 
 ## License

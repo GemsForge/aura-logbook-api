@@ -10,6 +10,7 @@ This index separates current project guidance from preserved historical material
 | Install, configure, run, test, and troubleshoot | [Repository README](../README.md) |
 | API configuration, persistence, and routes | [API README](../AuraLogbook.Api/README.md) |
 | UI configuration and checks | [UI README](../aura-ui/README.md) |
+| Developer console toolbar and synthetic FIT sign-in | [Developer console guide](development-toolbar.md) |
 | Major libraries, tools, and external services | [Dependencies and tools](../DEPENDENCIES.md) |
 | Runtime aliases, configuration order, seeding, and migrations | [Runtime environments](runtime-environments.md) |
 | Post-deployment API and UI smoke check | [Deployment smoke check](deployment/post-deploy-smoke.md) |

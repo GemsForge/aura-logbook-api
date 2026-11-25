@@ -1,6 +1,6 @@
 // src/main.tsx (or index.tsx)
 import { useSystemInterfaceMode } from "./hooks/useSystemInterfaceMode";
-import { StrictMode, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { lazy, StrictMode, Suspense, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
@@ -30,6 +30,11 @@ import { hasUsableReferenceData } from "./theme/referenceDataValidation";
 import { installThemeTokenVariables } from "./theme";
 import SpotifyOAuthReturnPage from "./features/spotify/SpotifyOAuthReturnPage";
 import { notifySpotifyOAuthOpener, readSpotifyOAuthResult } from "./features/spotify/spotifyOAuthCallback";
+import { developerToolbarEnabled } from "./components/dev/developerToolbarConfig";
+
+const DeveloperToolbar = developerToolbarEnabled
+  ? lazy(() => import("./components/dev/DeveloperToolbar").then(module => ({ default: module.DeveloperToolbar })))
+  : null;
 
 /** Redux keeps both UI libraries aligned; Joy’s render cache never overrides the account preference. */
 function ModeBridge({ mode, children }: { mode: InterfaceMode; children: ReactNode }) {
@@ -96,11 +101,9 @@ function ThemedApp() {
         <CssBaseline enableColorScheme />
         {/* #344: derived aura accents; off when the user disabled aura reveals or is signed out. */}
         <AuraTokensStyle interfaceTheme={interfaceTheme} interfaceMode={interfaceMode} enabled={!!user && user.auraRevealsEnabled !== false} />
-        <ToastProvider>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <RouterProvider router={router} />
-          </LocalizationProvider>
-        </ToastProvider>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <RouterProvider router={router} />
+        </LocalizationProvider>
         </ModeBridge>
       </JoyCssVarsProvider>
     </ThemeProvider>
@@ -120,7 +123,10 @@ createRoot(rootElement).render(
     ? <SpotifyOAuthReturnPage result={spotifyOAuthResult} />
     : <StrictMode>
         <Provider store={store}>
-          <ThemedApp />
+          <ToastProvider>
+            {DeveloperToolbar && <JoyCssVarsProvider><Suspense fallback={null}><DeveloperToolbar /></Suspense></JoyCssVarsProvider>}
+            <ThemedApp />
+          </ToastProvider>
         </Provider>
       </StrictMode>
 );
