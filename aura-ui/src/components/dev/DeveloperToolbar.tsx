@@ -9,7 +9,12 @@ import Sheet from "@mui/joy/Sheet";
 import Typography from "@mui/joy/Typography";
 import { hydrateUserSession } from "@/api/hydrateUserSession";
 import api from "@/api/api";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import Modal from "@mui/joy/Modal";
+import ModalDialog from "@mui/joy/ModalDialog";
+import DialogTitle from "@mui/joy/DialogTitle";
+import DialogContent from "@mui/joy/DialogContent";
+import DialogActions from "@mui/joy/DialogActions";
 import { useToast } from "@/hooks/useToast";
 import { authApi } from "@/store/authApi";
 import { auraApi } from "@/store/auraApi";
@@ -42,6 +47,9 @@ export function DeveloperToolbar() {
   const [pendingAction, setPendingAction] = useState("");
   // Action and sign-in failures stay visible until the next user action; the status poll only updates `detail`.
   const [actionError, setActionError] = useState("");
+  // Client chosen while another user is signed in; switching waits for explicit confirmation because it discards unsaved work.
+  const [pendingSwitch, setPendingSwitch] = useState<TestClient | null>(null);
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
 
   const refreshStatus = useCallback(async () => {
     try {
@@ -96,12 +104,23 @@ export function DeveloperToolbar() {
     }
   };
 
-  const selectClient = async (_event: SyntheticEvent | null, clientId: string | null) => {
-    setSelectedClient(clientId);
+  /** Asks for confirmation before replacing an active session; signs in directly when nobody is signed in. */
+  const selectClient = (_event: SyntheticEvent | null, clientId: string | null) => {
     setActionError("");
-    if (!clientId) return;
-    const client = clients.find(item => item.id === clientId);
+    const client = clientId ? clients.find(item => item.id === clientId) : undefined;
     if (!client) return;
+    if (isAuthenticated) {
+      setSelectedClient(null);
+      setPendingSwitch(client);
+      return;
+    }
+    void signInAs(client);
+  };
+
+  /** Clears the current session and caches, then signs in as the chosen synthetic client. */
+  const signInAs = async (client: TestClient) => {
+    const clientId = client.id;
+    setSelectedClient(clientId);
     setPendingAction("login");
     try {
       // Drop every user-scoped query cache before replacing the active bearer token.
@@ -138,6 +157,7 @@ export function DeveloperToolbar() {
   const stateText = { starting: "Starting", ready: "Ready", stopped: "Stopped", failed: "Failed" }[apiState];
 
   return (
+    <>
     <Sheet component="aside" aria-label="Developer console" variant="solid" color="neutral"
       sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1.25, px: { xs: 1.5, sm: 2.5 }, py: 1, borderRadius: 0, backgroundColor: "#15232a", color: "#f5f3ed" }}>
       <Box sx={{ minWidth: 108 }}>
@@ -164,5 +184,21 @@ export function DeveloperToolbar() {
         {configurationError || actionError || detail}
       </Typography>
     </Sheet>
+    {/* Joy Modal: the toolbar renders outside the app MUI theme provider, so Material-based AuraModal cannot be used here. */}
+    <Modal open={pendingSwitch !== null} onClose={() => setPendingSwitch(null)}>
+      <ModalDialog role="alertdialog" aria-labelledby="dev-switch-title" size="sm" color="warning" variant="outlined">
+        <DialogTitle id="dev-switch-title">Switch test client?</DialogTitle>
+        <DialogContent>
+          You will be signed out of the current session and signed in as {pendingSwitch?.label}. Unsaved changes on this page will be lost.
+        </DialogContent>
+        <DialogActions>
+          <Button variant="solid" color="warning" onClick={() => { const client = pendingSwitch; setPendingSwitch(null); if (client) void signInAs(client); }}>
+            Switch to {pendingSwitch?.label}
+          </Button>
+          <Button variant="plain" color="neutral" onClick={() => setPendingSwitch(null)}>Cancel</Button>
+        </DialogActions>
+      </ModalDialog>
+    </Modal>
+    </>
   );
 }
