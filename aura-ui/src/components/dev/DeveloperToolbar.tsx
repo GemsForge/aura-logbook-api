@@ -23,6 +23,12 @@ type ApiState = "starting" | "ready" | "stopped" | "failed";
 type TestClient = { id: string; label: string };
 const localApiControlsEnabled = import.meta.env.DEV;
 const developerEnvironment = import.meta.env.VITE_AURA_ENV ?? (import.meta.env.MODE === "fit" ? "FIT" : "DEV");
+/** Light-on-dark control styling so enabled buttons read as active and disabled ones as dimmed on the toolbar background. */
+const toolbarButtonSx = {
+  color: "#f5f3ed", borderColor: "rgba(245,243,237,.55)",
+  "&:hover": { backgroundColor: "rgba(255,255,255,.12)" },
+  "&.Mui-disabled": { color: "rgba(245,243,237,.38)", borderColor: "rgba(245,243,237,.18)" },
+};
 
 /** Runs only in local Vite development; credentials remain inside the loopback launcher. */
 export function DeveloperToolbar() {
@@ -139,15 +145,16 @@ export function DeveloperToolbar() {
         <Typography level="body-xs" sx={{ color: "#c6d1d3" }}>{developerEnvironment} API · {stateText}</Typography>
       </Box>
       {localApiControlsEnabled && <Box role="group" aria-label="Local API controls" sx={{ display: "flex", gap: 0.5 }}>
-        <Button size="sm" variant="outlined" color="neutral" disabled={pendingAction !== "" || apiState === "ready"} onClick={() => void runApiAction("start")}>Start API</Button>
-        <Button size="sm" variant="outlined" color="neutral" disabled={pendingAction !== "" || apiState === "stopped"} onClick={() => void runApiAction("stop")}>Stop</Button>
-        <Button size="sm" variant="outlined" color="neutral" disabled={pendingAction !== ""} onClick={() => void runApiAction("restart")}>Restart</Button>
+        <Button size="sm" variant="outlined" color="neutral" sx={toolbarButtonSx} disabled={pendingAction !== "" || apiState === "ready"} onClick={() => void runApiAction("start")}>Start API</Button>
+        <Button size="sm" variant="outlined" color="neutral" sx={toolbarButtonSx} disabled={pendingAction !== "" || apiState === "stopped"} onClick={() => void runApiAction("stop")}>Stop</Button>
+        <Button size="sm" variant="outlined" color="neutral" sx={toolbarButtonSx} disabled={pendingAction !== ""} onClick={() => void runApiAction("restart")}>Restart</Button>
       </Box>}
       <FormControl size="sm" sx={{ minWidth: 190, ml: { sm: "auto" } }}>
         <FormLabel sx={{ color: "#d7dfdf", mb: 0.25 }}>Synthetic test client</FormLabel>
         <Select size="sm" variant="outlined" placeholder={clients.length ? "Choose a test client" : "No clients configured"}
           value={selectedClient} onChange={selectClient} disabled={pendingAction !== "" || !clients.length || apiState !== "ready"}
-          slotProps={{ button: { "aria-label": "Synthetic test client" } }}
+          slotProps={{ button: { "aria-label": "Synthetic test client" }, // The app header uses z-index 1100; keep the option list above it so options stay clickable.
+            listbox: { sx: { zIndex: 1200 } } }}
           sx={{ "--Select-focusedHighlight": "#6f9b93", color: "#f5f3ed", backgroundColor: "rgba(255,255,255,.08)" }}>
           {clients.map(client => <Option key={client.id} value={client.id}>{client.label}</Option>)}
         </Select>
