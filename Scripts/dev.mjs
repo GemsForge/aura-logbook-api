@@ -367,6 +367,7 @@ export function runDevelopment({
 
   const restartApi = () => serializeApiAction(async () => {
     if (stopping) return;
+    if (!apiService) throw new Error("The local API launcher is not configured.");
     const child = children.get("API");
     if (child) {
       apiState = "stopping";

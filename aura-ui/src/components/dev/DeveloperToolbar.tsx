@@ -34,6 +34,8 @@ export function DeveloperToolbar() {
   const [configurationError, setConfigurationError] = useState("");
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState("");
+  // Action and sign-in failures stay visible until the next user action; the status poll only updates `detail`.
+  const [actionError, setActionError] = useState("");
 
   const refreshStatus = useCallback(async () => {
     try {
@@ -69,6 +71,7 @@ export function DeveloperToolbar() {
 
   const runApiAction = async (action: "start" | "stop" | "restart") => {
     setPendingAction(action);
+    setActionError("");
     setDetail(`API ${action} requested.`);
     try {
       const response = await fetch("/__aura_dev/action", {
@@ -81,7 +84,7 @@ export function DeveloperToolbar() {
       await refreshStatus();
     } catch (error) {
       setApiState("failed");
-      setDetail(error instanceof Error ? error.message : "The local API action failed.");
+      setActionError(error instanceof Error ? error.message : "The local API action failed.");
     } finally {
       setPendingAction("");
     }
@@ -89,6 +92,7 @@ export function DeveloperToolbar() {
 
   const selectClient = async (_event: SyntheticEvent | null, clientId: string | null) => {
     setSelectedClient(clientId);
+    setActionError("");
     if (!clientId) return;
     const client = clients.find(item => item.id === clientId);
     if (!client) return;
@@ -117,7 +121,7 @@ export function DeveloperToolbar() {
     } catch (error) {
       delete api.defaults.headers.common.Authorization;
       dispatch(logout());
-      setDetail(error instanceof Error ? error.message : "Synthetic sign-in failed.");
+      setActionError(error instanceof Error ? error.message : "Synthetic sign-in failed.");
       showToast("Test-client sign-in failed. Check the local launcher and API.", "error");
     } finally {
       setSelectedClient(null);
@@ -150,7 +154,7 @@ export function DeveloperToolbar() {
       </FormControl>
       <Typography role={configurationError ? "alert" : "status"} aria-live={configurationError ? "assertive" : "polite"} level="body-xs"
         sx={{ width: { xs: "100%", sm: "auto" }, minWidth: 120, color: configurationError ? "#ffd4b8" : "#d7dfdf" }}>
-        {configurationError || detail}
+        {configurationError || actionError || detail}
       </Typography>
     </Sheet>
   );
