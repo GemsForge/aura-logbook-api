@@ -153,6 +153,20 @@ The Spotify authorization request asks for these read permissions:
 
 When requested permissions change, reconnect Spotify in Aura Logbook to review and grant the updated access. The integration uses the currently-playing endpoint matching `user-read-currently-playing`. See [Spotify integration](spotify-integration.md) for setup, storage, routes and recovery.
 
+## Cloudflare Pages FIT bindings
+
+The Pages Function requires `API_TUNNEL_URL` as a non-secret HTTPS API
+origin, plus `ACCESS_SERVICE_TOKEN_CLIENT_ID` and
+`ACCESS_SERVICE_TOKEN_CLIENT_SECRET` as encrypted server-side Function
+secrets. Configure values separately for each Preview/FIT environment that
+needs API access. The browser build uses only `VITE_API_BASE_URL=/api`; never
+prefix Access credentials with `VITE_` or include them in frontend settings.
+
+The API host keeps its own FIT-only `Jwt__Key`, SQLite connection,
+`Storage__PrivateMediaPath`, OAuth/provider credentials, and optional SMTP
+settings in the host's protected configuration store. Do not place API host
+secrets in Pages bindings. See the [Cloudflare FIT hosting runbook](deployment/cloudflare-fit.md).
+
 ## JWT signing key
 
 `Jwt:Key` signs and validates sign-in tokens. It is a secret and is not in
