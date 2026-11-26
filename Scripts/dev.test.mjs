@@ -29,7 +29,7 @@ test("service plan uses the HTTP launch profile and the configured development p
   const plan = createServicePlan({ root: "/repo", platform: "linux", env: {} });
 
   assert.equal(plan[0].command, "dotnet");
-  assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http", "--", "--urls", "http://localhost:5082"]);
+  assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--no-launch-profile", "--", "--urls", "http://localhost:5082"]);
   assert.equal(plan[0].cwd, "/repo/AuraLogbook.Api");
   assert.equal(plan[1].command, "npm");
   assert.deepEqual(plan[1].args, ["run", "dev", "--", "--host", "127.0.0.1", "--port", "58407", "--strictPort"]);
@@ -78,10 +78,27 @@ test("exported backend key overrides the local file and is excluded from Vite", 
   }
 });
 
+test("backend credentials and connection strings stay out of the Vite environment", () => {
+  const secrets = {
+    Database__ConnectionString: "Data Source=private.db",
+    Jwt__Key: "fake-jwt-signing-key",
+    ACCESS_SERVICE_TOKEN_CLIENT_SECRET: "fake-access-secret",
+    AURA_DEV_TEST_CLIENTS_JSON: "fake-client-config",
+    VITE_ACCESS_TOKEN: "fake-browser-token",
+  };
+  const [api, ui] = createServicePlan({ root: "/repo", platform: "linux", env: secrets });
+
+  assert.equal(api.env.Database__ConnectionString, secrets.Database__ConnectionString);
+  assert.equal(api.env.Jwt__Key, secrets.Jwt__Key);
+  assert.equal(api.env.ACCESS_SERVICE_TOKEN_CLIENT_SECRET, secrets.ACCESS_SERVICE_TOKEN_CLIENT_SECRET);
+  assert.equal(api.env.AURA_DEV_TEST_CLIENTS_JSON, undefined);
+  for (const key of Object.keys(secrets)) assert.equal(ui.env[key], undefined, `${key} must not reach Vite`);
+});
+
 test("service plan supports alternate ports for parallel local instances", () => {
   const plan = createServicePlan({ root: "/repo", platform: "linux", env: { AURA_API_PORT: "5082", AURA_UI_PORT: "58408" } });
 
-  assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--launch-profile", "http", "--", "--urls", "http://localhost:5082"]);
+  assert.deepEqual(plan[0].args, ["run", "--project", "AuraLogbook.Api.csproj", "--no-launch-profile", "--", "--urls", "http://localhost:5082"]);
   assert.equal(plan[1].args.at(-2), "58408");
   assert.equal(plan[1].env.VITE_API_BASE_URL, "http://localhost:5082/api");
 });

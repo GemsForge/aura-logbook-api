@@ -85,6 +85,14 @@ Production deployment.
 The API startup log reports the resolved environment and the active seeding
 flag, making configuration selection visible in deployment logs.
 
+When running local `DEV` or `FIT`, the combined launcher provides a top-of-app
+developer toolbar for API lifecycle controls and configured synthetic test
+accounts. A dedicated Cloudflare Pages FIT build can show API readiness and
+select an account through explicitly enabled server-side Pages Functions; it
+cannot start or stop the remote API. Production mode omits the toolbar. See
+[Developer console toolbar](development-toolbar.md) for the local and FIT
+settings.
+
 ## Cloudflare FIT hosting
 
 The Cloudflare FIT plan serves the React/Vite UI and Pages Functions from

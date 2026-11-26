@@ -21,8 +21,8 @@ export async function hydrateUserSession(
     localStorage.setItem("session_hydrated", "true");
 
     return user;
-  } catch (error) {
-    console.error("Session hydration failed:", error);
+  } catch {
+    // Axios errors include request headers in their config; avoid logging a bearer token on failure.
     return null;
   }
 }

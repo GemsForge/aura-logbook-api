@@ -6,13 +6,15 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 /** Lets an isolated UI worktree proxy to its own API without disturbing another local run. */
 const apiProxyTarget = process.env.AURA_API_PROXY_TARGET ?? "http://127.0.0.1:5082";
+// The root launcher supplies this private loopback proxy only for local development.
+const devControlTarget = process.env.AURA_DEV_CONTROL_TARGET;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
-  // Fail before bundling so a deployed UI cannot silently call an empty API base URL.
-  if (mode === "production" && !env.VITE_API_BASE_URL?.trim()) {
-    throw new Error("VITE_API_BASE_URL is required for production builds. Set it to the deployed API base URL (for example, https://api.example.com/api).");
+  // Production and dedicated FIT bundles require the Pages proxy's same-origin API base.
+  if (["production", "fit"].includes(mode) && !env.VITE_API_BASE_URL?.trim()) {
+    throw new Error("VITE_API_BASE_URL is required for Production and FIT builds. Set it to the deployed API base URL (for example, /api).");
   }
 
   return {
@@ -26,6 +28,7 @@ export default defineConfig(({ mode }) => {
       // Route phone-preview API requests through the laptop while the API remains on loopback.
       proxy: {
         "/api": { target: apiProxyTarget, changeOrigin: true },
+        ...(devControlTarget ? { "/__aura_dev": { target: devControlTarget, changeOrigin: true } } : {}),
       },
     },
     test: {

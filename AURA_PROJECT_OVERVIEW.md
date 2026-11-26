@@ -52,6 +52,12 @@ Color, emoji, hover, and motion must never be the only way to understand a state
 
 All environments register SQLite repositories for users, moods, zodiac insights, and reflections. Production database durability and hosting still require an explicit deployment decision.
 
+Local development and a deliberately configured Cloudflare FIT build include a
+developer console toolbar for local API lifecycle actions and synthetic FIT
+account sign-in. The toolbar is excluded from normal Production builds and
+never controls the remote API. See [Developer console toolbar](docs/development-toolbar.md)
+for setup and credential boundaries.
+
 The planned FIT web host uses Cloudflare Pages for the React/Vite UI and
 server-side Pages Functions to proxy same-origin API and database-health
 requests through Cloudflare Access and Tunnel to the .NET API on a durable
